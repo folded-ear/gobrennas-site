@@ -4,11 +4,12 @@ Do you use food? Do you use software? Brenna's Food Software is for you!
 
 > Your _face_ is a ~~cookbook~~ food software!
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
 ## Dependencies
-* Node >=20
-* pnpm as the package manager
+
+- Node >=20
+- pnpm as the package manager
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 The easiest way to get the correct version of node is to use `nvm` (see https://github.com/nvm-sh/nvm ) then `nvm install` and `nvm use` to set.
 
@@ -25,9 +26,11 @@ Then start the client with `pnpm run dev`.
 Open [http://localhost:3000](http://localhost:3000) with a browser to see the result.
 
 ## Testing
+
 Unit tests are set up with vitest and can be run with `pnpm run test`
 
 ## Storybook
+
 There is a storybook instance to browse the project component library and pages. It can be run with `pnpm run storybook`
 
 ## Build
