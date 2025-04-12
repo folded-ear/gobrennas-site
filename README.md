@@ -1,36 +1,38 @@
+# Brenna's Food Software UI
+
+Do you use food? Do you use software? Brenna's Food Software is for you!
+
+> Your _face_ is a ~~cookbook~~ food software!
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Dependencies
+* Node >=20
+* pnpm as the package manager
 
-First, run the development server:
+The easiest way to get the correct version of node is to use `nvm` (see https://github.com/nvm-sh/nvm ) then `nvm install` and `nvm use` to set.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+If you don't already have `pnpm` installed globally as the package manager, you can enable it (assuming you have the correct version of node above) by running `corepack enable pnpm`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then, install all the project dependencies with `pnpm install`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Run the app
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+First, The app won't do much unless you have an API running at http://localhost:8080 (see https://github.com/folded-ear/gobrennas-api):
 
-## Learn More
+Then start the client with `pnpm run dev`.
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000) with a browser to see the result.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Testing
+Unit tests are set up with vitest and can be run with `pnpm run test`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Storybook
+There is a storybook instance to browse the project component library and pages. It can be run with `pnpm run storybook`
 
-## Deploy on Vercel
+## Build
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Run `pnpm run build`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Now you'll have a nice ready-to-deploy website in the `build` directory! And
+it's useless without an API to connect to.
