@@ -42,3 +42,5 @@ next-env.d.ts
 
 *.iml
 .idea
+
+*storybook.log
