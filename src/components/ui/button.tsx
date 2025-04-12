@@ -1,14 +1,13 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import { cva, type VariantProps } from "class-variance-authority";
 import {
   Button as AriaButton,
   composeRenderProps,
   type ButtonProps as AriaButtonProps,
-} from "react-aria-components"
+} from "react-aria-components";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   [
@@ -31,7 +30,8 @@ const buttonVariants = cva(
           "ds-border ds-border-input ds-bg-background data-[hovered]:ds-bg-accent data-[hovered]:ds-text-accent-foreground",
         secondary:
           "ds-bg-secondary ds-text-secondary-foreground data-[hovered]:ds-bg-secondary/80",
-        ghost: "data-[hovered]:ds-bg-accent data-[hovered]:ds-text-accent-foreground",
+        ghost:
+          "data-[hovered]:ds-bg-accent data-[hovered]:ds-text-accent-foreground",
         link: "ds-text-primary ds-underline-offset-4 data-[hovered]:ds-underline",
       },
       size: {
@@ -45,8 +45,8 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
-)
+  },
+);
 
 interface ButtonProps
   extends AriaButtonProps,
@@ -61,13 +61,13 @@ const Button = ({ className, variant, size, ...props }: ButtonProps) => {
             variant,
             size,
             className,
-          })
-        )
+          }),
+        ),
       )}
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Button, buttonVariants }
-export type { ButtonProps }
+export { Button, buttonVariants };
+export type { ButtonProps };
