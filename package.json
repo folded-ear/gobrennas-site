@@ -7,6 +7,7 @@
     "build-storybook": "storybook build",
     "dev": "next dev --turbopack",
     "format": "prettier . --write",
+    "generate": "graphql-codegen",
     "lint": "next lint",
     "start": "next start",
     "storybook": "storybook dev -p 6006",
@@ -14,6 +15,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.487.0",
@@ -27,6 +29,8 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@graphql-codegen/cli": "5.0.2",
+    "@graphql-codegen/client-preset": "4.2.4",
     "@storybook/addon-essentials": "^8.6.12",
     "@storybook/blocks": "^8.6.12",
     "@storybook/nextjs": "^8.6.12",
