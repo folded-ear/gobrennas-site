@@ -2,6 +2,7 @@
 
 import { defaultTheme, Provider } from "@adobe/react-spectrum";
 import { useRouter } from "next/navigation";
+import { PropsWithChildren } from "react";
 
 declare module "@adobe/react-spectrum" {
   interface RouterConfig {
@@ -11,7 +12,7 @@ declare module "@adobe/react-spectrum" {
   }
 }
 
-export function ClientProviders({ children }) {
+export function ClientProviders({ children }: PropsWithChildren) {
   let router = useRouter();
 
   return (

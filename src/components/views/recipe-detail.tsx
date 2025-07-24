@@ -4,8 +4,6 @@ import { Recipe } from "@/__graphql/graphql";
 import { Flex, Header } from "@adobe/react-spectrum";
 
 export default function RecipeDetail({ recipe }: { recipe?: Recipe }) {
-  console.log("recipe", recipe);
-
   return (
     <Flex direction="column">
       <Header>{recipe?.name}</Header>

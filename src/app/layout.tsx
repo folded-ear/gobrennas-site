@@ -1,16 +1,5 @@
 import { ClientProviders } from "@/providers/clientProvider";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Brenna's Food Software",
@@ -24,10 +13,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ClientProviders>{children}</ClientProviders>
+      <body className="h-full">
+        <ClientProviders>
+          <div className="flex flex-col">
+            <main className="flex-1">{children}</main>
+            <footer className="sticky bottom-0 flex gap-[24px] flex-wrap items-center justify-center">
+              proudfeet
+            </footer>
+          </div>
+        </ClientProviders>
       </body>
     </html>
   );
