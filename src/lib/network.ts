@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
 import type { TypedDocumentString } from "@/__graphql/graphql";
 import { verifyToken } from "@/lib/data";
+import { cookies } from "next/headers";
 
 export async function fetchGraphQL<TResult, TVariables>(
   query: TypedDocumentString<TResult, TVariables>,

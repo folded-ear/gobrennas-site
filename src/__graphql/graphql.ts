@@ -1240,6 +1240,27 @@ export type UserPreference = {
   value: Maybe<Scalars['String']['output']>;
 };
 
+export type LibrarySearchResultFragment = { __typename?: 'RecipeConnection', edges: Array<{ __typename?: 'RecipeConnectionEdge', cursor: any, node: { __typename?: 'Recipe', id: string, name: string, labels: Array<string> | null, externalUrl: string | null, calories: number | null, yield: number | null, totalTime: number | null, owner: { __typename?: 'User', id: string, imageUrl: string | null, email: string, name: string | null }, photo: { __typename?: 'Photo', url: string, focus: Array<number> | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor: any | null } };
+
+export type RecipeCoreFragment = { __typename?: 'Recipe', id: string, name: string, directions: string | null, totalTime: number | null, ingredients: Array<{ __typename?: 'IngredientRef', raw: string, preparation: string | null, quantity: { __typename?: 'Quantity', quantity: number, units: { __typename?: 'UnitOfMeasure', name: string } | null } | null, ingredient: { __typename?: 'PantryItem', id: string, name: string } | { __typename?: 'Recipe', id: string, name: string } | null }> };
+
+export type GetSearchLibraryQueryVariables = Exact<{
+  query?: Scalars['String']['input'];
+  scope?: LibrarySearchScope;
+  first?: Scalars['NonNegativeInt']['input'];
+  after?: InputMaybe<Scalars['Cursor']['input']>;
+}>;
+
+
+export type GetSearchLibraryQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', recipes: { __typename?: 'RecipeConnection', edges: Array<{ __typename?: 'RecipeConnectionEdge', cursor: any, node: { __typename?: 'Recipe', id: string, name: string, labels: Array<string> | null, externalUrl: string | null, calories: number | null, yield: number | null, totalTime: number | null, owner: { __typename?: 'User', id: string, imageUrl: string | null, email: string, name: string | null }, photo: { __typename?: 'Photo', url: string, focus: Array<number> | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor: any | null } } } };
+
+export type GetRecipeWithEverythingQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetRecipeWithEverythingQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', getRecipeById: { __typename?: 'Recipe', yield: number | null, calories: number | null, externalUrl: string | null, labels: Array<string> | null, id: string, name: string, directions: string | null, totalTime: number | null, photo: { __typename?: 'Photo', url: string, focus: Array<number> | null } | null, owner: { __typename?: 'User', id: string, name: string | null, email: string, imageUrl: string | null }, subrecipes: Array<{ __typename?: 'Recipe', id: string, name: string, directions: string | null, totalTime: number | null, ingredients: Array<{ __typename?: 'IngredientRef', raw: string, preparation: string | null, quantity: { __typename?: 'Quantity', quantity: number, units: { __typename?: 'UnitOfMeasure', name: string } | null } | null, ingredient: { __typename?: 'PantryItem', id: string, name: string } | { __typename?: 'Recipe', id: string, name: string } | null }> }>, plannedHistory: Array<{ __typename?: 'PlannedRecipeHistory', id: string, plannedAt: string, doneAt: string, status: PlanItemStatus, notes: string | null, rating: number | null, owner: { __typename?: 'User', name: string | null, email: string, imageUrl: string | null } }>, ingredients: Array<{ __typename?: 'IngredientRef', raw: string, preparation: string | null, quantity: { __typename?: 'Quantity', quantity: number, units: { __typename?: 'UnitOfMeasure', name: string } | null } | null, ingredient: { __typename?: 'PantryItem', id: string, name: string } | { __typename?: 'Recipe', id: string, name: string } | null }> } } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1263,7 +1284,152 @@ export class TypedDocumentString<TResult, TVariables>
     return this.value;
   }
 }
-
+export const LibrarySearchResultFragmentDoc = new TypedDocumentString(`
+    fragment librarySearchResult on RecipeConnection {
+  edges {
+    cursor
+    node {
+      id
+      owner {
+        id
+        imageUrl
+        email
+        name
+      }
+      photo {
+        url
+        focus
+      }
+      name
+      labels
+      externalUrl
+      calories
+      yield
+      totalTime
+    }
+  }
+  pageInfo {
+    hasNextPage
+    endCursor
+  }
+}
+    `, {"fragmentName":"librarySearchResult"}) as unknown as TypedDocumentString<LibrarySearchResultFragment, unknown>;
+export const RecipeCoreFragmentDoc = new TypedDocumentString(`
+    fragment recipeCore on Recipe {
+  id
+  name
+  directions
+  totalTime
+  ingredients {
+    raw
+    quantity {
+      quantity
+      units {
+        name
+      }
+    }
+    ingredient {
+      id
+      name
+    }
+    preparation
+  }
+}
+    `, {"fragmentName":"recipeCore"}) as unknown as TypedDocumentString<RecipeCoreFragment, unknown>;
+export const GetSearchLibraryDocument = new TypedDocumentString(`
+    query getSearchLibrary($query: String! = "", $scope: LibrarySearchScope! = MINE, $first: NonNegativeInt! = 9, $after: Cursor = null) {
+  library {
+    recipes(first: $first, query: $query, scope: $scope, after: $after) {
+      ...librarySearchResult
+    }
+  }
+}
+    fragment librarySearchResult on RecipeConnection {
+  edges {
+    cursor
+    node {
+      id
+      owner {
+        id
+        imageUrl
+        email
+        name
+      }
+      photo {
+        url
+        focus
+      }
+      name
+      labels
+      externalUrl
+      calories
+      yield
+      totalTime
+    }
+  }
+  pageInfo {
+    hasNextPage
+    endCursor
+  }
+}`) as unknown as TypedDocumentString<GetSearchLibraryQuery, GetSearchLibraryQueryVariables>;
+export const GetRecipeWithEverythingDocument = new TypedDocumentString(`
+    query getRecipeWithEverything($id: ID!) {
+  library {
+    getRecipeById(id: $id) {
+      ...recipeCore
+      yield
+      calories
+      externalUrl
+      labels
+      photo {
+        url
+        focus
+      }
+      owner {
+        id
+        name
+        email
+        imageUrl
+      }
+      subrecipes {
+        ...recipeCore
+      }
+      plannedHistory {
+        id
+        plannedAt
+        doneAt
+        status
+        owner {
+          name
+          email
+          imageUrl
+        }
+        rating: ratingInt
+        notes
+      }
+    }
+  }
+}
+    fragment recipeCore on Recipe {
+  id
+  name
+  directions
+  totalTime
+  ingredients {
+    raw
+    quantity {
+      quantity
+      units {
+        name
+      }
+    }
+    ingredient {
+      id
+      name
+    }
+    preparation
+  }
+}`) as unknown as TypedDocumentString<GetRecipeWithEverythingQuery, GetRecipeWithEverythingQueryVariables>;
 export const MeDocument = new TypedDocumentString(`
     query me {
   getCurrentUser {
