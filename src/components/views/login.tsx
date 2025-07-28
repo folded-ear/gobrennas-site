@@ -7,7 +7,7 @@ import Link from "next/link";
 export default function Login() {
   return (
     <div className="bg-surface p-lg rounded-sm">
-      <h1>Brenna's Food Software</h1>
+      <h1 className="text-xl">Brenna's Food Software</h1>
       <p>
         Brenna's Food Software is a recipe library, meal planner, and digital
         shopping list. At the store with your partner or kids? Split up, without
