@@ -1,15 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Book, Calendar } from "lucide-react";
+import { SearchField } from "@/components/ui/search-field";
+import { Book, Calendar, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { PropsWithChildren } from "react";
 
-export default function PrivateLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PrivateLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
 
   const primaryNav = [
@@ -27,34 +25,29 @@ export default function PrivateLayout({
     },
   ];
 
-  return (
-    <div>
-      <div className="flex p-4 bg-surface">
-        <div className="flex-1 gap-md">
-          <nav className="flex gap-sm">
-            {primaryNav.map((item) => (
-              <Button asChild>
-                <Link key={item.label} href={item.href}>
-                  {item.label}
-                </Link>
-              </Button>
-            ))}
-          </nav>
-        </div>
-        <div>
-          <nav className="flex gap-sm">
-            <Button asChild>
-              <Link
-                href={process.env.NEXT_PUBLIC_API_BASE_URL + "/oauth2/logout"}
-              >
-                Logout
-              </Link>
-            </Button>
-          </nav>
-        </div>
-      </div>
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    window.location.href = `${process.env.NEXT_PUBLIC_APP_BASE_URL}/oauth2/logout`;
+  };
 
-      {children}
+  return (
+    <div className="grid grid-cols-[150px_minmax(400px,_1fr)_min-content] gap-xs h-dvh">
+      <nav className="flex flex-col gap-y-sm">
+        <h1 className="text-xl">BFS</h1>
+        {primaryNav.map((nav) => (
+          <div key={nav.label} className="flex">
+            {nav.icon} <Link href={nav.href}>{nav.label}</Link>
+          </div>
+        ))}
+        <Button variant="ghost" onPress={handleLogout}>
+          <LogOut />
+        </Button>
+      </nav>
+      <main className="p-lg">
+        <SearchField />
+        {children}
+      </main>
+      <div className="border-3 border-green-600"></div>
     </div>
   );
 }

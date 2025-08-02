@@ -6,5 +6,10 @@ export default async function RecipesPage() {
   const recipes =
     result?.library?.recipes.edges.map((recipe) => recipe.node) ?? [];
 
-  return <Recipes recipes={recipes} />;
+  return (
+    <div className="my-xl">
+      <h1 className="text-xl">Recipe Library</h1>
+      <Recipes recipes={recipes} />
+    </div>
+  );
 }
