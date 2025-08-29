@@ -19,11 +19,11 @@ Then, install all the project dependencies with `pnpm install`.
 
 ## Run the app
 
-First, The app won't do much unless you have an API running at http://localhost:8080 (see https://github.com/folded-ear/gobrennas-api):
+First, the app won't do much unless you have an API running at http://localhost:8080 (see https://github.com/folded-ear/gobrennas-api).
 
 Then start the client with `pnpm run dev`.
 
-Open [http://localhost:3000](http://localhost:3000) with a browser to see the result.
+Open [http://localhost:4000](http://localhost:4000) with a browser to see the result.
 
 ## Testing
 
