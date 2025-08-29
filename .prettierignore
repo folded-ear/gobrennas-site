@@ -1,3 +1,10 @@
 # Ignore artifacts:
+.idea
 build
 coverage
+/src/__graphql/
+/pnpm-lock.yaml
+**/*.html
+**/*.json
+**/*.graphql
+**/*.md
