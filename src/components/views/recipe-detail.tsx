@@ -1,8 +1,12 @@
 "use client";
 
-import { Recipe } from "@/__graphql/graphql";
+import { GetRecipeWithEverythingQuery } from "@/__graphql/graphql";
 
-export default function RecipeDetail({ recipe }: { recipe?: Recipe }) {
+export default function RecipeDetail({
+  recipe,
+}: {
+  recipe?: GetRecipeWithEverythingQuery["library"]["getRecipeById"];
+}) {
   return (
     <div className="flex flex-col">
       <h1>{recipe?.name}</h1>

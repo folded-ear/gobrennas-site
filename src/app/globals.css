@@ -1,5 +1,5 @@
-@import '@fontsource/geist-sans';
-@import '@fontsource/geist-mono';
+@import "@fontsource/geist-sans";
+@import "@fontsource/geist-mono";
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -57,20 +57,24 @@
   --color-success-05: #3c813c;
 
   --color-warning-01: #feedcc;
-  --color-warning-02: #FBC02D;
+  --color-warning-02: #fbc02d;
   --color-warning-03: #fca400;
   --color-warning-04: #976201;
   --color-warning-05: #322100;
 
-  --color-critical-01: #FFCDD2;
-  --color-critical-02: #E57373;
-  --color-critical-03: #F44336;
-  --color-critical-04: #B71C1C;
+  --color-critical-01: #ffcdd2;
+  --color-critical-02: #e57373;
+  --color-critical-03: #f44336;
+  --color-critical-04: #b71c1c;
   --color-critical-05: #601b07;
 
-  --shadow-raised: 0 5px 5px 0 rgba(0 0 0 / 0.2), 0 3px 14px 0 rgba(0 0 0 / 0.12), 0 8px 10px 0 rgba(0 0 0 / 0.14);
+  --shadow-raised:
+    0 5px 5px 0 rgba(0 0 0 / 0.2), 0 3px 14px 0 rgba(0 0 0 / 0.12),
+    0 8px 10px 0 rgba(0 0 0 / 0.14);
 
-  --font-geist: "Geist Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-geist:
+    "Geist Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-geist-mono: "Geist Mono", monospace;
 }
 

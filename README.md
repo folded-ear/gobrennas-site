@@ -19,15 +19,15 @@ Then, install all the project dependencies with `pnpm install`.
 
 ## Run the app
 
-First, The app won't do much unless you have an API running at http://localhost:8080 (see https://github.com/folded-ear/gobrennas-api):
+First, the app won't do much unless you have an API running at http://localhost:8080 (see https://github.com/folded-ear/gobrennas-api).
 
 Then start the client with `pnpm run dev`.
 
-Open [http://localhost:3000](http://localhost:3000) with a browser to see the result.
+Open [http://localhost:4000](http://localhost:4000) with a browser to see the result.
 
 ## Testing
 
-Unit tests are set up with vitest and can be run with `pnpm run test`
+Unit tests are set up with vitest and can be run with `pnpm test` (or `pnpm run test`).
 
 ## Storybook
 
@@ -43,6 +43,7 @@ it's useless without an API to connect to.
 ## Local Development
 
 ### Adding new components
+
 The component library is based on using [shadcn](https://ui.shadcn.com/) to create new components. Rather than a library where a whole suite of components are imported at once, this system generates a component into the code base via either a CLI or simply cut-and-paste via a standard pattern. Under the hood, a headless component (in most cases, [RadixUI](https://www.radix-ui.com/)) is installed as a dependency, styled with defaults.
 
 The components are managed independently and can be customized at will.
