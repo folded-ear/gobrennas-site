@@ -27,7 +27,7 @@ Open [http://localhost:4000](http://localhost:4000) with a browser to see the re
 
 ## Testing
 
-Unit tests are set up with vitest and can be run with `pnpm run test`
+Unit tests are set up with vitest and can be run with `pnpm test` (or `pnpm run test`).
 
 ## Storybook
 
