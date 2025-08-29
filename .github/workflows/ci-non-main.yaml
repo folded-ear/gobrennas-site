@@ -23,4 +23,4 @@ jobs:
       - run: pnpm run format
       - run: pnpm run storybook --smoke-test
       - run: git diff --exit-code # fail if any dirtiness was created
-      - run: pnpm run build --no-line # includes typechecking
+      - run: pnpm run build --no-lint # includes typechecking
