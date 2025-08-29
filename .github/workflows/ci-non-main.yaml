@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  # does NOT fire on retarget, only create!
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+        cache: 'pnpm'
+    - run: pnpm install
+    - run: pnpm test
+    - run: pnpm run lint
+    - run: pnpm run format
+    - run: pnpm run storybook --smoke-test
+    - run: git diff --exit-code # fail if any dirtiness was created
+    - run: pnpm run build --no-line # includes typechecking
