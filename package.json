@@ -11,7 +11,7 @@
     "format": "prettier . --write",
     "generate": "graphql-codegen",
     "lint": "next lint",
-    "start": "next start",
+    "start": "node .next/standalone/server.js",
     "storybook": "storybook dev -p 6006",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
