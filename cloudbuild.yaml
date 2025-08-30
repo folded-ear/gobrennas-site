@@ -6,7 +6,8 @@ steps:
       - "--no-cache"
       - "-t"
       - >-
-        $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+        $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      # this is needed for icon coloring, if/when we get there
       - "--build-arg"
       - >-
         SERVICE_NAME=$_SERVICE_NAME
@@ -19,7 +20,7 @@ steps:
     args:
       - push
       - >-
-        $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+        $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
 
   - id: No Manual Traffic Management
     # https://issuetracker.google.com/issues/172165141?pli=1
@@ -45,14 +46,14 @@ steps:
       - $_SERVICE_NAME
       - "--platform=managed"
       - >-
-        --image=$_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+        --image=$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
       - >-
         --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
       - "--region=$_DEPLOY_REGION"
-
+      - "--quiet"
 images:
   - >-
-    $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+    $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
 
 options:
   substitutionOption: ALLOW_LOOSE
@@ -61,8 +62,10 @@ options:
 substitutions:
   _SERVICE_NAME: beta-next-gobrennas-com
   _DEPLOY_REGION: us-west1
-  _TRIGGER_ID: d9c4db83-35c3-49c3-8147-dd21796b32ba
+  _TRIGGER_ID: 363f8889-5a8f-4c98-abde-752d32ba67ce
   _AR_HOSTNAME: us-west1-docker.pkg.dev
+  _AR_PROJECT_ID: folded-ear
+  _AR_REPOSITORY: cloud-run-source-deploy
   _PLATFORM: managed
 
 tags:
