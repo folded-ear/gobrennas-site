@@ -1,5 +1,6 @@
 "use client";
 
+import { doLogout } from "@/app/(public)/constants";
 import { Button } from "@/components/ui/button";
 import { SearchField } from "@/components/ui/search-field";
 import { Book, Calendar, LogOut } from "lucide-react";
@@ -27,7 +28,7 @@ export default function PrivateLayout({ children }: PropsWithChildren) {
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
-    window.location.href = `${process.env.NEXT_PUBLIC_APP_BASE_URL}/oauth2/logout`;
+    doLogout();
   };
 
   return (

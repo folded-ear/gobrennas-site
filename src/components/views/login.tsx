@@ -1,15 +1,15 @@
 "use client";
 
-import { GOOGLE_AUTH_URL } from "@/app/(public)/constants";
+import { doLogin } from "@/app/(public)/constants";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 export default function Login() {
+  const handleLogin = () => doLogin();
   return (
     <div className="flex flex-col gap-lg bg-surface p-lg items-center rounded-md max-w-2/3 mx-auto">
       <h1 className="text-xl">Brenna&apos;s Food Software</h1>
-      <Button className="w-fit" variant="outline">
-        <Link href={GOOGLE_AUTH_URL}>Login with Google</Link>
+      <Button className="w-fit bg-bfs" variant="outline" onClick={handleLogin}>
+        Login with Google
       </Button>
       <p>
         Brenna&apos;s Food Software is a recipe library, meal planner, and
