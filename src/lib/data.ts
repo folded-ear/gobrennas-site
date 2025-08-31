@@ -6,7 +6,6 @@ import { cache } from "react";
 
 export const verifyToken = cache(async () => {
   const cookie = (await cookies()).get("FTOKEN")?.value;
-  console.log(cookie);
 
   if (!cookie) {
     redirect("/login");

@@ -1,11 +1,28 @@
-// Limit the middleware to paths starting with `/api/`
-export const config = {
-  matcher: "/_probes/:type+",
-};
+import { cloudRunProbesFilter } from "@/filters/cloud-run-probes";
+import { deviceKeyCookieFilter } from "@/filters/device-key-cookie";
+import { buildFilterChain } from "@/filters/filters";
 
-export function middleware() {
-  return new Response("Happy Cooking!", {
-    status: 200,
-    headers: { "content-type": "text/plain" },
-  });
-}
+/*
+To add additional middleware, define a Filter:
+
+  function myNiftyFilter(request: NextRequest, chain: FilterChain): NextResponse {
+    if ( ... ) {
+      // Immediately return a response, terminating both the filter chain and
+      // NextJS's overall request handling pipeline.
+      return new NextResponse( ... );
+    }
+
+    // Perform request pre-processing.
+
+    // Exchange the request for a response.
+    const response = chain(request);
+
+    // Perform response post-processing.
+
+    // Return the response.
+    return response;
+  }
+
+Then register the Filter in the chain below, at the position it should run.
+ */
+export default buildFilterChain(cloudRunProbesFilter, deviceKeyCookieFilter);
