@@ -1,4 +1,5 @@
 import { cloudRunProbesFilter } from "@/filters/cloud-run-probes";
+import { deviceKeyCookieFilter } from "@/filters/device-key-cookie";
 import { buildFilterChain } from "@/filters/filters";
 
 /*
@@ -24,4 +25,4 @@ To add additional middleware, define a Filter:
 
 Then register the Filter in the chain below, at the position it should run.
  */
-export default buildFilterChain(cloudRunProbesFilter);
+export default buildFilterChain(cloudRunProbesFilter, deviceKeyCookieFilter);
