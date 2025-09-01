@@ -1,8 +1,8 @@
 "use client";
 
 import { GetSearchLibraryQuery } from "@/__graphql/graphql";
-import { Button } from "@/components/ui/button";
 import { RecipeCard } from "@/components/ui/recipe-card";
+import { Button } from "@heroui/button";
 import { EditIcon, EyeIcon, Star } from "lucide-react";
 import Link from "next/link";
 
@@ -32,7 +32,7 @@ export default function RecipeGrid({
               </RecipeCard.Title>
             </RecipeCard.Content>
             <RecipeCard.Footer>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost">
                 <Link href={`/recipes/${recipe.id}`}>
                   <EyeIcon />
                 </Link>

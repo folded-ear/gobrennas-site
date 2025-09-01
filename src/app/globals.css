@@ -2,6 +2,10 @@
 @import "@fontsource/geist-mono";
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin './hero.ts';
+@source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+
+/*@custom-variant dark (&:is(.dark *));*/
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -95,44 +99,32 @@
     /** required defaults for ShadCN theme vars **/
     --color-background: var(--color-gray-08);
     --color-foreground: var(--color-gray-01);
-    --color-primary: var(--color-gray-01);
-    --color-primary-foreground: var(--color-gray-08);
-    --color-secondary: var(--color-gray-07);
-    --color-secondary-foreground: var(--color-gray-03);
-    --color-muted: var(--color-gray-08);
-    --color-muted-foreground: var(--color-gray-03);
-    --color-accent: var(--color-gray-08);
-    --color-accent-foreground: var(--color-gray-02);
-    --color-sidebar: var(--color-gray-09);
-    --color-sidebar-foreground: var(--color-gray-01);
-    --color-sidebar-primary: var(--color-brand-08);
-    --color-sidebar-primary-foreground: var(--color-gray-01);
-    --color-sidebar-accent: var(--color-gray-07);
-    --color-sidebar-accent-foreground: var(--color-gray-01);
-    --color-sidebar-ring: var(--color-gray-06);
-    --color-sidebar-border: var(--color-gray-04);
+    --color-primary: var(--color-brand-06);
 
-    --color-input: var(--color-gray-08);
-    --color-destructive: var(--color-critical-02);
-    --color-popover-foreground: var(--color-gray-01);
-    --color-popover: var(--color-gray-09);
   }
 }
 
 @theme {
   --font-sans: var(--font-geist);
   --font-mono: var(--font-geist-mono);
+
   --color-bfs: var(--color-brand-06);
   --color-bfs-muted: var(--color-brand-02);
   --color-bfs-deep: var(--color-brand-09);
 
-  --color-surface: var(--color-cool-01);
-  --color-outline: var(--color-gray-03);
-  --color-ring: var(--color-gray-03);
+  --color-background: var(--color-cool-02);
+  --color-background-muted: var(--color-cool-01);
+  --color-background-bold: var(--color-cool-03);
 
-  --color-fg-muted: var(--color-gray-05);
-  --color-fg-default: var(--color-gray-08);
-  --color-fg-bold: var(--color-gray-09);
+  --color-foreground: var(--color-gray-08);
+  --color-foreground-muted: var(--color-gray-05);
+  --color-foreground-bold: var(--color-gray-09);
+
+  --color-outline: var(--color-gray-03);
+
+  --color-primary: var(--color-brand-04);
+  --color-primary-muted: var(--color-brand-02);
+  --color-primary-deep: var(--color-brand-09);
 
   --color-critical-muted: var(--color-critical-01);
   --color-critical: var(--color-critical-04);
@@ -140,11 +132,11 @@
 
   --text-xxl: 32px;
   --text-xl: 24px;
-  --text-lg-size: 18px;
-  --text-md-size: 14px;
-  --text-sm-size: 12px;
-  --text-xs-size: 10px;
-  --text-xxs-size: 9px;
+  --text-lg: 18px;
+  --text-md: 14px;
+  --text-sm: 12px;
+  --text-xs: 10px;
+  --text-xxs: 9px;
 
   --spacing-none: 0px;
   --spacing-xxs: 2px;
@@ -154,43 +146,6 @@
   --spacing-lg: 16px;
   --spacing-xl: 24px;
   --spacing-xxl: 40px;
-
-  /** required defaults for ShadCN theme vars **/
-  --color-background: var(--color-gray-01);
-  --color-foreground: var(--color-gray-08);
-  --color-primary: var(--color-gray-08);
-  --color-primary-foreground: var(--color-gray-01);
-  --color-secondary: var(--color-gray-02);
-  --color-secondary-foreground: var(--color-gray-07);
-  --color-muted: var(--color-gray-02);
-  --color-muted-foreground: var(--color-gray-08);
-  --color-accent: var(--color-gray-02);
-  --color-accent-foreground: var(--color-gray-08);
-  --color-sidebar: var(--color-gray-01);
-  --color-sidebar-foreground: var(--color-gray-08);
-  --color-sidebar-primary: var(--color-gray-07);
-  --color-sidebar-primary-foreground: var(--color-gray-02);
-  --color-sidebar-accent: var(--color-gray-03);
-  --color-sidebar-accent-foreground: var(--color-gray-08);
-  --color-sidebar-ring: var(--color-gray-04);
-  --color-sidebar-border: var(--color-gray-05);
-  --color-chart-5: var(--color-brand-06);
-  --color-chart-4: var(--color-indigo-500);
-  --color-chart-3: var(--color-green-800);
-  --color-chart-2: var(--color-red-700);
-  --color-chart-1: var(--color-fuchsia-800);
-  --color-destructive: var(--color-critical-04);
-  --color-popover-foreground: var(--color-gray-09);
-  --color-popover: var(--color-gray-02);
-  --color-border: var(--color-gray-03);
-  --radius-sm: var(--spacing-xs);
-  --radius-md: var(--spacing-sm);
-  --radius-lg: var(--spacing-md);
-  --radius-xl: var(--spacing-lg);
-}
-
-@utility outline {
-  outline-offset: -1px;
 }
 
 @layer base {

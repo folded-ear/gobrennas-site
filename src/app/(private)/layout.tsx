@@ -1,10 +1,8 @@
 "use client";
 
 import { doLogout } from "@/app/(public)/constants";
-import { Button } from "@/components/ui/button";
-import { SearchField } from "@/components/ui/search-field";
-import { Book, Calendar, LogOut } from "lucide-react";
-import Link from "next/link";
+import { Header } from "@/components/views/header";
+import { Book, Calendar } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { PropsWithChildren } from "react";
 
@@ -32,23 +30,25 @@ export default function PrivateLayout({ children }: PropsWithChildren) {
   };
 
   return (
-    <div className="grid grid-cols-[150px_minmax(400px,_1fr)_min-content] gap-xs h-dvh">
-      <nav className="flex flex-col gap-y-sm">
-        <h1 className="text-xl">BFS</h1>
-        {primaryNav.map((nav) => (
-          <div key={nav.label} className="flex">
-            {nav.icon} <Link href={nav.href}>{nav.label}</Link>
-          </div>
-        ))}
-        <Button variant="ghost" onPress={handleLogout}>
-          <LogOut />
-        </Button>
-      </nav>
-      <main className="p-lg">
-        <SearchField />
-        {children}
-      </main>
-      <div className="border-3 border-green-600"></div>
+    <div className="h-dvh">
+      <Header />
+      <main>{children}</main>
+      {/*<nav className="flex flex-col gap-y-sm">*/}
+      {/*  <h1 className="text-xl">BFS</h1>*/}
+      {/*  {primaryNav.map((nav) => (*/}
+      {/*    <div key={nav.label} className="flex">*/}
+      {/*      {nav.icon} <Link href={nav.href}>{nav.label}</Link>*/}
+      {/*    </div>*/}
+      {/*  ))}*/}
+      {/*  <Button variant="ghost" onPress={handleLogout}>*/}
+      {/*    <LogOut />*/}
+      {/*  </Button>*/}
+      {/*</nav>*/}
+      {/*<main className="p-lg">*/}
+      {/*  <SearchField />*/}
+      {/*  {children}*/}
+      {/*</main>*/}
+      {/*<div className="border-3 border-green-600"></div>*/}
     </div>
   );
 }
