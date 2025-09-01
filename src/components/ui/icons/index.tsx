@@ -4,6 +4,8 @@ import {
   ChevronDown,
   ChevronLeftSquare,
   ChevronRightSquare,
+  Edit2Icon,
+  EyeIcon,
   LogOut,
   LucideProps,
   NotebookTabs,
@@ -55,4 +57,12 @@ export const Library = (props: IconProps) => {
 
 export const Logout = (props: IconProps) => {
   return <LogOut {...props} size={sizes[props.size ?? "medium"]} />;
+};
+
+export const RecipeEdit = (props: IconProps) => {
+  return <Edit2Icon {...props} size={sizes[props.size ?? "medium"]} />;
+};
+
+export const RecipeView = (props: IconProps) => {
+  return <EyeIcon {...props} size={sizes[props.size ?? "medium"]} />;
 };

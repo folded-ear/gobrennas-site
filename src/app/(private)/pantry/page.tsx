@@ -1,3 +1,3 @@
-export default function CalendarView() {
-  return <div>Calendar View</div>;
+export default function PantryView() {
+  return <div>Pantry Management View</div>;
 }

@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prebuild": "pnpm run generate",
     "build": "next build",
     "build-storybook": "storybook build",
     "predev": "pnpm run generate",

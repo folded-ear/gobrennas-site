@@ -2,15 +2,12 @@ import { tv } from "@/lib/utils";
 
 export const RecipeCardStyles = tv({
   slots: {
-    card: [
-      "bg-surface text-fg-default rounded-sm outline outline-outline shadow-sm",
-      "flex flex-col",
-    ],
+    card: "bg-surface",
     content: "px-6",
-    description: "text-muted-foreground text-sm",
-    footer: "flex items-center px-6 [.border-t]:pt-6",
+    description: "",
+    footer: "",
     header: "",
-    title: "font-semibold",
+    title: "",
   },
   variants: {
     size: {

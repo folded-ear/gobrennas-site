@@ -5,76 +5,96 @@
 @plugin './hero.ts';
 @source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 
-/*@custom-variant dark (&:is(.dark *));*/
-
-@custom-variant dark (&:where(.dark, .dark *));
-
 :root {
-  --color-gray-01: #ffffff;
-  --color-gray-02: #e6e6e6;
-  --color-gray-03: #898989;
-  --color-gray-04: #686868;
-  --color-gray-05: #565656;
-  --color-gray-06: #424242;
-  --color-gray-07: #383838;
-  --color-gray-08: #2f2f31;
-  --color-gray-09: #222222;
-  --color-gray-10: #0b0b0b;
-  --color-gray-11: #000000;
+  --drawer-width: 350px;
 
-  --color-warm-01: #f4ebdd;
-  --color-warm-02: #ebddcb;
-  --color-warm-03: #dfceb5;
-  --color-warm-04: #d2bd9f;
-  --color-warm-05: #c6ae8a;
-  --color-warm-06: #b8a180;
-  --color-warm-07: #a69073;
-  --color-warm-08: #988169;
-  --color-warm-09: #87715d;
+  --color-gray-50: #ffffff;
+  --color-gray-100: #e6e6e6;
+  --color-gray-200: #898989;
+  --color-gray-300: #686868;
+  --color-gray-400: #565656;
+  --color-gray-500: #424242;
+  --color-gray-600: #383838;
+  --color-gray-700: #2f2f31;
+  --color-gray-800: #222222;
+  --color-gray-900: #0b0b0b;
+  --color-gray-950: #000000;
 
-  --color-cool-01: #eceff1;
-  --color-cool-02: #cfd8dc;
-  --color-cool-03: #b0bec5;
-  --color-cool-04: #90a4ae;
-  --color-cool-05: #78909c;
-  --color-cool-06: #607d8b;
-  --color-cool-07: #546e7a;
-  --color-cool-08: #455a64;
-  --color-cool-09: #37474f;
-  --color-cool-10: #263238;
+  --color-warm-50: #f4ebdd;
+  --color-warm-100: #ebddcb;
+  --color-warm-200: #dfceb5;
+  --color-warm-300: #d2bd9f;
+  --color-warm-400: #c6ae8a;
+  --color-warm-500: #b8a180;
+  --color-warm-600: #a69073;
+  --color-warm-700: #988169;
+  --color-warm-800: #87715d;
 
-  --color-brand-01: #fff3e0;
-  --color-brand-02: #ffe0b2;
-  --color-brand-03: #ffcc80;
-  --color-brand-04: #ffb74d;
-  --color-brand-05: #ffa726;
-  --color-brand-06: #ff9800;
-  --color-brand-07: #fb8c00;
-  --color-brand-08: #f57c00;
-  --color-brand-09: #ef6c00;
-  --color-brand-10: #e65100;
+  --color-cool-50: #eceff1;
+  --color-cool-100: #cfd8dc;
+  --color-cool-200: #b0bec5;
+  --color-cool-300: #90a4ae;
+  --color-cool-400: #78909c;
+  --color-cool-500: #607d8b;
+  --color-cool-600: #546e7a;
+  --color-cool-700: #455a64;
+  --color-cool-800: #37474f;
+  --color-cool-900: #263238;
 
-  --color-success-01: #e0f7d4;
-  --color-success-02: #b6eb9c;
-  --color-success-03: #84cf65;
-  --color-success-04: #70b959;
-  --color-success-05: #3c813c;
+  --color-brand-50: #fff3e0;
+  --color-brand-100: #ffe0b2;
+  --color-brand-200: #ffcc80;
+  --color-brand-300: #ffb74d;
+  --color-brand-400: #ffa726;
+  --color-brand-500: #ff9800;
+  --color-brand-600: #fb8c00;
+  --color-brand-700: #f57c00;
+  --color-brand-800: #ef6c00;
+  --color-brand-900: #e65100;
 
-  --color-warning-01: #feedcc;
-  --color-warning-02: #fbc02d;
-  --color-warning-03: #fca400;
-  --color-warning-04: #976201;
-  --color-warning-05: #322100;
+  --color-info-50: #dff7ff;
+  --color-info-100: #bce2f3;
+  --color-info-200: #96cde6;
+  --color-info-300: #70b8da;
+  --color-info-400: #4aa4ce;
+  --color-info-500: #318ab5;
+  --color-info-600: #226b8e;
+  --color-info-700: #134d67;
+  --color-info-800: #032f40;
+  --color-info-900: #00111b;
 
-  --color-critical-01: #ffcdd2;
-  --color-critical-02: #e57373;
-  --color-critical-03: #f44336;
-  --color-critical-04: #b71c1c;
-  --color-critical-05: #601b07;
+  --color-success-50: #edf8e6;
+  --color-success-100: #d3e5c9;
+  --color-success-200: #b6d2aa;
+  --color-success-300: #99c08a;
+  --color-success-400: #7bae6a;
+  --color-success-500: #669551;
+  --color-success-600: #52743e;
+  --color-success-700: #3d532b;
+  --color-success-800: #243318;
+  --color-success-900: #0b1300;
 
-  --shadow-raised:
-    0 5px 5px 0 rgba(0 0 0 / 0.2), 0 3px 14px 0 rgba(0 0 0 / 0.12),
-    0 8px 10px 0 rgba(0 0 0 / 0.14);
+  --color-warning-50: #fff6da;
+  --color-warning-100: #ffe4ad;
+  --color-warning-200: #ffd27d;
+  --color-warning-300: #ffc14b;
+  --color-warning-400: #ffaf1a;
+  --color-warning-500: #e69500;
+  --color-warning-600: #b37400;
+  --color-warning-700: #815300;
+  --color-warning-800: #4e3200;
+  --color-warning-900: #1e1000;
+
+  --color-critical-50: #ffe7e7;
+  --color-critical-100: #f4c0c0;
+  --color-critical-200: #e79999;
+  --color-critical-300: #db7071;
+  --color-critical-400: #d04949;
+  --color-critical-500: #b62f2f;
+  --color-critical-600: #8f2424;
+  --color-critical-700: #661819;
+  --color-critical-800: #400d0e;
+  --color-critical-900: #1d0101;
 
   --font-geist:
     "Geist Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
@@ -84,23 +104,21 @@
 
 @layer theme {
   .dark {
-    --color-surface: var(--color-cool-08);
-    --color-outline: var(--color-gray-07);
-    --color-ring: var(--color-gray-05);
+    --color-background: var(--color-gray-800);
+    --color-background-muted: var(--color-gray-700);
+    --color-background-bold: var(--color-gray-900);
 
-    --color-fg-muted: var(--color-gray-05);
-    --color-fg-default: var(--color-gray-02);
-    --color-fg-bold: var(--color-gray-01);
+    --color-foreground: var(--color-gray-200);
+    --color-foreground-muted: var(--color-gray-400);
+    --color-foreground-bold: var(--color-gray-100);
 
-    --color-critical-muted: var(--color-critical-05);
-    --color-critical: var(--color-critical-04);
-    --color-critical-bold: var(--color-critical-02);
+    --color-outline: var(--color-gray-400);
 
-    /** required defaults for ShadCN theme vars **/
-    --color-background: var(--color-gray-08);
-    --color-foreground: var(--color-gray-01);
-    --color-primary: var(--color-brand-06);
-
+    --color-primary: var(--color-brand-800);
+    --color-secondary: var(--color-info-700);
+    --color-success: var(--color-success-400);
+    --color-warning: var(--color-warning-400);
+    --color-danger: var(--color-critical-500);
   }
 }
 
@@ -108,27 +126,23 @@
   --font-sans: var(--font-geist);
   --font-mono: var(--font-geist-mono);
 
-  --color-bfs: var(--color-brand-06);
-  --color-bfs-muted: var(--color-brand-02);
-  --color-bfs-deep: var(--color-brand-09);
+  --color-bfs: var(--color-brand-600);
+  --color-bfs-muted: var(--color-brand-200);
+  --color-bfs-bold: var(--color-brand-900);
 
-  --color-background: var(--color-cool-02);
-  --color-background-muted: var(--color-cool-01);
-  --color-background-bold: var(--color-cool-03);
+  --color-background: var(--color-gray-50);
 
-  --color-foreground: var(--color-gray-08);
-  --color-foreground-muted: var(--color-gray-05);
-  --color-foreground-bold: var(--color-gray-09);
+  --color-foreground: var(--color-gray-800);
+  --color-foreground-muted: var(--color-gray-500);
+  --color-foreground-bold: var(--color-gray-900);
 
-  --color-outline: var(--color-gray-03);
+  --color-outline: var(--color-gray-300);
 
-  --color-primary: var(--color-brand-04);
-  --color-primary-muted: var(--color-brand-02);
-  --color-primary-deep: var(--color-brand-09);
-
-  --color-critical-muted: var(--color-critical-01);
-  --color-critical: var(--color-critical-04);
-  --color-critical-bold: var(--color-critical-05);
+  --color-primary: var(--color-brand-400);
+  --color-secondary: var(--color-cool-400);
+  --color-success: var(--color-success-400);
+  --color-warning: var(--color-warning-400);
+  --color-danger: var(--color-critical-500);
 
   --text-xxl: 32px;
   --text-xl: 24px;
@@ -153,3 +167,33 @@
     @apply font-sans;
   }
 }
+
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant horizontal (&:where([data-orientation="horizontal"]));
+@custom-variant vertical (&:where([data-orientation="vertical"]));
+@custom-variant placement-left (&:where([data-placement~="left"]));
+@custom-variant placement-right (&:where([data-placement~="right"]));
+@custom-variant placement-top (&:where([data-placement~="top"]));
+@custom-variant placement-bottom (&:where([data-placement~="bottom"]));
+@custom-variant placeholder (&:where([data-placeholder]));
+@custom-variant selection-single (&:where([data-selection-mode="single"]));
+@custom-variant selection-multiple (&:where([data-selection-mode="multiple"]));
+@custom-variant open (&:where([open], [data-open], :open));
+@custom-variant closed (&:where(:not([open], [data-open], :open)));
+@custom-variant expanded (&:where([expanded], [data-expanded]));
+@custom-variant entering (&:where([data-entering]));
+@custom-variant exiting (&:where([data-exiting]));
+@custom-variant invalid (&:where([invalid], [data-invalid], :invalid));
+@custom-variant read-only (&:where([readonly], [data-readonly], :read-only));
+@custom-variant pending (&:where([data-pending]));
+@custom-variant empty (&:where([data-empty], :empty));
+@custom-variant focus (&:where([data-focused], :focus));
+@custom-variant focus-within (&:where([data-focus-within], :focus-within));
+@custom-variant focus-visible-within (&:where(:has([data-focus-visible], :focus-visible)));
+@custom-variant focus-visible (&:where([data-focus-visible], :focus-visible));
+@custom-variant hover (&:where([data-hovered], :hover));
+@custom-variant pressed (&:where([data-pressed], :active));
+@custom-variant selected (&:where([data-selected], :checked));
+@custom-variant selection-start (&:where([data-selection-start]));
+@custom-variant selection-end (&:where([data-selection-end]));
+@custom-variant disabled (&:where([disabled], [data-disabled], :disabled));

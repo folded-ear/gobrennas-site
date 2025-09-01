@@ -1,3 +1,4 @@
+import { Card, CardBody, CardHeader, CardProps } from "@heroui/react";
 import * as React from "react";
 
 import { RecipeCardStyles } from "@/components/ui/recipe-card/styles";
@@ -6,17 +7,14 @@ import { VariantProps } from "class-variance-authority";
 const { card, content, description, footer, header, title } =
   RecipeCardStyles();
 
-export type RecipeCardProps = React.ComponentProps<"div"> &
-  VariantProps<typeof RecipeCardStyles>;
+export type RecipeCardProps = CardProps & VariantProps<typeof RecipeCardStyles>;
 
-export function RecipeCard({ className, size, ...props }: RecipeCardProps) {
-  return <div className={card({ size, className })} {...props} />;
+export function RecipeCard({ className, ...props }: RecipeCardProps) {
+  return <Card className={card({ className })} {...props} />;
 }
 
-function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div data-slot="header" className={header({ className })} {...props} />
-  );
+function Header({ className, ...props }: React.ComponentProps<"div">) {
+  return <CardHeader className={header({ className })} {...props} />;
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
@@ -33,10 +31,8 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function CardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div data-slot="content" className={content({ className })} {...props} />
-  );
+function Content({ className, ...props }: React.ComponentProps<"div">) {
+  return <CardBody className={content({ className })} {...props} />;
 }
 
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
@@ -45,8 +41,8 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-RecipeCard.Content = CardContent;
+RecipeCard.Content = Content;
 RecipeCard.Description = CardDescription;
 RecipeCard.Footer = CardFooter;
-RecipeCard.Header = CardHeader;
+RecipeCard.Header = Header;
 RecipeCard.Title = CardTitle;

@@ -4,18 +4,19 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@heroui/button";
+import { ButtonGroup } from "@heroui/react";
 
 export function ModeToggle() {
   const { setTheme } = useTheme();
 
   return (
-    <div className="flex">
-      <Button onPress={() => setTheme("light")}>
+    <ButtonGroup variant="flat">
+      <Button isIconOnly onPress={() => setTheme("light")}>
         <Sun />
       </Button>
-      <Button onPress={() => setTheme("dark")}>
+      <Button isIconOnly onPress={() => setTheme("dark")}>
         <Moon />
       </Button>
-    </div>
+    </ButtonGroup>
   );
 }

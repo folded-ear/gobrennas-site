@@ -1,9 +1,8 @@
 "use client";
 
 import { GetSearchLibraryQuery } from "@/__graphql/graphql";
+import { ButtonBar } from "@/components/ui/button-bar";
 import { RecipeCard } from "@/components/ui/recipe-card";
-import { Button } from "@heroui/button";
-import { EditIcon, EyeIcon, Star } from "lucide-react";
 import Link from "next/link";
 
 export default function RecipeGrid({
@@ -12,15 +11,10 @@ export default function RecipeGrid({
   recipes: GetSearchLibraryQuery["library"]["recipes"]["edges"][0]["node"][];
 }) {
   return (
-    <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-y-lg">
+    <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-lg">
       {recipes?.map((recipe) => (
         <div key={recipe.id}>
           <RecipeCard size="standard">
-            <RecipeCard.Header>
-              <Button variant="ghost">
-                <Star />
-              </Button>
-            </RecipeCard.Header>
             <RecipeCard.Content>
               <RecipeCard.Title>
                 <Link
@@ -30,17 +24,8 @@ export default function RecipeGrid({
                   {recipe.name}
                 </Link>
               </RecipeCard.Title>
+              <ButtonBar />
             </RecipeCard.Content>
-            <RecipeCard.Footer>
-              <Button variant="ghost">
-                <Link href={`/recipes/${recipe.id}`}>
-                  <EyeIcon />
-                </Link>
-              </Button>
-              <Button variant="ghost">
-                <EditIcon />
-              </Button>
-            </RecipeCard.Footer>
           </RecipeCard>
         </div>
       ))}
