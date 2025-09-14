@@ -2,23 +2,26 @@ import { doLogout } from "@/app/(public)/constants";
 import { MenuOpen } from "@/components/ui/icons";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { PlanSelector } from "@/components/ui/plan-selector";
+import { SearchField } from "@/components/ui/search-field";
+import { UserMenu } from "@/components/ui/user-menu";
 import { styles } from "@/components/views/header.styles";
+import { NavbarMenuItem } from "@heroui/navbar";
 import {
-  Avatar,
   Button,
   Dropdown,
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
-  Input,
   Navbar,
   NavbarBrand,
   NavbarContent,
   NavbarItem,
+  NavbarMenu,
+  NavbarMenuToggle,
 } from "@heroui/react";
-import { SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 export const BFSLogo = () => {
   return (
@@ -38,8 +41,8 @@ export const BFSLogo = () => {
 };
 
 export const Header = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-  console.log(pathname);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -47,9 +50,18 @@ export const Header = () => {
   };
 
   return (
-    <div className="flex flex-col gap-y-sm">
-      <Navbar isBordered maxWidth="full" classNames={styles.navbar}>
-        <NavbarContent justify="start">
+    <div className="flex flex-col">
+      <Navbar
+        isBordered
+        maxWidth="full"
+        classNames={styles.navbar}
+        onMenuOpenChange={setIsMenuOpen}
+      >
+        <NavbarContent justify="center">
+          <NavbarMenuToggle
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            className="sm:hidden"
+          />
           <NavbarBrand className="mr-4">
             <BFSLogo />
             <p className="hidden sm:block font-bold text-inherit">BFS</p>
@@ -99,48 +111,20 @@ export const Header = () => {
           </NavbarContent>
         </NavbarContent>
 
-        <NavbarContent as="div" className="items-center" justify="end">
-          <Input
-            classNames={{
-              base: "max-w-full sm:max-w-[10rem] h-10",
-              mainWrapper: "h-full",
-              input: "text-small",
-              inputWrapper:
-                "h-full font-normal text-default-500 bg-default-400/20 dark:bg-default-500/20",
-            }}
-            placeholder="Search..."
-            size="sm"
-            startContent={<SearchIcon size={18} />}
-            type="search"
-          />
+        <NavbarContent as="div" className="sm: items-center" justify="end">
+          <SearchField />
           <ModeToggle />
-          <Dropdown placement="bottom-end">
-            <DropdownTrigger>
-              <Avatar
-                isBordered
-                as="button"
-                className="transition-transform"
-                color="secondary"
-                name="Barney!"
-                size="sm"
-                src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-              />
-            </DropdownTrigger>
-            <DropdownMenu aria-label="Profile Actions" variant="flat">
-              <DropdownItem key="profile" className="h-14 gap-2">
-                <p className="font-semibold">Signed in as</p>
-                <p className="font-semibold">zoey@example.com</p>
-              </DropdownItem>
-              <DropdownItem key="settings">Preferences</DropdownItem>
-              <DropdownItem key="help_and_feedback">
-                Help & Feedback
-              </DropdownItem>
-              <DropdownItem key="logout" color="danger" onPress={handleLogout}>
-                Log Out
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+          <UserMenu onLogout={handleLogout} />
         </NavbarContent>
+        <NavbarMenu>
+          {["This", "That", "Other Thing"].map((item, index) => (
+            <NavbarMenuItem key={`${item}-${index}`}>
+              <Link className="w-full" href="#">
+                {item}
+              </Link>
+            </NavbarMenuItem>
+          ))}
+        </NavbarMenu>
       </Navbar>
       <PlanSelector />
     </div>

@@ -1,3 +1,5 @@
+import { Container } from "@/components/ui/layout";
+
 export default function PantryView() {
-  return <div>Pantry Management View</div>;
+  return <Container>Pantry Management View</Container>;
 }

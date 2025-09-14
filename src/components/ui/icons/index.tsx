@@ -51,7 +51,7 @@ export const Buying = (props: IconProps) => {
   return <ShoppingCart {...props} size={sizes[props.size ?? "medium"]} />;
 };
 
-export const Library = (props: IconProps) => {
+export const LibraryIcon = (props: IconProps) => {
   return <Book {...props} size={sizes[props.size ?? "medium"]} />;
 };
 

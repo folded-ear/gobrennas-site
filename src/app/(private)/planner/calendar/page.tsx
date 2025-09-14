@@ -1,3 +1,5 @@
+import { Container } from "@/components/ui/layout";
+
 export default function CalendarView() {
-  return <div>Calendar View</div>;
+  return <Container>Calendar View</Container>;
 }

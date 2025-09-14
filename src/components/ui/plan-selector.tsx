@@ -62,7 +62,7 @@ export const PlanChip = (props: CheckboxProps) => {
 
 export const PlanSelector = () => {
   return (
-    <div className="max-w-full px-xl flex gap-sm">
+    <div className="max-w-full px-xl py-sm flex bg-background-muted">
       <div className="flex-1">
         <Label>My plans:</Label>
         <PlanChip>Our Week</PlanChip>

@@ -8,24 +8,21 @@ import {
   composeRenderProps,
 } from "react-aria-components";
 
+import { cn } from "@/lib/utils";
 import { VariantProps } from "tailwind-variants";
-import { ToggleGroupStyles, ToggleStyles } from "./styles";
+import { ButtonDefaults, ToggleGroupStyles, ToggleStyles } from "./styles";
 
 type ToggleButtonProps = AriaToggleProps & VariantProps<typeof ToggleStyles>;
 
 const ToggleButton = ({
   className,
-  variant,
-  size,
+  variant = ButtonDefaults["variant"],
+  size = ButtonDefaults["size"],
   ...props
 }: ToggleButtonProps) => (
   <AriaToggleButton
-    className={composeRenderProps(className, (className) =>
-      ToggleStyles({
-        variant,
-        size,
-        className,
-      }),
+    className={composeRenderProps(className, (resolved) =>
+      cn(ToggleStyles({ variant, size }), resolved),
     )}
     {...props}
   />
@@ -37,8 +34,8 @@ const ToggleButtonGroup = ({
   ...props
 }: AriaToggleButtonGroupProps) => (
   <AriaToggleButtonGroup
-    className={composeRenderProps(className, (className) =>
-      ToggleGroupStyles({ className }),
+    className={composeRenderProps(className, (resolved) =>
+      cn(ToggleGroupStyles(), resolved),
     )}
     {...props}
   >

@@ -1,4 +1,5 @@
 import { heroui } from "@heroui/react";
+
 export default heroui({
   prefix: "bfs",
   layout: {
@@ -9,7 +10,15 @@ export default heroui({
     },
   },
   themes: {
-    light: {},
-    dark: {},
+    light: {
+      colors: {
+        divider: "#a8a8a8",
+      },
+    },
+    dark: {
+      colors: {
+        divider: "#444",
+      },
+    },
   },
 });

@@ -1,3 +1,5 @@
+import { Container } from "@/components/ui/layout";
+
 export default function ScheduleView() {
-  return <div>Schedule View</div>;
+  return <Container>Schedule View</Container>;
 }

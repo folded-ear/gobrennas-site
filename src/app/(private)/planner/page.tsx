@@ -1,9 +1,10 @@
+import { Container } from "@/components/ui/layout";
 import { PlanList } from "@/components/views/planner";
 
 export default function Planner() {
   return (
-    <div>
+    <Container>
       <PlanList />
-    </div>
+    </Container>
   );
 }
