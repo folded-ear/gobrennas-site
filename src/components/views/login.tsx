@@ -1,14 +1,14 @@
 "use client";
 
 import { doLogin } from "@/app/(public)/constants";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/button";
 
 export default function Login() {
   const handleLogin = () => doLogin();
   return (
     <div className="flex flex-col gap-lg bg-surface p-lg items-center rounded-md max-w-2/3 mx-auto">
       <h1 className="text-xl">Brenna&apos;s Food Software</h1>
-      <Button className="w-fit bg-bfs" variant="outline" onClick={handleLogin}>
+      <Button color="primary" onPress={handleLogin}>
         Login with Google
       </Button>
       <p>
