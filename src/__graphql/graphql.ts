@@ -180,12 +180,14 @@ export type IngredientInfo = {
   calories: InputMaybe<Scalars['Int']['input']>;
   directions: InputMaybe<Scalars['String']['input']>;
   externalUrl: InputMaybe<Scalars['String']['input']>;
+  id: InputMaybe<Scalars['ID']['input']>;
   ingredients: InputMaybe<Array<IngredientRefInfo>>;
   labels: InputMaybe<Array<Scalars['String']['input']>>;
   name: Scalars['String']['input'];
   /** Filename of a scratch upload to set as this recipe's photo. */
   photo: InputMaybe<Scalars['String']['input']>;
   photoFocus: InputMaybe<Array<Scalars['Float']['input']>>;
+  sections: InputMaybe<Array<SectionInfo>>;
   storeOrder: InputMaybe<Scalars['Int']['input']>;
   totalTime: InputMaybe<Scalars['Int']['input']>;
   type: Scalars['String']['input'];
@@ -202,12 +204,12 @@ export type IngredientRef = {
 
 export type IngredientRefInfo = {
   ingredient: InputMaybe<Scalars['String']['input']>;
-  ingredientId: InputMaybe<Scalars['Long']['input']>;
+  ingredientId: InputMaybe<Scalars['ID']['input']>;
   preparation: InputMaybe<Scalars['String']['input']>;
   quantity: InputMaybe<Scalars['Float']['input']>;
   raw: Scalars['String']['input'];
   units: InputMaybe<Scalars['String']['input']>;
-  uomId: InputMaybe<Scalars['Long']['input']>;
+  uomId: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type Label = Node & {
@@ -316,6 +318,8 @@ export type LibraryQuery = {
    * suggestions based on partial matches.
    */
   recognizeItem: RecognizedItem;
+  /** Search for sections of recipes. */
+  sections: SectionConnection;
   suggestRecipesToCook: RecipeConnection;
 };
 
@@ -337,6 +341,7 @@ export type LibraryQueryRecipesArgs = {
   ingredients?: Array<Scalars['ID']['input']>;
   query?: Scalars['String']['input'];
   scope?: LibrarySearchScope;
+  search: InputMaybe<LibrarySearch>;
 };
 
 
@@ -346,9 +351,34 @@ export type LibraryQueryRecognizeItemArgs = {
 };
 
 
+export type LibraryQuerySectionsArgs = {
+  search: LibrarySearch;
+};
+
+
 export type LibraryQuerySuggestRecipesToCookArgs = {
   after?: InputMaybe<Scalars['Cursor']['input']>;
   first?: Scalars['NonNegativeInt']['input'];
+  search: InputMaybe<SuggestionSearch>;
+};
+
+export type LibrarySearch = {
+  /** Cursor to find results after. Omit to retrieve the first page. */
+  after: InputMaybe<Scalars['Cursor']['input']>;
+  /** How many results to return. If not specified, 10 will be returned. */
+  first: Scalars['NonNegativeInt']['input'];
+  /**
+   * Only return results which include at least one of these ingredients. An
+   * empty list means "unconstrained".
+   */
+  ingredients: Array<Scalars['ID']['input']>;
+  /**
+   * The textual query to filter results by. Can include simple words, as
+   * well as quoted phrases.
+   */
+  query: Scalars['String']['input'];
+  /** The scope to search within, 'only mine' by default. */
+  scope: LibrarySearchScope;
 };
 
 export enum LibrarySearchScope {
@@ -533,7 +563,8 @@ export type PantryQuery = {
    * Identical to the query of the same name in 'pantry'.
    */
   bulkIngredients: Array<Ingredient>;
-  /** Search available pantry items. */
+  pantryItems: PantryItemConnection;
+  /** Search available pantry items. Prefer `pantryItems()`. */
   search: PantryItemConnection;
   updatedSince: Array<PantryItem>;
 };
@@ -541,6 +572,11 @@ export type PantryQuery = {
 
 export type PantryQueryBulkIngredientsArgs = {
   ids: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+
+export type PantryQueryPantryItemsArgs = {
+  search: PantrySearch;
 };
 
 
@@ -555,6 +591,34 @@ export type PantryQuerySearchArgs = {
 
 export type PantryQueryUpdatedSinceArgs = {
   cutoff: Scalars['Long']['input'];
+};
+
+export type PantrySearch = {
+  /**
+   * Cursor to find results after. This should be omitted to retrieve the
+   * first page.
+   */
+  after: InputMaybe<Scalars['Cursor']['input']>;
+  /**
+   * How many items to return in the connection. If not specified, 25 will be
+   * returned.
+   */
+  first: Scalars['NonNegativeInt']['input'];
+  /**
+   * Textual query to filter items by. The exact query operation performed
+   * is unspecified, except that 'duplicates:12345' will return auto-detected
+   * duplicates of the item with id '12345'. Exactly what "duplicate" means
+   * is unspecified and subject to change, excepting that it will remain
+   * consistent with results' "duplicateCount".
+   */
+  query: InputMaybe<Scalars['String']['input']>;
+  /**
+   * Field to sort the result by. If omitted, the sort will be stable, but
+   * is otherwise unspecified.
+   */
+  sortBy: InputMaybe<Scalars['String']['input']>;
+  /** Direction to sort the result, ascending by default. */
+  sortDir: InputMaybe<SortDir>;
 };
 
 export type Photo = {
@@ -953,6 +1017,10 @@ export type Recipe = Ingredient & Node & Owned & {
   externalUrl: Maybe<Scalars['String']['output']>;
   favorite: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
+  /**
+   * Ingredients which are part of the recipe. Ingredients and sections are
+   * disjoint.
+   */
   ingredients: Array<IngredientRef>;
   labels: Maybe<Array<Scalars['String']['output']>>;
   name: Scalars['String']['output'];
@@ -969,10 +1037,17 @@ export type Recipe = Ingredient & Node & Owned & {
    * sense). By default, only the five most recent records will be returned.
    */
   plannedHistory: Array<PlannedRecipeHistory>;
+  /**
+   * Sections of the recipe, owned or by reference. Use `sectionOf` if you
+   * need to differentiate. Sections and ingredients are disjoint.
+   */
+  sections: Array<Section>;
   share: ShareInfo;
   /**
    * All subrecipes. Multiple layers of nested recipes are flattened, and the
-   * contextual recipe is not included.
+   * contextual recipe is not included. This does not include sections (owned or
+   * unowned) of the contextual recipe, only recipe-as-ingredient, but sections
+   * of those subrecipes _are_ included.
    */
   subrecipes: Array<Recipe>;
   totalTime: Maybe<Scalars['Int']['output']>;
@@ -1113,6 +1188,44 @@ export type ScratchUpload = {
   url: Scalars['String']['output'];
 };
 
+export type Section = Node & {
+  __typename?: 'Section';
+  directions: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  ingredients: Array<IngredientRef>;
+  labels: Maybe<Array<Scalars['String']['output']>>;
+  name: Scalars['String']['output'];
+  /**
+   * The recipe this section belongs to, if owned. When a top-level recipe is
+   * used as a section, this will be null.
+   */
+  sectionOf: Maybe<Recipe>;
+};
+
+export type SectionConnection = {
+  __typename?: 'SectionConnection';
+  edges: Array<SectionConnectionEdge>;
+  pageInfo: PageInfo;
+};
+
+export type SectionConnectionEdge = {
+  __typename?: 'SectionConnectionEdge';
+  cursor: Scalars['Cursor']['output'];
+  node: Section;
+};
+
+export type SectionInfo = {
+  directions: InputMaybe<Scalars['String']['input']>;
+  /**
+   * Id of the section, owned or by reference. Unsaved owned sections have
+   * null. By reference sections will have no other fields populated.
+   */
+  id: InputMaybe<Scalars['ID']['input']>;
+  ingredients: InputMaybe<Array<IngredientRefInfo>>;
+  labels: InputMaybe<Array<Scalars['String']['input']>>;
+  name: InputMaybe<Scalars['String']['input']>;
+};
+
 export type ShareInfo = {
   __typename?: 'ShareInfo';
   id: Scalars['ID']['output'];
@@ -1124,6 +1237,13 @@ export enum SortDir {
   Asc = 'ASC',
   Desc = 'DESC'
 }
+
+export type SuggestionSearch = {
+  /** Cursor to find results after. Omit to retrieve the first page. */
+  after: InputMaybe<Scalars['Cursor']['input']>;
+  /** How many results to return. If not specified, 5 will be returned. */
+  first: Scalars['NonNegativeInt']['input'];
+};
 
 export type TextractBox = {
   __typename?: 'TextractBox';
