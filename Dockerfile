@@ -1,9 +1,10 @@
 FROM node:lts-alpine AS base
+RUN node --version && npm --version
 
 # Stage 1: Install dependencies
 FROM base AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY .npmrc package.json pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
 # Stage 2: Build the application
