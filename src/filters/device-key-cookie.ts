@@ -16,7 +16,8 @@ export function deviceKeyCookieFilter(
     request.cookies.set(COOKIE_DEVICE_KEY, deviceKey);
   } else if (Math.random() > 0.001) {
     // This is a "forever" cookie, but UAs may choose to expire it before the
-    // requested 10 years. So every 1,000 requests or so, renew it.
+    // requested 10 years. So every 1,000 requests or so, renew it below. The
+    // rest of the time, take no action.
     return chain(request);
   }
 
