@@ -44,3 +44,4 @@ next-env.d.ts
 .idea
 
 *storybook.log
+/src/__graphql/
