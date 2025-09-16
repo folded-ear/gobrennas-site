@@ -7,14 +7,21 @@ import { Button } from "@heroui/button";
 import { ButtonGroup } from "@heroui/react";
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
+  const { setTheme, systemTheme } = useTheme();
+
+  const handleThemeChange = (theme: string) => {
+    // Treat explictly selecting the system theme not as a mandate, but as a
+    // request to follow the system from now on.
+    if (theme === systemTheme) theme = "system";
+    setTheme(theme);
+  };
 
   return (
     <ButtonGroup variant="flat">
-      <Button isIconOnly onPress={() => setTheme("light")}>
+      <Button isIconOnly onPress={() => handleThemeChange("light")}>
         <Sun />
       </Button>
-      <Button isIconOnly onPress={() => setTheme("dark")}>
+      <Button isIconOnly onPress={() => handleThemeChange("dark")}>
         <Moon />
       </Button>
     </ButtonGroup>

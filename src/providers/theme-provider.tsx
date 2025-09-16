@@ -7,7 +7,7 @@ import { PropsWithChildren } from "react";
 export function ThemeProvider({ children }: PropsWithChildren) {
   return (
     <HeroUIProvider>
-      <NextThemesProvider attribute="class" defaultTheme="light">
+      <NextThemesProvider attribute="class" enableSystem>
         {children}
       </NextThemesProvider>
     </HeroUIProvider>
