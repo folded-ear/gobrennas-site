@@ -10,7 +10,7 @@ export function ModeToggle() {
   const { setTheme, systemTheme } = useTheme();
 
   const handleThemeChange = (theme: string) => {
-    // Treat explictly selecting the system theme not as a mandate, but as a
+    // Treat explicitly selecting the system theme not as a mandate, but as a
     // request to follow the system from now on.
     if (theme === systemTheme) theme = "system";
     setTheme(theme);
