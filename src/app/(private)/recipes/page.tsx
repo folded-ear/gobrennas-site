@@ -1,16 +1,18 @@
 import { Container } from "@/components/ui/layout";
-import Recipes from "@/components/views/recipes";
-import { searchRecipes } from "@/data/recipes";
+import RecipeGrid from "@/components/views/recipe-grid";
+import { SEARCH_RECIPES } from "@/data/search-recipes";
+import { PreloadQuery } from "@/lib/apollo-client";
+import { Suspense } from "react";
 
 export default async function RecipesPage() {
-  const result = await searchRecipes();
-  const recipes =
-    result?.library?.recipes.edges.map((recipe) => recipe.node) ?? [];
-
   return (
-    <Container>
-      <h1 className="text-xl">Recipe Library</h1>
-      <Recipes recipes={recipes} />
-    </Container>
+    <PreloadQuery query={SEARCH_RECIPES}>
+      <Suspense fallback={<>loading</>}>
+        <Container>
+          <h1 className="text-xl">Recipe Library</h1>
+          <RecipeGrid />
+        </Container>
+      </Suspense>
+    </PreloadQuery>
   );
 }

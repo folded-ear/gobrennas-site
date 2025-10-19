@@ -1,5 +1,7 @@
+import { ApolloWrapper } from "@/lib/apollo-wrapper";
 import { ThemeProvider } from "@/providers/theme-provider";
 import type { Metadata } from "next";
+import { CookiesProvider } from "next-client-cookies/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +17,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-background">
-        <ThemeProvider>{children}</ThemeProvider>
+        <CookiesProvider>
+          <ApolloWrapper>
+            <ThemeProvider>{children}</ThemeProvider>
+          </ApolloWrapper>
+        </CookiesProvider>
       </body>
     </html>
   );
