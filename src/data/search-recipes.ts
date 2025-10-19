@@ -1,7 +1,7 @@
 import {
   GetSearchLibraryQuery,
   GetSearchLibraryQueryVariables,
-} from "@/data/types/search-recipes.generated";
+} from "@/data/__generated__/search-recipes.generated";
 import { gql, TypedDocumentNode } from "@apollo/client";
 
 export const SEARCH_RECIPES: TypedDocumentNode<
