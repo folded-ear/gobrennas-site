@@ -2,7 +2,7 @@
 
 import { GET_RECIPE_BY_ID } from "@/data/get-recipe-by-id";
 import { GetRecipeByIdQuery } from "@/data/types/get-recipe-by-id.generated";
-import { useQuery } from "@apollo/client/react";
+import { useSuspenseQuery } from "@apollo/client/react";
 import { redirect } from "next/navigation";
 
 type RecipeDetailProps = {
@@ -10,20 +10,22 @@ type RecipeDetailProps = {
 };
 
 export default function RecipeDetail({ id }: RecipeDetailProps) {
-  const { data, loading } = useQuery<GetRecipeByIdQuery>(GET_RECIPE_BY_ID, {
+  const { data } = useSuspenseQuery<GetRecipeByIdQuery>(GET_RECIPE_BY_ID, {
     variables: { id },
   });
   const recipe = data?.library.getRecipeById;
 
   if (!recipe) {
-    if (loading) {
-      return <>Loading...</>;
-    }
     redirect("/");
   }
 
   return (
     <div className="flex flex-col">
+      {/*
+       React's handling of title only works if there is no suspense boundary
+       or the boundary doesn't actually suspend.
+       */}
+      <title>{recipe.name}</title>
       <h1>{recipe.name}</h1>
       <div className="flex flex-col gap-sm">
         {recipe.ingredients.map((ingredient) => (
