@@ -2,7 +2,7 @@
 
 import { ButtonBar } from "@/components/ui/button-bar";
 import { Card, CardTitle } from "@/components/ui/card";
-import { RecipeCardFragment } from "@/data/types/fragments.generated";
+import { RecipeCardFragment } from "@/data/__generated__/fragments.generated";
 import { CardBody } from "@heroui/card";
 import Link from "next/link";
 

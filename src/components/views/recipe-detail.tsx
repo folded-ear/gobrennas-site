@@ -1,7 +1,6 @@
 "use client";
 
 import { GET_RECIPE_BY_ID } from "@/data/get-recipe-by-id";
-import { GetRecipeByIdQuery } from "@/data/types/get-recipe-by-id.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
 import { redirect } from "next/navigation";
 
@@ -10,7 +9,7 @@ type RecipeDetailProps = {
 };
 
 export default function RecipeDetail({ id }: RecipeDetailProps) {
-  const { data } = useSuspenseQuery<GetRecipeByIdQuery>(GET_RECIPE_BY_ID, {
+  const { data } = useSuspenseQuery(GET_RECIPE_BY_ID, {
     variables: { id },
   });
   const recipe = data?.library.getRecipeById;
