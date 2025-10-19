@@ -17,8 +17,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@apollo/client": "^4.0.6",
-    "@apollo/client-integration-nextjs": "^0.13.2",
+    "@apollo/client": "^4.0.7",
+    "@apollo/client-integration-nextjs": "^0.14.0",
     "@fontsource/geist-mono": "^5.2.6",
     "@fontsource/geist-sans": "^5.2.5",
     "@graphql-typed-document-node/core": "^3.2.0",
