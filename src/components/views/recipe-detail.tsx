@@ -10,12 +10,15 @@ type RecipeDetailProps = {
 };
 
 export default function RecipeDetail({ id }: RecipeDetailProps) {
-  const { data } = useQuery<GetRecipeByIdQuery>(GET_RECIPE_BY_ID, {
+  const { data, loading } = useQuery<GetRecipeByIdQuery>(GET_RECIPE_BY_ID, {
     variables: { id },
   });
   const recipe = data?.library.getRecipeById;
 
   if (!recipe) {
+    if (loading) {
+      return <>Loading...</>;
+    }
     redirect("/");
   }
 
