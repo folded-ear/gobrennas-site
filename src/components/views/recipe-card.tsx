@@ -1,21 +1,22 @@
 "use client";
 
 import { ButtonBar } from "@/components/ui/button-bar";
-import { Card } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import { RecipeCardFragment } from "@/data/types/fragments.generated";
+import { CardBody } from "@heroui/card";
 import Link from "next/link";
 
 export function RecipeCard({ recipe }: { recipe: RecipeCardFragment }) {
   return (
     <Card size="standard">
-      <Card.Content>
-        <Card.Title>
+      <CardBody>
+        <CardTitle>
           <Link href={`/recipes/${recipe.id}`} className="hover:underline">
             {recipe.name}
           </Link>
-        </Card.Title>
+        </CardTitle>
         <ButtonBar />
-      </Card.Content>
+      </CardBody>
     </Card>
   );
 }

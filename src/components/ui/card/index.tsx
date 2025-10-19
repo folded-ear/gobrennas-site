@@ -1,7 +1,7 @@
 import {
-  CardBody,
-  CardHeader,
   Card as HeroCard,
+  CardBody as HeroCardBody,
+  CardHeader as HeroCardHeader,
   CardProps as HeroCardProps,
 } from "@heroui/react";
 import * as React from "react";
@@ -11,14 +11,14 @@ import { VariantProps } from "class-variance-authority";
 
 const { card, content, description, footer, header, title } = CardStyles();
 
-export type CardProps = HeroCardProps & VariantProps<typeof CardStyles>;
+type CardProps = HeroCardProps & VariantProps<typeof CardStyles>;
 
-export function Card({ className, ...props }: CardProps) {
+function Card({ className, ...props }: CardProps) {
   return <HeroCard className={card({ className })} {...props} />;
 }
 
-function Header({ className, ...props }: React.ComponentProps<"div">) {
-  return <CardHeader className={header({ className })} {...props} />;
+function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+  return <HeroCardHeader className={header({ className })} {...props} />;
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
@@ -35,8 +35,8 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function Content({ className, ...props }: React.ComponentProps<"div">) {
-  return <CardBody className={content({ className })} {...props} />;
+function CardBody({ className, ...props }: React.ComponentProps<"div">) {
+  return <HeroCardBody className={content({ className })} {...props} />;
 }
 
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
@@ -45,8 +45,12 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-Card.Content = Content;
-Card.Description = CardDescription;
-Card.Footer = CardFooter;
-Card.Header = Header;
-Card.Title = CardTitle;
+export {
+  Card,
+  CardBody,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  type CardProps,
+};
