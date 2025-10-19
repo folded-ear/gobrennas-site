@@ -1,26 +1,16 @@
 import { Container } from "@/components/ui/layout";
+import RecipeGrid from "@/components/views/recipe-grid";
+import { SEARCH_RECIPES } from "@/data/search-recipes";
 import { PreloadQuery } from "@/lib/apollo-client";
-import { gql } from "@apollo/client";
 import { Suspense } from "react";
-
-const GET_PLANS = gql(`
-  query getPlans {
-    planner {
-      plans {
-        id
-        name
-      }
-    }
-  }
-`);
 
 export default async function RecipesPage() {
   return (
-    <PreloadQuery query={GET_PLANS}>
+    <PreloadQuery query={SEARCH_RECIPES}>
       <Suspense fallback={<>loading</>}>
         <Container>
           <h1 className="text-xl">Recipe Library</h1>
-          <p>something</p>
+          <RecipeGrid />
         </Container>
       </Suspense>
     </PreloadQuery>

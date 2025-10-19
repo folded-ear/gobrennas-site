@@ -1,16 +1,20 @@
-import { Card, CardBody, CardHeader, CardProps } from "@heroui/react";
+import {
+  CardBody,
+  CardHeader,
+  Card as HeroCard,
+  CardProps as HeroCardProps,
+} from "@heroui/react";
 import * as React from "react";
 
-import { RecipeCardStyles } from "@/components/ui/recipe-card/styles";
+import { CardStyles } from "@/components/ui/card/styles";
 import { VariantProps } from "class-variance-authority";
 
-const { card, content, description, footer, header, title } =
-  RecipeCardStyles();
+const { card, content, description, footer, header, title } = CardStyles();
 
-export type RecipeCardProps = CardProps & VariantProps<typeof RecipeCardStyles>;
+export type CardProps = HeroCardProps & VariantProps<typeof CardStyles>;
 
-export function RecipeCard({ className, ...props }: RecipeCardProps) {
-  return <Card className={card({ className })} {...props} />;
+export function Card({ className, ...props }: CardProps) {
+  return <HeroCard className={card({ className })} {...props} />;
 }
 
 function Header({ className, ...props }: React.ComponentProps<"div">) {
@@ -41,8 +45,8 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-RecipeCard.Content = Content;
-RecipeCard.Description = CardDescription;
-RecipeCard.Footer = CardFooter;
-RecipeCard.Header = Header;
-RecipeCard.Title = CardTitle;
+Card.Content = Content;
+Card.Description = CardDescription;
+Card.Footer = CardFooter;
+Card.Header = Header;
+Card.Title = CardTitle;
