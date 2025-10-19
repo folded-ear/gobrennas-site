@@ -1,9 +1,11 @@
+import { fragments } from "@/data/fragments";
 import { HttpLink } from "@apollo/client";
 import {
   ApolloClient,
   InMemoryCache,
   registerApolloClient,
 } from "@apollo/client-integration-nextjs";
+import { createFragmentRegistry } from "@apollo/client/cache";
 import { cookies } from "next/headers";
 
 export const { getClient, query, PreloadQuery } = registerApolloClient(
@@ -11,7 +13,9 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
     const kookies = await cookies();
 
     return new ApolloClient({
-      cache: new InMemoryCache(),
+      cache: new InMemoryCache({
+        fragments: createFragmentRegistry(...fragments),
+      }),
       devtools: {
         enabled: true,
       },

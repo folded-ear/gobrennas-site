@@ -1,11 +1,13 @@
 "use client";
 
+import { fragments } from "@/data/fragments";
 import { ApolloLink, HttpLink, setLogVerbosity } from "@apollo/client";
 import {
   ApolloClient,
   ApolloNextAppProvider,
   InMemoryCache,
 } from "@apollo/client-integration-nextjs";
+import { createFragmentRegistry } from "@apollo/client/cache";
 import { type Cookies, useCookies } from "next-client-cookies";
 import { useCallback } from "react";
 
@@ -30,7 +32,9 @@ function makeClient(cookies: Cookies) {
   });
 
   return new ApolloClient({
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+      fragments: createFragmentRegistry(...fragments),
+    }),
     link: ApolloLink.from([authMiddleware, httpLink]),
     devtools: {
       enabled: true,
