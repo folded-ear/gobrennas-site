@@ -33,6 +33,11 @@ function makeClient(cookies: Cookies) {
 
   return new ApolloClient({
     cache: new InMemoryCache({
+      typePolicies: {
+        LibraryQuery: {
+          merge: false,
+        },
+      },
       fragments: createFragmentRegistry(...fragments),
     }),
     link: ApolloLink.from([authMiddleware, httpLink]),
