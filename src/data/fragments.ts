@@ -1,37 +1,28 @@
-import { graphql } from "@/__graphql";
+import { gql } from "@apollo/client";
 
-export const LIBRARY_SEARCH_RESULT_FRAGMENT = graphql(`
-  fragment librarySearchResult on RecipeConnection {
-    edges {
-      cursor
-      node {
-        id
-        owner {
-          id
-          imageUrl
-          email
-          name
-        }
-        photo {
-          url
-          focus
-        }
-        name
-        labels
-        externalUrl
-        calories
-        yield
-        totalTime
-      }
+export const RECIPE_CARD_FRAGMENT = gql`
+  fragment recipeCard on Recipe {
+    id
+    owner {
+      id
+      imageUrl
+      email
+      name
     }
-    pageInfo {
-      hasNextPage
-      endCursor
+    photo {
+      url
+      focus
     }
+    name
+    labels
+    externalUrl
+    calories
+    yield
+    totalTime
   }
-`);
+`;
 
-export const RECIPE_CORE_FRAGMENT = graphql(`
+export const RECIPE_CORE_FRAGMENT = gql(`
   fragment recipeCore on Recipe {
     id
     name
@@ -41,9 +32,7 @@ export const RECIPE_CORE_FRAGMENT = graphql(`
       raw
       quantity {
         quantity
-        units {
-          name
-        }
+        units { name }
       }
       ingredient {
         id
@@ -51,5 +40,6 @@ export const RECIPE_CORE_FRAGMENT = graphql(`
       }
       preparation
     }
-  }
-`);
+  }`);
+
+export const fragments = [RECIPE_CARD_FRAGMENT, RECIPE_CORE_FRAGMENT];

@@ -1,6 +1,6 @@
 import { tv } from "@/lib/utils";
 
-export const RecipeCardStyles = tv({
+export const CardStyles = tv({
   slots: {
     card: "bg-surface",
     content: "px-6",
