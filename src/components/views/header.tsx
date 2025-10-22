@@ -1,3 +1,5 @@
+"use client";
+
 import { doLogout } from "@/app/(public)/constants";
 import { MenuOpen } from "@/components/ui/icons";
 import { ModeToggle } from "@/components/ui/mode-toggle";

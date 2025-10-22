@@ -1,13 +1,17 @@
-"use client";
+"use server";
 
 import { Header } from "@/components/views/header";
+import { GET_PROFILE } from "@/data/get-profile";
+import { PreloadQuery } from "@/lib/apollo-client";
 import { PropsWithChildren } from "react";
 
-export default function PrivateLayout({ children }: PropsWithChildren) {
+export default async function PrivateLayout({ children }: PropsWithChildren) {
   return (
-    <div className="h-dvh">
-      <Header />
-      <main>{children}</main>
-    </div>
+    <PreloadQuery query={GET_PROFILE} variables={{}}>
+      <div className="h-dvh">
+        <Header />
+        <main>{children}</main>
+      </div>
+    </PreloadQuery>
   );
 }
