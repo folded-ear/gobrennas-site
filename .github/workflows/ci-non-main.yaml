@@ -18,4 +18,4 @@ jobs:
       - run: pnpm test
       - run: pnpm run format
       - run: git diff --exit-code # fail if any dirtiness was created
-      - run: pnpm run build --no-lint # includes typechecking
+      - run: pnpm run build # includes typechecking
