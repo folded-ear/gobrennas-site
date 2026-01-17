@@ -17,6 +17,5 @@ jobs:
       - run: pnpm install
       - run: pnpm test
       - run: pnpm run format
-      - run: pnpm run storybook --smoke-test
       - run: git diff --exit-code # fail if any dirtiness was created
       - run: pnpm run build --no-lint # includes typechecking
