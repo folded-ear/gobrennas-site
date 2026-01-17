@@ -9,7 +9,6 @@
     "dev": "next dev --turbopack --port 4000",
     "format": "prettier . --write",
     "generate": "graphql-codegen",
-    "lint": "next lint",
     "start": "node .next/standalone/server.js",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
