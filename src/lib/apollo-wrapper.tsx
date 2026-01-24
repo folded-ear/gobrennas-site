@@ -13,9 +13,9 @@ import { useCallback } from "react";
 
 setLogVerbosity("debug");
 
-function makeClient(cookies: Cookies) {
+function makeClient(graphqlUri: string, cookies: Cookies) {
   const httpLink = new HttpLink({
-    uri: `${process.env.NEXT_PUBLIC_API_BASE_URL}/graphql`,
+    uri: graphqlUri,
     credentials: "include",
     fetchOptions: {},
   });
@@ -47,11 +47,18 @@ function makeClient(cookies: Cookies) {
   });
 }
 
-// you need to create a component to wrap your app in
-export function ApolloWrapper({ children }: React.PropsWithChildren) {
-  const cookies = useCookies();
+type Props = {
+  graphqlUri: string;
+} & React.PropsWithChildren;
 
-  const handleMakeClient = useCallback(() => makeClient(cookies), [cookies]);
+// you need to create a component to wrap your app in
+export function ApolloWrapper({ graphqlUri, children }: Props) {
+  const kookies = useCookies();
+
+  const handleMakeClient = useCallback(
+    () => makeClient(graphqlUri, kookies),
+    [graphqlUri, kookies],
+  );
 
   return (
     <ApolloNextAppProvider makeClient={handleMakeClient}>

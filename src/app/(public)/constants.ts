@@ -14,3 +14,7 @@ export async function doLogout() {
   // this redirects back to client, not site, as the API only has one publicUrl...
   redirect(`${process.env.NEXT_PUBLIC_API_BASE_URL}/oauth2/logout`);
 }
+
+export async function graphqlUri() {
+  return `${process.env.NEXT_PUBLIC_API_BASE_URL}/graphql`;
+}
