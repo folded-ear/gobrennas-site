@@ -12,7 +12,7 @@ export const styles = {
       "data-[active=true]:after:right-0",
       "data-[active=true]:after:h-[3px]",
       "data-[active=true]:after:rounded-[2px]",
-      "data-[active=true]:after:bg-primary",
+      "data-[active=true]:after:bg-accent",
     ],
   },
 };

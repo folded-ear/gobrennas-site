@@ -3,6 +3,27 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
+/*
+This small snippet makes primary buttons orange. I don't understand the rest of
+the stuff in here, but it appears to be at least partially outdated for Hero v3?
+In particular, the color is named 'accent' not 'primary'.
+
+Based on:
+https://v3.heroui.com/docs/react/getting-started/colors#customizing-colors
+*/
+:root,
+.light,
+.default,
+[data-theme="light"],
+[data-theme="default"],
+.dark,
+[data-theme="dark"] {
+  --accent: oklch(0.728 0.167 53.83); /* from current client */
+}
+/*
+End small snippet.
+*/
+
 :root {
   --drawer-width: 450px;
 
