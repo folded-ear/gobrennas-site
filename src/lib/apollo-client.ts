@@ -1,3 +1,4 @@
+import { graphqlUri } from "@/app/(public)/constants";
 import { fragments } from "@/data/fragments";
 import { HttpLink } from "@apollo/client";
 import {
@@ -20,7 +21,7 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
         enabled: true,
       },
       link: new HttpLink({
-        uri: "http://localhost:8080/graphql",
+        uri: await graphqlUri(),
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
