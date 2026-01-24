@@ -62,8 +62,8 @@ export const Header = () => {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive ? "text-primary" : "text-foreground"
+                className={`text-sm font-medium transition-colors hover:text-accent ${
+                  isActive ? "text-accent" : "text-foreground"
                 }`}
               >
                 {item.name}
@@ -115,7 +115,7 @@ export const Header = () => {
                       href={item.href}
                       onClick={closeMobileMenu}
                       className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-default-100 ${
-                        isActive ? "text-primary" : "text-foreground"
+                        isActive ? "text-accent" : "text-foreground"
                       }`}
                     >
                       {item.name}
