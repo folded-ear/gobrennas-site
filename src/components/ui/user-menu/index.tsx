@@ -1,3 +1,5 @@
+import { GET_PROFILE } from "@/data/get-profile";
+import { useSuspenseQuery } from "@apollo/client/react";
 import { Avatar, Dropdown } from "@heroui/react";
 
 type UserMenuProps = {
@@ -5,15 +7,20 @@ type UserMenuProps = {
 };
 
 export const UserMenu = ({ onLogout }: UserMenuProps) => {
+  const me = useSuspenseQuery(GET_PROFILE).data.profile.me;
+  const name = me.name || me.email;
   return (
     <Dropdown>
       <Dropdown.Trigger>
-        <Avatar size="sm">
-          <Avatar.Image
-            alt="Barney!"
-            src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-          />
-          <Avatar.Fallback>JD</Avatar.Fallback>
+        <Avatar size="sm" title={name}>
+          <Avatar.Image src={me.imageUrl || undefined} alt={name} />
+          <Avatar.Fallback>
+            {name
+              .split(/\s+/)
+              .filter((s) => s)
+              .map((s) => s.charAt(0))
+              .join("")}
+          </Avatar.Fallback>
         </Avatar>
       </Dropdown.Trigger>
       <Dropdown.Popover>
