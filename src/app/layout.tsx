@@ -1,8 +1,10 @@
 import { graphqlUri } from "@/app/(public)/constants";
+import ErrorFallback from "@/components/views/error-fallback";
 import { ApolloWrapper } from "@/lib/apollo-wrapper";
 import { ThemeProvider } from "@/providers/theme-provider";
 import type { Metadata } from "next";
 import { CookiesProvider } from "next-client-cookies/server";
+import { ErrorBoundary } from "react-error-boundary";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +22,11 @@ export default async function RootLayout({
       <body className="bg-background">
         <CookiesProvider>
           <ApolloWrapper graphqlUri={await graphqlUri()}>
-            <ThemeProvider>{children}</ThemeProvider>
+            <ThemeProvider>
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                {children}
+              </ErrorBoundary>
+            </ThemeProvider>
           </ApolloWrapper>
         </CookiesProvider>
       </body>
