@@ -25,7 +25,7 @@ export default function ErrorFallback({
   return (
     <BarePage>
       <p>Something went wrong:</p>
-      <pre className="text-danger">
+      <pre className="text-danger text-wrap">
         {getErrorMessage(error) ?? "Unknown error"}
       </pre>
       <Button variant={"tertiary"} onClick={resetErrorBoundary}>
