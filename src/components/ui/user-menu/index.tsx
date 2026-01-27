@@ -1,6 +1,7 @@
 import { GET_PROFILE } from "@/data/get-profile";
 import { useSuspenseQuery } from "@apollo/client/react";
 import { Avatar, Dropdown } from "@heroui/react";
+import { useRouter } from "next/navigation";
 
 type UserMenuProps = {
   onLogout: () => void;
@@ -9,6 +10,7 @@ type UserMenuProps = {
 export const UserMenu = ({ onLogout }: UserMenuProps) => {
   const me = useSuspenseQuery(GET_PROFILE).data.profile.me;
   const name = me.name || me.email;
+  const router = useRouter();
   return (
     <Dropdown>
       <Dropdown.Trigger>
@@ -25,6 +27,9 @@ export const UserMenu = ({ onLogout }: UserMenuProps) => {
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <Dropdown.Menu>
+          <Dropdown.Item onPress={() => router.push("/profile")}>
+            Profile
+          </Dropdown.Item>
           <Dropdown.Item key="logout" onPress={onLogout}>
             Log Out
           </Dropdown.Item>
