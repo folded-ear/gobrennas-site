@@ -1,6 +1,7 @@
+import UserAvatar from "@/components/ui/user-avatar";
 import { GET_PROFILE } from "@/data/get-profile";
 import { useSuspenseQuery } from "@apollo/client/react";
-import { Avatar, Dropdown } from "@heroui/react";
+import { Dropdown } from "@heroui/react";
 import { useRouter } from "next/navigation";
 
 type UserMenuProps = {
@@ -9,21 +10,11 @@ type UserMenuProps = {
 
 export const UserMenu = ({ onLogout }: UserMenuProps) => {
   const me = useSuspenseQuery(GET_PROFILE).data.profile.me;
-  const name = me.name || me.email;
   const router = useRouter();
   return (
     <Dropdown>
       <Dropdown.Trigger>
-        <Avatar size="sm" title={name}>
-          <Avatar.Image src={me.imageUrl || undefined} alt={name} />
-          <Avatar.Fallback>
-            {name
-              .split(/\s+/)
-              .filter((s) => s)
-              .map((s) => s.charAt(0))
-              .join("")}
-          </Avatar.Fallback>
-        </Avatar>
+        <UserAvatar user={me} />
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <Dropdown.Menu>
