@@ -18,7 +18,7 @@ https://v3.heroui.com/docs/react/getting-started/colors#customizing-colors
 [data-theme="default"],
 .dark,
 [data-theme="dark"] {
-  --accent: oklch(0.728 0.167 53.83); /* from current client */
+  --accent: #f57f17; /* duplicated in root layout's theme color */
 }
 /*
 End small snippet.
