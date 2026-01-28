@@ -20,12 +20,7 @@ export default function RecipeDetail({ id }: RecipeDetailProps) {
 
   return (
     <div className="flex flex-col">
-      {/*
-       React's handling of title only works if there is no suspense boundary
-       or the boundary doesn't actually suspend.
-       */}
-      <title>{recipe.name}</title>
-      <h1>{recipe.name}</h1>
+      <h1 className="text-xl">{recipe.name}</h1>
       <div className="flex flex-col gap-sm">
         {recipe.ingredients.map((ingredient) => (
           <p key={ingredient.raw}>{ingredient.raw}</p>

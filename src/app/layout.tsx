@@ -8,7 +8,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Brenna's Food Software",
+  title: { default: "Brenna's Food Software", template: "%s :: BFS" },
   description: "Your _face_ is a food software!",
 };
 

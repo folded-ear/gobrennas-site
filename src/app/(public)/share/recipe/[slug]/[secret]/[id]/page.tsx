@@ -1,4 +1,7 @@
 import BarePage from "@/components/ui/layout/bare-page";
+import { GET_RECIPE_METADATA } from "@/data-rsc/get-recipe-metadata";
+import { query } from "@/lib/apollo-client";
+import type { Metadata } from "next";
 
 interface Params {
   slug: string;
@@ -8,6 +11,17 @@ interface Params {
 
 interface Props {
   params: Promise<Params>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id, secret } = await params;
+  const { data } = await query({
+    query: GET_RECIPE_METADATA,
+    variables: { id, secret },
+  });
+  return {
+    title: data?.library.getRecipeById.name,
+  };
 }
 
 export default async function SharedRecipe({ params }: Props) {
