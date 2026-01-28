@@ -6,12 +6,19 @@ interface Props {
   photo?: Pick<Photo, "url" | "focus">;
   src?: string;
   focus?: Photo["focus"];
+  className?: string;
 }
 
 // todo: figure out what those sizes/breakpoints should be. Next rounds up, so
 //  they don't have to be perfect, but should eventually be reasonable.
 
-export default function RecipePhoto({ alt, src, focus, photo }: Props) {
+export default function RecipePhoto({
+  alt,
+  src,
+  focus,
+  photo,
+  className,
+}: Props) {
   if (photo) {
     src = photo.url;
     focus = photo.focus;
@@ -28,6 +35,7 @@ export default function RecipePhoto({ alt, src, focus, photo }: Props) {
       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 50vw"
       objectFit="cover"
       objectPosition={`${100 * focus[0]}% ${100 * focus[1]}%`}
+      className={className}
     />
   );
 }
