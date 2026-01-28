@@ -13,7 +13,7 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardFragment }) {
           {recipe.name}
         </Link>
       </Card.Header>
-      <ButtonBar />
+      <ButtonBar id={recipe.id} />
     </Card>
   );
 }
