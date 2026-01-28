@@ -10,6 +10,21 @@ if (process.env.NEXT_PUBLIC_CACHE_USER_AVATARS === "true") {
     hostname: "*.googleusercontent.com",
   });
 }
+if (process.env.AWS_S3_BUCKET_NAME) {
+  const bucket = process.env.AWS_S3_BUCKET_NAME;
+  if (!bucket.includes(".")) {
+    // vhost style
+    remoteImagePatterns.push({
+      hostname: `${bucket}.s3.us-west-2.amazonaws.com`,
+    });
+  } else {
+    // have to use path style
+    remoteImagePatterns.push({
+      hostname: "s3.us-west-2.amazonaws.com",
+      pathname: `/${bucket}/**`,
+    });
+  }
+}
 
 const nextConfig: NextConfig = {
   output: "standalone",

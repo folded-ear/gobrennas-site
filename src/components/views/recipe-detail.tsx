@@ -1,5 +1,6 @@
 "use client";
 
+import RecipePhoto from "@/components/ui/recipe-photo";
 import UserAvatar from "@/components/ui/user-avatar";
 import { GET_RECIPE_BY_ID } from "@/data/get-recipe-by-id";
 import { useSuspenseQuery } from "@apollo/client/react";
@@ -20,19 +21,25 @@ export default function RecipeDetail({ id }: RecipeDetailProps) {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-1">
       {/*
        React's handling of title only works if there is no suspense boundary
        or the boundary doesn't actually suspend.
        */}
       <title>{recipe.name}</title>
-      <h1>{recipe.name}</h1>
-      <UserAvatar user={recipe.owner} />
+      <div className="w-full flex gap-1">
+        <UserAvatar user={recipe.owner} />
+        <h1 className="text-xl">{recipe.name}</h1>
+      </div>
+      <div className="relative min-h-80">
+        <RecipePhoto photo={recipe.photo ?? undefined} alt={recipe.name} />
+      </div>
       <div className="flex flex-col gap-sm">
         {recipe.ingredients.map((ingredient) => (
           <p key={ingredient.raw}>{ingredient.raw}</p>
         ))}
       </div>
+      {/*<pre className="text-wrap">{JSON.stringify(recipe, null, 2)}</pre>*/}
     </div>
   );
 }
