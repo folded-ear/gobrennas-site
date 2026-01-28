@@ -22,11 +22,6 @@ export default function RecipeDetail({ id }: RecipeDetailProps) {
 
   return (
     <div className="flex flex-col gap-1">
-      {/*
-       React's handling of title only works if there is no suspense boundary
-       or the boundary doesn't actually suspend.
-       */}
-      <title>{recipe.name}</title>
       <div className="w-full flex gap-1">
         <UserAvatar user={recipe.owner} />
         <h1 className="text-xl">{recipe.name}</h1>
