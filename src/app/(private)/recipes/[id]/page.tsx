@@ -1,8 +1,8 @@
 import { Container } from "@/components/ui/layout";
 import RecipeDetail from "@/components/views/recipe-detail";
-import { GET_RECIPE_METADATA } from "@/data-rsc/get-recipe-metadata";
+import { getRecipeMetadata } from "@/data-rsc/get-recipe-metadata";
 import { GET_RECIPE_BY_ID } from "@/data/get-recipe-by-id";
-import { PreloadQuery, query } from "@/lib/apollo-rsc";
+import { PreloadQuery } from "@/lib/apollo-rsc";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
@@ -12,12 +12,9 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const { data } = await query({
-    query: GET_RECIPE_METADATA,
-    variables: { id },
-  });
+  const { name: title } = await getRecipeMetadata(id);
   return {
-    title: data?.library.getRecipeById.name,
+    title,
   };
 }
 

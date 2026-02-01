@@ -1,6 +1,5 @@
 import BarePage from "@/components/ui/layout/bare-page";
-import { GET_RECIPE_METADATA } from "@/data-rsc/get-recipe-metadata";
-import { query } from "@/lib/apollo-rsc";
+import { getRecipeMetadata } from "@/data-rsc/get-recipe-metadata";
 import type { Metadata } from "next";
 
 interface Params {
@@ -15,12 +14,9 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id, secret } = await params;
-  const { data } = await query({
-    query: GET_RECIPE_METADATA,
-    variables: { id, secret },
-  });
+  const { name: title } = await getRecipeMetadata(id);
   return {
-    title: data?.library.getRecipeById.name,
+    title,
   };
 }
 
