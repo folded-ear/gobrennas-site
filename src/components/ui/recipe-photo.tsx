@@ -1,12 +1,9 @@
 import { Photo } from "@/__generated__/graphql";
-import Image from "next/image";
+import Image, { ImageProps } from "next/image";
 
-interface Props {
-  alt: string;
+interface Props extends Omit<ImageProps, "src"> {
   photo?: Pick<Photo, "url" | "focus">;
-  src?: string;
   focus?: Photo["focus"];
-  className?: string;
 }
 
 // todo: figure out what those sizes/breakpoints should be. Next rounds up, so
@@ -14,11 +11,13 @@ interface Props {
 
 export default function RecipePhoto({
   alt,
-  src,
   focus,
   photo,
   className,
+  style = {},
+  ...passthrough
 }: Props) {
+  let src = "/recipe-box.jpg";
   if (photo) {
     src = photo.url;
     focus = photo.focus;
@@ -29,13 +28,16 @@ export default function RecipePhoto({
 
   return (
     <Image
-      src={src ?? "/recipe-box.jpg"}
+      src={src}
       alt={alt}
       fill
       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 50vw"
-      objectFit="cover"
-      objectPosition={`${100 * focus[0]}% ${100 * focus[1]}%`}
-      className={className}
+      className={"object-cover " + className}
+      style={{
+        objectPosition: `${100 * focus[0]}% ${100 * focus[1]}%`,
+        ...style,
+      }}
+      {...passthrough}
     />
   );
 }

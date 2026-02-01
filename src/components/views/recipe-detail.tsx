@@ -28,7 +28,7 @@ export default function RecipeDetail({ id }: RecipeDetailProps) {
       </div>
       {recipe.photo && (
         <div className="relative min-h-80">
-          <RecipePhoto photo={recipe.photo} alt={recipe.name} />
+          <RecipePhoto photo={recipe.photo} alt={recipe.name} loading="eager" />
         </div>
       )}
       <div className="flex flex-col gap-sm">
