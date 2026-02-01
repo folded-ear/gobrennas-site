@@ -26,9 +26,11 @@ export default function RecipeDetail({ id }: RecipeDetailProps) {
         <UserAvatar user={recipe.owner} />
         <h1 className="text-xl">{recipe.name}</h1>
       </div>
-      <div className="relative min-h-80">
-        <RecipePhoto photo={recipe.photo ?? undefined} alt={recipe.name} />
-      </div>
+      {recipe.photo && (
+        <div className="relative min-h-80">
+          <RecipePhoto photo={recipe.photo} alt={recipe.name} />
+        </div>
+      )}
       <div className="flex flex-col gap-sm">
         {recipe.ingredients.map((ingredient) => (
           <p key={ingredient.raw}>{ingredient.raw}</p>
