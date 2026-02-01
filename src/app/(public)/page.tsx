@@ -1,7 +1,7 @@
 import BarePage from "@/components/ui/layout/bare-page";
 import Login from "@/components/views/login";
 import { GET_PROFILE } from "@/data/get-profile";
-import { query } from "@/lib/apollo-client";
+import { query } from "@/lib/apollo-rsc";
 import { redirect } from "next/navigation";
 
 export default async function Home() {

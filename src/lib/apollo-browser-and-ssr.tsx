@@ -37,13 +37,13 @@ function makeClient(graphqlUri: string, cookies: Cookies) {
           // redirect("/");
         }
         console.log(
-          `[GraphQL error - wrapper]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+          `[GraphQL error - browser-and-ssr]: Message: ${message}, Location: ${locations}, Path: ${path}`,
         );
       });
     } else if (CombinedProtocolErrors.is(error)) {
       error.errors.forEach(({ message, extensions }) =>
         console.log(
-          `[Protocol error - wrapper]: Message: ${message}, Extensions: ${JSON.stringify(
+          `[Protocol error - browser-and-ssr]: Message: ${message}, Extensions: ${JSON.stringify(
             extensions,
           )}`,
         ),
@@ -51,9 +51,12 @@ function makeClient(graphqlUri: string, cookies: Cookies) {
     } else if (ServerError.is(error)) {
       console.error(`[Server error - wrappper]: ${error}`, error.statusCode);
     } else if (ServerParseError.is(error)) {
-      console.error(`[Parse error - wrapper]: ${error}`, error.statusCode);
+      console.error(
+        `[Parse error - browser-and-ssr]: ${error}`,
+        error.statusCode,
+      );
     } else {
-      console.error(`[Network error - wrapper]: ${error}`);
+      console.error(`[Network error - browser-and-ssr]: ${error}`);
     }
   });
 
@@ -79,7 +82,7 @@ function makeClient(graphqlUri: string, cookies: Cookies) {
     }),
     link: ApolloLink.from([
       new ApolloLink((operation, forward) => {
-        console.log("[Operation - wrapper]:", operation);
+        console.log("[Operation - browser-and-ssr]:", operation);
         return forward(operation);
       }),
       authMiddleware,

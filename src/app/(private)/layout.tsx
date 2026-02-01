@@ -2,7 +2,7 @@
 
 import { Header } from "@/components/views/header";
 import { GET_PROFILE } from "@/data/get-profile";
-import { PreloadQuery } from "@/lib/apollo-client";
+import { PreloadQuery } from "@/lib/apollo-rsc";
 import { PropsWithChildren } from "react";
 
 export default async function PrivateLayout({ children }: PropsWithChildren) {

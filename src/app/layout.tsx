@@ -1,6 +1,6 @@
 import { graphqlUri } from "@/app/(public)/constants";
 import ErrorFallback from "@/components/views/error-fallback";
-import { ApolloWrapper } from "@/lib/apollo-wrapper";
+import { ApolloWrapper } from "@/lib/apollo-browser-and-ssr";
 import { ThemeProvider } from "@/providers/theme-provider";
 import type { Metadata, Viewport } from "next";
 import { CookiesProvider } from "next-client-cookies/server";

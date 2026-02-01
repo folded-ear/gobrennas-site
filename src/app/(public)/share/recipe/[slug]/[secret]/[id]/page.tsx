@@ -1,6 +1,6 @@
 import BarePage from "@/components/ui/layout/bare-page";
 import { GET_RECIPE_METADATA } from "@/data-rsc/get-recipe-metadata";
-import { query } from "@/lib/apollo-client";
+import { query } from "@/lib/apollo-rsc";
 import type { Metadata } from "next";
 
 interface Params {
