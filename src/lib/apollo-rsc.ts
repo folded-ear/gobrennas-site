@@ -26,23 +26,23 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
       if (CombinedGraphQLErrors.is(error)) {
         error.errors.forEach(({ extensions, message, locations, path }) => {
           console.log(
-            `[GraphQL error - client]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+            `[GraphQL error - rsc]: Message: ${message}, Location: ${locations}, Path: ${path}`,
           );
         });
       } else if (CombinedProtocolErrors.is(error)) {
         error.errors.forEach(({ message, extensions }) =>
           console.log(
-            `[Protocol error - client]: Message: ${message}, Extensions: ${JSON.stringify(
+            `[Protocol error - rsc]: Message: ${message}, Extensions: ${JSON.stringify(
               extensions,
             )}`,
           ),
         );
       } else if (ServerError.is(error)) {
-        console.error(`[Server error - client]: ${error}`, error.statusCode);
+        console.error(`[Server error - rsc]: ${error}`, error.statusCode);
       } else if (ServerParseError.is(error)) {
-        console.error(`[Parse error - client]: ${error}`, error.statusCode);
+        console.error(`[Parse error - rsc]: ${error}`, error.statusCode);
       } else {
-        console.error(`[Network error - client]: ${error}`);
+        console.error(`[Network error - rsc]: ${error}`);
       }
     });
 
@@ -69,7 +69,7 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
       },
       link: ApolloLink.from([
         new ApolloLink((operation, forward) => {
-          console.log("[Operation - client]:", operation);
+          console.log("[Operation - rsc]:", operation);
           return forward(operation);
         }),
         errorLink,
