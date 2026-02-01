@@ -43,5 +43,7 @@ next-env.d.ts
 *.iml
 .idea
 
-*storybook.log
 /src/**/__generated__/
+
+.agents
+.claude
