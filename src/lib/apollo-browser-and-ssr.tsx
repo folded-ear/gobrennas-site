@@ -1,67 +1,26 @@
 "use client";
 
-import { fragments } from "@/data/fragments";
-import {
-  ApolloLink,
-  CombinedGraphQLErrors,
-  CombinedProtocolErrors,
-  HttpLink,
-  ServerError,
-  ServerParseError,
-  setLogVerbosity,
-} from "@apollo/client";
+import { buildApolloLink } from "@/lib/apollo/build-apollo-link";
+import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
+import { ApolloLink, HttpLink, setLogVerbosity } from "@apollo/client";
 import {
   ApolloClient,
   ApolloNextAppProvider,
-  InMemoryCache,
 } from "@apollo/client-integration-nextjs";
-import { createFragmentRegistry } from "@apollo/client/cache";
-import { ErrorLink } from "@apollo/client/link/error";
 import { type Cookies, useCookies } from "next-client-cookies";
 import React, { useCallback } from "react";
 
 setLogVerbosity("debug");
 
-function makeClient(graphqlUri: string, cookies: Cookies) {
+function makeClient(graphqlUri: string, kookies: Cookies) {
   const httpLink = new HttpLink({
     uri: graphqlUri,
     credentials: "include",
     fetchOptions: {},
   });
 
-  // Log any GraphQL errors, protocol errors, or network error that occurred
-  const errorLink = new ErrorLink(({ error }) => {
-    if (CombinedGraphQLErrors.is(error)) {
-      error.errors.forEach(({ extensions, message, locations, path }) => {
-        if (extensions?.classification === "UNAUTHORIZED") {
-          // redirect("/");
-        }
-        console.log(
-          `[GraphQL error - browser-and-ssr]: Message: ${message}, Location: ${locations}, Path: ${path}`,
-        );
-      });
-    } else if (CombinedProtocolErrors.is(error)) {
-      error.errors.forEach(({ message, extensions }) =>
-        console.log(
-          `[Protocol error - browser-and-ssr]: Message: ${message}, Extensions: ${JSON.stringify(
-            extensions,
-          )}`,
-        ),
-      );
-    } else if (ServerError.is(error)) {
-      console.error(`[Server error - wrappper]: ${error}`, error.statusCode);
-    } else if (ServerParseError.is(error)) {
-      console.error(
-        `[Parse error - browser-and-ssr]: ${error}`,
-        error.statusCode,
-      );
-    } else {
-      console.error(`[Network error - browser-and-ssr]: ${error}`);
-    }
-  });
-
   const authMiddleware = new ApolloLink((operation, forward) => {
-    const token = cookies.get("FTOKEN");
+    const token = kookies.get("FTOKEN");
     operation.setContext(({ headers = {} }) => ({
       headers: {
         ...headers,
@@ -72,35 +31,20 @@ function makeClient(graphqlUri: string, cookies: Cookies) {
   });
 
   return new ApolloClient({
-    cache: new InMemoryCache({
-      typePolicies: {
-        LibraryQuery: {
-          merge: false,
-        },
-      },
-      fragments: createFragmentRegistry(...fragments),
-    }),
-    link: ApolloLink.from([
-      new ApolloLink((operation, forward) => {
-        console.log("[Operation - browser-and-ssr]:", operation);
-        return forward(operation);
-      }),
-      authMiddleware,
-      errorLink,
-      httpLink,
-    ]),
+    cache: buildInMemoryCache(),
+    link: buildApolloLink("browser-and-ssr", authMiddleware, httpLink),
     devtools: {
       enabled: true,
     },
   });
 }
 
-type Props = {
+type ApolloWrapperProps = React.PropsWithChildren & {
   graphqlUri: string;
-} & React.PropsWithChildren;
+};
 
 // you need to create a component to wrap your app in
-export function ApolloWrapper({ graphqlUri, children }: Props) {
+export function ApolloWrapper({ graphqlUri, children }: ApolloWrapperProps) {
   const kookies = useCookies();
 
   const handleMakeClient = useCallback(

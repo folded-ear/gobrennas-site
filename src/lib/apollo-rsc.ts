@@ -1,50 +1,16 @@
 import { graphqlUri } from "@/app/(public)/constants";
-import { fragments } from "@/data/fragments";
-import {
-  ApolloLink,
-  CombinedGraphQLErrors,
-  CombinedProtocolErrors,
-  HttpLink,
-  ServerError,
-  ServerParseError,
-} from "@apollo/client";
+import { buildApolloLink } from "@/lib/apollo/build-apollo-link";
+import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
+import { HttpLink } from "@apollo/client";
 import {
   ApolloClient,
-  InMemoryCache,
-  registerApolloClient,
+  registerApolloClient
 } from "@apollo/client-integration-nextjs";
-import { createFragmentRegistry } from "@apollo/client/cache";
-import { ErrorLink } from "@apollo/client/link/error";
 import { cookies } from "next/headers";
 
 export const { getClient, query, PreloadQuery } = registerApolloClient(
   async () => {
     const kookies = await cookies();
-
-    // Log any GraphQL errors, protocol errors, or network error that occurred
-    const errorLink = new ErrorLink(({ error }) => {
-      if (CombinedGraphQLErrors.is(error)) {
-        error.errors.forEach(({ extensions, message, locations, path }) => {
-          console.log(
-            `[GraphQL error - rsc]: Message: ${message}, Location: ${locations}, Path: ${path}`,
-          );
-        });
-      } else if (CombinedProtocolErrors.is(error)) {
-        error.errors.forEach(({ message, extensions }) =>
-          console.log(
-            `[Protocol error - rsc]: Message: ${message}, Extensions: ${JSON.stringify(
-              extensions,
-            )}`,
-          ),
-        );
-      } else if (ServerError.is(error)) {
-        console.error(`[Server error - rsc]: ${error}`, error.statusCode);
-      } else if (ServerParseError.is(error)) {
-        console.error(`[Parse error - rsc]: ${error}`, error.statusCode);
-      } else {
-        console.error(`[Network error - rsc]: ${error}`);
-      }
-    });
 
     const httpLink = new HttpLink({
       uri: await graphqlUri(),
@@ -61,20 +27,11 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
     });
 
     return new ApolloClient({
-      cache: new InMemoryCache({
-        fragments: createFragmentRegistry(...fragments),
-      }),
+      cache: buildInMemoryCache(),
+      link: buildApolloLink("rsc", httpLink),
       devtools: {
         enabled: true,
       },
-      link: ApolloLink.from([
-        new ApolloLink((operation, forward) => {
-          console.log("[Operation - rsc]:", operation);
-          return forward(operation);
-        }),
-        errorLink,
-        httpLink,
-      ]),
     });
   },
 );
