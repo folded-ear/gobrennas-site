@@ -1,192 +1,95 @@
-@import "@fontsource/geist-sans";
-@import "@fontsource/geist-mono";
 @import "tailwindcss";
 @import "@heroui/styles";
 
 /*
-This small snippet makes primary buttons orange. I don't understand the rest of
-the stuff in here, but it appears to be at least partially outdated for Hero v3?
-In particular, the color is named 'accent' not 'primary'.
+ * @see https://v3.heroui.com/docs/react/getting-started/theming
+ */
 
-Based on:
-https://v3.heroui.com/docs/react/getting-started/colors#customizing-colors
-*/
+@theme {
+  /* add custom theme colors and vars here */
+  --font-figtree: "Figtree", sans-serif;
+  --color-brand: oklch(64.56% 0.1767 45.29);
+}
+
 :root,
 .light,
 .default,
 [data-theme="light"],
-[data-theme="default"],
+[data-theme="default"] {
+  /* theme color overrides (light) */
+  --accent: oklch(64.56% 0.1767 45.29);
+  --accent-foreground: oklch(99.11% 0 0);
+  --background: oklch(97.02% 0.0015 45.29);
+  --border: oklch(90.00% 0.0015 45.29);
+  --danger: oklch(0.434 0.174 22.791);
+  --danger-foreground: oklch(99.11% 0 0);
+  --default: oklch(94.00% 0.0015 45.29);
+  --default-foreground: oklch(21.03% 0.0059 45.29);
+  --field-background: oklch(100.00% 0.0008 45.29);
+  --field-foreground: oklch(21.03% 0.0015 45.29);
+  --field-placeholder: oklch(55.17% 0.0030 45.29);
+  --focus: oklch(64.56% 0.1767 45.29);
+  --foreground: oklch(21.03% 0.0015 45.29);
+  --muted: oklch(55.17% 0.0030 45.29);
+  --overlay: oklch(100.00% 0.0004 45.29);
+  --overlay-foreground: oklch(21.03% 0.0015 45.29);
+  --scrollbar: oklch(87.10% 0.0015 45.29);
+  --segment: oklch(100.00% 0.0015 45.29);
+  --segment-foreground: oklch(21.03% 0.0015 45.29);
+  --separator: oklch(92.00% 0.0015 45.29);
+  --success: oklch(73.29% 0.1941 125.79);
+  --success-foreground: oklch(21.03% 0.0059 125.79);
+  --surface: oklch(100.00% 0.0008 45.29);
+  --surface-foreground: oklch(21.03% 0.0015 45.29);
+  --surface-secondary: oklch(95.24% 0.0012 45.29);
+  --surface-secondary-foreground: oklch(21.03% 0.0015 45.29);
+  --surface-tertiary: oklch(93.73% 0.0012 45.29);
+  --surface-tertiary-foreground: oklch(21.03% 0.0015 45.29);
+  --warning: oklch(78.19% 0.1590 47.31);
+  --warning-foreground: oklch(21.03% 0.0059 47.31);
+
+  /* Border Radius */
+  --radius: 0.125rem;
+  --field-radius: 0.125rem;
+
+  /* Font Family */
+  --font-sans: var(--font-figtree);
+}
+
 .dark,
 [data-theme="dark"] {
-  --accent: #f57f17; /* duplicated in root layout's theme color */
-}
-/*
-End small snippet.
-*/
-
-:root {
-  --drawer-width: 450px;
-
-  --color-gray-50: #ffffff;
-  --color-gray-100: #f0f0f0;
-  --color-gray-200: #898989;
-  --color-gray-300: #686868;
-  --color-gray-400: #565656;
-  --color-gray-500: #424242;
-  --color-gray-600: #383838;
-  --color-gray-700: #2f2f31;
-  --color-gray-800: #222222;
-  --color-gray-900: #0b0b0b;
-  --color-gray-950: #000000;
-
-  --color-warm-50: #f4ebdd;
-  --color-warm-100: #ebddcb;
-  --color-warm-200: #dfceb5;
-  --color-warm-300: #d2bd9f;
-  --color-warm-400: #c6ae8a;
-  --color-warm-500: #b8a180;
-  --color-warm-600: #a69073;
-  --color-warm-700: #988169;
-  --color-warm-800: #87715d;
-
-  --color-cool-50: #eceff1;
-  --color-cool-100: #cfd8dc;
-  --color-cool-200: #b0bec5;
-  --color-cool-300: #90a4ae;
-  --color-cool-400: #78909c;
-  --color-cool-500: #607d8b;
-  --color-cool-600: #546e7a;
-  --color-cool-700: #455a64;
-  --color-cool-800: #37474f;
-  --color-cool-900: #263238;
-
-  --color-brand-50: #fff3e0;
-  --color-brand-100: #ffe0b2;
-  --color-brand-200: #ffcc80;
-  --color-brand-300: #ffb74d;
-  --color-brand-400: #ffa726;
-  --color-brand-500: #ff9800;
-  --color-brand-600: #fb8c00;
-  --color-brand-700: #f57c00;
-  --color-brand-800: #ef6c00;
-  --color-brand-900: #e65100;
-
-  --color-info-50: #dff7ff;
-  --color-info-100: #bce2f3;
-  --color-info-200: #96cde6;
-  --color-info-300: #70b8da;
-  --color-info-400: #4aa4ce;
-  --color-info-500: #318ab5;
-  --color-info-600: #226b8e;
-  --color-info-700: #134d67;
-  --color-info-800: #032f40;
-  --color-info-900: #00111b;
-
-  --color-success-50: #edf8e6;
-  --color-success-100: #d3e5c9;
-  --color-success-200: #b6d2aa;
-  --color-success-300: #99c08a;
-  --color-success-400: #7bae6a;
-  --color-success-500: #669551;
-  --color-success-600: #52743e;
-  --color-success-700: #3d532b;
-  --color-success-800: #243318;
-  --color-success-900: #0b1300;
-
-  --color-warning-50: #fff6da;
-  --color-warning-100: #ffe4ad;
-  --color-warning-200: #ffd27d;
-  --color-warning-300: #ffc14b;
-  --color-warning-400: #ffaf1a;
-  --color-warning-500: #e69500;
-  --color-warning-600: #b37400;
-  --color-warning-700: #815300;
-  --color-warning-800: #4e3200;
-  --color-warning-900: #1e1000;
-
-  --color-critical-50: #ffe7e7;
-  --color-critical-100: #f4c0c0;
-  --color-critical-200: #e79999;
-  --color-critical-300: #db7071;
-  --color-critical-400: #d04949;
-  --color-critical-500: #b62f2f;
-  --color-critical-600: #8f2424;
-  --color-critical-700: #661819;
-  --color-critical-800: #400d0e;
-  --color-critical-900: #1d0101;
-
-  --font-geist:
-    "Geist Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-geist-mono: "Geist Mono", monospace;
-}
-
-@layer theme {
-  .dark {
-    --color-background: var(--color-gray-800);
-    --color-background-muted: var(--color-gray-700);
-    --color-background-bold: var(--color-gray-900);
-
-    --color-foreground: var(--color-gray-200);
-    --color-foreground-muted: var(--color-gray-400);
-    --color-foreground-bold: var(--color-gray-100);
-
-    --color-outline: var(--color-gray-400);
-
-    --color-primary: var(--color-brand-800);
-    --color-secondary: var(--color-info-700);
-    --color-success: var(--color-success-400);
-    --color-warning: var(--color-warning-400);
-    --color-danger: var(--color-critical-500);
-  }
-}
-
-@theme {
-  --font-sans: var(--font-geist);
-  --font-mono: var(--font-geist-mono);
-
-  --color-bfs: var(--color-brand-600);
-  --color-bfs-muted: var(--color-brand-200);
-  --color-bfs-bold: var(--color-brand-900);
-
-  --color-background: var(--color-gray-50);
-  --color-background-muted: var(--color-gray-100);
-  --color-background-bold: var(--color-gray-200);
-
-  --color-foreground: var(--color-gray-800);
-  --color-foreground-muted: var(--color-gray-500);
-  --color-foreground-bold: var(--color-gray-900);
-
-  --color-outline: var(--color-gray-300);
-
-  --color-primary: var(--color-brand-400);
-  --color-secondary: var(--color-cool-400);
-  --color-success: var(--color-success-400);
-  --color-warning: var(--color-warning-400);
-  --color-danger: var(--color-critical-500);
-
-  --text-xxl: 32px;
-  --text-xl: 24px;
-  --text-lg: 18px;
-  --text-md: 14px;
-  --text-sm: 12px;
-  --text-xs: 10px;
-  --text-xxs: 9px;
-
-  --spacing-none: 0px;
-  --spacing-xxs: 2px;
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 16px;
-  --spacing-xl: 24px;
-  --spacing-xxl: 40px;
-}
-
-@layer base {
-  body {
-    @apply font-sans;
-  }
+  color-scheme: dark;
+  /* theme color overrides (dark) */
+  --accent: oklch(0.698 0.165 48.597);
+  --accent-foreground: oklch(99.11% 0 0);
+  --background: oklch(12.00% 0.0015 45.29);
+  --border: oklch(28.00% 0.0015 45.29);
+  --danger: oklch(0.434 0.174 22.791);
+  --danger-foreground: oklch(99.11% 0 0);
+  --default: oklch(27.40% 0.0015 45.29);
+  --default-foreground: oklch(99.11% 0 0);
+  --field-background: oklch(21.03% 0.0030 45.29);
+  --field-foreground: oklch(99.11% 0.0015 45.29);
+  --field-placeholder: oklch(70.50% 0.0030 45.29);
+  --focus: oklch(64.56% 0.1767 45.29);
+  --foreground: oklch(99.11% 0.0015 45.29);
+  --muted: oklch(70.50% 0.0030 45.29);
+  --overlay: oklch(21.03% 0.0030 45.29);
+  --overlay-foreground: oklch(99.11% 0.0015 45.29);
+  --scrollbar: oklch(70.50% 0.0015 45.29);
+  --segment: oklch(39.64% 0.0015 45.29);
+  --segment-foreground: oklch(99.11% 0.0015 45.29);
+  --separator: oklch(25.00% 0.0015 45.29);
+  --success: oklch(73.29% 0.1941 125.79);
+  --success-foreground: oklch(21.03% 0.0059 125.79);
+  --surface: oklch(21.03% 0.0030 45.29);
+  --surface-foreground: oklch(99.11% 0.0015 45.29);
+  --surface-secondary: oklch(25.70% 0.0023 45.29);
+  --surface-secondary-foreground: oklch(99.11% 0.0015 45.29);
+  --surface-tertiary: oklch(27.21% 0.0023 45.29);
+  --surface-tertiary-foreground: oklch(99.11% 0.0015 45.29);
+  --warning: oklch(82.03% 0.1392 51.32);
+  --warning-foreground: oklch(21.03% 0.0059 51.32);
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
