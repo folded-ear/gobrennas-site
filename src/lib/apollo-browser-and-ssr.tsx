@@ -21,12 +21,12 @@ function makeClient(graphqlUri: string, kookies: Cookies) {
 
   const authMiddleware = new ApolloLink((operation, forward) => {
     const token = kookies.get("FTOKEN");
-    operation.setContext(({ headers = {} }) => ({
-      headers: {
+    if (token) {
+      operation.setContext(({ headers = {} }) => ({
         ...headers,
-        cookies: `FTOKEN=${token}`,
-      },
-    }));
+        authorization: `Bearer ${token}`,
+      }));
+    }
     return forward(operation);
   });
 

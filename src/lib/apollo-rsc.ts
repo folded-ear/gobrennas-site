@@ -4,7 +4,7 @@ import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
 import { HttpLink } from "@apollo/client";
 import {
   ApolloClient,
-  registerApolloClient
+  registerApolloClient,
 } from "@apollo/client-integration-nextjs";
 import { cookies } from "next/headers";
 
@@ -12,13 +12,16 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
   async () => {
     const kookies = await cookies();
 
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const token = kookies.get("FTOKEN")?.value;
+    if (token) headers.authorization = `Bearer ${token}`;
+
     const httpLink = new HttpLink({
       uri: await graphqlUri(),
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        cookie: `FTOKEN=${kookies.get("FTOKEN")?.value}`,
-      },
+      headers,
       fetchOptions: {
         // you can pass additional options that should be passed to `fetch` here,
         // e.g. Next.js-related `fetch` options regarding caching and revalidation
