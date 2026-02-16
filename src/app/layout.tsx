@@ -28,7 +28,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-background">
+      <body className="bg-background text-foreground">
         <CookiesProvider>
           <ApolloWrapper graphqlUri={await graphqlUri()}>
             <ThemeProvider>
