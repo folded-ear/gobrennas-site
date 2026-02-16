@@ -1,8 +1,7 @@
-import { fragments } from "@/data/fragments";
+import { fragmentRegistry } from "@/lib/apollo/fragment-registry";
 import { possibleTypes } from "@/lib/apollo/possible-types";
 import { defaultDataIdFromObject } from "@apollo/client";
 import { InMemoryCache } from "@apollo/client-integration-nextjs";
-import { createFragmentRegistry } from "@apollo/client/cache";
 import { relayStylePagination } from "@apollo/client/utilities";
 
 export function buildInMemoryCache() {
@@ -38,6 +37,6 @@ export function buildInMemoryCache() {
           return defaultDataIdFromObject(responseObject);
       }
     },
-    fragments: createFragmentRegistry(...fragments),
+    fragments: fragmentRegistry,
   });
 }

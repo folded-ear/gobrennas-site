@@ -59,6 +59,9 @@ importers:
       react-error-boundary:
         specifier: ^6.1.0
         version: 6.1.0(react@19.2.3)
+      react-infinite-scroll-hook:
+        specifier: ^6.0.1
+        version: 6.0.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       tailwind-variants:
         specifier: ~3.2.2
         version: 3.2.2(tailwind-merge@3.4.0)(tailwindcss@4.1.12)
@@ -4433,6 +4436,18 @@ packages:
     resolution: {integrity: sha512-02k9WQ/mUhdbXir0tC1NiMesGzRPaCsJEWU/4bcFrbY1YMZOtHShtZP6zw0SJrBWA/31H0KT9/FgdL8+sPKgHA==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
+
+  react-infinite-scroll-hook@6.0.1:
+    resolution: {integrity: sha512-5FtJnor4Zyd3uafHCzOlXFCuhFJ2ZzLm3d9XTKbvAN6A/SH+XNFo5IOFk/T1hV5AYy+vOZYoXeH4jkufFB2JVA==}
+    peerDependencies:
+      react: '>=19'
+      react-dom: '>=19'
+
+  react-intersection-observer-hook@4.0.1:
+    resolution: {integrity: sha512-iAic1y/ne0hHjtll6XFFGaq0CWNtukYOA3NXef5yT8TdsA8KdQJ8Ey5CcVWzXKIE9IOU+K9Z40+LXDqBPBdCqw==}
+    peerDependencies:
+      react: '>=19'
+      react-dom: '>=19'
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -10556,6 +10571,17 @@ snapshots:
   react-error-boundary@6.1.0(react@19.2.3):
     dependencies:
       react: 19.2.3
+
+  react-infinite-scroll-hook@6.0.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      react-intersection-observer-hook: 4.0.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+
+  react-intersection-observer-hook@4.0.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
 
   react-is@16.13.1: {}
 

@@ -9,7 +9,7 @@ interface Props extends Omit<ImageProps, "src"> {
 // todo: figure out what those sizes/breakpoints should be. Next rounds up, so
 //  they don't have to be perfect, but should eventually be reasonable.
 
-export default function RecipePhoto({
+export function RecipePhoto({
   alt,
   focus,
   photo,
@@ -41,3 +41,6 @@ export default function RecipePhoto({
     />
   );
 }
+
+/** @deprecated */
+export default RecipePhoto;

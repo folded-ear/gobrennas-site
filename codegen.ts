@@ -1,6 +1,30 @@
 import { CodegenConfig } from "@graphql-codegen/cli";
 
+const coreConfig = {
+  scalars: {
+    Cursor: "string",
+    Date: "string",
+    DateTime: "string",
+    Long: "number",
+    NonNegativeFloat: "number",
+    NonNegativeInt: "number",
+    PositiveInt: "number",
+  },
+  avoidOptionals: {
+    field: true,
+    inputValue: false,
+  },
+  namingConvention: {
+    enumValues: "keep",
+  },
+  inlineFragmentTypes: "mask",
+  customDirectives: {
+    apolloUnmask: true,
+  },
+};
+
 const config: CodegenConfig = {
+  emitLegacyCommonJSImports: false,
   overwrite: true,
   schema: "./schema.graphql",
   // schema: "http://localhost:8080/graphql",
@@ -9,6 +33,11 @@ const config: CodegenConfig = {
   generates: {
     "./src/__generated__/graphql.ts": {
       plugins: ["typescript"],
+      config: {
+        ...coreConfig,
+        dedupeFragments: true,
+        immutableTypes: true,
+      },
     },
     "./src/": {
       preset: "near-operation-file",
@@ -20,10 +49,7 @@ const config: CodegenConfig = {
         folder: "__generated__",
       },
       config: {
-        avoidOptionals: {
-          field: true,
-          inputValue: false,
-        },
+        ...coreConfig,
         defaultScalarType: "unknown",
         nonOptionalTypename: true,
         skipTypeNameForRoot: true,

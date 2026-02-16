@@ -31,6 +31,7 @@ function makeClient(graphqlUri: string, kookies: Cookies) {
   });
 
   return new ApolloClient({
+    dataMasking: true,
     cache: buildInMemoryCache(),
     link: buildApolloLink("browser-and-ssr", authMiddleware, httpLink),
     devtools: {
