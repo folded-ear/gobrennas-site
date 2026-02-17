@@ -1,9 +1,9 @@
 "use client";
 
-import { Loading } from "@/components/ui/icons";
 import { RecipeCard } from "@/components/views/recipe-card";
 import { gql, TypedDocumentNode } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
+import { Spinner } from "@heroui/react";
 import { useMemo } from "react";
 import useInfiniteScroll from "react-infinite-scroll-hook";
 import {
@@ -79,12 +79,12 @@ export function RecipeGrid() {
           <RecipeCard recipe={recipe} />
         </div>
       ))}
-      {hasNextPage ? (
+      {hasNextPage || loading ? (
         <div
-          className="col-span-full  flex justify-center gap-2"
+          className="col-span-full flex justify-center gap-2 my-3"
           ref={infiniteRef}
         >
-          <Loading />
+          <Spinner />
           Loading more ...
         </div>
       ) : (

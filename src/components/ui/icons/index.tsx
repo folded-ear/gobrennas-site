@@ -6,7 +6,6 @@ import {
   ChevronRightSquare,
   Edit2Icon,
   EyeIcon,
-  Loader,
   LogOut,
   LucideProps,
   NotebookTabs,
@@ -27,10 +26,6 @@ const sizes = {
   large: 32,
   huge: 48,
 };
-
-export const Loading = (props: IconProps) => (
-  <Loader {...props} size={sizes[props.size ?? "medium"]} />
-);
 
 export const MenuOpen = (props: IconProps) => (
   <ChevronDown {...props} size={sizes[props.size ?? "medium"]} />

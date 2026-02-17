@@ -12,11 +12,11 @@ import { RecipeCardFragment } from "./__generated__/recipe-card.generated";
 const RECIPE_CARD_FRAGMENT: TypedDocumentNode<RecipeCardFragment> = gql`
   fragment recipeCard on Recipe {
     id
+    name
     photo {
       url
-      focus
     }
-    name
+    ...recipePhoto
   }
 `;
 
@@ -29,6 +29,7 @@ type RecipeCardProps = {
 export function RecipeCard({ recipe }: RecipeCardProps) {
   const { data, complete } = useFragment({
     fragment: RECIPE_CARD_FRAGMENT,
+    fragmentName: "recipeCard",
     from: recipe,
   });
 
@@ -36,11 +37,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
 
   return (
     <Card>
-      <RecipePhoto
-        photo={data.photo ?? undefined}
-        alt={data.name}
-        className="opacity-20"
-      />
+      {data.photo && <RecipePhoto recipe={data} className="opacity-20" />}
       <Card.Header className="z-10">
         <Card.Title className="text-xl text-shadow-white text-shadow-lg/40">
           <Link href={`/recipes/${data.id}`} className="hover:underline">

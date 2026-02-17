@@ -1,38 +1,58 @@
-import { User } from "@/__generated__/graphql";
+import { fragmentRegistry } from "@/lib/apollo/fragment-registry";
+import { FragmentType, gql, TypedDocumentNode } from "@apollo/client";
+import { useFragment } from "@apollo/client/react";
 import { Avatar, AvatarRootProps } from "@heroui/react";
 import { getImageProps } from "next/image";
 import { useMemo } from "react";
+import { UserAvatarFragment } from "./__generated__/user-avatar.generated";
 
-interface Props {
-  user: Pick<User, "name" | "email" | "imageUrl">;
+export const USER_AVATAR_FRAGMENT: TypedDocumentNode<UserAvatarFragment> = gql`
+  fragment userAvatar on User {
+    name
+    imageUrl
+    email
+  }
+`;
+
+fragmentRegistry.register(USER_AVATAR_FRAGMENT);
+
+type UserAvatarProps = {
+  user: FragmentType<UserAvatarFragment>;
   size?: AvatarRootProps["size"];
-}
+};
 
-export default function UserAvatar({ user, size = "sm" }: Props) {
-  const name = user.name || user.email;
+const DEFAULT_SIZE: AvatarRootProps["size"] = "sm";
+
+export function UserAvatar({ user, size = DEFAULT_SIZE }: UserAvatarProps) {
+  const { data, complete } = useFragment({
+    fragment: USER_AVATAR_FRAGMENT,
+    from: user,
+  });
+  const name = data.name ?? data.email ?? "";
   const imgProps = useMemo(() => {
     if (
-      !user.imageUrl ||
+      !data.imageUrl ||
       process.env.NEXT_PUBLIC_CACHE_USER_AVATARS !== "true"
     ) {
       return {
-        src: user.imageUrl ?? undefined,
+        src: data.imageUrl ?? undefined,
         alt: name,
       };
     }
     const { props } = getImageProps({
-      src: user.imageUrl,
+      src: data.imageUrl,
       alt: name,
       fill: true,
       sizes: "48px",
     });
     return props;
-  }, [name, user.imageUrl]);
+  }, [name, data.imageUrl]);
+  if (!complete) return null;
   return (
     <Avatar size={size} title={name}>
       <Avatar.Image {...imgProps} />
       <Avatar.Fallback>
-        {name
+        {imgProps.alt
           .split(/\s+/)
           .filter((s) => s)
           .map((s) => s.charAt(0))
