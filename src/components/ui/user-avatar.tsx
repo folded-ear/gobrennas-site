@@ -61,3 +61,15 @@ export function UserAvatar({ user, size = DEFAULT_SIZE }: UserAvatarProps) {
     </Avatar>
   );
 }
+
+type UserAvatarWithFallbackProps = {
+  user?: FragmentType<UserAvatarFragment>;
+  size?: UserAvatarProps["size"];
+};
+
+export function UserAvatarWithFallback({
+  user,
+  size = DEFAULT_SIZE,
+}: UserAvatarWithFallbackProps) {
+  return user ? <UserAvatar user={user} size={size} /> : <Avatar size={size} />;
+}

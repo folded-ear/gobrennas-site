@@ -1,20 +1,33 @@
-import UserAvatar from "@/components/ui/user-avatar";
-import { GET_PROFILE } from "@/data/get-profile";
-import { useSuspenseQuery } from "@apollo/client/react";
+import { UserAvatarWithFallback } from "@/components/ui/user-avatar";
+import { gql, TypedDocumentNode } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 import { Dropdown } from "@heroui/react";
 import { useRouter } from "next/navigation";
+import { GetProfileQuery } from "./__generated__/index.generated";
 
 type UserMenuProps = {
   onLogout: () => void;
 };
 
+const GET_PROFILE: TypedDocumentNode<GetProfileQuery> = gql`
+  query getProfile {
+    profile {
+      me {
+        id
+        roles
+        ...userAvatar
+      }
+    }
+  }
+`;
+
 export const UserMenu = ({ onLogout }: UserMenuProps) => {
-  const me = useSuspenseQuery(GET_PROFILE).data.profile.me;
+  const me = useQuery(GET_PROFILE).data?.profile.me;
   const router = useRouter();
   return (
     <Dropdown>
       <Dropdown.Trigger>
-        <UserAvatar user={me} />
+        <UserAvatarWithFallback user={me} />
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <Dropdown.Menu>
