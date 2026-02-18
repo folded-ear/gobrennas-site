@@ -9,6 +9,15 @@
   /* add custom theme colors and vars here */
   --font-figtree: "Figtree", sans-serif;
   --color-brand: oklch(64.56% 0.1767 45.29);
+
+  --spacing-none: 0px;
+  --spacing-xxs: 2px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 40px;
 }
 
 :root,
