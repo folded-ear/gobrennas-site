@@ -16,6 +16,7 @@
     "start": "node .next/standalone/server.js",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
+    "pretsc": "pnpm run generate",
     "tsc": "tsc --noEmit"
   },
   "dependencies": {

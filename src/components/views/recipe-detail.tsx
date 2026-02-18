@@ -2,6 +2,7 @@
 
 import { RecipePhoto } from "@/components/ui/recipe-photo";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import IngredientsAndDirections from "@/components/views/ingredients-and-directions";
 import { gql, TypedDocumentNode } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 import { Spinner } from "@heroui/react";
@@ -27,6 +28,7 @@ const GET_RECIPE_DETAIL: TypedDocumentNode<
           url
         }
         ...recipePhoto
+        ...ingredientsAndDirections
       }
     }
   }
@@ -63,9 +65,7 @@ export function RecipeDetail({ id }: RecipeDetailProps) {
         </div>
       )}
       <div className="flex flex-col gap-sm">
-        {recipe.ingredients.map((ingredient) => (
-          <p key={ingredient.raw}>{ingredient.raw}</p>
-        ))}
+        <IngredientsAndDirections recipe={recipe} />
       </div>
     </div>
   );
