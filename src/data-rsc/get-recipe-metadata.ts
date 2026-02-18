@@ -20,10 +20,10 @@ const GET_RECIPE_METADATA_RSC: TypedDocumentNode<
   }
 `;
 
-export const getRecipeMetadata = cache(async (id: string) => {
+export const getRecipeMetadata = cache(async (id: string, secret?: string) => {
   const { data } = await query({
     query: GET_RECIPE_METADATA_RSC,
-    variables: { id },
+    variables: { id, secret },
   });
   if (!data) throw new TypeError(`Failed to get metadata for recipe '${id}'`);
   return data.library.getRecipeById;
