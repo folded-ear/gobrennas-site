@@ -2,43 +2,15 @@
 
 import { buildApolloLink } from "@/lib/apollo/build-apollo-link";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
-import { ApolloLink, HttpLink, setLogVerbosity } from "@apollo/client";
+import { HttpLink, setLogVerbosity } from "@apollo/client";
 import {
   ApolloClient,
   ApolloNextAppProvider,
 } from "@apollo/client-integration-nextjs";
-import { type Cookies, useCookies } from "next-client-cookies";
+import { useCookies } from "next-client-cookies";
 import React, { useCallback } from "react";
 
 setLogVerbosity("debug");
-
-function makeClient(graphqlUri: string, kookies: Cookies) {
-  const httpLink = new HttpLink({
-    uri: graphqlUri,
-    credentials: "include",
-    fetchOptions: {},
-  });
-
-  const authMiddleware = new ApolloLink((operation, forward) => {
-    const token = kookies.get("FTOKEN");
-    if (token) {
-      operation.setContext(({ headers = {} }) => ({
-        ...headers,
-        authorization: `Bearer ${token}`,
-      }));
-    }
-    return forward(operation);
-  });
-
-  return new ApolloClient({
-    dataMasking: true,
-    cache: buildInMemoryCache(),
-    link: buildApolloLink("browser-and-ssr", authMiddleware, httpLink),
-    devtools: {
-      enabled: true,
-    },
-  });
-}
 
 type ApolloWrapperProps = React.PropsWithChildren & {
   graphqlUri: string;
@@ -48,10 +20,29 @@ type ApolloWrapperProps = React.PropsWithChildren & {
 export function ApolloWrapper({ graphqlUri, children }: ApolloWrapperProps) {
   const kookies = useCookies();
 
-  const handleMakeClient = useCallback(
-    () => makeClient(graphqlUri, kookies),
-    [graphqlUri, kookies],
-  );
+  const handleMakeClient = useCallback(() => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const token = kookies.get("FTOKEN");
+    if (token) headers.authorization = `Bearer ${token}`;
+
+    const httpLink = new HttpLink({
+      uri: graphqlUri,
+      credentials: "include",
+      headers,
+      fetchOptions: {},
+    });
+
+    return new ApolloClient({
+      dataMasking: true,
+      cache: buildInMemoryCache(),
+      link: buildApolloLink("browser-and-ssr", httpLink),
+      devtools: {
+        enabled: true,
+      },
+    });
+  }, [graphqlUri, kookies]);
 
   return (
     <ApolloNextAppProvider makeClient={handleMakeClient}>
