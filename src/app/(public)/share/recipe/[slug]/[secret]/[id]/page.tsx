@@ -1,4 +1,4 @@
-import BarePage from "@/components/ui/layout/bare-page";
+import { BarePage } from "@/components/ui/layout/bare-page";
 import { getRecipeMetadata } from "@/data-rsc/get-recipe-metadata";
 import type { Metadata } from "next";
 

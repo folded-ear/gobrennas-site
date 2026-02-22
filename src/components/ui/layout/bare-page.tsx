@@ -2,7 +2,7 @@ import { Container } from "@/components/ui/layout/container";
 import { EmptyHeader } from "@/components/views/header";
 import { PropsWithChildren } from "react";
 
-export default function BarePage({ children }: PropsWithChildren) {
+export function BarePage({ children }: PropsWithChildren) {
   return (
     <>
       <EmptyHeader />

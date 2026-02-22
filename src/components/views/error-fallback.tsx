@@ -1,7 +1,7 @@
 "use client";
 
 import { doLogin } from "@/app/(public)/constants";
-import BarePage from "@/components/ui/layout/bare-page";
+import { BarePage } from "@/components/ui/layout/bare-page";
 import { CombinedGraphQLErrors } from "@apollo/client";
 import { Button } from "@heroui/react";
 import { type FallbackProps, getErrorMessage } from "react-error-boundary";
