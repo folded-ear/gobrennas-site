@@ -1,10 +1,11 @@
 "use client";
 
+import { LibrarySearchScope } from "@/__generated__/graphql";
 import { RecipeCard } from "@/components/views/recipe-card";
 import { gql, TypedDocumentNode } from "@apollo/client";
-import { useQuery } from "@apollo/client/react";
-import { Spinner } from "@heroui/react";
-import { useMemo } from "react";
+import { useSuspenseQuery } from "@apollo/client/react";
+import { Label, Spinner, Switch } from "@heroui/react";
+import { useMemo, useState, useTransition } from "react";
 import useInfiniteScroll from "react-infinite-scroll-hook";
 import {
   GetRecipeGridQuery,
@@ -40,13 +41,16 @@ const GET_RECIPE_GRID: TypedDocumentNode<
 `;
 
 export function RecipeGrid() {
-  const { data, error, loading, refetch, fetchMore } = useQuery(
-    GET_RECIPE_GRID,
-    {
-      fetchPolicy: "cache-and-network",
-      variables: {},
+  const [includeOthers, setIncludeOthers] = useState(false);
+
+  const { data, error, fetchMore } = useSuspenseQuery(GET_RECIPE_GRID, {
+    variables: {
+      scope: includeOthers
+        ? LibrarySearchScope.EVERYONE
+        : LibrarySearchScope.MINE,
     },
-  );
+  });
+  const [loading, doLoadMore] = useTransition();
 
   const { recipes, endCursor, hasNextPage } = useMemo(() => {
     const conn = data?.library?.recipes;
@@ -62,10 +66,12 @@ export function RecipeGrid() {
     loading,
     hasNextPage,
     onLoadMore: () =>
-      fetchMore({
-        variables: {
-          after: endCursor,
-        },
+      doLoadMore(() => {
+        fetchMore({
+          variables: {
+            after: endCursor,
+          },
+        });
       }),
     disabled: Boolean(error),
     // `rootMargin` is passed to `IntersectionObserver`.
@@ -73,23 +79,33 @@ export function RecipeGrid() {
   });
 
   return (
-    <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-lg">
-      {recipes.map((recipe) => (
-        <div key={recipe.id}>
-          <RecipeCard recipe={recipe} />
-        </div>
-      ))}
-      {hasNextPage || loading ? (
+    <>
+      <Switch isSelected={includeOthers} onChange={setIncludeOthers}>
+        <Switch.Control>
+          <Switch.Thumb />
+        </Switch.Control>
+        <Label className="text-sm">Include Other&apos;s Recipes</Label>
+      </Switch>
+      <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-lg">
+        {recipes.map((recipe) => (
+          <div key={recipe.id}>
+            <RecipeCard recipe={recipe} />
+          </div>
+        ))}
         <div
           className="col-span-full flex justify-center gap-2 my-3"
-          ref={infiniteRef}
+          ref={hasNextPage ? infiniteRef : undefined}
         >
-          <Spinner />
-          Loading more ...
+          {hasNextPage || loading ? (
+            <>
+              <Spinner />
+              Loading more ...
+            </>
+          ) : (
+            "fin."
+          )}
         </div>
-      ) : (
-        <div className="col-span-full flex justify-center">fin.</div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }

@@ -9,17 +9,21 @@ Do you use food? Do you use software? Brenna's Food Software is for you!
 - Node >=20
 - pnpm as the package manager
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a [Next.js](https://nextjs.org) project bootstrapped with [
+`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-The easiest way to get the correct version of node is to use `nvm` (see https://github.com/nvm-sh/nvm ) then `nvm install` and `nvm use` to set.
+The easiest way to get the correct version of node is to use `nvm` (see https://github.com/nvm-sh/nvm ) then
+`nvm install` and `nvm use` to set.
 
-If you don't already have `pnpm` installed globally as the package manager, you can enable it (assuming you have the correct version of node above) by running `corepack enable pnpm`.
+If you don't already have `pnpm` installed globally as the package manager, you can enable it (assuming you have the
+correct version of node above) by running `corepack enable pnpm`.
 
 Then, install all the project dependencies with `pnpm install`.
 
 ## Run the app
 
-First, the app won't do much unless you have an API (see https://github.com/folded-ear/gobrennas-api) running as well. You'll also need to copy `.env.example` to `.env`, updating the values if you changed any default configuration.
+First, the app won't do much unless you have an API (see https://github.com/folded-ear/gobrennas-api) running as well.
+You'll also need to copy `.env.example` to `.env`, updating the values if you changed any default configuration.
 
 Then start the client with `pnpm run dev`.
 
@@ -88,22 +92,22 @@ In the browser it's quite a bit more complicated. Three main approaches:
    Streamed down" just means "in an RSC payload", which may be the same as the route change itself, or may come
    separately. The application doesn't care which, but a user might notice a difference.
 
-But wait, there's more! Apollo also has `useBackgroundQuery` and `useReadQuery` hooks, which are a way to initiate a
-query high in the component tree, but only suspend if another component tries to read the result before it's available.
-This is entirely client-side, and useful to warm the cache based on user interactions, before the user actually requests
-the data.
-
 We're not done yet, because Apollo's RSC environment provides a `PreloadQuery` server component which Next.js can use to
 initiate a query during RSC, and make the result available in-browser (via the RSC payload). Note that the server
 components _cannot access the loaded data_. This is orthogonal to the three approaches outlined above, and seems to
-mostly need a Suspense boundary. It's similar to `useBackgroundQuery`, but managed by RSC, rather than the client
-application.
+mostly need a Suspense boundary.
+
+But wait, there's more! Apollo also has `useBackgroundQuery`, `useLoadableQuery`, and `useReadQuery` hooks, which are a
+way to initiate a query high in the component tree, but only suspend if another component tries to read the result
+before it's available. This is entirely client-side, but similar to `PreloadQuery`, with the ability to differentiate
+between a page load and user interaction.
 
 In general, `useSuspenseQuery` seems like the right fit for Brenna's Food Software. If you want rendered HTML across the
-wire, don't use `<Suspense>` (SSR will wait until data is available). If you want the application skeleton fast, with a
-spinner for the data, add a Suspense boundary (the waiting will happen on the client). Either way, the application
-behaves as if you'd used the trusty ol' `useQuery` once the data is available, including using `fetchMore`, cache
-updates, etc.
+wire, don't use `<Suspense>` (the wait will happen during SSR). If you want the application skeleton fast, with a
+spinner for the data, add a Suspense boundary (the waiting will happen in the browser). Either way, the application
+largely behaves as if you'd used the trusty ol' `useQuery` once the data is available, including using `fetchMore`,
+cache updates, etc. but _not_ the `loading` flag. If you need to know about client-side loading state of a suspense
+query that you `fetchMore`, combine it with `useTransition`.
 
 For data-heavy pages (i.e., _don't_ change routes), background/read queries provide a similar dichotomy. Hypothetically,
 if we don't preload the entire plan tree, it might make sense to background-load every visible item's children, so if

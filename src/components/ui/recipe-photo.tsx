@@ -1,11 +1,10 @@
-import { fragmentRegistry } from "@/lib/apollo/fragment-registry";
 import { FragmentType, gql, TypedDocumentNode } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import Image, { ImageProps } from "next/image";
 import { useMemo } from "react";
 import { RecipePhotoFragment } from "./__generated__/recipe-photo.generated";
 
-const RECIPE_PHOTO_FRAGMENT: TypedDocumentNode<RecipePhotoFragment> = gql`
+export const RECIPE_PHOTO_FRAGMENT: TypedDocumentNode<RecipePhotoFragment> = gql`
   fragment recipePhoto on Recipe {
     name
     photo {
@@ -14,8 +13,6 @@ const RECIPE_PHOTO_FRAGMENT: TypedDocumentNode<RecipePhotoFragment> = gql`
     }
   }
 `;
-
-fragmentRegistry.register(RECIPE_PHOTO_FRAGMENT);
 
 type RecipePhotoProps = Omit<ImageProps, "alt" | "src"> & {
   recipe: FragmentType<RecipePhotoFragment>;

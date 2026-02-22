@@ -1,4 +1,3 @@
-import { fragmentRegistry } from "@/lib/apollo/fragment-registry";
 import { FragmentType, gql, TypedDocumentNode } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Avatar, AvatarRootProps } from "@heroui/react";
@@ -13,8 +12,6 @@ export const USER_AVATAR_FRAGMENT: TypedDocumentNode<UserAvatarFragment> = gql`
     email
   }
 `;
-
-fragmentRegistry.register(USER_AVATAR_FRAGMENT);
 
 type UserAvatarProps = {
   user: FragmentType<UserAvatarFragment>;

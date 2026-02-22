@@ -1,6 +1,6 @@
 import { UserAvatarWithFallback } from "@/components/ui/user-avatar";
 import { gql, TypedDocumentNode } from "@apollo/client";
-import { useQuery } from "@apollo/client/react";
+import { useSuspenseQuery } from "@apollo/client/react";
 import { Dropdown } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { GetProfileQuery } from "./__generated__/index.generated";
@@ -22,7 +22,7 @@ const GET_PROFILE: TypedDocumentNode<GetProfileQuery> = gql`
 `;
 
 export const UserMenu = ({ onLogout }: UserMenuProps) => {
-  const me = useQuery(GET_PROFILE).data?.profile.me;
+  const me = useSuspenseQuery(GET_PROFILE).data.profile.me;
   const router = useRouter();
   return (
     <Dropdown>

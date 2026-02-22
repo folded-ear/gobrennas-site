@@ -2,25 +2,13 @@
 
 import { ButtonBar } from "@/components/ui/button-bar";
 import { RecipePhoto } from "@/components/ui/recipe-photo";
-import { fragmentRegistry } from "@/lib/apollo/fragment-registry";
-import { FragmentType, gql, TypedDocumentNode } from "@apollo/client";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { RECIPE_CARD_FRAGMENT } from "@/components/views/cardfrag";
+import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Card } from "@heroui/react";
 import Link from "next/link";
-import { RecipeCardFragment } from "./__generated__/recipe-card.generated";
-
-const RECIPE_CARD_FRAGMENT: TypedDocumentNode<RecipeCardFragment> = gql`
-  fragment recipeCard on Recipe {
-    id
-    name
-    photo {
-      url
-    }
-    ...recipePhoto
-  }
-`;
-
-fragmentRegistry.register(RECIPE_CARD_FRAGMENT);
+import { RecipeCardFragment } from "./__generated__/cardfrag.generated";
 
 type RecipeCardProps = {
   recipe: FragmentType<RecipeCardFragment>;
@@ -38,12 +26,13 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
   return (
     <Card>
       {data.photo && <RecipePhoto recipe={data} className="opacity-20" />}
-      <Card.Header className="z-10">
+      <Card.Header className="z-10 flex flex-row justify-between">
         <Card.Title className="text-xl text-shadow-white text-shadow-lg/40">
           <Link href={`/recipes/${data.id}`} className="hover:underline">
             {data.name}
           </Link>
         </Card.Title>
+        {data.ownedBy && <UserAvatar user={data.ownedBy} />}
       </Card.Header>
       <Card.Footer>
         <ButtonBar id={data.id} />

@@ -1,39 +1,16 @@
 "use client";
 
-import { fragmentRegistry } from "@/lib/apollo/fragment-registry";
-import { FragmentType, gql, TypedDocumentNode } from "@apollo/client";
+import { INGREDIENTS_AND_DIRECTIONS_FRAGMENT } from "@/components/views/ingdirfrag";
+import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Fragment, useMemo, useState } from "react";
-import { IngredientsAndDirectionsFragment } from "./__generated__/ingredients-and-directions.generated";
-
-const INGREDIENTS_AND_DIRECTIONS_FRAGMENT: TypedDocumentNode<IngredientsAndDirectionsFragment> = gql`
-  fragment ingredientsAndDirections on Recipe {
-    ingredients {
-      raw
-      quantity {
-        quantity
-        units {
-          id
-          name
-        }
-      }
-      ingredient {
-        id
-        name
-      }
-      preparation
-    }
-    directions
-  }
-`;
-
-fragmentRegistry.register(INGREDIENTS_AND_DIRECTIONS_FRAGMENT);
+import { IngredientsAndDirectionsFragment } from "./__generated__/ingdirfrag.generated";
 
 type IngredientsAndDirectionsProps = {
   recipe: FragmentType<IngredientsAndDirectionsFragment>;
 };
 
-export default function IngredientsAndDirections({
+export function IngredientsAndDirections({
   recipe,
 }: IngredientsAndDirectionsProps) {
   const [scale, setScale] = useState(1);

@@ -2,10 +2,9 @@
 
 import { RecipePhoto } from "@/components/ui/recipe-photo";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import IngredientsAndDirections from "@/components/views/ingredients-and-directions";
+import { IngredientsAndDirections } from "@/components/views/ingredients-and-directions";
 import { gql, TypedDocumentNode } from "@apollo/client";
-import { useQuery } from "@apollo/client/react";
-import { Spinner } from "@heroui/react";
+import { useSuspenseQuery } from "@apollo/client/react";
 import {
   GetRecipeDetailQuery,
   GetRecipeDetailQueryVariables,
@@ -39,17 +38,9 @@ type RecipeDetailProps = {
 };
 
 export function RecipeDetail({ id }: RecipeDetailProps) {
-  const { data, loading } = useQuery(GET_RECIPE_DETAIL, {
+  const { data } = useSuspenseQuery(GET_RECIPE_DETAIL, {
     variables: { id },
   });
-
-  if (loading)
-    return (
-      <div className="flex justify-center mt-10">
-        <Spinner size="xl" />
-      </div>
-    );
-  if (!data) return "oops";
 
   const recipe = data.library.getRecipeById;
 
