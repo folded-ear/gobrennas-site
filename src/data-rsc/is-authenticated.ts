@@ -1,5 +1,5 @@
 import { query } from "@/lib/apollo-rsc";
-import { gql, TypedDocumentNode } from "@apollo/client";
+import { CombinedGraphQLErrors, gql, TypedDocumentNode } from "@apollo/client";
 import { cache } from "react";
 import { GetRolesRscQuery } from "./__generated__/is-authenticated.generated";
 
@@ -14,8 +14,22 @@ query getRolesRsc {
 }`);
 
 export const getRoles = cache(async () => {
-  const { data } = await query({ query: GET_ROLES_RSC });
-  return data?.profile.me.roles ?? [];
+  return await query({ query: GET_ROLES_RSC }).then(
+    ({ data }) => {
+      return data?.profile.me.roles ?? [];
+    },
+    (error) => {
+      if (CombinedGraphQLErrors.is(error)) {
+        console.log("got the unauth!");
+        for (let e of error.errors) {
+          if (e.extensions?.classification === "UNAUTHORIZED") {
+            return [] as string[];
+          }
+        }
+      }
+      throw error;
+    },
+  );
 });
 
 export const isAuthenticated = async () => {
