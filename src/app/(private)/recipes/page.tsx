@@ -1,4 +1,4 @@
-import { Container } from "@/components/ui/layout";
+import { Container } from "@/components/layout";
 import { RecipeGrid } from "@/components/views/recipe-grid";
 import type { Metadata } from "next";
 

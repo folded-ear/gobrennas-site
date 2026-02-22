@@ -1,5 +1,6 @@
-import { Container } from "@/components/ui/layout/container";
-import { EmptyHeader } from "@/components/views/header";
+import { Container } from "@/components/layout/container";
+
+import { EmptyHeader } from "@/components/layout/header/empty-header";
 import { PropsWithChildren } from "react";
 
 export function BarePage({ children }: PropsWithChildren) {

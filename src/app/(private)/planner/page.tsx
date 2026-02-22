@@ -1,4 +1,4 @@
-import { Container } from "@/components/ui/layout";
+import { Container } from "@/components/layout";
 import { PlanList } from "@/components/views/planner";
 
 export default function Planner() {

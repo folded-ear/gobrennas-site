@@ -1,13 +1,15 @@
-import { Container } from "@/components/ui/layout";
+import { Container } from "@/components/layout";
 import { RecipeDetail } from "@/components/views/recipe-detail";
 import { getRecipeMetadata } from "@/data-rsc/get-recipe-metadata";
 import type { Metadata } from "next";
 
-interface Props {
+type PageProps = {
   params: Promise<{ id: string }>;
-}
+};
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { id } = await params;
   const { name: title } = await getRecipeMetadata(id);
   return {
@@ -15,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function RecipePage({ params }: Props) {
+export default async function RecipePage({ params }: PageProps) {
   const { id } = await params;
 
   return (

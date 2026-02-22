@@ -1,17 +1,10 @@
-import { FragmentType, gql, TypedDocumentNode } from "@apollo/client";
+import { USER_AVATAR_FRAGMENT } from "@/components/ui/user-avatar/fragment";
+import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Avatar, AvatarRootProps } from "@heroui/react";
 import { getImageProps } from "next/image";
 import { useMemo } from "react";
-import { UserAvatarFragment } from "./__generated__/user-avatar.generated";
-
-export const USER_AVATAR_FRAGMENT: TypedDocumentNode<UserAvatarFragment> = gql`
-  fragment userAvatar on User {
-    name
-    imageUrl
-    email
-  }
-`;
+import { UserAvatarFragment } from "./__generated__/fragment.generated";
 
 type UserAvatarProps = {
   user: FragmentType<UserAvatarFragment>;

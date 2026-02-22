@@ -1,10 +1,10 @@
 "use client";
 
-import { INGREDIENTS_AND_DIRECTIONS_FRAGMENT } from "@/components/views/ingdirfrag";
+import { INGREDIENTS_AND_DIRECTIONS_FRAGMENT } from "@/components/ui/ingredients-and-directions/fragment";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Fragment, useMemo, useState } from "react";
-import { IngredientsAndDirectionsFragment } from "./__generated__/ingdirfrag.generated";
+import { IngredientsAndDirectionsFragment } from "./__generated__/fragment.generated";
 
 type IngredientsAndDirectionsProps = {
   recipe: FragmentType<IngredientsAndDirectionsFragment>;

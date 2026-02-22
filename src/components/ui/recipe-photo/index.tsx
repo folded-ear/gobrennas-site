@@ -1,18 +1,9 @@
-import { FragmentType, gql, TypedDocumentNode } from "@apollo/client";
+import { RECIPE_PHOTO_FRAGMENT } from "@/components/ui/recipe-photo/fragment";
+import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import Image, { ImageProps } from "next/image";
 import { useMemo } from "react";
-import { RecipePhotoFragment } from "./__generated__/recipe-photo.generated";
-
-export const RECIPE_PHOTO_FRAGMENT: TypedDocumentNode<RecipePhotoFragment> = gql`
-  fragment recipePhoto on Recipe {
-    name
-    photo {
-      url
-      focus
-    }
-  }
-`;
+import { RecipePhotoFragment } from "./__generated__/fragment.generated";
 
 type RecipePhotoProps = Omit<ImageProps, "alt" | "src"> & {
   recipe: FragmentType<RecipePhotoFragment>;

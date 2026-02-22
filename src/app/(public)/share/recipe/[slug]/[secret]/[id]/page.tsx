@@ -1,18 +1,20 @@
-import { BarePage } from "@/components/ui/layout/bare-page";
+import { BarePage } from "@/components/layout/bare-page";
 import { getRecipeMetadata } from "@/data-rsc/get-recipe-metadata";
 import type { Metadata } from "next";
 
-interface Params {
+type Params = {
   slug: string;
   secret: string;
   id: string;
-}
+};
 
-interface Props {
+type PageProps = {
   params: Promise<Params>;
-}
+};
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { id, secret } = await params;
   const { name: title } = await getRecipeMetadata(id, secret);
   return {
@@ -20,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function SharedRecipe({ params }: Props) {
+export default async function SharedRecipe({ params }: PageProps) {
   const ps = await params;
   return (
     <BarePage>

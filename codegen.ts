@@ -28,7 +28,7 @@ const config: CodegenConfig = {
   overwrite: true,
   schema: "./schema.graphql",
   // schema: "http://localhost:8080/graphql",
-  documents: ["src/**/*.{ts,tsx}"],
+  documents: ["src/**/*.{ts,tsx,graphql}"],
   ignoreNoDocuments: true,
   generates: {
     "./src/__generated__/graphql.ts": {

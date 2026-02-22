@@ -1,44 +1,17 @@
 "use client";
 
+import { IngredientsAndDirections } from "@/components/ui/ingredients-and-directions";
 import { RecipePhoto } from "@/components/ui/recipe-photo";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { IngredientsAndDirections } from "@/components/views/ingredients-and-directions";
-import { gql, TypedDocumentNode } from "@apollo/client";
+import { GET_RECIPE_DETAIL_QUERY } from "@/components/views/recipe-detail/query";
 import { useSuspenseQuery } from "@apollo/client/react";
-import {
-  GetRecipeDetailQuery,
-  GetRecipeDetailQueryVariables,
-} from "./__generated__/recipe-detail.generated";
-
-const GET_RECIPE_DETAIL: TypedDocumentNode<
-  GetRecipeDetailQuery,
-  GetRecipeDetailQueryVariables
-> = gql`
-  query getRecipeDetail($id: ID!) {
-    library {
-      getRecipeById(id: $id) {
-        id
-        name
-        owner {
-          id
-          ...userAvatar
-        }
-        photo {
-          url
-        }
-        ...recipePhoto
-        ...ingredientsAndDirections
-      }
-    }
-  }
-`;
 
 type RecipeDetailProps = {
   id: string;
 };
 
 export function RecipeDetail({ id }: RecipeDetailProps) {
-  const { data } = useSuspenseQuery(GET_RECIPE_DETAIL, {
+  const { data } = useSuspenseQuery(GET_RECIPE_DETAIL_QUERY, {
     variables: { id },
   });
 

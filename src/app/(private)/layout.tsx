@@ -1,6 +1,6 @@
 "use server";
 
-import { Header } from "@/components/views/header";
+import { Header } from "@/components/layout/header/header";
 import { PropsWithChildren } from "react";
 
 export default async function PrivateLayout({ children }: PropsWithChildren) {

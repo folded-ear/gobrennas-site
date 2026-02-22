@@ -1,49 +1,17 @@
 "use client";
 
 import { LibrarySearchScope } from "@/__generated__/graphql";
-import { RecipeCard } from "@/components/views/recipe-card";
-import { gql, TypedDocumentNode } from "@apollo/client";
+import { RecipeCard } from "@/components/ui/recipe-card";
+import { GET_RECIPE_GRID_QUERY } from "@/components/views/recipe-grid/query";
 import { useSuspenseQuery } from "@apollo/client/react";
 import { Label, Spinner, Switch } from "@heroui/react";
 import { useMemo, useState, useTransition } from "react";
 import useInfiniteScroll from "react-infinite-scroll-hook";
-import {
-  GetRecipeGridQuery,
-  GetRecipeGridQueryVariables,
-} from "./__generated__/recipe-grid.generated";
-
-const GET_RECIPE_GRID: TypedDocumentNode<
-  GetRecipeGridQuery,
-  GetRecipeGridQueryVariables
-> = gql`
-  query getRecipeGrid(
-    $query: String! = ""
-    $scope: LibrarySearchScope! = MINE
-    $first: NonNegativeInt! = 12
-    $after: Cursor = null
-  ) {
-    library {
-      recipes(first: $first, query: $query, scope: $scope, after: $after) {
-        edges {
-          cursor
-          node {
-            id
-            ...recipeCard
-          }
-        }
-        pageInfo {
-          hasNextPage
-          endCursor
-        }
-      }
-    }
-  }
-`;
 
 export function RecipeGrid() {
   const [includeOthers, setIncludeOthers] = useState(false);
 
-  const { data, error, fetchMore } = useSuspenseQuery(GET_RECIPE_GRID, {
+  const { data, error, fetchMore } = useSuspenseQuery(GET_RECIPE_GRID_QUERY, {
     variables: {
       scope: includeOthers
         ? LibrarySearchScope.EVERYONE

@@ -1,5 +1,5 @@
 import { gql, TypedDocumentNode } from "@apollo/client";
-import { IngredientsAndDirectionsFragment } from "./__generated__/ingdirfrag.generated";
+import { IngredientsAndDirectionsFragment } from "./__generated__/fragment.generated";
 
 export const INGREDIENTS_AND_DIRECTIONS_FRAGMENT: TypedDocumentNode<IngredientsAndDirectionsFragment> = gql`
   fragment ingredientsAndDirections on Recipe {
