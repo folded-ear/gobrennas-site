@@ -1,22 +1,20 @@
-"use client";
-
+import { IngredientsAndDirectionsFragment } from "@/components/ui/ingredients-and-directions/__generated__/fragment.generated";
 import { INGREDIENTS_AND_DIRECTIONS_FRAGMENT } from "@/components/ui/ingredients-and-directions/fragment";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Fragment, useMemo, useState } from "react";
-import { IngredientsAndDirectionsFragment } from "./__generated__/fragment.generated";
 
 type IngredientsAndDirectionsProps = {
-  recipe: FragmentType<IngredientsAndDirectionsFragment>;
+  parent: FragmentType<IngredientsAndDirectionsFragment>;
 };
 
 export function IngredientsAndDirections({
-  recipe,
+  parent,
 }: IngredientsAndDirectionsProps) {
   const [scale, setScale] = useState(1);
   const { data, complete } = useFragment({
     fragment: INGREDIENTS_AND_DIRECTIONS_FRAGMENT,
-    from: recipe,
+    from: parent,
   });
 
   const { directions, ingredients } = useMemo(
@@ -77,7 +75,7 @@ export function IngredientsAndDirections({
           ))}
         </div>
       </div>
-      <div className="flex-4">{directions}</div>
+      <div className="flex-2">{directions}</div>
     </div>
   );
 }

@@ -22,6 +22,7 @@ export const GET_RECIPE_DETAIL_QUERY: TypedDocumentNode<
         }
         ...recipePhoto
         ...ingredientsAndDirections
+        ...recipeSections
       }
     }
   }

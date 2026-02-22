@@ -31,6 +31,7 @@ export function buildInMemoryCache() {
         case "Plan":
           return `PlanItem:${responseObject.id}`;
         case "PantryItem":
+        case "Section":
         case "Recipe":
           return `Ingredient:${responseObject.id}`;
         default:

@@ -7,6 +7,7 @@ export const possibleTypes: PossibleTypesMap = {
   AccessControlled: ["Plan"],
   CorePlanItem: ["Plan", "PlanItem"],
   Ingredient: ["PantryItem", "Recipe"],
+  IngredientCollection: ["Recipe", "Section"],
   Node: [
     "Favorite",
     "Label",

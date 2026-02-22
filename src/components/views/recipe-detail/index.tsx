@@ -2,6 +2,7 @@
 
 import { IngredientsAndDirections } from "@/components/ui/ingredients-and-directions";
 import { RecipePhoto } from "@/components/ui/recipe-photo";
+import { RecipeSections } from "@/components/ui/recipe-sections";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { GET_RECIPE_DETAIL_QUERY } from "@/components/views/recipe-detail/query";
 import { useSuspenseQuery } from "@apollo/client/react";
@@ -21,7 +22,7 @@ export function RecipeDetail({ id }: RecipeDetailProps) {
     <div className="flex flex-col gap-1">
       <div className="w-full flex gap-1">
         <UserAvatar user={recipe.owner} />
-        <h1 className="text-xl">{recipe.name}</h1>
+        <h2 className="text-xl">{recipe.name}</h2>
       </div>
       {recipe.photo && (
         <div className="relative min-h-80">
@@ -29,8 +30,9 @@ export function RecipeDetail({ id }: RecipeDetailProps) {
         </div>
       )}
       <div className="flex flex-col gap-sm">
-        <IngredientsAndDirections recipe={recipe} />
+        <IngredientsAndDirections parent={recipe} />
       </div>
+      <RecipeSections recipe={recipe} />
     </div>
   );
 }

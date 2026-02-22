@@ -44,6 +44,14 @@ interface Ingredient {
   name: String!
 }
 
+interface IngredientCollection {
+  directions: String
+  id: ID!
+  ingredients: [IngredientRef!]!
+  labels: [String!]
+  name: String!
+}
+
 interface Node {
   id: ID!
 }
@@ -587,7 +595,7 @@ type Query {
   textract: TextractQuery!
 }
 
-type Recipe implements Ingredient & Node & Owned {
+type Recipe implements Ingredient & IngredientCollection & Node & Owned {
   calories: Int
   directions: String
   externalUrl: String
@@ -600,7 +608,7 @@ type Recipe implements Ingredient & Node & Owned {
   """
   ingredients(
     "Ingredient(s) to include. Missing/empty means \"all\"."
-    ingredients: [ID!]! = []
+    ingredients: [ID!]
   ): [IngredientRef!]!
   labels: [String!]
   mine: Boolean!
@@ -724,7 +732,7 @@ type ScratchUpload {
   url: String!
 }
 
-type Section implements Node {
+type Section implements IngredientCollection & Node {
   directions: String
   id: ID!
   ingredients: [IngredientRef!]!
