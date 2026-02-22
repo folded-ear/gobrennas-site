@@ -23,6 +23,9 @@ interface AccessControlled {
   "The object's ACL, which includes its owner and any grants of access."
   acl: Acl!
   grants: [AccessControlEntry!]!
+  mine: Boolean!
+  notMine: Boolean!
+  ownedBy: User
   owner: User!
 }
 
@@ -46,6 +49,16 @@ interface Node {
 }
 
 interface Owned {
+  "Is the owner of this object me (the current user)?"
+  mine: Boolean!
+  "Is the owner of this object not me (the current user)?"
+  notMine: Boolean!
+  """
+
+  Another user who owns this object. Always null if the current user is the
+  owner, always the same as `owner` otherwise.
+  """
+  ownedBy: User
   "The user who owns this object."
   owner: User!
 }
@@ -60,10 +73,14 @@ type AccessControlEntry {
 type Acl implements Owned {
   """
 
-  Users granted access, by the owner. This is conceptually map, so a given
-  user (the key) uniquely identifies their access level (the value).
+  Users granted access by the owner or an administrator. Conceptually,
+  this is a map, so a given user (the key) uniquely identifies their access
+  level (the value).
   """
   grants: [AccessControlEntry!]!
+  mine: Boolean!
+  notMine: Boolean!
+  ownedBy: User
   owner: User!
 }
 
@@ -394,8 +411,11 @@ type Plan implements AccessControlled & CorePlanItem & Node & Owned {
   descendants: [PlanItem!]!
   grants: [AccessControlEntry!]!
   id: ID!
+  mine: Boolean!
   name: String!
+  notMine: Boolean!
   notes: String
+  ownedBy: User
   "The plan's owner"
   owner: User!
   "A plan's plan is always itself."
@@ -583,7 +603,10 @@ type Recipe implements Ingredient & Node & Owned {
     ingredients: [ID!]! = []
   ): [IngredientRef!]!
   labels: [String!]
+  mine: Boolean!
   name: String!
+  notMine: Boolean!
+  ownedBy: User
   owner: User!
   photo: Photo
   """
@@ -777,7 +800,9 @@ type User implements Node {
   email: String!
   id: ID!
   imageUrl: String
+  me: Boolean!
   name: String
+  notMe: Boolean!
   """
 
   A value for every preference is returned. If a deviceKey is provided,
