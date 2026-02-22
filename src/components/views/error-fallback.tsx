@@ -6,10 +6,7 @@ import { CombinedGraphQLErrors } from "@apollo/client";
 import { Button } from "@heroui/react";
 import { type FallbackProps, getErrorMessage } from "react-error-boundary";
 
-export default function ErrorFallback({
-  error,
-  resetErrorBoundary,
-}: FallbackProps) {
+export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   if (CombinedGraphQLErrors.is(error)) {
     for (let e of error.errors) {
       if (e.extensions?.classification === "UNAUTHORIZED") {

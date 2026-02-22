@@ -1,5 +1,5 @@
 import { graphqlUri } from "@/app/(public)/constants";
-import ErrorFallback from "@/components/views/error-fallback";
+import { ErrorFallback } from "@/components/views/error-fallback";
 import { ApolloWrapper } from "@/lib/apollo-browser-and-ssr";
 import { ThemeProvider } from "@/providers/theme-provider";
 import type { Metadata, Viewport } from "next";

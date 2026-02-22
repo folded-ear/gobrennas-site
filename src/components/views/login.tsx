@@ -3,7 +3,7 @@
 import { doLogin } from "@/app/(public)/constants";
 import { Button } from "@heroui/react";
 
-export default function Login() {
+export function Login() {
   return (
     <>
       <h1 className="text-xl">Brenna&apos;s Food Software</h1>
