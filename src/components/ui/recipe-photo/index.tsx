@@ -1,9 +1,11 @@
-import { RECIPE_PHOTO_FRAGMENT } from "@/components/ui/recipe-photo/fragment";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import Image, { ImageProps } from "next/image";
 import { useMemo } from "react";
-import { RecipePhotoFragment } from "./__generated__/fragment.generated";
+import {
+  RecipePhotoFragment,
+  RecipePhotoFragmentDoc,
+} from "./__generated__/recipePhoto.generated";
 
 type RecipePhotoProps = Omit<ImageProps, "alt" | "src"> & {
   recipe: FragmentType<RecipePhotoFragment>;
@@ -22,7 +24,7 @@ export function RecipePhoto({
     data: { name: alt, photo: data },
     complete,
   } = useFragment({
-    fragment: RECIPE_PHOTO_FRAGMENT,
+    fragment: RecipePhotoFragmentDoc,
     from: recipe,
   });
 

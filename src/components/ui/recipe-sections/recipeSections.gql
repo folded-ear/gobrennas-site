@@ -1,0 +1,7 @@
+fragment recipeSections on Recipe {
+  sections {
+    id
+    name
+    ...ingredientsAndDirections
+  }
+}

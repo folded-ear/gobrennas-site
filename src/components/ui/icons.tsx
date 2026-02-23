@@ -10,6 +10,7 @@ import {
   LucideProps,
   NotebookTabs,
   ShoppingCart,
+  SquareArrowRightEnter,
 } from "lucide-react";
 import { JSX, RefAttributes } from "react";
 
@@ -65,4 +66,10 @@ export const RecipeEdit = (props: IconProps) => {
 
 export const RecipeView = (props: IconProps) => {
   return <EyeIcon {...props} size={sizes[props.size ?? "medium"]} />;
+};
+
+export const SendToPlan = (props: IconProps) => {
+  return (
+    <SquareArrowRightEnter {...props} size={sizes[props.size ?? "medium"]} />
+  );
 };

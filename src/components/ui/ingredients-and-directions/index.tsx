@@ -1,8 +1,10 @@
-import { IngredientsAndDirectionsFragment } from "@/components/ui/ingredients-and-directions/__generated__/fragment.generated";
-import { INGREDIENTS_AND_DIRECTIONS_FRAGMENT } from "@/components/ui/ingredients-and-directions/fragment";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Fragment, useMemo, useState } from "react";
+import {
+  IngredientsAndDirectionsFragment,
+  IngredientsAndDirectionsFragmentDoc,
+} from "./__generated__/ingredientsAndDirections.generated";
 
 type IngredientsAndDirectionsProps = {
   parent: FragmentType<IngredientsAndDirectionsFragment>;
@@ -13,7 +15,7 @@ export function IngredientsAndDirections({
 }: IngredientsAndDirectionsProps) {
   const [scale, setScale] = useState(1);
   const { data, complete } = useFragment({
-    fragment: INGREDIENTS_AND_DIRECTIONS_FRAGMENT,
+    fragment: IngredientsAndDirectionsFragmentDoc,
     from: parent,
   });
 

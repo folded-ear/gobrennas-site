@@ -1,0 +1,18 @@
+query getRecipeDetail($id: ID!) {
+  library {
+    getRecipeById(id: $id) {
+      id
+      name
+      ownedBy {
+        id
+        ...userAvatar
+      }
+      photo {
+        url
+      }
+      ...recipePhoto
+      ...ingredientsAndDirections
+      ...recipeSections
+    }
+  }
+}

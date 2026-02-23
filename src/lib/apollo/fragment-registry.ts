@@ -1,14 +1,14 @@
-import { INGREDIENTS_AND_DIRECTIONS_FRAGMENT } from "@/components/ui/ingredients-and-directions/fragment";
-import { RECIPE_CARD_FRAGMENT } from "@/components/ui/recipe-card/fragment";
-import { RECIPE_PHOTO_FRAGMENT } from "@/components/ui/recipe-photo/fragment";
-import { RECIPE_SECTIONS_FRAGMENT } from "@/components/ui/recipe-sections/fragment";
-import { USER_AVATAR_FRAGMENT } from "@/components/ui/user-avatar/fragment";
+import { IngredientsAndDirectionsFragmentDoc } from "@/components/ui/ingredients-and-directions/__generated__/ingredientsAndDirections.generated";
+import { RecipeCardFragmentDoc } from "@/components/ui/recipe-card/__generated__/recipeCard.generated";
+import { RecipePhotoFragmentDoc } from "@/components/ui/recipe-photo/__generated__/recipePhoto.generated";
+import { RecipeSectionsFragmentDoc } from "@/components/ui/recipe-sections/__generated__/recipeSections.generated";
+import { UserAvatarFragmentDoc } from "@/components/ui/user-avatar/__generated__/userAvatar.generated";
 import { createFragmentRegistry } from "@apollo/client/cache";
 
 export const fragmentRegistry = createFragmentRegistry(
-  INGREDIENTS_AND_DIRECTIONS_FRAGMENT,
-  RECIPE_CARD_FRAGMENT,
-  RECIPE_PHOTO_FRAGMENT,
-  RECIPE_SECTIONS_FRAGMENT,
-  USER_AVATAR_FRAGMENT,
+  IngredientsAndDirectionsFragmentDoc,
+  RecipeCardFragmentDoc,
+  RecipePhotoFragmentDoc,
+  RecipeSectionsFragmentDoc,
+  UserAvatarFragmentDoc,
 );

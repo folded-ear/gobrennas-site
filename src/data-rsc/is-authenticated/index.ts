@@ -1,20 +1,10 @@
 import { query } from "@/lib/apollo-rsc";
-import { CombinedGraphQLErrors, gql, TypedDocumentNode } from "@apollo/client";
+import { CombinedGraphQLErrors } from "@apollo/client";
 import { cache } from "react";
-import { GetRolesRscQuery } from "./__generated__/is-authenticated.generated";
-
-const GET_ROLES_RSC: TypedDocumentNode<GetRolesRscQuery> = gql(`
-query getRolesRsc {
-  profile {
-    me {
-      id
-      roles
-    }
-  }
-}`);
+import { GetRolesRscDocument } from "./__generated__/getRolesRsc.generated";
 
 export const getRoles = cache(async () => {
-  return await query({ query: GET_ROLES_RSC }).then(
+  return await query({ query: GetRolesRscDocument }).then(
     ({ data }) => {
       return data?.profile.me.roles ?? [];
     },

@@ -1,15 +1,15 @@
 import { UserAvatarWithFallback } from "@/components/ui/user-avatar";
-import { GET_PROFILE_QUERY } from "@/components/ui/user-menu/query";
 import { useSuspenseQuery } from "@apollo/client/react";
 import { Dropdown } from "@heroui/react";
 import { useRouter } from "next/navigation";
+import { GetProfileDocument } from "./__generated__/getProfile.generated";
 
 type UserMenuProps = {
   onLogout: () => void;
 };
 
 export const UserMenu = ({ onLogout }: UserMenuProps) => {
-  const me = useSuspenseQuery(GET_PROFILE_QUERY).data.profile.me;
+  const me = useSuspenseQuery(GetProfileDocument).data.profile.me;
   const router = useRouter();
   return (
     <Dropdown>

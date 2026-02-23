@@ -1,14 +1,16 @@
 "use client";
 
 import { ButtonBar } from "@/components/ui/button-bar";
-import { RECIPE_CARD_FRAGMENT } from "@/components/ui/recipe-card/fragment";
 import { RecipePhoto } from "@/components/ui/recipe-photo";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Card } from "@heroui/react";
 import Link from "next/link";
-import { RecipeCardFragment } from "./__generated__/fragment.generated";
+import {
+  RecipeCardFragment,
+  RecipeCardFragmentDoc,
+} from "./__generated__/recipeCard.generated";
 
 type RecipeCardProps = {
   recipe: FragmentType<RecipeCardFragment>;
@@ -16,7 +18,7 @@ type RecipeCardProps = {
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
   const { data, complete } = useFragment({
-    fragment: RECIPE_CARD_FRAGMENT,
+    fragment: RecipeCardFragmentDoc,
     fragmentName: "recipeCard",
     from: recipe,
   });

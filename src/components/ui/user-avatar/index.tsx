@@ -1,10 +1,12 @@
-import { USER_AVATAR_FRAGMENT } from "@/components/ui/user-avatar/fragment";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Avatar, AvatarRootProps } from "@heroui/react";
 import { getImageProps } from "next/image";
 import { useMemo } from "react";
-import { UserAvatarFragment } from "./__generated__/fragment.generated";
+import {
+  UserAvatarFragment,
+  UserAvatarFragmentDoc,
+} from "./__generated__/userAvatar.generated";
 
 type UserAvatarProps = {
   user: FragmentType<UserAvatarFragment>;
@@ -15,7 +17,7 @@ const DEFAULT_SIZE: AvatarRootProps["size"] = "sm";
 
 export function UserAvatar({ user, size = DEFAULT_SIZE }: UserAvatarProps) {
   const { data, complete } = useFragment({
-    fragment: USER_AVATAR_FRAGMENT,
+    fragment: UserAvatarFragmentDoc,
     from: user,
   });
   const name = data.name ?? data.email ?? "";

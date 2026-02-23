@@ -1,0 +1,12 @@
+fragment recipeCard on Recipe {
+  id
+  name
+  ownedBy {
+    id
+    ...userAvatar
+  }
+  photo {
+    url
+  }
+  ...recipePhoto
+}
