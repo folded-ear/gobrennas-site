@@ -2,7 +2,7 @@
 
 import { ButtonBar } from "@/components/ui/button-bar";
 import { RecipePhoto } from "@/components/ui/recipe-photo";
-import { UserAvatar } from "@/components/ui/user-avatar";
+import { OtherUserAvatar } from "@/components/ui/user-avatar";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Card } from "@heroui/react";
@@ -34,7 +34,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
             {data.name}
           </Link>
         </Card.Title>
-        {data.ownedBy && <UserAvatar user={data.ownedBy} />}
+        <OtherUserAvatar user={data.ownedBy} />
       </Card.Header>
       <Card.Footer>
         <ButtonBar id={data.id} />

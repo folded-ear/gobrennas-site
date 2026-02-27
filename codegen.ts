@@ -26,8 +26,7 @@ const coreConfig = {
 const config: CodegenConfig = {
   emitLegacyCommonJSImports: false,
   overwrite: true,
-  schema: "./schema.graphql",
-  // schema: "http://localhost:8080/graphql",
+  schema: ["./schema.graphql", "./schema-local.graphql"],
   documents: ["src/**/*.gql"],
   ignoreNoDocuments: true,
   generates: {

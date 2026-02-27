@@ -4,7 +4,7 @@ import { SendToPlan } from "@/components/ui/icons";
 import { IngredientsAndDirections } from "@/components/ui/ingredients-and-directions";
 import { RecipePhoto } from "@/components/ui/recipe-photo";
 import { RecipeSections } from "@/components/ui/recipe-sections";
-import { UserAvatar } from "@/components/ui/user-avatar";
+import { OtherUserAvatar } from "@/components/ui/user-avatar";
 import { useSuspenseQuery } from "@apollo/client/react";
 import { Button } from "@heroui/react";
 import { GetRecipeDetailDocument } from "./__generated__/getRecipeDetail.generated";
@@ -24,7 +24,7 @@ export function RecipeDetail({ id }: RecipeDetailProps) {
     <div className="flex flex-col gap-1">
       <div className="w-full flex justify-between">
         <div className="flex gap-1">
-          {recipe.ownedBy && <UserAvatar user={recipe.ownedBy} />}
+          <OtherUserAvatar user={recipe.ownedBy} />
           <h2 className="text-xl">{recipe.name}</h2>
         </div>
         <Button onClick={() => alert("send it!")}>

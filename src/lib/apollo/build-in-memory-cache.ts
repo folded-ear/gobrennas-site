@@ -24,6 +24,11 @@ export function buildInMemoryCache() {
           suggestRecipesToCook: relayStylePagination(false),
         },
       },
+      UserPreference: {
+        // User prefs are uniquely identified by name within the context of a
+        // single cache, even if the pref is cross-device.
+        keyFields: ["name"],
+      },
     },
     dataIdFromObject: (responseObject) => {
       switch (responseObject.__typename) {

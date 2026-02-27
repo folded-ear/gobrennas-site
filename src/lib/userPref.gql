@@ -1,0 +1,3 @@
+fragment userPref on UserPreference {
+  value
+}

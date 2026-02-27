@@ -1,11 +1,14 @@
 import { graphqlUri } from "@/app/(public)/constants";
+import { COOKIE_DEVICE_KEY } from "@/filters/device-key-cookie";
 import { buildApolloLink } from "@/lib/apollo/build-apollo-link";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
+import { initializeCache } from "@/lib/apollo/initialize-cache";
 import { HttpLink } from "@apollo/client";
 import {
   ApolloClient,
   registerApolloClient,
 } from "@apollo/client-integration-nextjs";
+import { LocalState } from "@apollo/client/local-state";
 import { cookies } from "next/headers";
 
 export const { getClient, query, PreloadQuery } = registerApolloClient(
@@ -29,8 +32,15 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
       },
     });
 
+    const cache = buildInMemoryCache();
+    initializeCache(cache, {
+      deviceKey: kookies.get(COOKIE_DEVICE_KEY)?.value!,
+    });
+    console.log("initialized RSC cache!");
+
     return new ApolloClient({
-      cache: buildInMemoryCache(),
+      cache,
+      localState: new LocalState(),
       link: buildApolloLink("rsc", httpLink),
       devtools: {
         enabled: true,

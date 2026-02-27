@@ -1,0 +1,26 @@
+query getPlanList($deviceKey: String! = "") {
+  deviceKey @client @export(as: "deviceKey")
+  profile {
+    me {
+      id
+      activePlan: preference(
+        name: "activePlan"
+        deviceKey: $deviceKey
+      ) {
+        name
+        ...userPref # todo: ridiculous!
+      }
+    }
+  }
+  planner {
+    plans {
+      id
+      name
+      color
+      ownedBy {
+        id
+        ...userAvatar
+      }
+    }
+  }
+}

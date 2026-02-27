@@ -54,14 +54,20 @@ export function UserAvatar({ user, size = DEFAULT_SIZE }: UserAvatarProps) {
   );
 }
 
-type UserAvatarWithFallbackProps = {
-  user?: FragmentType<UserAvatarFragment>;
-  size?: UserAvatarProps["size"];
+type OptionalUserAvatarProps = Omit<UserAvatarProps, "user"> & {
+  user: UserAvatarProps["user"] | null;
 };
 
 export function UserAvatarWithFallback({
   user,
   size = DEFAULT_SIZE,
-}: UserAvatarWithFallbackProps) {
+}: OptionalUserAvatarProps) {
   return user ? <UserAvatar user={user} size={size} /> : <Avatar size={size} />;
+}
+
+export function OtherUserAvatar({
+  user,
+  size = DEFAULT_SIZE,
+}: OptionalUserAvatarProps) {
+  return user ? <UserAvatar user={user} size={size} /> : null;
 }

@@ -1,0 +1,16 @@
+mutation setActivePlan(
+  $id: String!
+  $deviceKey: String! = ""
+) {
+  deviceKey @client @export(as: "deviceKey")
+  profile {
+    setPreference(
+      deviceKey: $deviceKey
+      name: "activePlan"
+      value: $id
+    ) {
+      name
+      value
+    }
+  }
+}

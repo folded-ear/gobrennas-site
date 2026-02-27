@@ -1,4 +1,5 @@
 query getProfile {
+  deviceKey @client
   profile {
     me {
       id
