@@ -4,7 +4,7 @@ query getUserProfileRsc($deviceKey: String! = "") {
     me {
       id
       roles
-      preferences (deviceKey: $deviceKey){
+      preferences(deviceKey: $deviceKey) {
         name
         value
       }

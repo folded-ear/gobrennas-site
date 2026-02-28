@@ -5,11 +5,7 @@ mutation doSetPreference(
 ) {
   deviceKey @client @export(as: "deviceKey")
   profile {
-    setPreference(
-      deviceKey: $deviceKey
-      name: $name
-      value: $value
-    ) {
+    setPreference(deviceKey: $deviceKey, name: $name, value: $value) {
       name
       value
     }
