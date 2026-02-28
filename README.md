@@ -125,11 +125,10 @@ as well. The masking ensures that components can only use data they explicitly r
 data that is present because some other component requested it. This makes for a little bloat in the query, but not the
 result, and maximizes the value of TypeScript.
 
-For example, `UserAvatar` is a leaf component. It defines a `userAvatar` fragment (on `User`) for the fields it needs
-and registers it in `fragment-registry.ts`. The component's props require a `FragmentType<UserAvatarFragment>`, which
-should be read as "any object loaded with the `userAvatar` fragment spread within". That object is passed to the
-`useFragment` hook's `from` option, which provides the component with the fragment's data, for whatever contextual user
-the parent component is concerned with.
+For example, `UserAvatar` is a leaf component. It defines a `userAvatar` fragment (on `User`) for the fields it needs.
+The component's props require a `FragmentType<UserAvatarFragment>`, which should be read as "any object loaded with the
+`userAvatar` fragment spread within". That object is passed to the `useFragment` hook's `from` option, which provides
+the component with the fragment's data, for whatever contextual user the parent component is concerned with.
 
 The parent need only spread `userAvatar` into a user, and then pass the user (from its data) into `UserAvatar`. The
 parent might be a non-leaf, fragment-rendered component, or it might be a top-level view (which owns the whole query).
