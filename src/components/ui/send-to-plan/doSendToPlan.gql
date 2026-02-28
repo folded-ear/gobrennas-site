@@ -1,0 +1,7 @@
+mutation doSendToPlan($recipeId: ID!, $planId: ID!) {
+  library {
+    sendRecipeToPlan(id: $recipeId, planId: $planId) {
+      id
+    }
+  }
+}

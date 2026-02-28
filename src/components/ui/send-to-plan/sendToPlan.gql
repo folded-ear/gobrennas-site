@@ -1,0 +1,8 @@
+fragment sendToPlan on Query {
+  planner {
+    plan(id: $activePlanId) {
+      id
+      name
+    }
+  }
+}

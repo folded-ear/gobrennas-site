@@ -1,12 +1,13 @@
 "use client";
 
-import { SendToPlan } from "@/components/ui/icons";
 import { IngredientsAndDirections } from "@/components/ui/ingredients-and-directions";
 import { RecipePhoto } from "@/components/ui/recipe-photo";
 import { RecipeSections } from "@/components/ui/recipe-sections";
+import { SendToPlan } from "@/components/ui/send-to-plan";
 import { OtherUserAvatar } from "@/components/ui/user-avatar";
+import { usePreference } from "@/hooks/use-preference";
+import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { useSuspenseQuery } from "@apollo/client/react";
-import { Button } from "@heroui/react";
 import { GetRecipeDetailDocument } from "./__generated__/getRecipeDetail.generated";
 
 type RecipeDetailProps = {
@@ -14,8 +15,9 @@ type RecipeDetailProps = {
 };
 
 export function RecipeDetail({ id }: RecipeDetailProps) {
+  const activePlanId = usePreference(PREF_ACTIVE_PLAN)!;
   const { data } = useSuspenseQuery(GetRecipeDetailDocument, {
-    variables: { id },
+    variables: { id, activePlanId },
   });
 
   const recipe = data.library.getRecipeById;
@@ -27,9 +29,7 @@ export function RecipeDetail({ id }: RecipeDetailProps) {
           <OtherUserAvatar user={recipe.ownedBy} />
           <h2 className="text-xl">{recipe.name}</h2>
         </div>
-        <Button onClick={() => alert("send it!")}>
-          <SendToPlan />
-        </Button>
+        <SendToPlan recipeId={recipe.id} activePlanId={activePlanId} />
       </div>
       {recipe.photo && (
         <div className="relative min-h-80">

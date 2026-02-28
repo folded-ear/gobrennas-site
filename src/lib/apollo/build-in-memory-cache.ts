@@ -1,4 +1,3 @@
-import { fragmentRegistry } from "@/lib/apollo/fragment-registry";
 import { possibleTypes } from "@/lib/apollo/possible-types";
 import { defaultDataIdFromObject } from "@apollo/client";
 import { InMemoryCache } from "@apollo/client-integration-nextjs";
@@ -17,6 +16,9 @@ export function buildInMemoryCache() {
             },
           },
         },
+      },
+      PlannerQuery: {
+        merge: true,
       },
       LibraryQuery: {
         fields: {
@@ -43,6 +45,5 @@ export function buildInMemoryCache() {
           return defaultDataIdFromObject(responseObject);
       }
     },
-    fragments: fragmentRegistry,
   });
 }

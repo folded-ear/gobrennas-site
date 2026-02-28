@@ -1,9 +1,7 @@
 import { UserAvatarWithFallback } from "@/components/ui/user-avatar";
-import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Dropdown } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { UserAvatarFragment } from "../user-avatar/__generated__/userAvatar.generated";
 import { UserMenuFragmentDoc } from "./__generated__/userMenu.generated";
 
 type UserMenuProps = {
@@ -11,19 +9,16 @@ type UserMenuProps = {
 };
 
 export const UserMenu = ({ onLogout }: UserMenuProps) => {
-  const res = useFragment({
+  const { data, complete } = useFragment({
     fragment: UserMenuFragmentDoc,
     fragmentName: "userMenu",
     from: "ROOT_QUERY",
   });
-  // This cast is safe, because the profile query is always warmed, so the
-  // fragment will always be complete (not DeepPartial).
-  const me = res.data.profile?.me as FragmentType<UserAvatarFragment>;
   const router = useRouter();
   return (
     <Dropdown>
       <Dropdown.Trigger>
-        <UserAvatarWithFallback user={me} />
+        <UserAvatarWithFallback user={complete ? data.profile.me : null} />
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <Dropdown.Menu>

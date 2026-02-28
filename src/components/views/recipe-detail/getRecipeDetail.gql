@@ -1,4 +1,4 @@
-query getRecipeDetail($id: ID!) {
+query getRecipeDetail($id: ID!, $activePlanId: ID!) {
   library {
     getRecipeById(id: $id) {
       id
@@ -15,4 +15,5 @@ query getRecipeDetail($id: ID!) {
       ...recipeSections
     }
   }
+  ...sendToPlan
 }
