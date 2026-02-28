@@ -2,7 +2,6 @@ import { graphqlUri } from "@/app/(public)/constants";
 import { COOKIE_DEVICE_KEY } from "@/filters/device-key-cookie";
 import { buildApolloLink } from "@/lib/apollo/build-apollo-link";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
-import { initializeCache } from "@/lib/apollo/initialize-cache";
 import { HttpLink } from "@apollo/client";
 import {
   ApolloClient,
@@ -10,10 +9,11 @@ import {
 } from "@apollo/client-integration-nextjs";
 import { LocalState } from "@apollo/client/local-state";
 import { cookies } from "next/headers";
+import { InitializeDeviceKeyDocument } from "./apollo/__generated__/initializeDeviceKey.generated";
 
 export const { getClient, query, PreloadQuery } = registerApolloClient(
   async () => {
-    const kookies = await cookies();
+    const [kookies, gqlUri] = await Promise.all([cookies(), graphqlUri()]);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -22,7 +22,7 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
     if (token) headers.authorization = `Bearer ${token}`;
 
     const httpLink = new HttpLink({
-      uri: await graphqlUri(),
+      uri: gqlUri,
       credentials: "include",
       headers,
       fetchOptions: {
@@ -33,10 +33,13 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
     });
 
     const cache = buildInMemoryCache();
-    initializeCache(cache, {
-      deviceKey: kookies.get(COOKIE_DEVICE_KEY)?.value!,
+    cache.writeQuery({
+      query: InitializeDeviceKeyDocument,
+      data: {
+        deviceKey: kookies.get(COOKIE_DEVICE_KEY)?.value!,
+      },
+      broadcast: false,
     });
-    console.log("initialized RSC cache!");
 
     return new ApolloClient({
       cache,

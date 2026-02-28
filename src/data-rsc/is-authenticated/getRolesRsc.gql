@@ -1,8 +1,0 @@
-query getRolesRsc {
-  profile {
-    me {
-      id
-      roles
-    }
-  }
-}

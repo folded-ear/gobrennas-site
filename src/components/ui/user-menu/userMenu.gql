@@ -1,9 +1,7 @@
-query getProfile {
-  deviceKey @client
+fragment userMenu on Query {
   profile {
     me {
       id
-      roles
       ...userAvatar
     }
   }

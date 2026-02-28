@@ -1,25 +1,9 @@
-import { query } from "@/lib/apollo-rsc";
-import { CombinedGraphQLErrors } from "@apollo/client";
+import { getUserProfile } from "@/data-rsc/get-user-profile";
 import { cache } from "react";
-import { GetRolesRscDocument } from "./__generated__/getRolesRsc.generated";
 
 export const getRoles = cache(async () => {
-  return await query({ query: GetRolesRscDocument }).then(
-    ({ data }) => {
-      return data?.profile.me.roles ?? [];
-    },
-    (error) => {
-      if (CombinedGraphQLErrors.is(error)) {
-        console.log("got the unauth!");
-        for (let e of error.errors) {
-          if (e.extensions?.classification === "UNAUTHORIZED") {
-            return [] as string[];
-          }
-        }
-      }
-      throw error;
-    },
-  );
+  const profile = await getUserProfile();
+  return profile?.profile.me.roles ?? [];
 });
 
 export const isAuthenticated = async () => {

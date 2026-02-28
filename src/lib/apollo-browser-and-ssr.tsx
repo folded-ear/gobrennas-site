@@ -1,9 +1,11 @@
 "use client";
 
-import { COOKIE_DEVICE_KEY } from "@/filters/device-key-cookie";
+import {
+  GetUserProfileRscDocument,
+  GetUserProfileRscQuery,
+} from "@/data-rsc/get-user-profile/__generated__/getUserProfileRsc.generated";
 import { buildApolloLink } from "@/lib/apollo/build-apollo-link";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
-import { initializeCache } from "@/lib/apollo/initialize-cache";
 import { HttpLink, setLogVerbosity } from "@apollo/client";
 import {
   ApolloClient,
@@ -17,10 +19,15 @@ setLogVerbosity("debug");
 
 type ApolloWrapperProps = React.PropsWithChildren & {
   graphqlUri: string;
+  profileQuery?: GetUserProfileRscQuery;
 };
 
 // you need to create a component to wrap your app in
-export function ApolloWrapper({ graphqlUri, children }: ApolloWrapperProps) {
+export function ApolloWrapper({
+  graphqlUri,
+  profileQuery,
+  children,
+}: ApolloWrapperProps) {
   const kookies = useCookies();
 
   const handleMakeClient = useCallback(() => {
@@ -38,9 +45,13 @@ export function ApolloWrapper({ graphqlUri, children }: ApolloWrapperProps) {
     });
 
     const cache = buildInMemoryCache();
-    initializeCache(cache, {
-      deviceKey: kookies.get(COOKIE_DEVICE_KEY)!,
-    });
+    if (profileQuery) {
+      // copy this from RSC to browser-and-SSR
+      cache.writeQuery({
+        query: GetUserProfileRscDocument,
+        data: profileQuery,
+      });
+    }
     return new ApolloClient({
       dataMasking: true,
       cache,
@@ -50,7 +61,7 @@ export function ApolloWrapper({ graphqlUri, children }: ApolloWrapperProps) {
         enabled: true,
       },
     });
-  }, [graphqlUri, kookies]);
+  }, [graphqlUri, kookies, profileQuery]);
 
   return (
     <ApolloNextAppProvider makeClient={handleMakeClient}>

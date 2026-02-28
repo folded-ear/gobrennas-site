@@ -1,15 +1,24 @@
 import { UserAvatarWithFallback } from "@/components/ui/user-avatar";
-import { useSuspenseQuery } from "@apollo/client/react";
+import { FragmentType } from "@apollo/client";
+import { useFragment } from "@apollo/client/react";
 import { Dropdown } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { GetProfileDocument } from "./__generated__/getProfile.generated";
+import { UserAvatarFragment } from "../user-avatar/__generated__/userAvatar.generated";
+import { UserMenuFragmentDoc } from "./__generated__/userMenu.generated";
 
 type UserMenuProps = {
   onLogout: () => void;
 };
 
 export const UserMenu = ({ onLogout }: UserMenuProps) => {
-  const me = useSuspenseQuery(GetProfileDocument).data.profile.me;
+  const res = useFragment({
+    fragment: UserMenuFragmentDoc,
+    fragmentName: "userMenu",
+    from: "ROOT_QUERY",
+  });
+  // This cast is safe, because the profile query is always warmed, so the
+  // fragment will always be complete (not DeepPartial).
+  const me = res.data.profile?.me as FragmentType<UserAvatarFragment>;
   const router = useRouter();
   return (
     <Dropdown>
