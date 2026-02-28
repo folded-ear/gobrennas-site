@@ -1,0 +1,18 @@
+fragment ingredientsAndDirections on IngredientCollection {
+  ingredients {
+    raw
+    quantity {
+      quantity
+      units {
+        id
+        name
+      }
+    }
+    ingredient {
+      id
+      name
+    }
+    preparation
+  }
+  directions
+}

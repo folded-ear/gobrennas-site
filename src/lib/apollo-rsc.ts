@@ -1,58 +1,30 @@
 import { graphqlUri } from "@/app/(public)/constants";
-import { fragments } from "@/data/fragments";
-import {
-  ApolloLink,
-  CombinedGraphQLErrors,
-  CombinedProtocolErrors,
-  HttpLink,
-  ServerError,
-  ServerParseError,
-} from "@apollo/client";
+import { COOKIE_DEVICE_KEY } from "@/filters/device-key-cookie";
+import { buildApolloLink } from "@/lib/apollo/build-apollo-link";
+import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
+import { HttpLink } from "@apollo/client";
 import {
   ApolloClient,
-  InMemoryCache,
   registerApolloClient,
 } from "@apollo/client-integration-nextjs";
-import { createFragmentRegistry } from "@apollo/client/cache";
-import { ErrorLink } from "@apollo/client/link/error";
+import { LocalState } from "@apollo/client/local-state";
 import { cookies } from "next/headers";
+import { InitializeDeviceKeyDocument } from "./apollo/__generated__/initializeDeviceKey.generated";
 
 export const { getClient, query, PreloadQuery } = registerApolloClient(
   async () => {
-    const kookies = await cookies();
+    const [kookies, gqlUri] = await Promise.all([cookies(), graphqlUri()]);
 
-    // Log any GraphQL errors, protocol errors, or network error that occurred
-    const errorLink = new ErrorLink(({ error }) => {
-      if (CombinedGraphQLErrors.is(error)) {
-        error.errors.forEach(({ extensions, message, locations, path }) => {
-          console.log(
-            `[GraphQL error - rsc]: Message: ${message}, Location: ${locations}, Path: ${path}`,
-          );
-        });
-      } else if (CombinedProtocolErrors.is(error)) {
-        error.errors.forEach(({ message, extensions }) =>
-          console.log(
-            `[Protocol error - rsc]: Message: ${message}, Extensions: ${JSON.stringify(
-              extensions,
-            )}`,
-          ),
-        );
-      } else if (ServerError.is(error)) {
-        console.error(`[Server error - rsc]: ${error}`, error.statusCode);
-      } else if (ServerParseError.is(error)) {
-        console.error(`[Parse error - rsc]: ${error}`, error.statusCode);
-      } else {
-        console.error(`[Network error - rsc]: ${error}`);
-      }
-    });
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const token = kookies.get("FTOKEN")?.value;
+    if (token) headers.authorization = `Bearer ${token}`;
 
     const httpLink = new HttpLink({
-      uri: await graphqlUri(),
+      uri: gqlUri,
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        cookie: `FTOKEN=${kookies.get("FTOKEN")?.value}`,
-      },
+      headers,
       fetchOptions: {
         // you can pass additional options that should be passed to `fetch` here,
         // e.g. Next.js-related `fetch` options regarding caching and revalidation
@@ -60,21 +32,22 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
       },
     });
 
+    const cache = buildInMemoryCache();
+    cache.writeQuery({
+      query: InitializeDeviceKeyDocument,
+      data: {
+        deviceKey: kookies.get(COOKIE_DEVICE_KEY)?.value!,
+      },
+      broadcast: false,
+    });
+
     return new ApolloClient({
-      cache: new InMemoryCache({
-        fragments: createFragmentRegistry(...fragments),
-      }),
+      cache,
+      localState: new LocalState(),
+      link: buildApolloLink("rsc", httpLink),
       devtools: {
         enabled: true,
       },
-      link: ApolloLink.from([
-        new ApolloLink((operation, forward) => {
-          console.log("[Operation - rsc]:", operation);
-          return forward(operation);
-        }),
-        errorLink,
-        httpLink,
-      ]),
     });
   },
 );

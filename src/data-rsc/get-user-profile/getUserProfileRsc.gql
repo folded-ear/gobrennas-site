@@ -1,0 +1,15 @@
+query getUserProfileRsc($deviceKey: String! = "") {
+  deviceKey @client @export(as: "deviceKey")
+  profile {
+    me {
+      id
+      roles
+      preferences(deviceKey: $deviceKey) {
+        name
+        value
+      }
+      # unmask this, so it can type-safely warm the browser cache from RSC
+      ...userAvatar @unmask
+    }
+  }
+}

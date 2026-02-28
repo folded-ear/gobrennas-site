@@ -1,0 +1,7 @@
+fragment recipePhoto on Recipe {
+  name
+  photo {
+    url
+    focus
+  }
+}

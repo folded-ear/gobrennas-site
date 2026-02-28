@@ -1,0 +1,13 @@
+mutation doSetPreference(
+  $name: String!
+  $value: String!
+  $deviceKey: String! = ""
+) {
+  deviceKey @client @export(as: "deviceKey")
+  profile {
+    setPreference(deviceKey: $deviceKey, name: $name, value: $value) {
+      name
+      value
+    }
+  }
+}

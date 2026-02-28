@@ -1,5 +1,6 @@
 import { graphqlUri } from "@/app/(public)/constants";
-import ErrorFallback from "@/components/views/error-fallback";
+import { ErrorFallback } from "@/components/views/error-fallback";
+import { getUserProfile } from "@/data-rsc/get-user-profile";
 import { ApolloWrapper } from "@/lib/apollo-browser-and-ssr";
 import { ThemeProvider } from "@/providers/theme-provider";
 import type { Metadata, Viewport } from "next";
@@ -26,11 +27,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [gqlUri, profileQuery] = await Promise.all([
+    graphqlUri(),
+    getUserProfile(),
+  ]);
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <CookiesProvider>
-          <ApolloWrapper graphqlUri={await graphqlUri()}>
+          <ApolloWrapper graphqlUri={gqlUri} profileQuery={profileQuery}>
             <ThemeProvider>
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 {children}

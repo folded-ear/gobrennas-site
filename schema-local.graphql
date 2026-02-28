@@ -1,0 +1,6 @@
+extend type Query {
+  deviceKey: String!
+}
+extend type Mutation {
+  deviceKey: String!
+}

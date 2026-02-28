@@ -1,20 +1,24 @@
-import UserAvatar from "@/components/ui/user-avatar";
-import { GET_PROFILE } from "@/data/get-profile";
-import { useSuspenseQuery } from "@apollo/client/react";
+import { UserAvatarWithFallback } from "@/components/ui/user-avatar";
+import { useFragment } from "@apollo/client/react";
 import { Dropdown } from "@heroui/react";
 import { useRouter } from "next/navigation";
+import { UserMenuFragmentDoc } from "./__generated__/userMenu.generated";
 
 type UserMenuProps = {
   onLogout: () => void;
 };
 
 export const UserMenu = ({ onLogout }: UserMenuProps) => {
-  const me = useSuspenseQuery(GET_PROFILE).data.profile.me;
+  const { data, complete } = useFragment({
+    fragment: UserMenuFragmentDoc,
+    fragmentName: "userMenu",
+    from: "ROOT_QUERY",
+  });
   const router = useRouter();
   return (
     <Dropdown>
       <Dropdown.Trigger>
-        <UserAvatar user={me} />
+        <UserAvatarWithFallback user={complete ? data.profile.me : null} />
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <Dropdown.Menu>

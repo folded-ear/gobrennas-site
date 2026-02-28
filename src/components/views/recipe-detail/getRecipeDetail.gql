@@ -1,0 +1,19 @@
+query getRecipeDetail($id: ID!, $activePlanId: ID!) {
+  library {
+    getRecipeById(id: $id) {
+      id
+      name
+      ownedBy {
+        id
+        ...userAvatar
+      }
+      photo {
+        url
+      }
+      ...recipePhoto
+      ...ingredientsAndDirections
+      ...recipeSections
+    }
+  }
+  ...sendToPlan
+}

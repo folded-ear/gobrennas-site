@@ -1,0 +1,8 @@
+query getRecipeMetaRsc($id: ID!, $secret: String) {
+  library {
+    getRecipeById(id: $id, secret: $secret) {
+      id
+      name
+    }
+  }
+}

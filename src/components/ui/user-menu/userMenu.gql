@@ -1,0 +1,8 @@
+fragment userMenu on Query {
+  profile {
+    me {
+      id
+      ...userAvatar
+    }
+  }
+}

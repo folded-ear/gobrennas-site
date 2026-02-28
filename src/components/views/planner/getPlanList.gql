@@ -1,0 +1,13 @@
+query getPlanList {
+  planner {
+    plans {
+      id
+      name
+      color
+      ownedBy {
+        id
+        ...userAvatar
+      }
+    }
+  }
+}

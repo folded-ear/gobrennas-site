@@ -44,6 +44,16 @@ const nextConfig: NextConfig = {
         destination: "/recipes/:id",
         permanent: false,
       },
+      {
+        source: "/plan",
+        destination: "/planner",
+        permanent: false,
+      },
+      {
+        source: "/plan/:id",
+        destination: "/planner/:id",
+        permanent: false,
+      },
     ];
   },
 };
