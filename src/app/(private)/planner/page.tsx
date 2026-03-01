@@ -1,10 +1,5 @@
-import { Container } from "@/components/layout";
-import { PlanList } from "@/components/views/planner";
+import { redirect } from "next/navigation";
 
 export default function Planner() {
-  return (
-    <Container>
-      <PlanList />
-    </Container>
-  );
+  redirect("/planner/list");
 }

@@ -1,10 +1,11 @@
-import { Container } from "@/components/layout";
+import { Shopping } from "@/features/shopping/shopping";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Shopping List",
+  description: "...",
+};
 
 export default function ShoppingView() {
-  return (
-    <Container>
-      <h1>Shopping List</h1>
-      <div className="w-[100px] h-[100px] bg-background">something</div>
-    </Container>
-  );
+  return <Shopping />;
 }

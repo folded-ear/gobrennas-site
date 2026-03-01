@@ -18,6 +18,12 @@
   --spacing-lg: 16px;
   --spacing-xl: 24px;
   --spacing-xxl: 40px;
+
+  --radius-xs: var(--spacing-xs);
+  --radius-sm: var(--spacing-sm);
+  --radius-md: var(--spacing-md);
+  --radius-lg: var(--spacing-lg);
+  --radius-xl: var(--spacing-xl);
 }
 
 :root,
@@ -27,6 +33,7 @@
 [data-theme="default"] {
   /* theme color overrides (light) */
   --accent: oklch(64.56% 0.1767 45.29);
+  --accent-hover: oklch(0.55 0.15 45.565);
   --accent-foreground: oklch(99.11% 0 0);
   --background: oklch(97.02% 0.0015 45.29);
   --border: oklch(90% 0.0015 45.29);
@@ -58,7 +65,7 @@
   --warning-foreground: oklch(21.03% 0.0059 47.31);
 
   /* Border Radius */
-  --radius: 0.125rem;
+  --radius: 0.5rem;
   --field-radius: 0.125rem;
 
   /* Font Family */
@@ -129,3 +136,20 @@
 @custom-variant selection-start (&:where([data-selection-start]));
 @custom-variant selection-end (&:where([data-selection-end]));
 @custom-variant disabled (&:where([disabled], [data-disabled], :disabled));
+
+@layer components {
+  .button--sm {
+    @apply h-5 rounded-sm;
+  }
+  .button--sm.button--icon-only {
+    @apply w-5 p-2;
+  }
+
+  .card {
+    padding: 0;
+  }
+
+  .chip {
+    --radius: 1rem;
+  }
+}

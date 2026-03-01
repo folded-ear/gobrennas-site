@@ -1,5 +1,4 @@
-import { Container } from "@/components/layout";
-import { RecipeGrid } from "@/components/views/recipe-grid";
+import { Recipes } from "@/features/recipes/recipes";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -7,11 +6,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "Recipe Library",
   };
 }
+
 export default async function RecipesPage() {
-  return (
-    <Container>
-      <h1 className="text-xl">Recipe Library</h1>
-      <RecipeGrid />
-    </Container>
-  );
+  return <Recipes />;
 }

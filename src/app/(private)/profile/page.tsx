@@ -1,3 +1,11 @@
+import { Profile } from "@/features/profile/profile";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "User Profile",
+  description: "...",
+};
+
 export default function ProfilePage() {
-  return <h1>oh hai!</h1>;
+  return <Profile />;
 }

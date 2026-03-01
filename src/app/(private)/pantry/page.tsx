@@ -1,5 +1,11 @@
-import { Container } from "@/components/layout";
+import { Pantry } from "@/features/pantry/pantry";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Pantry Management",
+  description: "...",
+};
 
 export default function PantryView() {
-  return <Container>Pantry Management View</Container>;
+  return <Pantry />;
 }

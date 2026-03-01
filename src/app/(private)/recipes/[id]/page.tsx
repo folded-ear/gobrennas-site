@@ -1,6 +1,6 @@
-import { Container } from "@/components/layout";
-import { RecipeDetail } from "@/components/views/recipe-detail";
+import { Container } from "@/components/container";
 import { getRecipeMetadata } from "@/data-rsc/get-recipe-metadata";
+import { RecipeDetail } from "@/features/recipes/detail";
 import type { Metadata } from "next";
 
 type PageProps = {
