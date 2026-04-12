@@ -1,19 +1,29 @@
 fragment planItem on PlanItem {
+  id
+  name
+  status
+  notes
+  parent {
     id
-    name
-    status
-    notes
-    parent { id }
-    aggregate { id }
-    preparation
-    ingredient { id }
-    quantity {
-        quantity
-        units {
-            name
-            id
-        }
+  }
+  aggregate {
+    id
+  }
+  preparation
+  ingredient {
+    id
+  }
+  quantity {
+    quantity
+    units {
+      name
+      id
     }
-    components { id }
-    bucket { id }
+  }
+  components {
+    id
+  }
+  bucket {
+    id
+  }
 }

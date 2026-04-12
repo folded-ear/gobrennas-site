@@ -36,9 +36,7 @@ export const useDragResize = ({
 
       const onMouseMove = (e: MouseEvent) => {
         const delta =
-          expandDirection === "left"
-            ? startX - e.clientX
-            : e.clientX - startX;
+          expandDirection === "left" ? startX - e.clientX : e.clientX - startX;
         const newWidth = Math.min(
           maxWidth,
           Math.max(minWidth, startWidth + delta),
