@@ -1,0 +1,18 @@
+fragment recipeCard on Recipe {
+  id
+  name
+  labels
+  favorite
+  ownedBy {
+    id
+    ...userAvatar
+  }
+  photo {
+    url
+  }
+  ...recipePhoto
+  plannedHistory(last: 1, status: COMPLETED) {
+    doneAt
+    ratingInt
+  }
+}

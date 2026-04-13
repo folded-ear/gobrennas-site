@@ -1,13 +1,8 @@
-import { BarePage } from "@/components/layout/bare-page";
-import { Login } from "@/components/views/login";
+import { Login } from "@/components/login";
 import { isAuthenticated } from "@/data-rsc/is-authenticated";
 import { redirect } from "next/navigation";
 
 export default async function Home() {
   if (await isAuthenticated()) redirect("/recipes");
-  return (
-    <BarePage>
-      <Login />
-    </BarePage>
-  );
+  return <Login />;
 }

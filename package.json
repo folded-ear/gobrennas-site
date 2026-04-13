@@ -20,7 +20,7 @@
     "tsc": "tsc --noEmit"
   },
   "dependencies": {
-    "@apollo/client": "~4.0.7",
+    "@apollo/client": "~4.1.6",
     "@apollo/client-integration-nextjs": "~0.14.4",
     "@fontsource-variable/figtree": "^5.2.10",
     "@fontsource-variable/sometype-mono": "^5.2.7",

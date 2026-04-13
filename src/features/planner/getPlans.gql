@@ -1,0 +1,23 @@
+query getPlans {
+  planner {
+    plans {
+      id
+      name
+      color
+      ownedBy {
+        id
+        ...userAvatar
+      }
+      buckets {
+        id
+        date
+        name
+      }
+      notes
+      descendants {
+        id
+        ...planItem
+      }
+    }
+  }
+}

@@ -1,10 +1,5 @@
-import { Container } from "@/components/layout";
-import { PlanList } from "@/components/views/planner";
+import { Planner } from "@/features/planner/planner";
 
 export default function ListView() {
-  return (
-    <Container>
-      <PlanList />
-    </Container>
-  );
+  return <Planner />;
 }

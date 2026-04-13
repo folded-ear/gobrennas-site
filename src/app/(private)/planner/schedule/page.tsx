@@ -1,5 +1,5 @@
-import { Container } from "@/components/layout";
+import { PlannerSchedule } from "@/features/planner/schedule";
 
 export default function ScheduleView() {
-  return <Container>Schedule View</Container>;
+  return <PlannerSchedule />;
 }

@@ -1,5 +1,5 @@
-import { Container } from "@/components/layout";
+import { PlannerCalendar } from "@/features/planner/calendar";
 
 export default function CalendarView() {
-  return <Container>Calendar View</Container>;
+  return <PlannerCalendar />;
 }

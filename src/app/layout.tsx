@@ -1,5 +1,5 @@
 import { graphqlUri } from "@/app/(public)/constants";
-import { ErrorFallback } from "@/components/views/error-fallback";
+import { ErrorFallback } from "@/components/error-fallback";
 import { getUserProfile } from "@/data-rsc/get-user-profile";
 import { ApolloWrapper } from "@/lib/apollo-browser-and-ssr";
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -32,8 +32,8 @@ export default async function RootLayout({
     getUserProfile(),
   ]);
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="bg-background text-foreground">
+    <html lang="en" suppressHydrationWarning className="h-full">
+      <body className="bg-background text-foreground h-full">
         <CookiesProvider>
           <ApolloWrapper graphqlUri={gqlUri} profileQuery={profileQuery}>
             <ThemeProvider>
