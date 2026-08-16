@@ -1,5 +1,6 @@
 # Ignore artifacts:
 .idea
+.claude
 build
 coverage
 /src/__graphql/
