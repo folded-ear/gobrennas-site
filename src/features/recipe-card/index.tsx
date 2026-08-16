@@ -1,8 +1,8 @@
 "use client";
 
 import { RecipeActionBar } from "@/components/recipe-action-bar";
-import { RecipePhoto } from "@/features/recipe-photo";
 import { formatLastCooked } from "@/features/recipe-card/utils";
+import { RecipePhoto } from "@/features/recipe-photo";
 import { SendToPlan } from "@/features/send-to-plan";
 import { OtherUserAvatar } from "@/features/user-avatar";
 import { usePreference } from "@/hooks/use-preference";
