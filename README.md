@@ -40,6 +40,28 @@ Run `pnpm run build`
 Now you'll have a nice ready-to-deploy website in the `build` directory! And
 it's useless without an API to connect to.
 
+## Project Structure
+
+```
+app/                    Next.js App Router routes (route groups only, no logic)
+  (private)/            Authenticated routes: pantry, planner, profile, recipes, shopping
+  (public)/              Public routes: login, share, post-oauth2 callback
+src/
+  screens/               Top-level page components rendered by routes (one per route area)
+  features/              Self-contained feature components, flat, fragments only (no nested feature folders)
+  data-rsc/              React Server Component data fetching (auth check, user profile, recipe metadata)
+  components/            Shared, cross-feature UI components
+  hooks/                 Shared React hooks
+  providers/             React context providers (e.g. theme)
+  filters/               Chain-of-responsibility middleware filters used by proxy.ts
+  lib/                   Apollo Client setup, preferences, and other cross-cutting utilities
+  proxy.ts               Middleware entry point, builds the filter chain
+```
+
+Each `features/` entry is self-contained: its component(s), `.gql` operation files, and generated types
+(`__generated__/`) live together. Route pages (`app/**/page.tsx`) are thin — they import a `screens/` component,
+which composes one or more `features/` components.
+
 ## Local Development
 
 ### Tailwind
