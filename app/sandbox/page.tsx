@@ -76,7 +76,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-6">
-      <h2 className="border-b pb-2 font-semibold">{title}</h2>
+      <h2 className="border-b pb-2">{title}</h2>
       <div className="flex flex-wrap items-start gap-8">{children}</div>
     </section>
   );
@@ -97,6 +97,15 @@ function Demo({
   );
 }
 
+function Swatch({ name, className }: { name: string; className: string }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className={`h-16 w-16 rounded-lg border ${className}`} />
+      <p className="text-xs text-muted">{name}</p>
+    </div>
+  );
+}
+
 export default function Sandbox() {
   const [colorFieldValue, setColorFieldValue] = React.useState<Color | null>(
     parseColor("#0485F7"),
@@ -106,8 +115,41 @@ export default function Sandbox() {
     <div className="mx-auto flex max-w-5xl flex-col gap-12 p-8">
       <Toast.Provider queue={toastQueue} placement="bottom end" />
 
-      <h1 className="text-3xl font-bold">HeroUI v3 Component Sandbox</h1>
+      <h1>HeroUI v3 Component Sandbox</h1>
       <ModeToggle />
+
+      {/* ── Foundations ── */}
+      <Section title="Foundations">
+        <Demo label="Brand & semantic colors">
+          <Swatch name="background" className="bg-background" />
+          <Swatch name="surface" className="bg-surface" />
+          <Swatch name="surface-secondary" className="bg-surface-secondary" />
+          <Swatch name="surface-tertiary" className="bg-surface-tertiary" />
+          <Swatch name="primary (accent)" className="bg-primary" />
+          <Swatch name="secondary (default)" className="bg-secondary" />
+          <Swatch name="success" className="bg-success" />
+          <Swatch name="warning" className="bg-warning" />
+          <Swatch name="danger" className="bg-danger" />
+          <Swatch name="border" className="bg-border" />
+          <Swatch name="muted" className="bg-muted" />
+        </Demo>
+
+        <Demo label="Typography scale (Figtree)">
+          <div className="flex flex-col gap-2">
+            <h1>Heading 1</h1>
+            <h2>Heading 2</h2>
+            <h3>Heading 3</h3>
+            <h4>Heading 4</h4>
+            <h5>Heading 5</h5>
+            <h6>Heading 6</h6>
+            <p className="text-base">
+              Body copy sits at the base size and weight — no utilities needed
+              beyond the semantic tag.
+            </p>
+            <small>Small print / helper text uses the muted color.</small>
+          </div>
+        </Demo>
+      </Section>
 
       {/* ── Buttons & Actions ── */}
       <Section title="Buttons & Actions">
