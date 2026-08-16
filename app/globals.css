@@ -10,6 +10,17 @@
   --font-figtree: "Figtree", sans-serif;
   --color-brand: oklch(64.56% 0.1767 45.29);
 
+  /*
+   * "primary"/"secondary" aliases for HeroUI's own `accent`/`default`
+   * tokens, for teams that reach for conventional design-token names.
+   * Keep these in sync with the light/dark overrides below — do not
+   * give them independent values.
+   */
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-foreground);
+  --color-secondary: var(--default);
+  --color-secondary-foreground: var(--default-foreground);
+
   --spacing-none: 0px;
   --spacing-xxs: 2px;
   --spacing-xs: 4px;
@@ -136,6 +147,35 @@
 @custom-variant selection-start (&:where([data-selection-start]));
 @custom-variant selection-end (&:where([data-selection-end]));
 @custom-variant disabled (&:where([disabled], [data-disabled], :disabled));
+
+@layer base {
+  /*
+   * Type scale: headings step down from h1→h6, body copy stays at the
+   * base size. Apply these tags directly rather than re-picking text
+   * and font utilities per component.
+   */
+  h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  h3 {
+    @apply text-xl font-semibold;
+  }
+  h4 {
+    @apply text-lg font-semibold;
+  }
+  h5 {
+    @apply text-base font-semibold;
+  }
+  h6 {
+    @apply text-sm font-semibold tracking-wide uppercase;
+  }
+  small {
+    @apply text-muted text-sm;
+  }
+}
 
 @layer components {
   .button--sm {
