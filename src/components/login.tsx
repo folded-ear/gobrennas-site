@@ -1,7 +1,7 @@
 "use client";
 
-import { doLogin } from "@/app/(public)/constants";
 import { BFSLogo } from "@/components/bfs-logo";
+import { doLogin } from "@/constants";
 import { Button } from "@heroui/react";
 
 export function Login() {

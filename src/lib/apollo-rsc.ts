@@ -1,4 +1,4 @@
-import { graphqlUri } from "@/app/(public)/constants";
+import { graphqlUri } from "@/constants";
 import { COOKIE_DEVICE_KEY } from "@/filters/device-key-cookie";
 import { buildApolloLink } from "@/lib/apollo/build-apollo-link";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";

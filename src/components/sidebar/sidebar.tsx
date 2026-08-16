@@ -1,6 +1,5 @@
 "use client";
 
-import { doLogout } from "@/app/(public)/constants";
 import { BFSLogo } from "@/components/bfs-logo";
 import {
   LibraryIcon,
@@ -12,7 +11,8 @@ import {
 } from "@/components/icons";
 import { ModeToggle } from "@/components/mode-toggle";
 import PlanAvatar from "@/components/plan-avatar";
-import { UserMenu } from "@/features/profile/user-menu";
+import { doLogout } from "@/constants";
+import { UserMenu } from "@/features/user-menu";
 import { useDragResize } from "@/hooks/useDragResize";
 import { Button } from "@heroui/react";
 import { clsx } from "clsx";
