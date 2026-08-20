@@ -14,7 +14,9 @@
     "possible-types": "node scripts/build_possible_types.js http://localhost:8080/graphql src/lib/apollo/possible-types.ts",
     "postpossible-types": "prettier src/lib/apollo/possible-types.ts --write",
     "start": "node .next/standalone/server.js",
+    "pretest": "pnpm run generate",
     "test": "vitest",
+    "pretest:coverage": "pnpm run generate",
     "test:coverage": "vitest run --coverage",
     "pretsc": "pnpm run generate",
     "tsc": "tsc --noEmit"
