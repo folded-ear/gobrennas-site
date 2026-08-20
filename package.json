@@ -14,7 +14,9 @@
     "possible-types": "node scripts/build_possible_types.js http://localhost:8080/graphql src/lib/apollo/possible-types.ts",
     "postpossible-types": "prettier src/lib/apollo/possible-types.ts --write",
     "start": "node .next/standalone/server.js",
+    "pretest": "pnpm run generate",
     "test": "vitest",
+    "pretest:coverage": "pnpm run generate",
     "test:coverage": "vitest run --coverage",
     "pretsc": "pnpm run generate",
     "tsc": "tsc --noEmit"
@@ -51,6 +53,7 @@
     "@tailwindcss/postcss": "~4.1.11",
     "@testing-library/jest-dom": "~6.6.4",
     "@testing-library/react": "~16.3.0",
+    "@testing-library/user-event": "^14.6.5",
     "@types/node": "~20.19.9",
     "@types/react": "~19.1.9",
     "@types/react-dom": "~19.1.7",
