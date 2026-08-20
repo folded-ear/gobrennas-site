@@ -1,5 +1,8 @@
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
-import { MockedProvider, MockedProviderProps } from "@apollo/client/testing/react";
+import {
+  MockedProvider,
+  MockedProviderProps,
+} from "@apollo/client/testing/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
