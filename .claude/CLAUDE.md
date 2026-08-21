@@ -125,7 +125,7 @@ The project implements a custom filter chain pattern for middleware in `src/prox
 
 ## Testing
 
-- Test files: `*.test.tsx` in any directory
+- Test files: `*.test.ts` / `*.test.tsx` in any directory
 - Setup file: `src/test/setup.ts`
 - Environment: jsdom
 - Vitest with Testing Library for React components
