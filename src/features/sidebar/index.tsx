@@ -19,7 +19,7 @@ import { useSetPreference } from "@/hooks/use-set-preference";
 import { useDragResize } from "@/hooks/useDragResize";
 import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { useSuspenseQuery } from "@apollo/client/react";
-import { Button } from "@heroui/react";
+import { Button, ScrollShadow } from "@heroui/react";
 import { clsx } from "clsx";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -73,40 +73,46 @@ export const Sidebar = () => {
         className="sticky top-0 flex h-screen justify-stretch flex-col border-r border-divider transition-all bg-surface p-md shrink-0"
         style={{ width: collapsed ? COLLAPSED_WIDTH : width }}
       >
-        <nav className="flex-1 flex flex-col gap-2">
-          <BFSLogo size="sm" collapsed={collapsed} />
-          <Section title="Recipes" isCollapsed={collapsed}>
-            <NavLink
-              href="/recipes"
-              isActive={pathname?.startsWith("/recipes")}
-            >
-              <LibraryIcon size="medium" />
-              {!collapsed && <span>Library</span>}
-            </NavLink>
-            <NavLink
-              href="/recipes/saved"
-              isActive={pathname?.startsWith("/recipes/saved")}
-            >
-              <SearchIcon size="medium" />
-              {!collapsed && <span>Saved Searches</span>}
-            </NavLink>
-          </Section>
-
-          {myPlans.length > 0 && (
-            <Section title="My Plans" isCollapsed={collapsed}>
-              {renderPlans(myPlans)}
+        <nav className="flex-1 flex flex-col gap-2 min-h-0">
+          <div className="shrink-0">
+            <BFSLogo size="sm" collapsed={collapsed} />
+          </div>
+          <div className="shrink-0">
+            <Section title="Recipes" isCollapsed={collapsed}>
+              <NavLink
+                href="/recipes"
+                isActive={pathname?.startsWith("/recipes")}
+              >
+                <LibraryIcon size="medium" />
+                {!collapsed && <span>Library</span>}
+              </NavLink>
+              <NavLink
+                href="/recipes/saved"
+                isActive={pathname?.startsWith("/recipes/saved")}
+              >
+                <SearchIcon size="medium" />
+                {!collapsed && <span>Saved Searches</span>}
+              </NavLink>
             </Section>
-          )}
+          </div>
 
-          {sharedPlans.length > 0 && (
-            <Section title="Shared Plans" isCollapsed={collapsed}>
-              {renderPlans(sharedPlans)}
-            </Section>
-          )}
+          <ScrollShadow className="min-h-0 space-y-2">
+            {myPlans.length > 0 && (
+              <Section title="My Plans" isCollapsed={collapsed}>
+                {renderPlans(myPlans)}
+              </Section>
+            )}
+
+            {sharedPlans.length > 0 && (
+              <Section title="Shared Plans" isCollapsed={collapsed}>
+                {renderPlans(sharedPlans)}
+              </Section>
+            )}
+          </ScrollShadow>
 
           <div
             className={clsx(
-              "flex flex-col gap-md py-md",
+              "shrink-0 flex flex-col gap-md py-md",
               collapsed && "items-center",
             )}
           >
