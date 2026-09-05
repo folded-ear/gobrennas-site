@@ -171,3 +171,33 @@ on-demand module resolution. Further complicating things, on the server there ar
    resolved yet.
 1. Fragments cannot be defined in `"use client"` modules if they're used in a non-`"use client"` module, so client
    components usually cannot define their fragment constant in the same module as the component itself.
+
+### The Device Key and `@client` Fields
+
+Some data is per-device, not per-user: `profile.preferences` and `profile.setPreference` both take a `deviceKey`, so the
+same account can have a different active plan on a phone than on a desktop. That key never comes from the API. It is
+minted by `deviceKeyCookieFilter` (see `src/filters/device-key-cookie.ts`), stored in a cookie, and injected into
+GraphQL operations through Apollo's local state.
+
+The wiring is worth spelling out, because it looks like more machinery than it is:
+
+1. `schema-local.graphql` extends both `Query` and `Mutation` with a `deviceKey: String!` field. It exists only on the
+   client; the API knows nothing about it.
+1. Neither Apollo client registers any local resolvers — both construct a bare `new LocalState()`. **An `@client` field
+   with no resolver behind it is a plain cache read.** That is the whole mechanism.
+1. `apollo-rsc.ts` seeds the RSC cache by writing `initializeDeviceKey` (`deviceKey @client`) with the cookie's value.
+1. `getUserProfileRsc` selects `deviceKey @client @export(as: "deviceKey")` alongside the profile. Because the field is
+   part of that query's selection set, the value rides along when `ApolloWrapper` copies the RSC result into the
+   browser cache — which is what makes the key available in the browser at all.
+1. `@export(as: "deviceKey")` lifts the resolved value into a variable of the same name, so operations declare
+   `$deviceKey: String! = ""` and never pass it explicitly.
+
+Two consequences follow, both of which have unit tests in `src/hooks/use-set-preference/`:
+
+- **The `""` default is not a fallback.** If the cache has no `deviceKey`, local state resolution fails the operation
+  outright (`Field 'Mutation.deviceKey' returned null for required variable 'deviceKey'`) rather than sending the empty
+  string. A device-scoped operation therefore depends on the profile query having populated the cache first. Tests that
+  exercise one must seed `initializeDeviceKey` into the cache.
+- **`optimisticResponse` does not work on these operations.** Resolving `@client`/`@export` is asynchronous and happens
+  before the mutation starts, so the optimistic write is deferred until the round trip completes and buys nothing. Use
+  a cache update, or accept the latency.

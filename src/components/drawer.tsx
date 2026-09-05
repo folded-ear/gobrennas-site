@@ -2,7 +2,7 @@
 
 import { DrawerCloseIcon, DrawerOpenIcon } from "@/components/icons";
 import { useDragResize } from "@/hooks/useDragResize";
-import { Button } from "@heroui/react";
+import { Button, ScrollShadow } from "@heroui/react";
 import { useState } from "react";
 
 const MIN_WIDTH = 210;
@@ -49,7 +49,7 @@ export const Drawer = ({
       </Button>
 
       {!collapsed && (
-        <div className="flex flex-1 flex-col overflow-y-auto p-md">
+        <ScrollShadow className="flex flex-1 flex-col min-h-0 p-md">
           <div id="lipsum">
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
@@ -122,7 +122,7 @@ export const Drawer = ({
               velit nisi, nec sagittis eros eleifend ut.
             </p>
           </div>
-        </div>
+        </ScrollShadow>
       )}
     </aside>
   );

@@ -1,6 +1,6 @@
 import { Container } from "@/components/container";
 import { Drawer } from "@/components/drawer";
-import { Sidebar } from "@/components/sidebar/sidebar";
+import { Sidebar } from "@/features/sidebar";
 import { PropsWithChildren } from "react";
 
 export default async function PrivateLayout({ children }: PropsWithChildren) {

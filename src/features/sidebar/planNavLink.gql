@@ -1,0 +1,4 @@
+fragment planNavLink on Plan {
+  name
+  color
+}

@@ -6,6 +6,15 @@ import { afterEach, expect } from "vitest";
 
 expect.extend(matchers);
 
+// jsdom doesn't implement ResizeObserver; components like HeroUI's
+// ScrollShadow use it to detect overflow.
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+global.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
+
 afterEach(() => {
   cleanup();
 });

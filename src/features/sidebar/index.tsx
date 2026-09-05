@@ -10,16 +10,21 @@ import {
   SidebarOpenIcon,
 } from "@/components/icons";
 import { ModeToggle } from "@/components/mode-toggle";
-import PlanAvatar from "@/components/plan-avatar";
+import { NavLink } from "@/components/sidebar/nav-link";
+import { Section } from "@/components/sidebar/section";
 import { doLogout } from "@/constants";
 import { UserMenu } from "@/features/user-menu";
+import { usePreference } from "@/hooks/use-preference";
+import { useSetPreference } from "@/hooks/use-set-preference";
 import { useDragResize } from "@/hooks/useDragResize";
-import { Button } from "@heroui/react";
+import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
+import { useSuspenseQuery } from "@apollo/client/react";
+import { Button, ScrollShadow } from "@heroui/react";
 import { clsx } from "clsx";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { NavLink } from "./nav-link";
-import { Section } from "./section";
+import { useMemo, useState } from "react";
+import { GetSidebarDocument } from "./__generated__/getSidebar.generated";
+import { PlanNavLink } from "./plan-nav-link";
 
 const COLLAPSED_WIDTH = 65;
 const DEFAULT_WIDTH = 256;
@@ -28,12 +33,34 @@ const MAX_WIDTH = 480;
 export const Sidebar = () => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const { data } = useSuspenseQuery(GetSidebarDocument);
+  const activePlanId = usePreference(PREF_ACTIVE_PLAN);
+  const [setActivePlan] = useSetPreference(PREF_ACTIVE_PLAN);
   const { width, onDragStart } = useDragResize({
     defaultWidth: DEFAULT_WIDTH,
     minWidth: DEFAULT_WIDTH,
     maxWidth: MAX_WIDTH,
     expandDirection: "right",
   });
+
+  const { myPlans, sharedPlans } = useMemo(() => {
+    const plans = data.planner.plans;
+    return {
+      myPlans: plans.filter((it) => it.mine),
+      sharedPlans: plans.filter((it) => !it.mine),
+    };
+  }, [data.planner.plans]);
+
+  const renderPlans = (plans: typeof myPlans) =>
+    plans.map((plan) => (
+      <PlanNavLink
+        key={plan.id}
+        plan={plan}
+        isActive={plan.id === activePlanId}
+        isCollapsed={collapsed}
+        onSelect={() => setActivePlan(plan.id)}
+      />
+    ));
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -46,58 +73,46 @@ export const Sidebar = () => {
         className="sticky top-0 flex h-screen justify-stretch flex-col border-r border-divider transition-all bg-surface p-md shrink-0"
         style={{ width: collapsed ? COLLAPSED_WIDTH : width }}
       >
-        <nav className="flex-1 flex flex-col gap-2">
-          <BFSLogo size="sm" collapsed={collapsed} />
-          <Section title="Recipes" isCollapsed={collapsed}>
-            <NavLink
-              href="/recipes"
-              isActive={pathname?.startsWith("/recipes")}
-            >
-              <LibraryIcon size="medium" />
-              {!collapsed && <span>Library</span>}
-            </NavLink>
-            <NavLink
-              href="/recipes/saved"
-              isActive={pathname?.startsWith("/recipes/saved")}
-            >
-              <SearchIcon size="medium" />
-              {!collapsed && <span>Saved Searches</span>}
-            </NavLink>
-          </Section>
+        <nav className="flex-1 flex flex-col gap-2 min-h-0">
+          <div className="shrink-0">
+            <BFSLogo size="sm" collapsed={collapsed} />
+          </div>
+          <div className="shrink-0">
+            <Section title="Recipes" isCollapsed={collapsed}>
+              <NavLink
+                href="/recipes"
+                isActive={pathname?.startsWith("/recipes")}
+              >
+                <LibraryIcon size="medium" />
+                {!collapsed && <span>Library</span>}
+              </NavLink>
+              <NavLink
+                href="/recipes/saved"
+                isActive={pathname?.startsWith("/recipes/saved")}
+              >
+                <SearchIcon size="medium" />
+                {!collapsed && <span>Saved Searches</span>}
+              </NavLink>
+            </Section>
+          </div>
 
-          <Section title="My Plans" isCollapsed={collapsed}>
-            <NavLink
-              href="/planner"
-              isActive={pathname?.startsWith("/planner")}
-            >
-              <PlanAvatar
-                plan={{ name: "Our Week", color: "#f5cd06" }}
-                size="sm"
-              />
-              {!collapsed && <span>Our Week</span>}
-            </NavLink>
-            <NavLink href="/planner" isActive={pathname === "/planner"}>
-              <PlanAvatar
-                plan={{ name: "Thanksgiving", color: "#89ac66" }}
-                size="sm"
-              />
-              {!collapsed && <span>Thanksgiving</span>}
-            </NavLink>
-          </Section>
+          <ScrollShadow className="min-h-0 space-y-2">
+            {myPlans.length > 0 && (
+              <Section title="My Plans" isCollapsed={collapsed}>
+                {renderPlans(myPlans)}
+              </Section>
+            )}
 
-          <Section title="Shared Plans" isCollapsed={collapsed}>
-            <NavLink href="/" isActive={false}>
-              <PlanAvatar
-                plan={{ name: "Barney's Week", color: "#9cb7da" }}
-                size="sm"
-              />
-              {!collapsed && <span>Barney&apos;s Week</span>}
-            </NavLink>
-          </Section>
+            {sharedPlans.length > 0 && (
+              <Section title="Shared Plans" isCollapsed={collapsed}>
+                {renderPlans(sharedPlans)}
+              </Section>
+            )}
+          </ScrollShadow>
 
           <div
             className={clsx(
-              "flex flex-col gap-md py-md",
+              "shrink-0 flex flex-col gap-md py-md",
               collapsed && "items-center",
             )}
           >
