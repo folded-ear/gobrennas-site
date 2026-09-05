@@ -54,8 +54,8 @@ importers:
         specifier: ~19.2.8
         version: 19.2.8(react@19.2.8)
       react-error-boundary:
-        specifier: ^6.1.0
-        version: 6.1.0(react@19.2.8)
+        specifier: ^6.1.5
+        version: 6.1.5(@types/react@19.1.12)(react@19.2.8)
       react-infinite-scroll-hook:
         specifier: ^6.0.1
         version: 6.0.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -3941,10 +3941,14 @@ packages:
     peerDependencies:
       react: ^19.2.8
 
-  react-error-boundary@6.1.0:
-    resolution: {integrity: sha512-02k9WQ/mUhdbXir0tC1NiMesGzRPaCsJEWU/4bcFrbY1YMZOtHShtZP6zw0SJrBWA/31H0KT9/FgdL8+sPKgHA==}
+  react-error-boundary@6.1.5:
+    resolution: {integrity: sha512-l2nk+KhgM6e79tAiHEs3tXTdiTW4ARniKYMQN+cLY5vQFpDOkxuXKIC4uIwYuIKoMpFQ6jEbQz9wBArUmq7GWA==}
     peerDependencies:
+      '@types/react': ^18.0.0 || ^19.0.0
       react: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   react-infinite-scroll-hook@6.0.1:
     resolution: {integrity: sha512-5FtJnor4Zyd3uafHCzOlXFCuhFJ2ZzLm3d9XTKbvAN6A/SH+XNFo5IOFk/T1hV5AYy+vOZYoXeH4jkufFB2JVA==}
@@ -9136,9 +9140,11 @@ snapshots:
       react: 19.2.8
       scheduler: 0.27.0
 
-  react-error-boundary@6.1.0(react@19.2.8):
+  react-error-boundary@6.1.5(@types/react@19.1.12)(react@19.2.8):
     dependencies:
       react: 19.2.8
+    optionalDependencies:
+      '@types/react': 19.1.12
 
   react-infinite-scroll-hook@6.0.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
     dependencies:
