@@ -18,8 +18,8 @@ import { Button } from "@heroui/react";
 import { clsx } from "clsx";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { NavLink } from "./nav-link";
-import { Section } from "./section";
+import { NavLink } from "../../components/sidebar/nav-link";
+import { Section } from "../../components/sidebar/section";
 
 const COLLAPSED_WIDTH = 65;
 const DEFAULT_WIDTH = 256;
@@ -86,7 +86,7 @@ export const Sidebar = () => {
           </Section>
 
           <Section title="Shared Plans" isCollapsed={collapsed}>
-            <NavLink href="/" isActive={false}>
+            <NavLink href="/public" isActive={false}>
               <PlanAvatar
                 plan={{ name: "Barney's Week", color: "#9cb7da" }}
                 size="sm"
