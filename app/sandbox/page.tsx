@@ -1,6 +1,8 @@
 "use client";
 
 import { ModeToggle } from "@/components/mode-toggle";
+import { ColorInputGroup } from "@heroui/react/color-input-group";
+import { DateInputGroup } from "@heroui/react/date-input-group";
 import {
   Accordion,
   Alert,
@@ -16,14 +18,12 @@ import {
   Color,
   ColorArea,
   ColorField,
-  ColorInputGroup,
   ColorPicker,
   ColorSlider,
   ColorSwatch,
   ColorSwatchPicker,
   ComboBox,
   DateField,
-  DateInputGroup,
   Description,
   Disclosure,
   DisclosureGroup,
