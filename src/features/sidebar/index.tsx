@@ -10,16 +10,21 @@ import {
   SidebarOpenIcon,
 } from "@/components/icons";
 import { ModeToggle } from "@/components/mode-toggle";
-import PlanAvatar from "@/components/plan-avatar";
+import { NavLink } from "@/components/sidebar/nav-link";
+import { Section } from "@/components/sidebar/section";
 import { doLogout } from "@/constants";
 import { UserMenu } from "@/features/user-menu";
+import { usePreference } from "@/hooks/use-preference";
+import { useSetPreference } from "@/hooks/use-set-preference";
 import { useDragResize } from "@/hooks/useDragResize";
+import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
+import { useSuspenseQuery } from "@apollo/client/react";
 import { Button } from "@heroui/react";
 import { clsx } from "clsx";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { NavLink } from "../../components/sidebar/nav-link";
-import { Section } from "../../components/sidebar/section";
+import { useMemo, useState } from "react";
+import { GetSidebarDocument } from "./__generated__/getSidebar.generated";
+import { PlanNavLink } from "./plan-nav-link";
 
 const COLLAPSED_WIDTH = 65;
 const DEFAULT_WIDTH = 256;
@@ -28,12 +33,34 @@ const MAX_WIDTH = 480;
 export const Sidebar = () => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const { data } = useSuspenseQuery(GetSidebarDocument);
+  const activePlanId = usePreference(PREF_ACTIVE_PLAN);
+  const [setActivePlan] = useSetPreference(PREF_ACTIVE_PLAN);
   const { width, onDragStart } = useDragResize({
     defaultWidth: DEFAULT_WIDTH,
     minWidth: DEFAULT_WIDTH,
     maxWidth: MAX_WIDTH,
     expandDirection: "right",
   });
+
+  const { myPlans, sharedPlans } = useMemo(() => {
+    const plans = data.planner.plans;
+    return {
+      myPlans: plans.filter((it) => it.mine),
+      sharedPlans: plans.filter((it) => !it.mine),
+    };
+  }, [data.planner.plans]);
+
+  const renderPlans = (plans: typeof myPlans) =>
+    plans.map((plan) => (
+      <PlanNavLink
+        key={plan.id}
+        plan={plan}
+        isActive={plan.id === activePlanId}
+        isCollapsed={collapsed}
+        onSelect={() => setActivePlan(plan.id)}
+      />
+    ));
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -65,35 +92,17 @@ export const Sidebar = () => {
             </NavLink>
           </Section>
 
-          <Section title="My Plans" isCollapsed={collapsed}>
-            <NavLink
-              href="/planner"
-              isActive={pathname?.startsWith("/planner")}
-            >
-              <PlanAvatar
-                plan={{ name: "Our Week", color: "#f5cd06" }}
-                size="sm"
-              />
-              {!collapsed && <span>Our Week</span>}
-            </NavLink>
-            <NavLink href="/planner" isActive={pathname === "/planner"}>
-              <PlanAvatar
-                plan={{ name: "Thanksgiving", color: "#89ac66" }}
-                size="sm"
-              />
-              {!collapsed && <span>Thanksgiving</span>}
-            </NavLink>
-          </Section>
+          {myPlans.length > 0 && (
+            <Section title="My Plans" isCollapsed={collapsed}>
+              {renderPlans(myPlans)}
+            </Section>
+          )}
 
-          <Section title="Shared Plans" isCollapsed={collapsed}>
-            <NavLink href="/public" isActive={false}>
-              <PlanAvatar
-                plan={{ name: "Barney's Week", color: "#9cb7da" }}
-                size="sm"
-              />
-              {!collapsed && <span>Barney&apos;s Week</span>}
-            </NavLink>
-          </Section>
+          {sharedPlans.length > 0 && (
+            <Section title="Shared Plans" isCollapsed={collapsed}>
+              {renderPlans(sharedPlans)}
+            </Section>
+          )}
 
           <div
             className={clsx(
