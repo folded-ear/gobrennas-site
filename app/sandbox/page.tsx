@@ -1,8 +1,6 @@
 "use client";
 
 import { ModeToggle } from "@/components/mode-toggle";
-import { ColorInputGroup } from "@heroui/react/color-input-group";
-import { DateInputGroup } from "@heroui/react/date-input-group";
 import {
   Accordion,
   Alert,
@@ -63,6 +61,8 @@ import {
   ToastQueue,
   Tooltip,
 } from "@heroui/react";
+import { ColorInputGroup } from "@heroui/react/color-input-group";
+import { DateInputGroup } from "@heroui/react/date-input-group";
 import React from "react";
 
 const toastQueue = new ToastQueue({ maxVisibleToasts: 3 });
