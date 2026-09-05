@@ -16,14 +16,12 @@ import {
   Color,
   ColorArea,
   ColorField,
-  ColorInputGroup,
   ColorPicker,
   ColorSlider,
   ColorSwatch,
   ColorSwatchPicker,
   ComboBox,
   DateField,
-  DateInputGroup,
   Description,
   Disclosure,
   DisclosureGroup,
@@ -63,6 +61,8 @@ import {
   ToastQueue,
   Tooltip,
 } from "@heroui/react";
+import { ColorInputGroup } from "@heroui/react/color-input-group";
+import { DateInputGroup } from "@heroui/react/date-input-group";
 import React from "react";
 
 const toastQueue = new ToastQueue({ maxVisibleToasts: 3 });
