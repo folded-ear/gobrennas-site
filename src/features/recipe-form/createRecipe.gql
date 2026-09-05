@@ -1,0 +1,7 @@
+mutation createRecipe($info: IngredientInfo!) {
+  library {
+    createRecipe(info: $info) {
+      id
+    }
+  }
+}

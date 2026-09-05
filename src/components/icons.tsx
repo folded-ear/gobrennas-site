@@ -16,6 +16,7 @@ import {
   ShelvingUnit,
   ShoppingCart,
   SquareArrowRightEnter,
+  Trash2,
 } from "lucide-react";
 import { JSX, RefAttributes } from "react";
 
@@ -42,6 +43,7 @@ const createIcon = (Icon: LucideIcon, defaults?: Partial<LucideProps>) =>
 
 export const AddIcon = createIcon(Plus);
 export const BuyingIcon = createIcon(ShoppingCart);
+export const DeleteIcon = createIcon(Trash2);
 export const DrawerOpenIcon = createIcon(ChevronLeftSquare);
 export const DrawerCloseIcon = createIcon(ChevronRightSquare);
 export const ExpandDownIcon = createIcon(ChevronDown);
