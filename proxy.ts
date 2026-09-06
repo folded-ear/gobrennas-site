@@ -25,4 +25,7 @@ To add additional middleware, define a Filter:
 
 Then register the Filter in the chain below, at the position it should run.
  */
-export default buildFilterChain(cloudRunProbesFilter, deviceKeyCookieFilter);
+export const proxy = buildFilterChain(
+  cloudRunProbesFilter,
+  deviceKeyCookieFilter,
+);
