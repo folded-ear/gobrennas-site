@@ -100,8 +100,8 @@ size). Revisit if either need becomes real.
 ## File location and naming
 
 Co-located, matching the filename under test: `index.tsx` → `index.test.tsx`.
-This tightens (doesn't replace) the existing "`*.test.tsx` anywhere" rule in
-`CLAUDE.md` into an actual convention.
+This tightens the general "`*.test.tsx` anywhere" pattern into an actual
+convention.
 
 ## Coverage threshold
 
