@@ -6,7 +6,7 @@ Do you use food? Do you use software? Brenna's Food Software is for you!
 
 ## Dependencies
 
-- Node >=20
+- Node 22
 - pnpm as the package manager
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [
