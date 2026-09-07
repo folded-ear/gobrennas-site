@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "skills": {
+    "english-manager": {
+      "source": "gohypergiant/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/accelint-english-manager/SKILL.md",
+      "computedHash": "2901d2b88fe9a772d0e9fe3a8466dcf64d56ee2dec6f6c245f018eed3f6ed7b2"
+    },
+    "nextjs-best-practices": {
+      "source": "gohypergiant/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/accelint-nextjs-best-practices/SKILL.md",
+      "computedHash": "cf62a8806d0ca8e67c2be330b9b3e3c675ec6c67acc759dd9816d60855e8cc2b"
+    },
+    "onboard-agents": {
+      "source": "gohypergiant/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/accelint-onboard-agents/SKILL.md",
+      "computedHash": "a5a05ce113e3792f9beefda13c32216a172679f1ed7444a46e0c89797966954d"
+    },
+    "react-best-practices": {
+      "source": "gohypergiant/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/accelint-react-best-practices/SKILL.md",
+      "computedHash": "551dcb14841d4d716ae4c6455064747f690dcfba03470c138de88862e9526fc5"
+    },
+    "react-testing": {
+      "source": "gohypergiant/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/accelint-react-testing/SKILL.md",
+      "computedHash": "57966e285d54e4cb1daddffe3168fb5a0f6e5a1f4175fcad26178a95b02f8236"
+    },
+    "ts-best-practices": {
+      "source": "gohypergiant/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/accelint-ts-best-practices/SKILL.md",
+      "computedHash": "d3e992e1d203d13f4d7a59deeca5ee41edfc7593a4a1508d757a27b06b9fd965"
+    },
+    "ts-testing": {
+      "source": "gohypergiant/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/accelint-ts-testing/SKILL.md",
+      "computedHash": "f12959b4420dec47e20becfc6e70d8723347ff0c13a7cb463e1bb9bc6603637d"
+    }
+  }
+}
