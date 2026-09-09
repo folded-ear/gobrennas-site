@@ -7,10 +7,11 @@ import {
 
 type PlanItemProps = {
   planItems: FragmentType<PlanItemFragment>[];
+  onSelect?: (id: string) => void;
 };
 
-export function PlanItem({ planItems }: PlanItemProps) {
-  const { data: items, complete } = useFragment({
+export function PlanItem({ planItems, onSelect }: PlanItemProps) {
+  const { data: items } = useFragment({
     fragment: PlanItemFragmentDoc,
     fragmentName: "planItem",
     from: planItems,
@@ -18,9 +19,17 @@ export function PlanItem({ planItems }: PlanItemProps) {
 
   return (
     <ul>
-      {items.map((item) =>
-        item ? <li key={item.id}>- {item.name}</li> : null,
-      )}
+      {items.map((item) => {
+        const id = item?.id;
+        if (!id) return null;
+        return (
+          <li key={id}>
+            <button type="button" onClick={() => onSelect?.(id)}>
+              {item.name}
+            </button>
+          </li>
+        );
+      })}
     </ul>
   );
 }
