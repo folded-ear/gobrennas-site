@@ -10,13 +10,13 @@ import {
   SidebarOpenIcon,
 } from "@/components/icons";
 import { ModeToggle } from "@/components/mode-toggle";
+import { ResizeHandle } from "@/components/resize-handle";
 import { NavLink } from "@/components/sidebar/nav-link";
 import { Section } from "@/components/sidebar/section";
 import { doLogout } from "@/constants";
 import { UserMenu } from "@/features/user-menu";
 import { usePreference } from "@/hooks/use-preference";
 import { useSetPreference } from "@/hooks/use-set-preference";
-import { useDragResize } from "@/hooks/useDragResize";
 import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { useSuspenseQuery } from "@apollo/client/react";
 import { Button, ScrollShadow } from "@heroui/react";
@@ -36,12 +36,7 @@ export const Sidebar = () => {
   const { data } = useSuspenseQuery(GetSidebarDocument);
   const activePlanId = usePreference(PREF_ACTIVE_PLAN);
   const [setActivePlan] = useSetPreference(PREF_ACTIVE_PLAN);
-  const { width, onDragStart } = useDragResize({
-    defaultWidth: DEFAULT_WIDTH,
-    minWidth: DEFAULT_WIDTH,
-    maxWidth: MAX_WIDTH,
-    expandDirection: "right",
-  });
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
 
   const { myPlans, sharedPlans } = useMemo(() => {
     const plans = data.planner.plans;
@@ -144,11 +139,14 @@ export const Sidebar = () => {
           </div>
         )}
 
-        {/* Drag handle */}
         {!collapsed && (
-          <div
-            className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:border-r hover:border-accent active:border-r active:border-accent transition-colors"
-            onMouseDown={onDragStart}
+          <ResizeHandle
+            side="right"
+            width={width}
+            minWidth={DEFAULT_WIDTH}
+            maxWidth={MAX_WIDTH}
+            onWidthChange={setWidth}
+            label="Resize sidebar"
           />
         )}
 
