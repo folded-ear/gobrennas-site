@@ -54,13 +54,19 @@ export function Planner() {
       </ScreenDrawer>
 
       {plan ? (
-        <PlanItem
-          planItems={plan.descendants}
-          onSelect={(itemId) => {
-            drawer.setMemento({ itemId });
-            drawer.expand();
-          }}
-        />
+        <ul>
+          {plan.descendants.map((item) => (
+            <li key={item.id}>
+              <PlanItem
+                item={item}
+                onSelect={(itemId) => {
+                  drawer.setMemento({ itemId });
+                  drawer.expand();
+                }}
+              />
+            </li>
+          ))}
+        </ul>
       ) : (
         <div className="flex flex-col gap-sm">
           <p>No active plan found. Please select a plan from the sidebar.</p>
