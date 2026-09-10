@@ -16,7 +16,7 @@ import dynamic from "next/dynamic";
 import { PropsWithChildren, useMemo } from "react";
 
 // Only the viewer's browser knows the viewer's date, so the timeline never
-// renders on the server. See the notes, section 8.2.
+// renders on the server.
 const PlanTimeline = dynamic(
   () => import("@/features/plan-timeline").then((m) => m.PlanTimeline),
   { ssr: false, loading: () => <TimelineSkeleton /> },

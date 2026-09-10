@@ -15,9 +15,11 @@ export function PlanItemTree({ nodes, onSelect }: PlanItemTreeProps) {
       {nodes.map((node) => (
         <li key={node.item.id}>
           <PlanItem item={node.item} onSelect={onSelect} />
-          <div className="ps-md">
-            <PlanItemTree nodes={node.children} onSelect={onSelect} />
-          </div>
+          {node.children.length > 0 ? (
+            <div className="ps-md">
+              <PlanItemTree nodes={node.children} onSelect={onSelect} />
+            </div>
+          ) : null}
         </li>
       ))}
     </ul>

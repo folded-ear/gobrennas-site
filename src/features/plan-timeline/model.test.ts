@@ -60,7 +60,7 @@ function names(nodes: readonly PlanItemNode[]): readonly string[] {
   return nodes.map((n) => n.item.name);
 }
 
-describe("date inheritance (§3.1)", () => {
+describe("an item's date", () => {
   it("dates an item by its own bucket", () => {
     const entries = build({
       rootIds: ["dinner"],
@@ -127,7 +127,7 @@ describe("date inheritance (§3.1)", () => {
   });
 });
 
-describe("visibility (§3.2)", () => {
+describe("what the timeline shows", () => {
   it("shows a top-level item with no bucket and no children", () => {
     const entries = build({
       rootIds: ["shop"],
@@ -186,7 +186,7 @@ describe("visibility (§3.2)", () => {
   });
 });
 
-describe("nesting (§3.3)", () => {
+describe("nesting", () => {
   it("roots an overriding descendant in its own day, not under its parent", () => {
     const entries = build({
       rootIds: ["dinner"],
@@ -246,7 +246,7 @@ describe("nesting (§3.3)", () => {
   });
 });
 
-describe("ordering (§3.4)", () => {
+describe("ordering", () => {
   it("orders siblings by children, not by the descendants array", () => {
     const entries = build({
       rootIds: ["dinner"],
@@ -305,7 +305,7 @@ describe("ordering (§3.4)", () => {
   });
 });
 
-describe("date window (§4)", () => {
+describe("which dates appear", () => {
   it("shows today plus a week when the plan is empty", () => {
     const entries = build({});
 

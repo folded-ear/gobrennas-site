@@ -68,17 +68,17 @@ export function formatDayLabel(iso: string): string {
   return dayLabelFormat.format(toUtcMillis(iso));
 }
 
-function count(value: number, unit: string): string {
+function pluralize(value: number, unit: string): string {
   return `${value} ${unit}${value === 1 ? "" : "s"}`;
 }
 
 /** I describe a run of omitted days at whatever scale reads best. */
 export function formatGapLabel(days: number): string {
   if (days < DAYS_LABEL_LIMIT) {
-    return count(days, "day");
+    return pluralize(days, "day");
   }
   if (days < WEEKS_LABEL_LIMIT) {
-    return count(Math.round(days / DAYS_PER_WEEK), "week");
+    return pluralize(Math.round(days / DAYS_PER_WEEK), "week");
   }
-  return count(Math.round(days / DAYS_PER_MONTH), "month");
+  return pluralize(Math.round(days / DAYS_PER_MONTH), "month");
 }

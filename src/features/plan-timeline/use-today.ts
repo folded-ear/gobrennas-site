@@ -9,5 +9,6 @@ import { localDate } from "./dates";
  * where the local zone is unknown.
  */
 export function useToday(): string {
-  return useState(localDate)[0];
+  const [today] = useState(localDate);
+  return today;
 }
