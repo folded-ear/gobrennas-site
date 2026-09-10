@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildSubtree,
   buildTimeline,
   BuildTimelineInput,
   PlanItemNode,
@@ -393,5 +394,45 @@ describe("date window (§4)", () => {
     expect(gaps(entries)).toEqual([]);
     expect(dates[0]).toBe(TODAY);
     expect(dates[dates.length - 1]).toBe("2026-09-28");
+  });
+});
+
+describe("buildSubtree", () => {
+  const DINNER = [
+    item({
+      id: "dinner",
+      name: "Thanksgiving dinner",
+      children: ["pie", "turkey"],
+    }),
+    item({ id: "pie", name: "Pumpkin pie", children: ["crust"] }),
+    item({ id: "crust", name: "Pie crust" }),
+    item({ id: "turkey", name: "Roast turkey" }),
+  ];
+
+  it("keeps leaves the timeline would hide", () => {
+    expect(names(buildSubtree(DINNER, "dinner"))).toEqual([
+      "Pumpkin pie",
+      "Roast turkey",
+    ]);
+  });
+
+  it("nests to arbitrary depth", () => {
+    const nodes = buildSubtree(DINNER, "dinner");
+
+    expect(names(nodes[0].children)).toEqual(["Pie crust"]);
+  });
+
+  it("excludes the root itself", () => {
+    expect(names(buildSubtree(DINNER, "dinner"))).not.toContain(
+      "Thanksgiving dinner",
+    );
+  });
+
+  it("gives a leaf no descendants", () => {
+    expect(buildSubtree(DINNER, "turkey")).toEqual([]);
+  });
+
+  it("gives an unknown id no descendants", () => {
+    expect(buildSubtree(DINNER, "nope")).toEqual([]);
   });
 });

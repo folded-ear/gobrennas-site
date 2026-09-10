@@ -1,42 +1,78 @@
+import { PlanItemStatus } from "@/__generated__/graphql";
+import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
+import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
+import { MockedProvider } from "@apollo/client/testing/react";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlanTimeline } from "./index";
-import { TimelineEntry } from "./model";
+import { TimelineItem } from "./model";
 
-const TODAY = "2026-09-09";
+const PUMPKIN: TimelineItem = {
+  __typename: "PlanItem",
+  id: "1",
+  name: "Roast pumpkin",
+  bucket: { __typename: "PlanBucket", id: "b1" },
+  children: [],
+};
 
-const ENTRIES: readonly TimelineEntry[] = [
-  { kind: "day", date: "2026-09-03", roots: [] },
-  { kind: "gap", after: "2026-09-03", before: "2026-09-09", days: 5 },
-  { kind: "day", date: TODAY, roots: [] },
-  { kind: "day", date: "2026-09-10", roots: [] },
-];
+function renderTimeline(ui: ReactNode) {
+  const cache = buildInMemoryCache();
+  cache.writeFragment({
+    fragment: PlanItemFragmentDoc,
+    fragmentName: "planItem",
+    data: {
+      __typename: "PlanItem",
+      id: PUMPKIN.id,
+      name: PUMPKIN.name,
+      status: PlanItemStatus.NEEDED,
+      notes: null,
+      preparation: null,
+      parent: { __typename: "Plan", id: "7" },
+      aggregate: null,
+      ingredient: null,
+      quantity: null,
+      components: [],
+      bucket: null,
+    },
+  });
+  return render(<MockedProvider cache={cache}>{ui}</MockedProvider>);
+}
+
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date(2026, 8, 9, 9, 0));
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("PlanTimeline", () => {
-  it("lays days and gaps out in the order it was given", () => {
-    render(<PlanTimeline entries={ENTRIES} today={TODAY} />);
+  it("anchors an empty plan at today and runs on a week", () => {
+    render(<PlanTimeline rootIds={[]} items={[]} buckets={[]} />);
 
-    const rows = screen.getAllByRole("listitem");
-    expect(rows).toHaveLength(4);
-    expect(rows[0]).toHaveTextContent(/Sep 3/);
-    expect(rows[1]).toHaveTextContent("5 days");
-    expect(rows[2]).toHaveTextContent(/Sep 9/);
-    expect(rows[3]).toHaveTextContent(/Sep 10/);
+    const days = screen.getAllByRole("listitem");
+    expect(days).toHaveLength(7);
+    expect(days[0]).toHaveTextContent(/Sep 9/);
+    expect(days[0]).toHaveAttribute("aria-current", "date");
+    expect(days[6]).toHaveTextContent(/Sep 15/);
   });
 
-  it("marks exactly one day as today", () => {
-    render(<PlanTimeline entries={ENTRIES} today={TODAY} />);
+  it("puts a past item on its own date, with a break before today", () => {
+    renderTimeline(
+      <PlanTimeline
+        rootIds={["1"]}
+        items={[PUMPKIN]}
+        buckets={[{ id: "b1", date: "2026-09-03" }]}
+      />,
+    );
 
-    const current = screen
-      .getAllByRole("listitem")
-      .filter((row) => row.getAttribute("aria-current") === "date");
-    expect(current).toHaveLength(1);
-    expect(current[0]).toHaveTextContent(/Sep 9/);
-  });
+    expect(screen.getByRole("button", { name: "Roast pumpkin" })).toBeVisible();
 
-  it("renders an empty timeline as an empty list", () => {
-    render(<PlanTimeline entries={[]} today={TODAY} />);
-
-    expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+    // Sep 4-8 are empty past days, so they collapse into one break.
+    expect(document.body).toHaveTextContent(
+      /Sep 3[\s\S]*Roast pumpkin[\s\S]*5 days[\s\S]*Sep 9/,
+    );
   });
 });

@@ -179,3 +179,31 @@ function mergeSpans(spans: readonly Span[]): readonly Span[] {
   }
   return merged;
 }
+
+/**
+ * I give every descendant of one item, nested, however deep and whether
+ * or not the timeline would show it.
+ */
+export function buildSubtree(
+  items: readonly TimelineItem[],
+  rootId: string,
+): readonly PlanItemNode[] {
+  const byId = new Map(items.map((it) => [it.id, it]));
+  const visited = new Set<string>();
+
+  function childrenOf(id: string): readonly PlanItemNode[] {
+    const item = byId.get(id);
+    if (item === undefined || visited.has(id)) return [];
+    visited.add(id);
+
+    const nodes: PlanItemNode[] = [];
+    for (const child of item.children) {
+      const found = byId.get(child.id);
+      if (found === undefined) continue;
+      nodes.push({ item: found, children: childrenOf(child.id) });
+    }
+    return nodes;
+  }
+
+  return childrenOf(rootId);
+}

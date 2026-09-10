@@ -5,13 +5,22 @@ import {
   ScreenDrawer,
   useDrawer,
 } from "@/components/screen-drawer";
-import { PlanItem } from "@/features/plan-item";
 import { PlanItemDetail } from "@/features/plan-item/detail";
+import { buildSubtree } from "@/features/plan-timeline/model";
+import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
 import { usePreference } from "@/hooks/use-preference";
 import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
-import { PropsWithChildren } from "react";
+import dynamic from "next/dynamic";
+import { PropsWithChildren, useMemo } from "react";
+
+// Only the viewer's browser knows the viewer's date, so the timeline never
+// renders on the server. See the notes, section 8.2.
+const PlanTimeline = dynamic(
+  () => import("@/features/plan-timeline").then((m) => m.PlanTimeline),
+  { ssr: false, loading: () => <TimelineSkeleton /> },
+);
 
 type PlannerMemento = {
   itemId: string;
@@ -42,31 +51,41 @@ export function Planner() {
   const selected = plan?.descendants.find(
     (it) => it.id === drawer.memento?.itemId,
   );
+  const rootIds = useMemo(
+    () => plan?.children.map((it) => it.id) ?? [],
+    [plan],
+  );
+  const descendants = useMemo(
+    () => (selected ? buildSubtree(plan?.descendants ?? [], selected.id) : []),
+    [plan, selected],
+  );
+
+  function select(itemId: string) {
+    drawer.setMemento({ itemId });
+    drawer.expand();
+  }
 
   return (
     <Layout>
       <ScreenDrawer drawer={PLANNER_DRAWER}>
         {selected ? (
-          <PlanItemDetail item={selected} />
+          <PlanItemDetail
+            item={selected}
+            descendants={descendants}
+            onSelect={select}
+          />
         ) : (
           <p>Select a plan item to see it here.</p>
         )}
       </ScreenDrawer>
 
       {plan ? (
-        <ul>
-          {plan.descendants.map((item) => (
-            <li key={item.id}>
-              <PlanItem
-                item={item}
-                onSelect={(itemId) => {
-                  drawer.setMemento({ itemId });
-                  drawer.expand();
-                }}
-              />
-            </li>
-          ))}
-        </ul>
+        <PlanTimeline
+          rootIds={rootIds}
+          items={plan.descendants}
+          buckets={plan.buckets}
+          onSelect={select}
+        />
       ) : (
         <div className="flex flex-col gap-sm">
           <p>No active plan found. Please select a plan from the sidebar.</p>
