@@ -13,9 +13,13 @@ query Planner {
         date
         name
       }
+      children {
+        id
+      }
       notes
       descendants {
         id
+        ...timelineItem @unmask
         ...planItem
       }
     }
