@@ -30,6 +30,12 @@ interface AccessControlled {
 }
 
 interface CorePlanItem {
+  """
+
+  The user explicitly assigned to this item, if any. A null assignee
+  means the item inherits its parent's, which bottoms out at the plan.
+  """
+  assignee: User
   childCount: NonNegativeInt!
   children: [PlanItem!]!
   descendantCount: NonNegativeInt!
@@ -405,6 +411,8 @@ type Photo {
 
 type Plan implements AccessControlled & CorePlanItem & Node & Owned {
   acl: Acl!
+  "A plan's assignee is always its owner."
+  assignee: User!
   bucketCount: NonNegativeInt!
   buckets: [PlanBucket!]!
   childCount: NonNegativeInt!
@@ -447,6 +455,7 @@ type PlanBucket {
 "Represents a single item on a plan"
 type PlanItem implements CorePlanItem & Node {
   aggregate: PlanItem
+  assignee: User
   bucket: PlanBucket
   childCount: NonNegativeInt!
   children: [PlanItem!]!
@@ -528,6 +537,13 @@ type PlannerMutation {
   reorderSubitems(itemIds: [ID!]!, parentId: ID!): PlanItem
   "Revokes the grant for a user w/in a plan, if one exists."
   revokeGrant(planId: ID!, userId: ID!): Plan!
+  """
+
+  Assign a plan item to a user, or clear its explicit assignment so that
+  it inherits from its parent. The user must have at least view access to the
+  item's plan.
+  """
+  setAssignee(id: ID!, userId: ID): PlanItem!
   "Set the plan's color (e.g., '#F57F17'), or reset it with a null or empty string."
   setColor(color: String, planId: ID!): Plan!
   "Set the access level granted to a user w/in a plan."

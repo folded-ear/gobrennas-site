@@ -19,6 +19,8 @@ query Planner {
       notes
       descendants {
         id
+        # Unmasked so plain JS can build the timeline, before it gets passed
+        # to components for rendering.
         ...timelineItem @unmask
         ...planItem
       }

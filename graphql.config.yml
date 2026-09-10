@@ -1,4 +1,6 @@
-schema: schema.graphql
+schema:
+  - schema.graphql
+  - schema-local.graphql
 extensions:
   endpoints:
     Default GraphQL Endpoint:

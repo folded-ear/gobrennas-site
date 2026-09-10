@@ -1,6 +1,26 @@
+"""
+Apollo Client directive which resolves a field from the client cache. It is
+removed from the query before sending to the server, and then added back into
+the result when it arrives.
+"""
+directive @client on FIELD
+"""
+Apollo Client directive which resolves a (`@client`) field from the cache and
+sets a variable with the given name. The variable may be used for the rest of
+the query as if passed by the query's caller.
+"""
+directive @export(as: String!) on FIELD
+"""
+Apollo Client directive which exempts a fragment from being masked in query
+results. Normal (masked) fragments must be read via `useFragment` in a child
+component, as they are stripped from the query result.
+"""
+directive @unmask on FRAGMENT_SPREAD
+
 extend type Query {
   deviceKey: String!
 }
+
 extend type Mutation {
   deviceKey: String!
 }
