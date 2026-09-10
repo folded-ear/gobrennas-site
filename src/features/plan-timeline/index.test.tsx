@@ -1,9 +1,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
-import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
-import { MockedProvider } from "@apollo/client/testing/react";
-import { render, screen } from "@testing-library/react";
-import { ReactNode } from "react";
+import { buildInMemoryCache, render, screen, seedFragment } from "@/test";
+import { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlanTimeline } from "./index";
 import { TimelineItem } from "./model";
@@ -16,27 +14,23 @@ const PUMPKIN: TimelineItem = {
   children: [],
 };
 
-function renderTimeline(ui: ReactNode) {
+function renderTimeline(ui: ReactElement) {
   const cache = buildInMemoryCache();
-  cache.writeFragment({
-    fragment: PlanItemFragmentDoc,
-    fragmentName: "planItem",
-    data: {
-      __typename: "PlanItem",
-      id: PUMPKIN.id,
-      name: PUMPKIN.name,
-      status: PlanItemStatus.NEEDED,
-      notes: null,
-      preparation: null,
-      parent: { __typename: "Plan", id: "7" },
-      aggregate: null,
-      ingredient: null,
-      quantity: null,
-      components: [],
-      bucket: null,
-    },
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", {
+    __typename: "PlanItem",
+    id: PUMPKIN.id,
+    name: PUMPKIN.name,
+    status: PlanItemStatus.NEEDED,
+    notes: null,
+    preparation: null,
+    parent: { __typename: "Plan", id: "7" },
+    aggregate: null,
+    ingredient: null,
+    quantity: null,
+    components: [],
+    bucket: null,
   });
-  return render(<MockedProvider cache={cache}>{ui}</MockedProvider>);
+  return render(ui, { cache });
 }
 
 beforeEach(() => {

@@ -1,10 +1,11 @@
-import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
 import {
-  MockedProvider,
-  MockedProviderProps,
-} from "@apollo/client/testing/react";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+  buildInMemoryCache,
+  render,
+  screen,
+  seedFragment,
+  userEvent,
+} from "@/test";
+import { MockedProviderProps } from "@apollo/client/testing/react";
 import { describe, expect, it } from "vitest";
 import { DoSendToPlanDocument } from "./__generated__/doSendToPlan.generated";
 import { SendToPlanFragmentDoc } from "./__generated__/sendToPlan.generated";
@@ -17,24 +18,23 @@ function renderSendToPlan(mocks: MockedProviderProps["mocks"] = []) {
   const cache = buildInMemoryCache();
   // SendToPlan reads its fragment from ROOT_QUERY rather than a prop,
   // mirroring how the planner screen's query would have already populated
-  // the cache. Seed it directly via the same fragment doc.
-  cache.writeFragment({
-    id: "ROOT_QUERY",
-    fragment: SendToPlanFragmentDoc,
-    fragmentName: "sendToPlan",
-    variables: { activePlanId },
-    data: {
+  // the cache.
+  seedFragment(
+    cache,
+    SendToPlanFragmentDoc,
+    "sendToPlan",
+    {
       planner: {
         __typename: "PlannerQuery",
         plan: { __typename: "Plan", id: activePlanId, name: "This Week" },
       },
     },
-  });
+    { id: "ROOT_QUERY", variables: { activePlanId } },
+  );
 
   return render(
-    <MockedProvider cache={cache} mocks={mocks}>
-      <SendToPlan recipeId={recipeId} activePlanId={activePlanId} />
-    </MockedProvider>,
+    <SendToPlan recipeId={recipeId} activePlanId={activePlanId} />,
+    { cache, mocks },
   );
 }
 

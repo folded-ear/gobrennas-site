@@ -1,9 +1,13 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanItemNode, TimelineItem } from "@/features/plan-timeline/model";
-import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
-import { MockedProvider } from "@apollo/client/testing/react";
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import {
+  buildInMemoryCache,
+  render,
+  screen,
+  seedFragment,
+  userEvent,
+  within,
+} from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import {
   PlanItemFragment,
@@ -70,16 +74,11 @@ function flatten(specs: readonly Spec[]): readonly Spec[] {
 function renderTree(specs: readonly Spec[], onSelect?: (id: string) => void) {
   const cache = buildInMemoryCache();
   for (const spec of flatten(specs)) {
-    cache.writeFragment({
-      fragment: PlanItemFragmentDoc,
-      fragmentName: "planItem",
-      data: toFragment(spec),
-    });
+    seedFragment(cache, PlanItemFragmentDoc, "planItem", toFragment(spec));
   }
   return render(
-    <MockedProvider cache={cache}>
-      <PlanItemTree nodes={specs.map(toNode)} onSelect={onSelect} />
-    </MockedProvider>,
+    <PlanItemTree nodes={specs.map(toNode)} onSelect={onSelect} />,
+    { cache },
   );
 }
 
@@ -116,10 +115,10 @@ describe("PlanItemTree", () => {
     expect(screen.getAllByRole("list")).toHaveLength(4);
   });
 
-  it("renders nothing at all when it has no items", () => {
-    const { container } = renderTree([]);
+  it("renders no list at all when it has no items", () => {
+    renderTree([]);
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole("list")).toBeNull();
   });
 
   it("reports which item was chosen, however deep", async () => {

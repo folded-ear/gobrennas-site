@@ -3,10 +3,14 @@ import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "@/features/plan-item/__generated__/planItem.generated";
-import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
-import { MockedProvider } from "@apollo/client/testing/react";
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import {
+  buildInMemoryCache,
+  render,
+  screen,
+  seedFragment,
+  userEvent,
+  within,
+} from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import { DaySection } from "./day-section";
 import { PlanItemNode, TimelineDay, TimelineItem } from "./model";
@@ -57,17 +61,12 @@ function renderDay(
   onSelect?: (id: string) => void,
 ) {
   const cache = buildInMemoryCache();
-  cache.writeFragment({
-    fragment: PlanItemFragmentDoc,
-    fragmentName: "planItem",
-    data: fragment(PIE),
-  });
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(PIE));
   return render(
-    <MockedProvider cache={cache}>
-      <ol>
-        <DaySection day={day(roots)} isToday={isToday} onSelect={onSelect} />
-      </ol>
-    </MockedProvider>,
+    <ol>
+      <DaySection day={day(roots)} isToday={isToday} onSelect={onSelect} />
+    </ol>,
+    { cache },
   );
 }
 

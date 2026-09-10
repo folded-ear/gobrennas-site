@@ -19,7 +19,7 @@ Stack: Vitest + jsdom + Testing Library (`vitest.config.ts`, `src/test/setup.ts`
 - **Pure functions and hooks get plain tests, no Testing Library.** Not
   everything in a feature directory is a component (e.g.
   `recipe-card/utils.ts`) — a plain `it`/`expect` against the exported
-  function is enough. No `render`, no `MockedProvider`. Same co-location
+  function is enough. No `render`, no cache, no mocks. Same co-location
   rule applies: `utils.ts` → `utils.test.ts`.
 
 ## Guidance for AI-authored tests
@@ -47,55 +47,73 @@ tests runs into:
   run `pnpm test` (and check the specific new test actually ran, not just
   that the suite was green) before calling the work finished.
 
+## Rendering a component
+
+Import `render`, `screen` and `userEvent` from `@/test`, not from
+`@testing-library/react`:
+
+```tsx
+import { buildInMemoryCache, render, screen, userEvent } from "@/test";
+```
+
+`@/test` re-exports all of Testing Library, overriding `render` with one
+that wraps the component in the providers the app really wraps its client
+tree in — Apollo backed by the app's own cache, and the theme provider. A
+component under test therefore finds the same context it finds in
+production, and no test has to know which providers a component needs.
+
 ## Mocking GraphQL
 
-Two situations, two approaches:
+Put the cache in the state the app would have put it in, then render
+against it. `render` takes the cache and builds a client around it that
+matches production — masked, with local state and a mock link.
 
-**Component takes fragment data as a prop** (most presentational
-components — `RecipeCard`, `UserAvatar`, `PlanItem`) — no provider needed.
-Data masking means the generated `XFragment` type is really just the
-selection's plain object shape at runtime, so construct a literal matching
-it and pass it straight in:
-
-```tsx
-const recipe: UserAvatarFragment = {
-  name: "Ada",
-  email: "ada@example.com",
-  imageUrl: null,
-};
-
-render(<UserAvatar user={recipe} />);
-```
-
-**Component runs its own `useQuery`/`useMutation`, or reads from
-`ROOT_QUERY`** (e.g. `SendToPlan`) — wrap it in `MockedProvider` from
-`@apollo/client/testing/react`. Mocks are request/variable → result pairs,
-matched against the actual operations the component fires:
+**Component reads fragment data.** Seed the fragment and pass what
+`seedFragment` gives back. It writes the data and returns the reference
+the component takes as a prop, so the two can't drift apart:
 
 ```tsx
-render(
-  <MockedProvider
-    mocks={[
-      {
-        request: { query: DoSendToPlanDocument, variables: { recipeId, planId } },
-        result: { data: { library: { sendRecipeToPlan: { id: "1" } } } },
-      },
-    ]}
-  >
-    <SendToPlan recipeId={recipeId} activePlanId={planId} />
-  </MockedProvider>,
-);
+const cache = buildInMemoryCache();
+const pie = seedFragment(cache, PlanItemFragmentDoc, "planItem", PUMPKIN_PIE);
+
+render(<PlanItem item={pie} />, { cache });
 ```
 
-If a component reads a fragment `from: "ROOT_QUERY"` (data some ancestor
-query would normally have already put in the cache), seed that directly with
-`cache.writeFragment({ id: "ROOT_QUERY", fragment, fragmentName, variables, data })`
-on a cache passed via `MockedProvider`'s `cache` prop — see the worked
-example.
+Passing a fragment-shaped literal straight in as the prop does not work,
+and fails quietly: the component renders empty and a loose assertion still
+goes green. `useFragment` resolves its argument through the cache by
+identity rather than reading it, so data that was never seeded isn't
+there. Seed it.
+
+A fragment that doesn't select `id` can't be identified, so pass a cache
+id: `seedFragment(cache, doc, "userAvatar", data, { id: "User:1" })`. It
+throws and tells you so rather than rendering blank. `variables` goes in
+the same options, for a fragment whose own fields take arguments.
+
+**Anything else the cache needs**, write directly — `cache.writeQuery` to
+warm a screen's query the way `sidebar.test.tsx` does, `cache.writeFragment`
+for a shape `seedFragment` doesn't cover, `cache.readFragment` to assert on
+what a component wrote. `seedFragment` is a convenience over the cache, not
+a gate in front of it; the cache's own API stays available.
+
+**Component runs its own query or mutation.** Pass `mocks` — request and
+variables in, result out, matched against the operations the component
+fires:
+
+```tsx
+render(<SendToPlan recipeId={recipeId} activePlanId={planId} />, {
+  mocks: [
+    {
+      request: { query: DoSendToPlanDocument, variables: { recipeId, planId } },
+      result: { data: { library: { sendRecipeToPlan: { id: "1" } } } },
+    },
+  ],
+});
+```
 
 We're not using msw (nothing needs network-level mocking yet — everything
-goes through Apollo) or codegen'd mock data (unnecessary indirection at this
-size). Revisit if either need becomes real.
+goes through Apollo) or codegen'd mock data (unnecessary indirection at
+this size). Revisit if either need becomes real.
 
 ## File location and naming
 

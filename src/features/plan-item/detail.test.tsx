@@ -1,10 +1,12 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanItemNode, TimelineItem } from "@/features/plan-timeline/model";
-import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
-import { FragmentType } from "@apollo/client";
-import { MockedProvider } from "@apollo/client/testing/react";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import {
+  buildInMemoryCache,
+  render,
+  screen,
+  seedFragment,
+  userEvent,
+} from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import {
   PlanItemFragment,
@@ -16,14 +18,6 @@ const PIE = { id: "42", name: "Pumpkin pie" };
 const CRUST = { id: "43", name: "Pie crust" };
 
 type Spec = { readonly id: string; readonly name: string };
-
-/** What the component is really handed: an identity plus fragment refs. */
-type ItemRef = FragmentType<PlanItemFragment> & {
-  readonly __typename: "PlanItem";
-  readonly id: string;
-};
-
-const PIE_REF: ItemRef = { __typename: "PlanItem", id: PIE.id };
 
 function fragment({ id, name }: Spec, notes: string | null): PlanItemFragment {
   return {
@@ -59,21 +53,16 @@ function renderDetail(
   onSelect?: (id: string) => void,
 ) {
   const cache = buildInMemoryCache();
-  for (const spec of [PIE, CRUST]) {
-    cache.writeFragment({
-      fragment: PlanItemFragmentDoc,
-      fragmentName: "planItem",
-      data: fragment(spec, spec === PIE ? notes : null),
-    });
-  }
+  const pie = seedFragment(
+    cache,
+    PlanItemFragmentDoc,
+    "planItem",
+    fragment(PIE, notes),
+  );
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
   return render(
-    <MockedProvider cache={cache}>
-      <PlanItemDetail
-        item={PIE_REF}
-        descendants={descendants}
-        onSelect={onSelect}
-      />
-    </MockedProvider>,
+    <PlanItemDetail item={pie} descendants={descendants} onSelect={onSelect} />,
+    { cache },
   );
 }
 
