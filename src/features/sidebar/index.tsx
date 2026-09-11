@@ -17,7 +17,12 @@ import { doLogout } from "@/constants";
 import { UserMenu } from "@/features/user-menu";
 import { usePreference } from "@/hooks/use-preference";
 import { useSetPreference } from "@/hooks/use-set-preference";
-import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
+import {
+  formatBoolean,
+  parseBoolean,
+  PREF_ACTIVE_PLAN,
+  PREF_NAV_COLLAPSED,
+} from "@/lib/preferences";
 import { useSuspenseQuery } from "@apollo/client/react";
 import { Button, ScrollShadow } from "@heroui/react";
 import { clsx } from "clsx";
@@ -32,8 +37,9 @@ const MAX_WIDTH = 480;
 
 export const Sidebar = () => {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState<boolean>(false);
   const { data } = useSuspenseQuery(GetSidebarDocument);
+  const collapsed = parseBoolean(usePreference(PREF_NAV_COLLAPSED));
+  const [setCollapsed] = useSetPreference(PREF_NAV_COLLAPSED);
   const activePlanId = usePreference(PREF_ACTIVE_PLAN);
   const [setActivePlan] = useSetPreference(PREF_ACTIVE_PLAN);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
@@ -156,7 +162,8 @@ export const Sidebar = () => {
           variant="secondary"
           size="sm"
           className="absolute -right-3 top-2 z-10 h-6 w-6 min-w-6 rounded-full border border-divider shadow-sm"
-          onPress={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          onPress={() => setCollapsed(formatBoolean(!collapsed))}
         >
           {collapsed ? <SidebarOpenIcon /> : <SidebarCloseIcon />}
         </Button>

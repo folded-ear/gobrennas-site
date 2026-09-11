@@ -22,7 +22,12 @@ function Probe() {
   );
 }
 
-function renderProbe(seedDeviceKey: boolean) {
+type ProbeOptions = {
+  seedDeviceKey?: boolean;
+  mock?: Partial<MockLink.MockedResponse>;
+};
+
+function renderProbe({ seedDeviceKey = true, mock }: ProbeOptions = {}) {
   const cache = buildInMemoryCache();
   if (seedDeviceKey) {
     // this is what apollo-rsc.ts writes, and what reaches the browser cache
@@ -65,6 +70,7 @@ function renderProbe(seedDeviceKey: boolean) {
               },
             },
           },
+          ...mock,
         },
       ]),
     ]),
@@ -75,12 +81,12 @@ function renderProbe(seedDeviceKey: boolean) {
       <Probe />
     </ApolloProvider>,
   );
-  return { seen, button: screen.getByRole("button") };
+  return { cache, seen, button: screen.getByRole("button") };
 }
 
 describe("useSetPreference", () => {
   it("sends the device key the cache was seeded with", async () => {
-    const { seen, button } = renderProbe(true);
+    const { seen, button } = renderProbe();
 
     button.click();
 
@@ -93,7 +99,7 @@ describe("useSetPreference", () => {
   });
 
   it("makes the new value readable through usePreference", async () => {
-    const { button } = renderProbe(true);
+    const { button } = renderProbe();
 
     button.click();
 
@@ -101,7 +107,7 @@ describe("useSetPreference", () => {
   });
 
   it("fails rather than falling back when the device key is absent", async () => {
-    const { seen, button } = renderProbe(false);
+    const { seen, button } = renderProbe({ seedDeviceKey: false });
 
     button.click();
 
@@ -109,5 +115,37 @@ describe("useSetPreference", () => {
     // unseeded cache aborts the mutation instead of sending the "" default
     await waitFor(() => expect(button).toHaveTextContent("old"));
     expect(seen).toHaveLength(0);
+  });
+
+  it("shows the new value while the server has yet to answer", async () => {
+    const { button } = renderProbe({ mock: { delay: Infinity } });
+
+    button.click();
+
+    await waitFor(() => expect(button).toHaveTextContent("new"));
+  });
+
+  it("restores the old value when the server rejects the change", async () => {
+    // the delay keeps the guess on screen long enough to see, so the
+    // rollback is what the second assertion catches
+    const { button } = renderProbe({
+      mock: { error: new Error("nope"), delay: 20 },
+    });
+
+    button.click();
+
+    await waitFor(() => expect(button).toHaveTextContent("new"));
+    await waitFor(() => expect(button).toHaveTextContent("old"));
+  });
+
+  it("leaves the cached device key alone while guessing", async () => {
+    const { cache, button } = renderProbe({ mock: { delay: Infinity } });
+
+    button.click();
+
+    await waitFor(() => expect(button).toHaveTextContent("new"));
+    expect(cache.readQuery({ query: InitializeDeviceKeyDocument })).toEqual({
+      deviceKey: DEVICE_KEY,
+    });
   });
 });

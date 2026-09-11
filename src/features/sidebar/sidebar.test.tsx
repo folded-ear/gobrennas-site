@@ -1,16 +1,20 @@
 import { PreferenceValueFragmentDoc } from "@/hooks/use-preference/__generated__/preferenceValue.generated";
 import { DoSetPreferenceDocument } from "@/hooks/use-set-preference/__generated__/doSetPreference.generated";
 import { InitializeDeviceKeyDocument } from "@/lib/apollo/__generated__/initializeDeviceKey.generated";
-import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import {
-  act,
+  formatBoolean,
+  PREF_ACTIVE_PLAN,
+  PREF_NAV_COLLAPSED,
+} from "@/lib/preferences";
+import {
   buildInMemoryCache,
   render,
   screen,
+  userEvent,
   waitFor,
   within,
 } from "@/test";
-import { MockedResponse } from "@apollo/client/testing";
+import { MockLink } from "@apollo/client/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GetSidebarDocument } from "./__generated__/getSidebar.generated";
 import { Sidebar } from "./index";
@@ -25,6 +29,10 @@ const DEVICE_KEY = "a-device-key";
 const ACTIVE_PLAN_PREF = {
   __typename: "UserPreference" as const,
   name: PREF_ACTIVE_PLAN,
+};
+const NAV_COLLAPSED_PREF = {
+  __typename: "UserPreference" as const,
+  name: PREF_NAV_COLLAPSED,
 };
 
 let pathname = "/planner";
@@ -47,11 +55,14 @@ function plan(it: PlanFixture, mine: boolean) {
   return { __typename: "Plan" as const, ...it, mine };
 }
 
-function setPreferenceMock(value: string): MockedResponse {
+function setPreferenceMock(
+  name: string,
+  value: string,
+): MockLink.MockedResponse {
   return {
     request: {
       query: DoSetPreferenceDocument,
-      variables: { name: PREF_ACTIVE_PLAN, value, deviceKey: DEVICE_KEY },
+      variables: { name, value, deviceKey: DEVICE_KEY },
     },
     result: {
       data: {
@@ -59,7 +70,7 @@ function setPreferenceMock(value: string): MockedResponse {
           __typename: "ProfileMutation",
           setPreference: {
             __typename: "UserPreference",
-            name: PREF_ACTIVE_PLAN,
+            name,
             value,
           },
         },
@@ -68,17 +79,31 @@ function setPreferenceMock(value: string): MockedResponse {
   };
 }
 
+function seedPreference(
+  cache: ReturnType<typeof buildInMemoryCache>,
+  pref: { __typename: "UserPreference"; name: string },
+  value: string,
+) {
+  cache.writeFragment({
+    id: cache.identify(pref),
+    fragment: PreferenceValueFragmentDoc,
+    data: { __typename: "UserPreference", value },
+  });
+}
+
 // the sidebar's query is warmed into the cache rather than served over a link,
 // so a render is synchronous and asserts on this repo's cache configuration
 // instead of on Apollo's fetching
 function renderSidebar({
   plans,
   activePlanId,
+  navCollapsed,
   mocks = [],
 }: {
   plans: ReturnType<typeof plan>[];
   activePlanId?: string;
-  mocks?: MockedResponse[];
+  navCollapsed?: string;
+  mocks?: MockLink.MockedResponse[];
 }) {
   const cache = buildInMemoryCache();
   // `deviceKey @client` is a cache read with no resolver behind it, so setting
@@ -92,20 +117,17 @@ function renderSidebar({
     data: { planner: { __typename: "PlannerQuery", plans } },
   });
   if (activePlanId) {
-    cache.writeFragment({
-      id: cache.identify(ACTIVE_PLAN_PREF),
-      fragment: PreferenceValueFragmentDoc,
-      data: { __typename: "UserPreference", value: activePlanId },
-    });
+    seedPreference(cache, ACTIVE_PLAN_PREF, activePlanId);
+  }
+  if (navCollapsed !== undefined) {
+    seedPreference(cache, NAV_COLLAPSED_PREF, navCollapsed);
   }
   render(<Sidebar />, { cache, mocks });
   return cache;
 }
 
-function collapse() {
-  act(() => {
-    document.querySelector<HTMLButtonElement>("aside > button")!.click();
-  });
+function toggleCollapse(name: "Collapse sidebar" | "Expand sidebar") {
+  return userEvent.click(screen.getByRole("button", { name }));
 }
 
 function section(title: string) {
@@ -118,10 +140,13 @@ function activePlanNames() {
     .map((el) => el!.textContent);
 }
 
-function activePlanPreference(cache: ReturnType<typeof buildInMemoryCache>) {
+function preferenceValue(
+  cache: ReturnType<typeof buildInMemoryCache>,
+  pref: { __typename: "UserPreference"; name: string },
+) {
   return cache.readFragment<{ value: string }>({
     fragment: PreferenceValueFragmentDoc,
-    from: ACTIVE_PLAN_PREF,
+    from: pref,
   })?.value;
 }
 
@@ -163,12 +188,15 @@ describe("Sidebar plans", () => {
     expect(screen.queryByText("Shared Plans")).toBeNull();
   });
 
-  it("shows plans as avatars alone once collapsed", () => {
-    renderSidebar({ plans: [plan(WEEKNIGHTS, true)] });
+  it("shows plans as avatars alone once collapsed", async () => {
+    renderSidebar({
+      plans: [plan(WEEKNIGHTS, true)],
+      mocks: [setPreferenceMock(PREF_NAV_COLLAPSED, formatBoolean(true))],
+    });
 
-    collapse();
+    await toggleCollapse("Collapse sidebar");
 
-    expect(screen.queryByText(WEEKNIGHTS.name)).toBeNull();
+    await waitFor(() => expect(screen.queryByText(WEEKNIGHTS.name)).toBeNull());
     expect(screen.getByTitle(WEEKNIGHTS.name)).toBeVisible();
   });
 
@@ -195,12 +223,75 @@ describe("Sidebar plans", () => {
     const cache = renderSidebar({
       plans: [plan(WEEKNIGHTS, true), plan(FEAST_DAY, true)],
       activePlanId: FEAST_DAY.id,
-      mocks: [setPreferenceMock(WEEKNIGHTS.id)],
+      mocks: [setPreferenceMock(PREF_ACTIVE_PLAN, WEEKNIGHTS.id)],
     });
 
     screen.getByText(WEEKNIGHTS.name).click();
 
-    await waitFor(() => expect(activePlanNames()).toEqual([WEEKNIGHTS.name]));
-    expect(activePlanPreference(cache)).toBe(WEEKNIGHTS.id);
+    // the cache read is the non-optimistic one, so this waits out the round
+    // trip the optimistic update papers over
+    await waitFor(() =>
+      expect(preferenceValue(cache, ACTIVE_PLAN_PREF)).toBe(WEEKNIGHTS.id),
+    );
+    expect(activePlanNames()).toEqual([WEEKNIGHTS.name]);
+  });
+});
+
+describe("Sidebar collapse", () => {
+  const ONLY_PLAN = { plans: [plan(WEEKNIGHTS, true)] };
+
+  it("starts collapsed when the preference says it is", () => {
+    renderSidebar({ ...ONLY_PLAN, navCollapsed: formatBoolean(true) });
+
+    expect(screen.queryByText("Library")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Expand sidebar" }),
+    ).toBeVisible();
+  });
+
+  it("starts expanded when the preference says it is not", () => {
+    renderSidebar({ ...ONLY_PLAN, navCollapsed: formatBoolean(false) });
+
+    expect(screen.getByText("Library")).toBeVisible();
+  });
+
+  it("starts expanded when the preference is unset", () => {
+    renderSidebar(ONLY_PLAN);
+
+    expect(screen.getByText("Library")).toBeVisible();
+  });
+
+  it("records collapsing in the preference", async () => {
+    const cache = renderSidebar({
+      ...ONLY_PLAN,
+      navCollapsed: formatBoolean(false),
+      mocks: [setPreferenceMock(PREF_NAV_COLLAPSED, formatBoolean(true))],
+    });
+
+    await toggleCollapse("Collapse sidebar");
+
+    await waitFor(() =>
+      expect(preferenceValue(cache, NAV_COLLAPSED_PREF)).toBe(
+        formatBoolean(true),
+      ),
+    );
+    expect(screen.queryByText("Library")).toBeNull();
+  });
+
+  it("records expanding in the preference", async () => {
+    const cache = renderSidebar({
+      ...ONLY_PLAN,
+      navCollapsed: formatBoolean(true),
+      mocks: [setPreferenceMock(PREF_NAV_COLLAPSED, formatBoolean(false))],
+    });
+
+    await toggleCollapse("Expand sidebar");
+
+    await waitFor(() =>
+      expect(preferenceValue(cache, NAV_COLLAPSED_PREF)).toBe(
+        formatBoolean(false),
+      ),
+    );
+    expect(screen.getByText("Library")).toBeVisible();
   });
 });
