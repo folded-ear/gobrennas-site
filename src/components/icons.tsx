@@ -6,6 +6,7 @@ import {
   ChevronRightSquare,
   ChevronUp,
   EyeIcon,
+  GripVertical,
   LogOut,
   LucideIcon,
   LucideProps,
@@ -42,6 +43,7 @@ const createIcon = (Icon: LucideIcon, defaults?: Partial<LucideProps>) =>
 
 export const AddIcon = createIcon(Plus);
 export const BuyingIcon = createIcon(ShoppingCart);
+export const DragHandleIcon = createIcon(GripVertical);
 export const DrawerOpenIcon = createIcon(ChevronLeftSquare);
 export const DrawerCloseIcon = createIcon(ChevronRightSquare);
 export const ExpandDownIcon = createIcon(ChevronDown);
