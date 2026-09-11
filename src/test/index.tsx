@@ -4,7 +4,7 @@ import { ApolloClient, FragmentType } from "@apollo/client";
 import { LocalState } from "@apollo/client/local-state";
 import { GraphQLCodegenDataMasking } from "@apollo/client/masking";
 import { ApolloProvider } from "@apollo/client/react";
-import { MockedResponse, MockLink } from "@apollo/client/testing";
+import { MockLink } from "@apollo/client/testing";
 import { StoreObject } from "@apollo/client/utilities";
 import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import {
@@ -31,7 +31,7 @@ export type RenderWithProviders = Omit<RenderOptions, "wrapper"> & {
    * I build an empty one.
    */
   cache?: Cache;
-  mocks?: ReadonlyArray<MockedResponse>;
+  mocks?: ReadonlyArray<MockLink.MockedResponse>;
 };
 
 /**
