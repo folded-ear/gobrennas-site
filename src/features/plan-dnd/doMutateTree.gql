@@ -1,14 +1,12 @@
 mutation doMutateTree($spec: MutatePlanTree!) {
   planner {
     mutateTree(spec: $spec) {
-      # No id, so the parent isn't normalized: when it is a plan, this field
-      # still types it as a PlanItem, and writing that would retype the plan
-      # in the cache. The caller writes these children onto the parent.
+      # No ids of parents, the returned one or the children's: a parent may
+      # be a plan, and writing it back under a PlanItem typename would
+      # retype the plan in the cache, where fragments on Plan stop matching.
+      # The caller points the parent and its children at each other.
       children {
         id
-        parent {
-          id
-        }
       }
     }
   }

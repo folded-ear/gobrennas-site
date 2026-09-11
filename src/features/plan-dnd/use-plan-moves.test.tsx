@@ -1,4 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
+import { PlanNavLinkFragmentDoc } from "@/features/sidebar/__generated__/planNavLink.generated";
 import {
   PlannerDocument,
   PlannerQuery,
@@ -48,7 +50,10 @@ function item(
     status: PlanItemStatus.NEEDED,
     notes: null,
     preparation: null,
-    parent: { __typename: "PlanItem", id: parentId },
+    parent:
+      parentId === PLAN_ID
+        ? { __typename: "Plan", id: parentId }
+        : { __typename: "PlanItem", id: parentId },
     aggregate: null,
     ingredient: null,
     quantity: null,
@@ -113,6 +118,10 @@ function Probe() {
         ))}
       </ul>
       <p>Breakfast is on {dateOf(breakfast?.bucket?.id)}</p>
+      <p>
+        Moving:{" "}
+        {["5", "6"].filter((id) => moves.isMoving(id)).join(", ") || "nothing"}
+      </p>
       <p>Dated buckets: {plan.buckets.filter((b) => b.date).length}</p>
       <button
         type="button"
@@ -122,6 +131,15 @@ function Probe() {
         }}
       >
         Nest turkey under breakfast
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          const move = treeMove(tree, "6", "1", "before");
+          if (move) moves.moveInTree(move, "Breakfast");
+        }}
+      >
+        Put breakfast first
       </button>
       {[SEP_12, SEP_14].map((date) => (
         <button
@@ -143,7 +161,8 @@ function renderProbe(mocks: MockLink.MockedResponse[]) {
     query: PlannerDocument,
     data: { planner: { __typename: "PlannerQuery", plans: [thanksgiving()] } },
   });
-  return render(<Probe />, { cache, mocks });
+  render(<Probe />, { cache, mocks });
+  return cache;
 }
 
 function childrenOf(name: string) {
@@ -162,13 +181,7 @@ const NESTED_TURKEY = {
       __typename: "PlannerMutation",
       mutateTree: {
         __typename: "PlanItem",
-        children: [
-          {
-            __typename: "PlanItem",
-            id: "5",
-            parent: { __typename: "PlanItem", id: "6" },
-          },
-        ],
+        children: [{ __typename: "PlanItem", id: "5" }],
       },
     },
   },
@@ -215,16 +228,26 @@ const ASSIGN_B9 = {
 
 describe("usePlanMoves, in the tree", () => {
   it("moves an item from its old parent to its new one", async () => {
-    renderProbe([{ request: NEST_TURKEY, result: NESTED_TURKEY }]);
+    const cache = renderProbe([
+      { request: NEST_TURKEY, result: NESTED_TURKEY },
+    ]);
 
     await userEvent.click(screen.getByRole("button", { name: /Nest turkey/ }));
 
     await waitFor(() =>
-      expect(childrenOf("Breakfast")).toHaveTextContent("Roast turkey"),
+      expect(screen.getByText(/^Moving:/)).toHaveTextContent("nothing"),
     );
+    expect(childrenOf("Breakfast")).toHaveTextContent("Roast turkey");
     expect(childrenOf("Thanksgiving dinner")).toHaveTextContent(
       /^Thanksgiving dinner: Pumpkin pie$/,
     );
+    expect(
+      cache.readFragment({
+        fragment: PlanItemFragmentDoc,
+        fragmentName: "planItem",
+        id: "PlanItem:5",
+      })?.parent.id,
+    ).toBe("6");
   });
 
   it("moves the item before the server answers", async () => {
@@ -250,6 +273,63 @@ describe("usePlanMoves, in the tree", () => {
       "Pumpkin pie, Roast turkey",
     );
     expect(childrenOf("Breakfast")).toHaveTextContent(/^Breakfast:$/);
+  });
+});
+
+const BREAKFAST_FIRST = {
+  query: DoMutateTreeDocument,
+  variables: { spec: { ids: ["6"], parentId: PLAN_ID, afterId: null } },
+};
+
+const PUT_BREAKFAST_FIRST = {
+  data: {
+    planner: {
+      __typename: "PlannerMutation",
+      mutateTree: {
+        __typename: "PlanItem",
+        children: ["6", "1"].map((id) => ({ __typename: "PlanItem", id })),
+      },
+    },
+  },
+};
+
+describe("usePlanMoves, among the plan's own items", () => {
+  // The sidebar reads the plan through a fragment on Plan, which stops
+  // matching, silently, if the plan's cache entry is retyped.
+  function sidebarName(cache: ReturnType<typeof buildInMemoryCache>) {
+    return cache.readFragment(
+      { fragment: PlanNavLinkFragmentDoc, id: `PlanItem:${PLAN_ID}` },
+      true,
+    )?.name;
+  }
+
+  it("keeps the plan a plan while the server is asked", async () => {
+    const cache = renderProbe([
+      { request: BREAKFAST_FIRST, result: PUT_BREAKFAST_FIRST, delay: 60_000 },
+    ]);
+
+    await userEvent.click(screen.getByRole("button", { name: /first/ }));
+
+    expect(childrenOf("Thanksgiving")).toHaveTextContent(
+      /^Thanksgiving: Breakfast, Thanksgiving dinner$/,
+    );
+    expect(sidebarName(cache)).toBe("Thanksgiving");
+  });
+
+  it("keeps the plan a plan once the server answers", async () => {
+    const cache = renderProbe([
+      { request: BREAKFAST_FIRST, result: PUT_BREAKFAST_FIRST },
+    ]);
+
+    await userEvent.click(screen.getByRole("button", { name: /first/ }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/^Moving:/)).toHaveTextContent("nothing"),
+    );
+    expect(childrenOf("Thanksgiving")).toHaveTextContent(
+      /^Thanksgiving: Breakfast, Thanksgiving dinner$/,
+    );
+    expect(sidebarName(cache)).toBe("Thanksgiving");
   });
 });
 

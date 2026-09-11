@@ -77,7 +77,6 @@ export function usePlanMoves({
             children: (children ?? []).map((id) => ({
               __typename: "PlanItem" as const,
               id,
-              parent: { __typename: "PlanItem" as const, id: move.parentId },
             })),
           },
         },
@@ -85,8 +84,9 @@ export function usePlanMoves({
       update(c, { data }) {
         const moved = data?.planner.mutateTree.children;
         if (!moved) return;
+        const parentCacheId = itemCacheId(c, move.parentId);
         c.modify<{ children: readonly Reference[] }>({
-          id: itemCacheId(c, move.parentId),
+          id: parentCacheId,
           fields: {
             children: (_, { toReference }) =>
               moved.flatMap(
@@ -95,6 +95,16 @@ export function usePlanMoves({
               ),
           },
         });
+        // By cache id, so the parent's own typename is never rewritten.
+        for (const id of move.ids) {
+          c.modify<{ parent: Reference }>({
+            id: itemCacheId(c, id),
+            fields: {
+              parent: (existing, { toReference }) =>
+                (parentCacheId && toReference(parentCacheId)) || existing,
+            },
+          });
+        }
         for (const oldParentId of oldParentIds) {
           c.modify<{ children: readonly Reference[] }>({
             id: itemCacheId(c, oldParentId),
