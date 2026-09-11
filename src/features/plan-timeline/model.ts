@@ -181,6 +181,23 @@ function mergeSpans(spans: readonly Span[]): readonly Span[] {
   return merged;
 }
 
+/** I map each item the timeline shows to the day it shows on. */
+export function dayOfItems(
+  entries: readonly TimelineEntry[],
+): ReadonlyMap<string, string> {
+  const days = new Map<string, string>();
+  function visit(nodes: readonly PlanItemNode[], date: string): void {
+    for (const node of nodes) {
+      days.set(node.item.id, date);
+      visit(node.children, date);
+    }
+  }
+  for (const entry of entries) {
+    if (entry.kind === "day") visit(entry.roots, entry.date);
+  }
+  return days;
+}
+
 /**
  * I give every descendant of one item, nested, however deep and whether
  * or not the timeline would show it.

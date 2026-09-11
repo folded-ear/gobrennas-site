@@ -3,6 +3,7 @@ import {
   buildSubtree,
   buildTimeline,
   BuildTimelineInput,
+  dayOfItems,
   PlanItemNode,
   TimelineDay,
   TimelineEntry,
@@ -434,5 +435,30 @@ describe("buildSubtree", () => {
 
   it("gives an unknown id no descendants", () => {
     expect(buildSubtree(DINNER, "nope")).toEqual([]);
+  });
+});
+
+describe("dayOfItems", () => {
+  it("gives each shown item the day it shows on, however deep", () => {
+    const entries = build({
+      rootIds: ["dinner", "lunch"],
+      items: [
+        item({ id: "dinner", bucket: "sat", children: ["pie", "prep"] }),
+        item({ id: "pie", bucket: "sat" }),
+        item({ id: "prep", bucket: "fri" }),
+        item({ id: "lunch" }),
+      ],
+      buckets: [
+        { id: "sat", date: "2026-09-12", name: null },
+        { id: "fri", date: "2026-09-11", name: null },
+      ],
+    });
+
+    expect(Object.fromEntries(dayOfItems(entries))).toEqual({
+      dinner: "2026-09-12",
+      pie: "2026-09-12",
+      prep: "2026-09-11",
+      lunch: TODAY,
+    });
   });
 });

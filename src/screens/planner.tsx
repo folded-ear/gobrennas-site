@@ -104,6 +104,7 @@ export function Planner() {
           items={plan.descendants}
           buckets={plan.buckets}
           onSelect={select}
+          dnd={dnd}
         />
       ) : (
         <div className="flex flex-col gap-sm">
