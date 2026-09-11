@@ -1,0 +1,13 @@
+mutation doMutateTree($spec: MutatePlanTree!) {
+  planner {
+    mutateTree(spec: $spec) {
+      id
+      children {
+        id
+        parent {
+          id
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+mutation doAssignBucket($id: ID!, $bucketId: ID) {
+  planner {
+    assignBucket(id: $id, bucketId: $bucketId) {
+      id
+      bucket {
+        id
+      }
+    }
+  }
+}

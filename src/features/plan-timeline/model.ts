@@ -10,10 +10,11 @@ import { addDays, diffDays } from "./dates";
 export type TimelineItem = TimelineItemFragment &
   FragmentType<PlanItemFragment>;
 
-/** A plan bucket reduced to what dates an item: its date, or nothing. */
+/** A plan bucket: what dates an item, and whether it's named. */
 export type TimelineBucket = {
   readonly id: string;
   readonly date: string | null;
+  readonly name: string | null;
 };
 
 /** One item and whatever the timeline shows beneath it. */

@@ -58,7 +58,7 @@ describe("PlanTimeline", () => {
       <PlanTimeline
         rootIds={["1"]}
         items={[PUMPKIN]}
-        buckets={[{ id: "b1", date: "2026-09-03" }]}
+        buckets={[{ id: "b1", date: "2026-09-03", name: null }]}
       />,
     );
 
