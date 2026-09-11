@@ -23,10 +23,10 @@ export type ReorderZone = Exclude<TreeZone, "child">;
 const GUTTER_WIDTH = 1 - NEST_ZONE_WIDTH;
 const AFTER_ZONE_HEIGHT = 1 - BEFORE_ZONE_HEIGHT;
 
-/** Where on a tree row each zone sits. */
+/** Where on a tree row each zone sits, in the order a keyboard visits them. */
 export const TREE_ZONES: Readonly<Record<TreeZone, ZoneRect>> = {
-  child: { top: 0, left: GUTTER_WIDTH, width: NEST_ZONE_WIDTH, height: 1 },
   before: { top: 0, left: 0, width: GUTTER_WIDTH, height: BEFORE_ZONE_HEIGHT },
+  child: { top: 0, left: GUTTER_WIDTH, width: NEST_ZONE_WIDTH, height: 1 },
   after: {
     top: BEFORE_ZONE_HEIGHT,
     left: 0,

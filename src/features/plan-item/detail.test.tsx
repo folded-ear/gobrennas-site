@@ -189,6 +189,20 @@ describe("PlanItemDetail, moving items", () => {
     await keyboardCancel();
   });
 
+  it("offers a row's zones in reading order", async () => {
+    renderMovable();
+
+    await keyboardDrag("Move Pie filling");
+
+    expect(
+      screen
+        .getAllByRole("button", { name: /^(Nest under|Put \w+) Pie crust$/ })
+        .map((zone) => zone.getAttribute("aria-label")),
+    ).toEqual(["Put before Pie crust", "Nest under Pie crust"]);
+
+    await keyboardCancel();
+  });
+
   it("nests an item under the one it's dropped on", async () => {
     const moves = fakeMoves();
     renderMovable({ moves });

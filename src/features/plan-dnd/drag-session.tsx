@@ -48,7 +48,7 @@ export function DragSession({
   );
 }
 
-/** Outside any session nothing can be moved, so nothing offers to be. */
+/** I give the session I'm inside. Outside any, nothing can be moved. */
 export function useDragSession(): DragSessionValue {
   return useContext(DragSessionContext);
 }

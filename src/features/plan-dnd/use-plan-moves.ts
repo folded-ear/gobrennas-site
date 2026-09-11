@@ -26,6 +26,9 @@ export type PlanMoves = {
   isMoving(itemId: string): boolean;
 };
 
+/** Keeps a stand-in bucket's id, and its optimistic layer's, off real ids. */
+const STAND_IN_ID_PREFIX = "plan-dnd:";
+
 // Plans are keyed as PlanItems too (build-in-memory-cache.ts), so this
 // finds a parent whichever it is.
 function itemCacheId(cache: ApolloCache, id: string): string | undefined {
@@ -143,7 +146,7 @@ export function usePlanMoves({
   async function assignNewBucket(itemId: string, date: string) {
     // Until the real bucket exists, a stand-in on the same date carries
     // the item there, so it never shows anywhere but where it was dropped.
-    const layerId = `plan-dnd:${itemId}:${date}`;
+    const layerId = `${STAND_IN_ID_PREFIX}${itemId}:${date}`;
     cache.recordOptimisticTransaction((c) => {
       const standIn = c.identify({
         __typename: "PlanBucket",
