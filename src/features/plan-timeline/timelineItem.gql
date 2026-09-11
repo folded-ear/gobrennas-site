@@ -1,0 +1,10 @@
+fragment timelineItem on PlanItem {
+  id
+  name
+  bucket {
+    id
+  }
+  children {
+    id
+  }
+}

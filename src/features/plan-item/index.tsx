@@ -6,30 +6,26 @@ import {
 } from "./__generated__/planItem.generated";
 
 type PlanItemProps = {
-  planItems: FragmentType<PlanItemFragment>[];
+  item: FragmentType<PlanItemFragment>;
   onSelect?: (id: string) => void;
 };
 
-export function PlanItem({ planItems, onSelect }: PlanItemProps) {
-  const { data: items } = useFragment({
+export function PlanItem({ item, onSelect }: PlanItemProps) {
+  const { data, complete } = useFragment({
     fragment: PlanItemFragmentDoc,
     fragmentName: "planItem",
-    from: planItems,
+    from: item,
   });
 
+  if (!complete) return null;
+
   return (
-    <ul>
-      {items.map((item) => {
-        const id = item?.id;
-        if (!id) return null;
-        return (
-          <li key={id}>
-            <button type="button" onClick={() => onSelect?.(id)}>
-              {item.name}
-            </button>
-          </li>
-        );
-      })}
-    </ul>
+    <button
+      type="button"
+      className="text-left hover:text-accent"
+      onClick={() => onSelect?.(data.id)}
+    >
+      {data.name}
+    </button>
   );
 }

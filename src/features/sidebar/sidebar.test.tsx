@@ -1,14 +1,16 @@
 import { PreferenceValueFragmentDoc } from "@/hooks/use-preference/__generated__/preferenceValue.generated";
 import { DoSetPreferenceDocument } from "@/hooks/use-set-preference/__generated__/doSetPreference.generated";
 import { InitializeDeviceKeyDocument } from "@/lib/apollo/__generated__/initializeDeviceKey.generated";
-import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
 import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
-import { ApolloClient } from "@apollo/client";
-import { LocalState } from "@apollo/client/local-state";
-import { ApolloProvider } from "@apollo/client/react";
-import { MockLink, MockedResponse } from "@apollo/client/testing";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
-import { PropsWithChildren } from "react";
+import {
+  act,
+  buildInMemoryCache,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@/test";
+import { MockedResponse } from "@apollo/client/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GetSidebarDocument } from "./__generated__/getSidebar.generated";
 import { Sidebar } from "./index";
@@ -96,17 +98,8 @@ function renderSidebar({
       data: { __typename: "UserPreference", value: activePlanId },
     });
   }
-  const client = new ApolloClient({
-    dataMasking: true,
-    cache,
-    localState: new LocalState(),
-    link: new MockLink(mocks),
-  });
-  const Wrapper = ({ children }: PropsWithChildren) => (
-    <ApolloProvider client={client}>{children}</ApolloProvider>
-  );
-  render(<Sidebar />, { wrapper: Wrapper });
-  return client;
+  render(<Sidebar />, { cache, mocks });
+  return cache;
 }
 
 function collapse() {
@@ -125,8 +118,8 @@ function activePlanNames() {
     .map((el) => el!.textContent);
 }
 
-function activePlanPreference(client: ApolloClient) {
-  return client.cache.readFragment<{ value: string }>({
+function activePlanPreference(cache: ReturnType<typeof buildInMemoryCache>) {
+  return cache.readFragment<{ value: string }>({
     fragment: PreferenceValueFragmentDoc,
     from: ACTIVE_PLAN_PREF,
   })?.value;
@@ -199,7 +192,7 @@ describe("Sidebar plans", () => {
   });
 
   it("makes the clicked plan the active one", async () => {
-    const client = renderSidebar({
+    const cache = renderSidebar({
       plans: [plan(WEEKNIGHTS, true), plan(FEAST_DAY, true)],
       activePlanId: FEAST_DAY.id,
       mocks: [setPreferenceMock(WEEKNIGHTS.id)],
@@ -208,6 +201,6 @@ describe("Sidebar plans", () => {
     screen.getByText(WEEKNIGHTS.name).click();
 
     await waitFor(() => expect(activePlanNames()).toEqual([WEEKNIGHTS.name]));
-    expect(activePlanPreference(client)).toBe(WEEKNIGHTS.id);
+    expect(activePlanPreference(cache)).toBe(WEEKNIGHTS.id);
   });
 });
