@@ -8,6 +8,7 @@ import {
   userEvent,
   within,
 } from "@/test";
+import { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import {
   PlanItemFragment,
@@ -71,13 +72,21 @@ function flatten(specs: readonly Spec[]): readonly Spec[] {
   return specs.flatMap((s) => [s, ...flatten(s.children ?? [])]);
 }
 
-function renderTree(specs: readonly Spec[], onSelect?: (id: string) => void) {
+function renderTree(
+  specs: readonly Spec[],
+  onSelect?: (id: string) => void,
+  renderItem?: (node: PlanItemNode) => ReactNode,
+) {
   const cache = buildInMemoryCache();
   for (const spec of flatten(specs)) {
     seedFragment(cache, PlanItemFragmentDoc, "planItem", toFragment(spec));
   }
   return render(
-    <PlanItemTree nodes={specs.map(toNode)} onSelect={onSelect} />,
+    <PlanItemTree
+      nodes={specs.map(toNode)}
+      onSelect={onSelect}
+      renderItem={renderItem}
+    />,
     { cache },
   );
 }
@@ -128,5 +137,14 @@ describe("PlanItemTree", () => {
     await userEvent.click(screen.getByRole("button", { name: "Butter" }));
 
     expect(onSelect).toHaveBeenCalledWith("4");
+  });
+
+  it("draws each item's line with the renderer it's given, however deep", () => {
+    renderTree([DINNER], undefined, (node) => (
+      <span>Line for {node.item.name}</span>
+    ));
+
+    expect(screen.getByText("Line for Butter")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Butter" })).toBeNull();
   });
 });

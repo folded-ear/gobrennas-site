@@ -3,6 +3,7 @@ import { useState } from "react";
 import { describe, expect, it } from "vitest";
 import { DragSession, useDragSession } from "./drag-session";
 import { ItemRow } from "./item-row";
+import { keyboardDrag, keyboardDrop } from "./keyboard-drag";
 import { TREE_ZONES } from "./zones";
 
 const DRAG_TYPE = "application/x.gobrennas.test-item";
@@ -88,18 +89,11 @@ describe("ItemRow", () => {
   it("drops an item on another by keyboard", async () => {
     render(<Harness />);
 
-    screen.getByRole("button", { name: "Move Pumpkin pie" }).focus();
-    await userEvent.keyboard("{Enter}");
-    // Announced once the drag is ready, with focus on the first target.
-    expect(await screen.findByText(/Started dragging/)).toBeInTheDocument();
+    await keyboardDrag("Move Pumpkin pie");
     expect(
       screen.queryByRole("button", { name: "Put after Pumpkin pie" }),
     ).toBeNull();
-
-    expect(
-      screen.getByRole("button", { name: "Put after Roast turkey" }),
-    ).toHaveFocus();
-    await userEvent.keyboard("{Enter}");
+    await keyboardDrop("Put after Roast turkey");
 
     expect(
       await screen.findByText("Pumpkin pie went after Roast turkey"),

@@ -5,6 +5,9 @@ import {
   ScreenDrawer,
   useDrawer,
 } from "@/components/screen-drawer";
+import { PlanDnd } from "@/features/plan-dnd";
+import { buildPlanTree, canChangePlan } from "@/features/plan-dnd/moves";
+import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemDetail } from "@/features/plan-item/detail";
 import { buildSubtree } from "@/features/plan-timeline/model";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
@@ -25,6 +28,9 @@ const PlanTimeline = dynamic(
 type PlannerMemento = {
   itemId: string;
 };
+
+// Stands in while there's no plan, when nothing is shown to move anyway.
+const NO_PLAN_TREE = buildPlanTree({ id: "", children: [] }, []);
 
 const PLANNER_DRAWER = defineDrawer<PlannerMemento>({
   id: "planner",
@@ -59,6 +65,18 @@ export function Planner() {
     () => (selected ? buildSubtree(plan?.descendants ?? [], selected.id) : []),
     [plan, selected],
   );
+  const tree = useMemo(
+    () => (plan ? buildPlanTree(plan, plan.descendants) : NO_PLAN_TREE),
+    [plan],
+  );
+  const moves = usePlanMoves({
+    planId: plan?.id ?? "",
+    tree,
+    buckets: plan?.buckets ?? [],
+  });
+  const dnd: PlanDnd | undefined = plan
+    ? { tree, canMove: canChangePlan(plan), moves }
+    : undefined;
 
   function select(itemId: string) {
     drawer.setMemento({ itemId });
@@ -73,6 +91,7 @@ export function Planner() {
             item={selected}
             descendants={descendants}
             onSelect={select}
+            dnd={dnd}
           />
         ) : (
           <p>Select a plan item to see it here.</p>
