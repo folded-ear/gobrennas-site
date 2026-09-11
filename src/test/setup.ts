@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 
+import { toast } from "@heroui/react";
 import * as matchers from "@testing-library/jest-dom/matchers";
 import { cleanup } from "@testing-library/react";
 import { afterEach, expect } from "vitest";
@@ -30,4 +31,6 @@ window.matchMedia ??= ((query: string) => ({
 
 afterEach(() => {
   cleanup();
+  // The toast queue is module-global, so a toast would outlive its test.
+  toast.clear();
 });
