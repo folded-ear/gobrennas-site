@@ -1,7 +1,9 @@
 mutation doMutateTree($spec: MutatePlanTree!) {
   planner {
     mutateTree(spec: $spec) {
-      id
+      # No id, so the parent isn't normalized: when it is a plan, this field
+      # still types it as a PlanItem, and writing that would retype the plan
+      # in the cache. The caller writes these children onto the parent.
       children {
         id
         parent {
