@@ -14,9 +14,11 @@ const MOVE_ONLY = ["move" as const];
 
 /** I start dragging my item, by pointer, touch, or Enter from the keyboard. */
 export function DragHandle({ itemId, name }: DragHandleProps) {
-  const { dragType, isMoving, setDragged } = useDragSession();
+  const { dragType, dragged, isMoving, setDragged } = useDragSession();
   const preview = useRef<DragPreviewRenderer>(null);
-  const moving = isMoving(itemId);
+  // A drop starts the move before the drag ends, and a disabled useDrag
+  // drops its dragend handler, so the drag under way must stay endable.
+  const moving = isMoving(itemId) && dragged?.id !== itemId;
   const { dragProps } = useDrag({
     getItems: () => [{ [dragType]: itemId }],
     getAllowedDropOperations: () => MOVE_ONLY,

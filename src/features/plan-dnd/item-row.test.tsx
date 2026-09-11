@@ -1,9 +1,9 @@
-import { render, screen, userEvent } from "@/test";
+import { fireEvent, render, screen, waitFor } from "@/test";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
 import { DragSession, useDragSession } from "./drag-session";
 import { ItemRow } from "./item-row";
-import { keyboardDrag, keyboardDrop } from "./keyboard-drag";
+import { keyboardCancel, keyboardDrag, keyboardDrop } from "./keyboard-drag";
 import { TREE_ZONES } from "./zones";
 
 const DRAG_TYPE = "application/x.gobrennas.test-item";
@@ -13,14 +13,18 @@ const ITEMS = [
   { id: "5", name: "Roast turkey" },
 ];
 
+type Offer = "before" | "after";
+
 /** I offer every other row as somewhere to put the one being dragged. */
 function Row({
   id,
   name,
+  offer,
   onDropped,
 }: {
   id: string;
   name: string;
+  offer: Offer;
   onDropped: (text: string) => void;
 }) {
   const { dragged } = useDragSession();
@@ -28,10 +32,10 @@ function Row({
     dragged && dragged.id !== id
       ? [
           {
-            rect: TREE_ZONES.after,
-            indicator: "after" as const,
-            label: `Put after ${name}`,
-            onDrop: () => onDropped(`${dragged.name} went after ${name}`),
+            rect: TREE_ZONES[offer],
+            indicator: offer,
+            label: `Put ${offer} ${name}`,
+            onDrop: () => onDropped(`${dragged.name} went ${offer} ${name}`),
           },
         ]
       : [];
@@ -45,9 +49,11 @@ function Row({
 function Harness({
   canMove = true,
   moving = [],
+  offer = "after",
 }: {
   canMove?: boolean;
   moving?: readonly string[];
+  offer?: Offer;
 }) {
   const [dropped, setDropped] = useState("nothing dropped");
   return (
@@ -57,11 +63,29 @@ function Harness({
       isMoving={(id) => moving.includes(id)}
     >
       {ITEMS.map((it) => (
-        <Row key={it.id} {...it} onDropped={setDropped} />
+        <Row key={it.id} {...it} offer={offer} onDropped={setDropped} />
       ))}
       <p>{dropped}</p>
     </DragSession>
   );
+}
+
+// Enough of a DataTransfer for react-aria to start and end a pointer drag.
+function dataTransfer() {
+  return {
+    items: { add: () => {} },
+    clearData: () => {},
+    setDragImage: () => {},
+    effectAllowed: "all",
+    dropEffect: "move",
+    types: [],
+  };
+}
+
+// The indicator is decorative and hidden from assistive tech, so nothing
+// accessible can find it.
+function indicators() {
+  return document.querySelectorAll("[data-drop-indicator]");
 }
 
 describe("ItemRow", () => {
@@ -110,5 +134,36 @@ describe("ItemRow", () => {
     expect(
       screen.getByRole("button", { name: "Move Roast turkey" }),
     ).not.toHaveAttribute("aria-disabled");
+  });
+
+  it("ends a pointer drag even once its item has started moving", async () => {
+    const { rerender } = render(<Harness />);
+    const handle = screen.getByRole("button", { name: "Move Pumpkin pie" });
+
+    fireEvent.dragStart(handle, { dataTransfer: dataTransfer() });
+    expect(
+      await screen.findByRole("button", { name: "Put after Roast turkey" }),
+    ).toBeInTheDocument();
+    // A drop starts the item's move before the drag itself ends.
+    rerender(<Harness moving={["2"]} />);
+    fireEvent.dragEnd(handle, { dataTransfer: dataTransfer() });
+
+    expect(screen.queryByRole("button", { name: /^Put / })).toBeNull();
+    expect(handle).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("drops its mark when the zone it marked goes away mid-drag", async () => {
+    const { rerender } = render(<Harness />);
+
+    await keyboardDrag("Move Pumpkin pie");
+    await waitFor(() => expect(indicators()).toHaveLength(1));
+    rerender(<Harness offer="before" />);
+
+    expect(
+      screen.getByRole("button", { name: "Put before Roast turkey" }),
+    ).toBeInTheDocument();
+    expect(indicators()).toHaveLength(0);
+
+    await keyboardCancel();
   });
 });

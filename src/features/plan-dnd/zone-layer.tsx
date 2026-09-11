@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DropZone } from "./drop-zone";
 import { ZoneRect } from "./zones";
 
@@ -28,6 +28,7 @@ function Indicator({ kind }: { kind: ZoneIndicator }) {
     <>
       <div
         aria-hidden
+        data-drop-indicator={kind}
         className={clsx(
           "pointer-events-none absolute",
           INDICATOR_CLASSES[kind],
@@ -46,18 +47,21 @@ function Indicator({ kind }: { kind: ZoneIndicator }) {
 
 type ZoneTargetProps = {
   spec: ZoneSpec;
-  onTarget(spec: ZoneSpec, isTarget: boolean): void;
+  onTarget(label: string, isTarget: boolean): void;
 };
 
 function ZoneTarget({ spec, onTarget }: ZoneTargetProps) {
+  const { label } = spec;
   const handleTargetChange = useCallback(
-    (isTarget: boolean) => onTarget(spec, isTarget),
-    [onTarget, spec],
+    (isTarget: boolean) => onTarget(label, isTarget),
+    [onTarget, label],
   );
+  // A zone can go while targeted, when a drop makes it pointless.
+  useEffect(() => () => onTarget(label, false), [onTarget, label]);
   return (
     <DropZone
       rect={spec.rect}
-      label={spec.label}
+      label={label}
       onDrop={spec.onDrop}
       onTargetChange={handleTargetChange}
     />
@@ -69,20 +73,21 @@ function ZoneTarget({ spec, onTarget }: ZoneTargetProps) {
  * a drag is over. I take up no room, so nothing moves when I appear.
  */
 export function ZoneLayer({ zones }: { zones: readonly ZoneSpec[] }) {
-  const [target, setTarget] = useState<ZoneIndicator | null>(null);
-  const handleTarget = useCallback((spec: ZoneSpec, isTarget: boolean) => {
-    setTarget((current) =>
-      isTarget ? spec.indicator : current === spec.indicator ? null : current,
+  const [targetLabel, setTargetLabel] = useState<string | null>(null);
+  const handleTarget = useCallback((label: string, isTarget: boolean) => {
+    setTargetLabel((current) =>
+      isTarget ? label : current === label ? null : current,
     );
   }, []);
 
   if (zones.length === 0) return null;
+  const target = zones.find((spec) => spec.label === targetLabel);
   return (
     <>
       {zones.map((spec) => (
         <ZoneTarget key={spec.label} spec={spec} onTarget={handleTarget} />
       ))}
-      {target ? <Indicator kind={target} /> : null}
+      {target ? <Indicator kind={target.indicator} /> : null}
     </>
   );
 }
