@@ -12,14 +12,13 @@ type DrawerRowProps = {
   node: PlanItemNode;
   tree: PlanTree;
   onMove(move: TreeMove, name: string): void;
-  onSelect?: (id: string) => void;
 };
 
 /**
  * I am one item's line in the drawer: it can be nested under, or put
  * before or after, by a drag from elsewhere in the drawer.
  */
-export function DrawerRow({ node, tree, onMove, onSelect }: DrawerRowProps) {
+export function DrawerRow({ node, tree, onMove }: DrawerRowProps) {
   const { dragged } = useDragSession();
   const { id, name } = node.item;
   const zones = dragged
@@ -34,7 +33,7 @@ export function DrawerRow({ node, tree, onMove, onSelect }: DrawerRowProps) {
 
   return (
     <ItemRow itemId={id} name={name} zones={zones}>
-      <PlanItem item={node.item} onSelect={onSelect} />
+      <PlanItem item={node.item} />
     </ItemRow>
   );
 }

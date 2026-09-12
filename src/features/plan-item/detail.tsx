@@ -1,5 +1,6 @@
 import { PlanDnd } from "@/features/plan-dnd";
 import { DragSession } from "@/features/plan-dnd/drag-session";
+import { PlanContext } from "@/features/plan-timeline/context";
 import { PlanItemNode } from "@/features/plan-timeline/model";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
@@ -8,14 +9,18 @@ import {
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
 import { DrawerRow } from "./drawer-row";
+import { Ladder } from "./ladder";
 import { PlanItemTree } from "./tree";
 
 const DRAWER_DRAG_TYPE = "application/x.gobrennas.drawer-item";
 
 type PlanItemDetailProps = {
   item: FragmentType<PlanItemFragment>;
+  /** Where every item in the plan sits, for the walk down to this one. */
+  context: PlanContext;
   /** Everything below the item, however deep and whatever its dates. */
   descendants: readonly PlanItemNode[];
+  /** Opens one of the item's ancestors. Left out, none of them open. */
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
@@ -23,6 +28,7 @@ type PlanItemDetailProps = {
 
 export function PlanItemDetail({
   item,
+  context,
   descendants,
   onSelect,
   dnd,
@@ -37,8 +43,12 @@ export function PlanItemDetail({
 
   return (
     <div className="flex flex-col gap-sm">
-      <h2 className="text-xl font-semibold text-foreground">{data.name}</h2>
+      <Ladder context={context} id={data.id} onSelect={onSelect} />
       {data.notes ? <p className="text-sm text-muted">{data.notes}</p> : null}
+      {descendants.length > 0 ? (
+        // Where the item's own context stops and its contents start.
+        <hr className="border-separator" />
+      ) : null}
       {dnd ? (
         <DragSession
           dragType={DRAWER_DRAG_TYPE}
@@ -52,13 +62,12 @@ export function PlanItemDetail({
                 node={node}
                 tree={dnd.tree}
                 onMove={dnd.moves.moveInTree}
-                onSelect={onSelect}
               />
             )}
           />
         </DragSession>
       ) : (
-        <PlanItemTree nodes={descendants} onSelect={onSelect} />
+        <PlanItemTree nodes={descendants} />
       )}
     </div>
   );

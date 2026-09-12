@@ -9,6 +9,10 @@ import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree, canChangePlan } from "@/features/plan-dnd/moves";
 import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemDetail } from "@/features/plan-item/detail";
+import {
+  buildPlanContext,
+  PlanContext,
+} from "@/features/plan-timeline/context";
 import { buildSubtree } from "@/features/plan-timeline/model";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
 import { usePreference } from "@/hooks/use-preference";
@@ -31,6 +35,7 @@ type PlannerMemento = {
 
 // Stands in while there's no plan, when nothing is shown to move anyway.
 const NO_PLAN_TREE = buildPlanTree({ id: "", children: [] }, []);
+const NO_PLAN_CONTEXT: PlanContext = new Map();
 
 const PLANNER_DRAWER = defineDrawer<PlannerMemento>({
   id: "planner",
@@ -69,6 +74,17 @@ export function Planner() {
     () => (plan ? buildPlanTree(plan, plan.descendants) : NO_PLAN_TREE),
     [plan],
   );
+  const context = useMemo(
+    () =>
+      plan
+        ? buildPlanContext({
+            rootIds,
+            items: plan.descendants,
+            buckets: plan.buckets,
+          })
+        : NO_PLAN_CONTEXT,
+    [plan, rootIds],
+  );
   const moves = usePlanMoves({
     planId: plan?.id ?? "",
     tree,
@@ -89,6 +105,7 @@ export function Planner() {
         {selected ? (
           <PlanItemDetail
             item={selected}
+            context={context}
             descendants={descendants}
             onSelect={select}
             dnd={dnd}
