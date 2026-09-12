@@ -16,7 +16,7 @@ type ParentChipProps = {
 export function DateChip({ date, separation }: DateChipProps) {
   if (separation === "late") {
     return (
-      <Chip size="sm" color="warning">
+      <Chip size="sm" variant="soft" color="warning">
         {formatDayLabel(date)}
         {/* True of whichever end of the pair I am shown against. */}
         <span className="sr-only">, out of order</span>
