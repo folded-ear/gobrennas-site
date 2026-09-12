@@ -104,6 +104,17 @@ describe("ItemRow", () => {
     expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
   });
 
+  it("shows its item outside any drag session, offering no handle", () => {
+    render(
+      <ItemRow itemId="2" name="Pumpkin pie" zones={[]}>
+        <span>Pumpkin pie</span>
+      </ItemRow>,
+    );
+
+    expect(screen.getByText("Pumpkin pie")).toBeVisible();
+    expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
+  });
+
   it("offers no drop zones until something is dragged", () => {
     render(<Harness />);
 
