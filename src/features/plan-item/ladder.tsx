@@ -9,7 +9,7 @@ import { DateChip } from "./chips";
 export type LadderLine = {
   readonly id: string;
   readonly name: string;
-  readonly date: string;
+  readonly date: string | null;
   readonly separation: Separation | null;
   /** How far below the root I sit. */
   readonly depth: number;
@@ -52,10 +52,11 @@ export function ladderLines(
     { id, name: own.name, date: own.date, separation: own.separation },
   ];
 
-  let previous: string | null = null;
+  let previousDate: string | null = null;
   return steps.map((step, depth) => {
-    const chip = previous === null || step.date !== previous;
-    previous = step.date;
+    const chip =
+      step.date !== null && (depth === 0 || step.date !== previousDate);
+    previousDate = step.date;
     return { ...step, depth, chip };
   });
 }
@@ -103,7 +104,7 @@ export function Ladder({ context, id, onSelect }: LadderProps) {
             isOpen={index === lastIndex}
             onSelect={onSelect}
           />
-          {line.chip ? (
+          {line.chip && line.date !== null ? (
             <span className="ms-auto">
               <DateChip date={line.date} separation={line.separation} />
             </span>

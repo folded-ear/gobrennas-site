@@ -7,7 +7,6 @@ import {
 } from "./context";
 import { TimelineItem } from "./model";
 
-const TODAY = "2026-09-09";
 const WEDNESDAY = "2026-11-25";
 const THURSDAY = "2026-11-26";
 const FRIDAY = "2026-11-27";
@@ -37,7 +36,6 @@ function build(input: Partial<BuildPlanContextInput>): PlanContext {
     rootIds: [],
     items: [],
     buckets: [],
-    today: TODAY,
     ...input,
   });
 }
@@ -95,13 +93,15 @@ describe("an item's date", () => {
     expect(contextFor(thanksgiving("wed"), "oil").date).toBe(WEDNESDAY);
   });
 
-  it("falls back to today when no ancestor is bucketed", () => {
+  it("gives no date at all when nothing above an item is bucketed", () => {
+    // Where the timeline draws an undated item is a layout choice of its
+    // own; context won't claim the item happens that day.
     const context = build({
       rootIds: ["dinner"],
       items: [item({ id: "dinner", name: "Dinner" })],
     });
 
-    expect(contextFor(context, "dinner").date).toBe(TODAY);
+    expect(contextFor(context, "dinner").date).toBeNull();
   });
 
   it("walks past a bucket carrying no date", () => {

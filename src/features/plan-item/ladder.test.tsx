@@ -7,7 +7,6 @@ import { render, screen, userEvent } from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import { Ladder, ladderLines } from "./ladder";
 
-const TODAY = "2026-09-09";
 const WEDNESDAY = "2026-11-25";
 const THURSDAY = "2026-11-26";
 const FRIDAY = "2026-11-27";
@@ -52,7 +51,6 @@ function thanksgiving(dressingBucket?: string): PlanContext {
       { id: "wed", date: WEDNESDAY, name: null },
       { id: "fri", date: FRIDAY, name: null },
     ],
-    today: TODAY,
   });
 }
 
@@ -101,6 +99,22 @@ describe("ladderLines", () => {
     expect(lines.filter((l) => l.chip).map((l) => l.name)).toEqual([
       "Thanksgiving",
     ]);
+  });
+
+  it("says nothing of a date nothing in the plan carries", () => {
+    const context = buildPlanContext({
+      rootIds: ["dinner"],
+      items: [
+        item({ id: "dinner", name: "Dinner", children: ["salad"] }),
+        item({ id: "salad", name: "Salad" }),
+      ],
+      buckets: [],
+    });
+
+    const lines = ladderLines(context, "salad");
+
+    expect(lines.map((l) => l.name)).toEqual(["Dinner", "Salad"]);
+    expect(lines.every((l) => !l.chip)).toBe(true);
   });
 
   it("gives an item it knows nothing about no walk at all", () => {
