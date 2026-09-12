@@ -71,11 +71,12 @@ export function buildPlanContext({
     // A cycle would come from data this app doesn't own.
     if (dateOf.has(item.id)) return;
     const own = item.bucket ? (bucketDates.get(item.bucket.id) ?? null) : null;
-    dateOf.set(item.id, own ?? inherited);
+    const date = own ?? inherited;
+    dateOf.set(item.id, date);
     if (parent !== null) parentOf.set(item.id, parent);
     for (const child of item.children) {
       const found = byId.get(child.id);
-      if (found !== undefined) visit(found, item, own ?? inherited);
+      if (found !== undefined) visit(found, item, date);
     }
   }
 

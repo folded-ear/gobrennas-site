@@ -43,7 +43,7 @@ export function PlanItemDetail({
 
   // One way of drawing a row, whether or not the plan can be changed:
   // a row says where its item has been moved to either way.
-  const tree = (
+  const rows = (
     <PlanItemTree
       nodes={descendants}
       renderItem={(node) => (
@@ -71,10 +71,10 @@ export function PlanItemDetail({
           canMove={dnd.canMove}
           isMoving={dnd.moves.isMoving}
         >
-          {tree}
+          {rows}
         </DragSession>
       ) : (
-        tree
+        rows
       )}
     </div>
   );

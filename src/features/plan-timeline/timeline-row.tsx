@@ -61,7 +61,7 @@ export function TimelineRow({
       : [];
 
   const own = context.get(id);
-  const apart = own?.separation != null ? own : null;
+  const apart = own !== undefined && own.separation !== null ? own : null;
 
   return (
     <div
@@ -74,7 +74,7 @@ export function TimelineRow({
       <ItemRow itemId={id} name={name} zones={zones}>
         <PlanItem item={node.item} onSelect={onSelect} />
         {openId === id ? (
-          // The tint says this to everyone who can see it.
+          // The bars say this to everyone who can see them.
           <span className="sr-only">, open in the drawer</span>
         ) : null}
         {apart?.parent ? (

@@ -52,13 +52,15 @@ export function ladderLines(
     { id, name: own.name, date: own.date, separation: own.separation },
   ];
 
+  const lines: LadderLine[] = [];
   let previousDate: string | null = null;
-  return steps.map((step, depth) => {
+  for (const [depth, step] of steps.entries()) {
     const chip =
       step.date !== null && (depth === 0 || step.date !== previousDate);
+    lines.push({ ...step, depth, chip });
     previousDate = step.date;
-    return { ...step, depth, chip };
-  });
+  }
+  return lines;
 }
 
 /** I name one step: the open item heads the drawer, its ancestry opens. */
