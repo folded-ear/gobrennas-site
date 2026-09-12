@@ -65,7 +65,11 @@ export function TimelineRow({
 
   return (
     <div
-      className={clsx("rounded-xs", openId === id && "bg-surface-secondary")}
+      className={clsx(
+        // Unopened rows keep the width, or opening one shifts it.
+        "border-x-2",
+        openId === id ? "border-accent" : "border-transparent",
+      )}
     >
       <ItemRow itemId={id} name={name} zones={zones}>
         <PlanItem item={node.item} onSelect={onSelect} />
