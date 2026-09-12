@@ -121,6 +121,12 @@ describe("an item's date", () => {
   });
 });
 
+describe("an item's own name", () => {
+  it("carries its name, so its context describes it without help", () => {
+    expect(contextFor(thanksgiving(), "dressing").name).toBe("Dressing");
+  });
+});
+
 describe("an item's parent", () => {
   it("names the parent it sits under, and when that parent happens", () => {
     expect(contextFor(thanksgiving("wed"), "dressing").parent).toEqual({

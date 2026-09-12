@@ -12,6 +12,7 @@ export type ItemRef = {
 
 /** Where one item sits, and what it sits under. */
 export type ItemContext = {
+  readonly name: string;
   readonly date: string;
   /** My parent, or nothing when the plan itself holds me. */
   readonly parent: ItemRef | null;
@@ -88,6 +89,7 @@ export function buildPlanContext({
         ? { id: parentItem.id, name: parentItem.name, date: parentDate }
         : null;
     context.set(item.id, {
+      name: item.name,
       date,
       parent,
       separation: parent === null ? null : separationOf(date, parent.date),
