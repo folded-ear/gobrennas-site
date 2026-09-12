@@ -46,6 +46,31 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - Choosing an item opens it in the drawer, together with everything below
   it, however deep and wherever those descendants sit on the calendar.
 
+### Moving items
+
+- A user who can change a plan sees a handle on the left edge of each of
+  its items. Anyone else sees no handles.
+- Dragging an item by its handle moves everything below it too.
+- On the timeline, dropping an item on another day puts it on that day.
+  - The item joins a bucket already on that day, preferring an unnamed one.
+  - If the day has no bucket yet, an unnamed one is created for it.
+  - The item keeps its place in the plan.
+- On the timeline, dropping a top-level item above or below another
+  top-level item on the same day reorders it. Its day doesn't change. A
+  nested item can't be reordered from the timeline.
+- In the drawer:
+  - dropping an item on the right three-quarters of another makes it that
+    item's first child;
+  - dropping it on the left quarter puts it before or after that item,
+    depending on which half it lands in.
+- An item can't be dropped inside itself.
+- An item can't be dragged from the drawer to the timeline or back.
+  Moving it in either one updates both.
+- A move shows immediately. If it fails, the item goes back where it was
+  and a message says so.
+- Items can be moved by keyboard: Enter on a handle picks the item up, Tab
+  moves between the places it can go, Enter drops it, and Escape cancels.
+
 ## Example
 
 A pumpkin pie recipe calls for roasting a pumpkin before making the filling.

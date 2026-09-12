@@ -7,6 +7,7 @@ import { ApolloProvider } from "@apollo/client/react";
 import { MockLink } from "@apollo/client/testing";
 import { StoreObject } from "@apollo/client/utilities";
 import { TypedDocumentNode } from "@graphql-typed-document-node/core";
+import { Toast } from "@heroui/react";
 import {
   RenderOptions,
   RenderResult,
@@ -56,7 +57,10 @@ export function render(
   function Providers({ children }: { children: ReactNode }) {
     return (
       <ApolloProvider client={client}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <Toast.Provider />
+        </ThemeProvider>
       </ApolloProvider>
     );
   }

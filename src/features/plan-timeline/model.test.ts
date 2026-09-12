@@ -3,6 +3,7 @@ import {
   buildSubtree,
   buildTimeline,
   BuildTimelineInput,
+  dayOfItems,
   PlanItemNode,
   TimelineDay,
   TimelineEntry,
@@ -67,7 +68,7 @@ describe("an item's date", () => {
       items: [
         item({ id: "dinner", name: "Thanksgiving dinner", bucket: "b1" }),
       ],
-      buckets: [{ id: "b1", date: "2026-09-12" }],
+      buckets: [{ id: "b1", date: "2026-09-12", name: null }],
     });
 
     expect(names(dayOn(entries, "2026-09-12").roots)).toEqual([
@@ -88,7 +89,7 @@ describe("an item's date", () => {
         item({ id: "pie", name: "Pumpkin pie", children: ["crust"] }),
         item({ id: "crust", name: "Pie crust" }),
       ],
-      buckets: [{ id: "b1", date: "2026-09-12" }],
+      buckets: [{ id: "b1", date: "2026-09-12", name: null }],
     });
 
     const dinner = dayOn(entries, "2026-09-12").roots[0];
@@ -108,8 +109,8 @@ describe("an item's date", () => {
         item({ id: "pie", name: "Pumpkin pie", bucket: "undated" }),
       ],
       buckets: [
-        { id: "dated", date: "2026-09-12" },
-        { id: "undated", date: null },
+        { id: "dated", date: "2026-09-12", name: null },
+        { id: "undated", date: null, name: null },
       ],
     });
 
@@ -144,7 +145,7 @@ describe("what the timeline shows", () => {
         item({ id: "dinner", name: "Thanksgiving dinner", children: ["pie"] }),
         item({ id: "pie", name: "Pumpkin pie", bucket: "undated" }),
       ],
-      buckets: [{ id: "undated", date: null }],
+      buckets: [{ id: "undated", date: null, name: null }],
     });
 
     const dinner = dayOn(entries, TODAY).roots[0];
@@ -207,8 +208,8 @@ describe("nesting", () => {
         item({ id: "turkey", name: "Roast turkey" }),
       ],
       buckets: [
-        { id: "bDinner", date: "2026-09-09" },
-        { id: "bPumpkin", date: "2026-09-12" },
+        { id: "bDinner", date: "2026-09-09", name: null },
+        { id: "bPumpkin", date: "2026-09-12", name: null },
       ],
     });
 
@@ -235,8 +236,8 @@ describe("nesting", () => {
         item({ id: "pie", name: "Pumpkin pie", bucket: "bPie" }),
       ],
       buckets: [
-        { id: "bDinner", date: "2026-09-12" },
-        { id: "bPie", date: "2026-09-12" },
+        { id: "bDinner", date: "2026-09-12", name: null },
+        { id: "bPie", date: "2026-09-12", name: null },
       ],
     });
 
@@ -260,7 +261,7 @@ describe("ordering", () => {
         item({ id: "turkey", name: "Roast turkey", bucket: "undated" }),
         item({ id: "pie", name: "Pumpkin pie", bucket: "undated" }),
       ],
-      buckets: [{ id: "undated", date: null }],
+      buckets: [{ id: "undated", date: null, name: null }],
     });
 
     const dinner = dayOn(entries, TODAY).roots[0];
@@ -297,7 +298,7 @@ describe("ordering", () => {
         }),
         item({ id: "pie", name: "Pumpkin pie", bucket: "undated" }),
       ],
-      buckets: [{ id: "undated", date: null }],
+      buckets: [{ id: "undated", date: null, name: null }],
     });
 
     const dinner = dayOn(entries, TODAY).roots[0];
@@ -329,8 +330,8 @@ describe("which dates appear", () => {
         item({ id: "dinner", name: "Thanksgiving dinner", bucket: "bFuture" }),
       ],
       buckets: [
-        { id: "bPast", date: "2026-09-03" },
-        { id: "bFuture", date: "2026-09-25" },
+        { id: "bPast", date: "2026-09-03", name: null },
+        { id: "bFuture", date: "2026-09-25", name: null },
       ],
     });
 
@@ -359,7 +360,7 @@ describe("which dates appear", () => {
     const entries = build({
       rootIds: ["pumpkin"],
       items: [item({ id: "pumpkin", name: "Roast pumpkin", bucket: "b1" })],
-      buckets: [{ id: "b1", date: "2026-09-03" }],
+      buckets: [{ id: "b1", date: "2026-09-03", name: null }],
     });
 
     expect(days(entries).map((d) => d.date)).not.toContain("2026-09-04");
@@ -371,7 +372,7 @@ describe("which dates appear", () => {
       items: [
         item({ id: "dinner", name: "Thanksgiving dinner", bucket: "b1" }),
       ],
-      buckets: [{ id: "b1", date: "2026-09-11" }],
+      buckets: [{ id: "b1", date: "2026-09-11", name: null }],
     });
 
     const dates = days(entries).map((d) => d.date);
@@ -387,7 +388,7 @@ describe("which dates appear", () => {
       items: [
         item({ id: "dinner", name: "Thanksgiving dinner", bucket: "b1" }),
       ],
-      buckets: [{ id: "b1", date: "2026-09-22" }],
+      buckets: [{ id: "b1", date: "2026-09-22", name: null }],
     });
 
     const dates = days(entries).map((d) => d.date);
@@ -434,5 +435,30 @@ describe("buildSubtree", () => {
 
   it("gives an unknown id no descendants", () => {
     expect(buildSubtree(DINNER, "nope")).toEqual([]);
+  });
+});
+
+describe("dayOfItems", () => {
+  it("gives each shown item the day it shows on, however deep", () => {
+    const entries = build({
+      rootIds: ["dinner", "lunch"],
+      items: [
+        item({ id: "dinner", bucket: "sat", children: ["pie", "prep"] }),
+        item({ id: "pie", bucket: "sat" }),
+        item({ id: "prep", bucket: "fri" }),
+        item({ id: "lunch" }),
+      ],
+      buckets: [
+        { id: "sat", date: "2026-09-12", name: null },
+        { id: "fri", date: "2026-09-11", name: null },
+      ],
+    });
+
+    expect(Object.fromEntries(dayOfItems(entries))).toEqual({
+      dinner: "2026-09-12",
+      pie: "2026-09-12",
+      prep: "2026-09-11",
+      lunch: TODAY,
+    });
   });
 });

@@ -3,6 +3,7 @@ import { graphqlUri } from "@/constants";
 import { getUserProfile } from "@/data-rsc/get-user-profile";
 import { ApolloWrapper } from "@/lib/apollo-browser-and-ssr";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { Toast } from "@heroui/react";
 import type { Metadata, Viewport } from "next";
 import { CookiesProvider } from "next-client-cookies/server";
 import { ErrorBoundary } from "react-error-boundary";
@@ -40,6 +41,7 @@ export default async function RootLayout({
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 {children}
               </ErrorBoundary>
+              <Toast.Provider />
             </ThemeProvider>
           </ApolloWrapper>
         </CookiesProvider>

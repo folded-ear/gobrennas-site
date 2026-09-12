@@ -4,6 +4,14 @@ query Planner {
       id
       name
       color
+      mine
+      grants {
+        level
+        user {
+          id
+          me
+        }
+      }
       ownedBy {
         id
         ...userAvatar

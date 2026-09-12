@@ -10,10 +10,11 @@ import { addDays, diffDays } from "./dates";
 export type TimelineItem = TimelineItemFragment &
   FragmentType<PlanItemFragment>;
 
-/** A plan bucket reduced to what dates an item: its date, or nothing. */
+/** A plan bucket: what dates an item, and whether it's named. */
 export type TimelineBucket = {
   readonly id: string;
   readonly date: string | null;
+  readonly name: string | null;
 };
 
 /** One item and whatever the timeline shows beneath it. */
@@ -178,6 +179,23 @@ function mergeSpans(spans: readonly Span[]): readonly Span[] {
     }
   }
   return merged;
+}
+
+/** I map each item the timeline shows to the day it shows on. */
+export function dayOfItems(
+  entries: readonly TimelineEntry[],
+): ReadonlyMap<string, string> {
+  const days = new Map<string, string>();
+  function visit(nodes: readonly PlanItemNode[], date: string): void {
+    for (const node of nodes) {
+      days.set(node.item.id, date);
+      visit(node.children, date);
+    }
+  }
+  for (const entry of entries) {
+    if (entry.kind === "day") visit(entry.roots, entry.date);
+  }
+  return days;
 }
 
 /**

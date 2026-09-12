@@ -1,0 +1,9 @@
+mutation doCreateBucket($planId: ID!, $date: Date) {
+  planner {
+    createBucket(planId: $planId, date: $date) {
+      id
+      date
+      name
+    }
+  }
+}
