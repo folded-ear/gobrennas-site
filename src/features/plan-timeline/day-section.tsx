@@ -3,6 +3,7 @@ import { ZoneLayer, ZoneSpec } from "@/features/plan-dnd/zone-layer";
 import { WHOLE_ZONE } from "@/features/plan-dnd/zones";
 import { PlanItemTree } from "@/features/plan-item/tree";
 import clsx from "clsx";
+import { PlanContext } from "./context";
 import { formatDayLabel } from "./dates";
 import { TimelineDay } from "./model";
 import { TimelineDnd, TimelineRow } from "./timeline-row";
@@ -10,13 +11,23 @@ import { TimelineDnd, TimelineRow } from "./timeline-row";
 type DaySectionProps = {
   day: TimelineDay;
   isToday: boolean;
+  context: PlanContext;
+  /** The item open in the drawer, marked wherever it shows. */
+  openId?: string;
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
 };
 
 /** I label one calendar day and show whatever it holds. */
-export function DaySection({ day, isToday, onSelect, dnd }: DaySectionProps) {
+export function DaySection({
+  day,
+  isToday,
+  context,
+  openId,
+  onSelect,
+  dnd,
+}: DaySectionProps) {
   const { dragged } = useDragSession();
   const label = formatDayLabel(day.date);
   const zones: readonly ZoneSpec[] =
@@ -51,19 +62,16 @@ export function DaySection({ day, isToday, onSelect, dnd }: DaySectionProps) {
         <div className="py-xs">
           <PlanItemTree
             nodes={day.roots}
-            onSelect={onSelect}
-            renderItem={
-              dnd
-                ? (node) => (
-                    <TimelineRow
-                      node={node}
-                      date={day.date}
-                      dnd={dnd}
-                      onSelect={onSelect}
-                    />
-                  )
-                : undefined
-            }
+            renderItem={(node) => (
+              <TimelineRow
+                node={node}
+                date={day.date}
+                context={context}
+                openId={openId}
+                dnd={dnd}
+                onSelect={onSelect}
+              />
+            )}
           />
         </div>
       )}

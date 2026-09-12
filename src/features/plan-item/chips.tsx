@@ -18,7 +18,8 @@ export function DateChip({ date, separation }: DateChipProps) {
     return (
       <Chip size="sm" color="warning">
         {formatDayLabel(date)}
-        <span className="sr-only">, later than what it belongs to</span>
+        {/* True of whichever end of the pair I am shown against. */}
+        <span className="sr-only">, out of order</span>
       </Chip>
     );
   }

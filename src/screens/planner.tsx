@@ -120,6 +120,7 @@ export function Planner() {
           rootIds={rootIds}
           items={plan.descendants}
           buckets={plan.buckets}
+          openId={selected?.id}
           onSelect={select}
           dnd={dnd}
         />

@@ -64,7 +64,12 @@ function renderDay(
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(PIE));
   return render(
     <ol>
-      <DaySection day={day(roots)} isToday={isToday} onSelect={onSelect} />
+      <DaySection
+        day={day(roots)}
+        isToday={isToday}
+        context={new Map()}
+        onSelect={onSelect}
+      />
     </ol>,
     { cache },
   );
