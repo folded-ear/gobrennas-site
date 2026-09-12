@@ -52,12 +52,13 @@ function fragment({ id, name }: Spec, notes: string | null): PlanItemFragment {
 function timelineItem(
   { id, name }: Spec,
   childIds: readonly string[] = [],
+  bucketId: string | null = null,
 ): TimelineItem {
   return {
     __typename: "PlanItem",
     id,
     name,
-    bucket: null,
+    bucket: bucketId ? { __typename: "PlanBucket", id: bucketId } : null,
     children: childIds.map((c) => ({ __typename: "PlanItem", id: c })),
   };
 }
@@ -76,6 +77,25 @@ function planContext(): PlanContext {
       timelineItem(FILLING),
     ],
     buckets: [],
+  });
+}
+
+const SATURDAY = "2026-09-12";
+const SUNDAY = "2026-09-13";
+
+/** The same plan, with the crust made the day after the pie it goes in. */
+function movedContext(): PlanContext {
+  return buildPlanContext({
+    rootIds: [PIE.id],
+    items: [
+      timelineItem(PIE, [CRUST.id, FILLING.id], "sat"),
+      timelineItem(CRUST, [], "sun"),
+      timelineItem(FILLING),
+    ],
+    buckets: [
+      { id: "sat", date: SATURDAY, name: null },
+      { id: "sun", date: SUNDAY, name: null },
+    ],
   });
 }
 
@@ -163,6 +183,35 @@ describe("PlanItemDetail", () => {
     await userEvent.click(screen.getByRole("button", { name: "Pumpkin pie" }));
 
     expect(onSelect).toHaveBeenCalledWith("42");
+  });
+
+  it("says when something below the item has been moved off its day", () => {
+    const cache = buildInMemoryCache();
+    const pie = seedFragment(
+      cache,
+      PlanItemFragmentDoc,
+      "planItem",
+      fragment(PIE, null),
+    );
+    seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
+    render(
+      <PlanItemDetail
+        item={pie}
+        context={movedContext()}
+        descendants={[node(CRUST)]}
+      />,
+      { cache },
+    );
+
+    expect(screen.getByText("Pie crust")).toBeVisible();
+    expect(screen.getByText("Sun, Sep 13")).toBeVisible();
+  });
+
+  it("leaves something sitting on its parent's day unremarked", () => {
+    renderDetail(null, [node(CRUST)]);
+
+    expect(screen.getByText("Pie crust")).toBeVisible();
+    expect(screen.queryByText(/Sep/)).toBeNull();
   });
 
   it("leaves what sits below the item inert", async () => {

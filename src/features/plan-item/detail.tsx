@@ -41,6 +41,22 @@ export function PlanItemDetail({
 
   if (!complete) return null;
 
+  // One way of drawing a row, whether or not the plan can be changed:
+  // a row says where its item has been moved to either way.
+  const tree = (
+    <PlanItemTree
+      nodes={descendants}
+      renderItem={(node) => (
+        <DrawerRow
+          node={node}
+          context={context}
+          tree={dnd?.tree}
+          onMove={dnd?.moves.moveInTree}
+        />
+      )}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-sm">
       <Ladder context={context} id={data.id} onSelect={onSelect} />
@@ -55,19 +71,10 @@ export function PlanItemDetail({
           canMove={dnd.canMove}
           isMoving={dnd.moves.isMoving}
         >
-          <PlanItemTree
-            nodes={descendants}
-            renderItem={(node) => (
-              <DrawerRow
-                node={node}
-                tree={dnd.tree}
-                onMove={dnd.moves.moveInTree}
-              />
-            )}
-          />
+          {tree}
         </DragSession>
       ) : (
-        <PlanItemTree nodes={descendants} />
+        tree
       )}
     </div>
   );
