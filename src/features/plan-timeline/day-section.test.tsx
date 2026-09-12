@@ -101,7 +101,7 @@ describe("DaySection", () => {
   it("shows the items it holds", () => {
     renderDay([node(PIE)]);
 
-    expect(screen.getByRole("button", { name: "Pumpkin pie" })).toBeVisible();
+    expect(screen.getByText("Pumpkin pie")).toBeVisible();
   });
 
   it("shows no item list when it holds nothing", () => {

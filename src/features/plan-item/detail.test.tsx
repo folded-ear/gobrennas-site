@@ -91,7 +91,7 @@ describe("PlanItemDetail", () => {
   it("shows what sits below the item", () => {
     renderDetail(null, [node(CRUST)]);
 
-    expect(screen.getByRole("button", { name: "Pie crust" })).toBeVisible();
+    expect(screen.getByText("Pie crust")).toBeVisible();
   });
 
   it("shows only the item when nothing sits below it", () => {
@@ -161,8 +161,8 @@ describe("PlanItemDetail, moving items", () => {
   it("offers no handles when the plan can't be changed", () => {
     renderMovable({ canMove: false });
 
-    expect(screen.getByRole("button", { name: "Pie crust" })).toBeVisible();
-    expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
+    expect(screen.getByText("Pie crust")).toBeVisible();
+    expect(screen.queryByRole("button")).toBeNull();
   });
 
   it("offers every drop that would change something, and no other", async () => {

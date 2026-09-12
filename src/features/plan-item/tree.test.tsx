@@ -98,8 +98,9 @@ describe("PlanItemTree", () => {
       { id: "2", name: "Roast turkey" },
     ]);
 
-    expect(screen.getByRole("button", { name: "Pumpkin pie" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Roast turkey" })).toBeVisible();
+    expect(screen.getByText("Pumpkin pie")).toBeVisible();
+    expect(screen.getByText("Roast turkey")).toBeVisible();
+    expect(screen.queryByRole("button")).toBeNull();
   });
 
   it("nests a child inside its parent's list item", () => {
@@ -112,15 +113,13 @@ describe("PlanItemTree", () => {
     ]);
 
     const [pie] = screen.getAllByRole("listitem");
-    expect(
-      within(pie).getByRole("button", { name: "Roast pumpkin" }),
-    ).toBeVisible();
+    expect(within(pie).getByText("Roast pumpkin")).toBeVisible();
   });
 
   it("nests to arbitrary depth", () => {
     renderTree([DINNER]);
 
-    expect(screen.getByRole("button", { name: "Butter" })).toBeVisible();
+    expect(screen.getByText("Butter")).toBeVisible();
     expect(screen.getAllByRole("list")).toHaveLength(4);
   });
 

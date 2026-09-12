@@ -70,7 +70,7 @@ describe("PlanTimeline", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "Roast pumpkin" })).toBeVisible();
+    expect(screen.getByText("Roast pumpkin")).toBeVisible();
 
     // Sep 4-8 are empty past days, so they collapse into one break.
     expect(document.body).toHaveTextContent(
@@ -168,7 +168,7 @@ describe("PlanTimeline, moving items", () => {
   it("offers no handles when the plan can't be changed", () => {
     renderMovable({ canMove: false });
 
-    expect(screen.getByRole("button", { name: "Breakfast" })).toBeVisible();
+    expect(screen.getByText("Breakfast")).toBeVisible();
     expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
   });
 
