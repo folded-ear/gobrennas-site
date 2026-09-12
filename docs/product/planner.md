@@ -43,8 +43,27 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - Days that nothing falls on collapse into a single break saying how long
   the skipped stretch is.
 - A day nothing falls on still leaves room for something to be put there.
-- Choosing an item opens it in the drawer, together with everything below
-  it, however deep and wherever those descendants sit on the calendar.
+- Choosing an item on the timeline opens it in the drawer, together with
+  everything below it, however deep and wherever those descendants sit on
+  the calendar.
+- The item open in the drawer is marked on the timeline, and stays marked
+  while the drawer is closed.
+- An item on a different day from its parent names that parent and says
+  which day the parent falls on.
+- An item falling after the thing it belongs to is marked as out of order,
+  since preparation cannot follow what it feeds.
+
+### The drawer
+
+- The drawer opens with the walk from the plan's root down to the item,
+  naming every step along the way.
+- A step says which day it falls on wherever that differs from the step
+  above it, so a plan whose parts share a day says its date once.
+- An item nothing in the plan dates says nothing about when it happens.
+- Choosing a step above the item opens that step instead. Nothing below the
+  item can be chosen: it is already in view, and opening it would only
+  narrow what is shown.
+- An item below the open one that falls on another day says which day.
 
 ### Moving items
 
