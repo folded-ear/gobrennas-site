@@ -104,7 +104,10 @@ describe("ladderLines", () => {
   });
 
   it("gives an item it knows nothing about no walk at all", () => {
-    expect(ladderLines(thanksgiving(), "gravy")).toEqual([]);
+    const context = thanksgiving();
+
+    expect(ladderLines(context, "salad")).not.toEqual([]);
+    expect(ladderLines(context, "gravy")).toEqual([]);
   });
 });
 
@@ -133,7 +136,11 @@ describe("Ladder", () => {
   it("opens an ancestor that is chosen", async () => {
     const onSelect = vi.fn();
     render(
-      <Ladder context={thanksgiving("wed")} id="dressing" onSelect={onSelect} />,
+      <Ladder
+        context={thanksgiving("wed")}
+        id="dressing"
+        onSelect={onSelect}
+      />,
     );
 
     await userEvent.click(screen.getByRole("button", { name: "Dinner" }));
@@ -144,9 +151,14 @@ describe("Ladder", () => {
   it("leaves the open item itself inert", () => {
     const onSelect = vi.fn();
     render(
-      <Ladder context={thanksgiving("wed")} id="dressing" onSelect={onSelect} />,
+      <Ladder
+        context={thanksgiving("wed")}
+        id="dressing"
+        onSelect={onSelect}
+      />,
     );
 
+    expect(screen.getByRole("heading", { name: "Dressing" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Dressing" })).toBeNull();
   });
 
