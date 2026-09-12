@@ -7,6 +7,10 @@ import {
 } from "@/features/plan-dnd/keyboard-drag";
 import { buildPlanTree } from "@/features/plan-dnd/moves";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
+import {
+  buildPlanContext,
+  PlanContext,
+} from "@/features/plan-timeline/context";
 import { PlanItemNode, TimelineItem } from "@/features/plan-timeline/model";
 import {
   buildInMemoryCache,
@@ -45,15 +49,54 @@ function fragment({ id, name }: Spec, notes: string | null): PlanItemFragment {
   };
 }
 
-function node({ id, name }: Spec): PlanItemNode {
-  const item: TimelineItem = {
+function timelineItem(
+  { id, name }: Spec,
+  childIds: readonly string[] = [],
+  bucketId: string | null = null,
+): TimelineItem {
+  return {
     __typename: "PlanItem",
     id,
     name,
-    bucket: null,
-    children: [],
+    bucket: bucketId ? { __typename: "PlanBucket", id: bucketId } : null,
+    children: childIds.map((c) => ({ __typename: "PlanItem", id: c })),
   };
-  return { item, children: [] };
+}
+
+function node({ id, name }: Spec): PlanItemNode {
+  return { item: timelineItem({ id, name }), children: [] };
+}
+
+// Plan 7: Pumpkin pie (42), holding Pie crust (43) then Pie filling (44).
+function planContext(): PlanContext {
+  return buildPlanContext({
+    rootIds: [PIE.id],
+    items: [
+      timelineItem(PIE, [CRUST.id, FILLING.id]),
+      timelineItem(CRUST),
+      timelineItem(FILLING),
+    ],
+    buckets: [],
+  });
+}
+
+const SATURDAY = "2026-09-12";
+const SUNDAY = "2026-09-13";
+
+/** The same plan, with the crust made the day after the pie it goes in. */
+function movedContext(): PlanContext {
+  return buildPlanContext({
+    rootIds: [PIE.id],
+    items: [
+      timelineItem(PIE, [CRUST.id, FILLING.id], "sat"),
+      timelineItem(CRUST, [], "sun"),
+      timelineItem(FILLING),
+    ],
+    buckets: [
+      { id: "sat", date: SATURDAY, name: null },
+      { id: "sun", date: SUNDAY, name: null },
+    ],
+  });
 }
 
 function renderDetail(
@@ -70,7 +113,32 @@ function renderDetail(
   );
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
   return render(
-    <PlanItemDetail item={pie} descendants={descendants} onSelect={onSelect} />,
+    <PlanItemDetail
+      item={pie}
+      context={planContext()}
+      descendants={descendants}
+      onSelect={onSelect}
+    />,
+    { cache },
+  );
+}
+
+/** The crust sits under the pie, so it has somewhere to walk back up to. */
+function renderCrustOpen(onSelect?: (id: string) => void) {
+  const cache = buildInMemoryCache();
+  const crust = seedFragment(
+    cache,
+    PlanItemFragmentDoc,
+    "planItem",
+    fragment(CRUST, null),
+  );
+  return render(
+    <PlanItemDetail
+      item={crust}
+      context={planContext()}
+      descendants={[]}
+      onSelect={onSelect}
+    />,
     { cache },
   );
 }
@@ -91,26 +159,70 @@ describe("PlanItemDetail", () => {
   it("shows what sits below the item", () => {
     renderDetail(null, [node(CRUST)]);
 
-    expect(screen.getByRole("button", { name: "Pie crust" })).toBeVisible();
+    expect(screen.getByText("Pie crust")).toBeVisible();
   });
 
-  it("shows only the item when nothing sits below it", () => {
+  it("shows nothing below the item when nothing is there", () => {
     renderDetail(null, []);
 
-    expect(screen.queryByRole("list")).toBeNull();
+    expect(screen.getByRole("heading", { name: "Pumpkin pie" })).toBeVisible();
+    expect(screen.queryByText("Pie crust")).toBeNull();
   });
 
-  it("passes a chosen descendant up", async () => {
+  it("says what the open item is part of", () => {
+    renderCrustOpen();
+
+    expect(screen.getByText("Pumpkin pie")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Pie crust" })).toBeVisible();
+  });
+
+  it("opens an ancestor of the item that is chosen", async () => {
+    const onSelect = vi.fn();
+    renderCrustOpen(onSelect);
+
+    await userEvent.click(screen.getByRole("button", { name: "Pumpkin pie" }));
+
+    expect(onSelect).toHaveBeenCalledWith("42");
+  });
+
+  it("says when something below the item has been moved off its day", () => {
+    const cache = buildInMemoryCache();
+    const pie = seedFragment(
+      cache,
+      PlanItemFragmentDoc,
+      "planItem",
+      fragment(PIE, null),
+    );
+    seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
+    render(
+      <PlanItemDetail
+        item={pie}
+        context={movedContext()}
+        descendants={[node(CRUST)]}
+      />,
+      { cache },
+    );
+
+    expect(screen.getByText("Pie crust")).toBeVisible();
+    expect(screen.getByText("Sun, Sep 13")).toBeVisible();
+  });
+
+  it("leaves something sitting on its parent's day unremarked", () => {
+    renderDetail(null, [node(CRUST)]);
+
+    expect(screen.getByText("Pie crust")).toBeVisible();
+    expect(screen.queryByText(/Sep/)).toBeNull();
+  });
+
+  it("leaves what sits below the item inert", async () => {
     const onSelect = vi.fn();
     renderDetail(null, [node(CRUST)], onSelect);
 
-    await userEvent.click(screen.getByRole("button", { name: "Pie crust" }));
-
-    expect(onSelect).toHaveBeenCalledWith("43");
+    expect(screen.getByText("Pie crust")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Pie crust" })).toBeNull();
   });
 });
 
-// Plan 7: Pumpkin pie (42), holding Pie crust (43) then Pie filling (44).
 function pieTree() {
   return buildPlanTree({ id: "7", children: [{ id: PIE.id }] }, [
     { id: PIE.id, children: [{ id: CRUST.id }, { id: FILLING.id }] },
@@ -136,6 +248,7 @@ function renderMovable(dnd: Partial<PlanDnd> = {}) {
   return render(
     <PlanItemDetail
       item={pie}
+      context={planContext()}
       descendants={[node(CRUST), node(FILLING)]}
       dnd={{ tree: pieTree(), canMove: true, moves: fakeMoves(), ...dnd }}
     />,
@@ -161,8 +274,8 @@ describe("PlanItemDetail, moving items", () => {
   it("offers no handles when the plan can't be changed", () => {
     renderMovable({ canMove: false });
 
-    expect(screen.getByRole("button", { name: "Pie crust" })).toBeVisible();
-    expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
+    expect(screen.getByText("Pie crust")).toBeVisible();
+    expect(screen.queryByRole("button")).toBeNull();
   });
 
   it("offers every drop that would change something, and no other", async () => {

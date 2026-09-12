@@ -40,7 +40,16 @@ describe("PlanItem", () => {
 
     render(<PlanItem item={pie} />, { cache });
 
-    expect(screen.getByRole("button", { name: "Pumpkin pie" })).toBeVisible();
+    expect(screen.getByText("Pumpkin pie")).toBeVisible();
+  });
+
+  it("offers nothing to click when choosing it does nothing", () => {
+    const { cache, pie } = seedPie();
+
+    render(<PlanItem item={pie} />, { cache });
+
+    expect(screen.getByText("Pumpkin pie")).toBeVisible();
+    expect(screen.queryByRole("button")).toBeNull();
   });
 
   it("reports its own id when chosen", async () => {

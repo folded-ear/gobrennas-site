@@ -3,6 +3,7 @@
 import { PlanDnd } from "@/features/plan-dnd";
 import { DragSession } from "@/features/plan-dnd/drag-session";
 import { useMemo } from "react";
+import { buildPlanContext } from "./context";
 import { DayList } from "./day-list";
 import {
   buildTimeline,
@@ -20,6 +21,8 @@ type PlanTimelineProps = {
   rootIds: readonly string[];
   items: readonly TimelineItem[];
   buckets: readonly TimelineBucket[];
+  /** The item open in the drawer, marked wherever it shows. */
+  openId?: string;
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
@@ -30,6 +33,7 @@ export function PlanTimeline({
   rootIds,
   items,
   buckets,
+  openId,
   onSelect,
   dnd,
 }: PlanTimelineProps) {
@@ -38,12 +42,26 @@ export function PlanTimeline({
     () => buildTimeline({ rootIds, items, buckets, today }),
     [rootIds, items, buckets, today],
   );
+  // I hold everything context needs already, so I ask for it myself
+  // rather than making every caller keep one in step with my own props.
+  const context = useMemo(
+    () => buildPlanContext({ rootIds, items, buckets }),
+    [rootIds, items, buckets],
+  );
 
   const dayOf = useMemo(() => dayOfItems(entries), [entries]);
   const rootIdSet = useMemo(() => new Set(rootIds), [rootIds]);
 
   if (!dnd) {
-    return <DayList entries={entries} today={today} onSelect={onSelect} />;
+    return (
+      <DayList
+        entries={entries}
+        today={today}
+        context={context}
+        openId={openId}
+        onSelect={onSelect}
+      />
+    );
   }
   const timelineDnd: TimelineDnd = { ...dnd, rootIds: rootIdSet, dayOf };
   return (
@@ -55,6 +73,8 @@ export function PlanTimeline({
       <DayList
         entries={entries}
         today={today}
+        context={context}
+        openId={openId}
         onSelect={onSelect}
         dnd={timelineDnd}
       />

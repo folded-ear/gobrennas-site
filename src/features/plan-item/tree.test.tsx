@@ -1,19 +1,6 @@
-import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanItemNode, TimelineItem } from "@/features/plan-timeline/model";
-import {
-  buildInMemoryCache,
-  render,
-  screen,
-  seedFragment,
-  userEvent,
-  within,
-} from "@/test";
-import { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
-import {
-  PlanItemFragment,
-  PlanItemFragmentDoc,
-} from "./__generated__/planItem.generated";
+import { render, screen, within } from "@/test";
+import { describe, expect, it } from "vitest";
 import { PlanItemTree } from "./tree";
 
 type Spec = {
@@ -51,43 +38,12 @@ function toNode({ id, name, children = [] }: Spec): PlanItemNode {
   return { item, children: children.map(toNode) };
 }
 
-function toFragment({ id, name }: Spec): PlanItemFragment {
-  return {
-    __typename: "PlanItem",
-    id,
-    name,
-    status: PlanItemStatus.NEEDED,
-    notes: null,
-    preparation: null,
-    parent: { __typename: "Plan", id: "7" },
-    aggregate: null,
-    ingredient: null,
-    quantity: null,
-    components: [],
-    bucket: null,
-  };
-}
-
-function flatten(specs: readonly Spec[]): readonly Spec[] {
-  return specs.flatMap((s) => [s, ...flatten(s.children ?? [])]);
-}
-
 function renderTree(
   specs: readonly Spec[],
-  onSelect?: (id: string) => void,
-  renderItem?: (node: PlanItemNode) => ReactNode,
+  renderItem = (node: PlanItemNode) => <span>{node.item.name}</span>,
 ) {
-  const cache = buildInMemoryCache();
-  for (const spec of flatten(specs)) {
-    seedFragment(cache, PlanItemFragmentDoc, "planItem", toFragment(spec));
-  }
   return render(
-    <PlanItemTree
-      nodes={specs.map(toNode)}
-      onSelect={onSelect}
-      renderItem={renderItem}
-    />,
-    { cache },
+    <PlanItemTree nodes={specs.map(toNode)} renderItem={renderItem} />,
   );
 }
 
@@ -98,8 +54,8 @@ describe("PlanItemTree", () => {
       { id: "2", name: "Roast turkey" },
     ]);
 
-    expect(screen.getByRole("button", { name: "Pumpkin pie" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Roast turkey" })).toBeVisible();
+    expect(screen.getByText("Pumpkin pie")).toBeVisible();
+    expect(screen.getByText("Roast turkey")).toBeVisible();
   });
 
   it("nests a child inside its parent's list item", () => {
@@ -112,15 +68,13 @@ describe("PlanItemTree", () => {
     ]);
 
     const [pie] = screen.getAllByRole("listitem");
-    expect(
-      within(pie).getByRole("button", { name: "Roast pumpkin" }),
-    ).toBeVisible();
+    expect(within(pie).getByText("Roast pumpkin")).toBeVisible();
   });
 
   it("nests to arbitrary depth", () => {
     renderTree([DINNER]);
 
-    expect(screen.getByRole("button", { name: "Butter" })).toBeVisible();
+    expect(screen.getByText("Butter")).toBeVisible();
     expect(screen.getAllByRole("list")).toHaveLength(4);
   });
 
@@ -130,21 +84,10 @@ describe("PlanItemTree", () => {
     expect(screen.queryByRole("list")).toBeNull();
   });
 
-  it("reports which item was chosen, however deep", async () => {
-    const onSelect = vi.fn();
-    renderTree([DINNER], onSelect);
-
-    await userEvent.click(screen.getByRole("button", { name: "Butter" }));
-
-    expect(onSelect).toHaveBeenCalledWith("4");
-  });
-
   it("draws each item's line with the renderer it's given, however deep", () => {
-    renderTree([DINNER], undefined, (node) => (
-      <span>Line for {node.item.name}</span>
-    ));
+    renderTree([DINNER], (node) => <span>Line for {node.item.name}</span>);
 
     expect(screen.getByText("Line for Butter")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Butter" })).toBeNull();
+    expect(screen.getByText("Line for Thanksgiving dinner")).toBeVisible();
   });
 });

@@ -19,11 +19,14 @@ export function PlanItem({ item, onSelect }: PlanItemProps) {
 
   if (!complete) return null;
 
+  // A click that does nothing shouldn't offer itself as one.
+  if (!onSelect) return <span>{data.name}</span>;
+
   return (
     <button
       type="button"
       className="text-left hover:text-accent"
-      onClick={() => onSelect?.(data.id)}
+      onClick={() => onSelect(data.id)}
     >
       {data.name}
     </button>

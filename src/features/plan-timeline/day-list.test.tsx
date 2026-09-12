@@ -14,7 +14,7 @@ const ENTRIES: readonly TimelineEntry[] = [
 
 describe("DayList", () => {
   it("lays days and gaps out in the order it was given", () => {
-    render(<DayList entries={ENTRIES} today={TODAY} />);
+    render(<DayList entries={ENTRIES} today={TODAY} context={new Map()} />);
 
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(4);
@@ -25,7 +25,7 @@ describe("DayList", () => {
   });
 
   it("marks exactly one day as today", () => {
-    render(<DayList entries={ENTRIES} today={TODAY} />);
+    render(<DayList entries={ENTRIES} today={TODAY} context={new Map()} />);
 
     const current = screen
       .getAllByRole("listitem")
@@ -35,7 +35,7 @@ describe("DayList", () => {
   });
 
   it("renders an empty timeline as an empty list", () => {
-    render(<DayList entries={[]} today={TODAY} />);
+    render(<DayList entries={[]} today={TODAY} context={new Map()} />);
 
     expect(screen.queryAllByRole("listitem")).toHaveLength(0);
   });

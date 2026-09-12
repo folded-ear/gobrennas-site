@@ -4,6 +4,7 @@ import {
   screen,
   seedFragment,
   userEvent,
+  waitFor,
 } from "@/test";
 import { MockedProviderProps } from "@apollo/client/testing/react";
 import { describe, expect, it } from "vitest";
@@ -13,6 +14,8 @@ import { SendToPlan } from "./index";
 
 const activePlanId = "plan-1";
 const recipeId = "recipe-1";
+const sentItemId = "item-1";
+const sentItemKey = `PlanItem:${sentItemId}`;
 
 function renderSendToPlan(mocks: MockedProviderProps["mocks"] = []) {
   const cache = buildInMemoryCache();
@@ -32,10 +35,11 @@ function renderSendToPlan(mocks: MockedProviderProps["mocks"] = []) {
     { id: "ROOT_QUERY", variables: { activePlanId } },
   );
 
-  return render(
-    <SendToPlan recipeId={recipeId} activePlanId={activePlanId} />,
-    { cache, mocks },
-  );
+  render(<SendToPlan recipeId={recipeId} activePlanId={activePlanId} />, {
+    cache,
+    mocks,
+  });
+  return cache;
 }
 
 describe("SendToPlan", () => {
@@ -50,7 +54,7 @@ describe("SendToPlan", () => {
   it("sends the recipe to the plan when clicked", async () => {
     const user = userEvent.setup();
 
-    renderSendToPlan([
+    const cache = renderSendToPlan([
       {
         request: {
           query: DoSendToPlanDocument,
@@ -60,21 +64,19 @@ describe("SendToPlan", () => {
           data: {
             library: {
               __typename: "LibraryMutation",
-              sendRecipeToPlan: { __typename: "PlanItem", id: "item-1" },
+              sendRecipeToPlan: { __typename: "PlanItem", id: sentItemId },
             },
           },
         },
       },
     ]);
 
+    expect(cache.extract()[sentItemKey]).toBeUndefined();
+
     await user.click(screen.getByRole("button", { name: /this week/i }));
 
-    expect(
-      screen.getByRole("button", { name: /sending/i }),
-    ).toBeInTheDocument();
-
-    expect(
-      await screen.findByRole("button", { name: /this week/i }),
-    ).toBeInTheDocument();
+    // The button reads the same before and after, so the item the plan
+    // gained is the only sign the recipe went anywhere.
+    await waitFor(() => expect(cache.extract()[sentItemKey]).toBeDefined());
   });
 });

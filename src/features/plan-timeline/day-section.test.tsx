@@ -64,7 +64,12 @@ function renderDay(
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(PIE));
   return render(
     <ol>
-      <DaySection day={day(roots)} isToday={isToday} onSelect={onSelect} />
+      <DaySection
+        day={day(roots)}
+        isToday={isToday}
+        context={new Map()}
+        onSelect={onSelect}
+      />
     </ol>,
     { cache },
   );
@@ -101,7 +106,7 @@ describe("DaySection", () => {
   it("shows the items it holds", () => {
     renderDay([node(PIE)]);
 
-    expect(screen.getByRole("button", { name: "Pumpkin pie" })).toBeVisible();
+    expect(screen.getByText("Pumpkin pie")).toBeVisible();
   });
 
   it("shows no item list when it holds nothing", () => {
