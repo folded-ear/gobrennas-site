@@ -66,9 +66,9 @@ export function TimelineRow({
   return (
     <div
       className={clsx(
-        // Unopened rows keep the width, or opening one shifts it.
-        "border-x-2",
-        openId === id ? "border-accent" : "border-transparent",
+        // The bars hang outside on a margin matching their width, so a row
+        // neither pays for them nor shifts when it gets them.
+        openId === id && "-mx-0.5 border-x-2 border-accent",
       )}
     >
       <ItemRow itemId={id} name={name} zones={zones}>
