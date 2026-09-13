@@ -30,7 +30,10 @@ export function Screen({ label, isOpen = true, children }: ScreenProps) {
           aria-label={label}
           className="w-full max-w-none sm:max-w-[90vw]"
         >
-          <Drawer.CloseTrigger />
+          {/* in its own row, so content never runs underneath it */}
+          <Drawer.Header className="flex-row justify-end">
+            <Drawer.CloseTrigger className="static" />
+          </Drawer.Header>
           <Drawer.Body className="text-base text-foreground">
             {children}
           </Drawer.Body>
