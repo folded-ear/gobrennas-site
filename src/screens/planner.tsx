@@ -19,7 +19,7 @@ import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 // Only the viewer's browser knows the viewer's date, so the timeline never
 // renders on the server.
@@ -49,13 +49,19 @@ export function Planner() {
   // first one stands for them all.
   const plan = plans.find((p) => p.id === planIds[0]);
   const selected = plan?.descendants.find((it) => it.id === openItem.value);
+  // A closing screen slides away still showing its item, not an empty panel.
+  const [shownId, setShownId] = useState(openItem.value);
+  if (openItem.value !== undefined && openItem.value !== shownId) {
+    setShownId(openItem.value);
+  }
+  const shown = plan?.descendants.find((it) => it.id === shownId);
   const rootIds = useMemo(
     () => plan?.children.map((it) => it.id) ?? [],
     [plan],
   );
   const descendants = useMemo(
-    () => (selected ? buildSubtree(plan?.descendants ?? [], selected.id) : []),
-    [plan, selected],
+    () => (shown ? buildSubtree(plan?.descendants ?? [], shown.id) : []),
+    [plan, shown],
   );
   const tree = useMemo(
     () => (plan ? buildPlanTree(plan, plan.descendants) : NO_PLAN_TREE),
@@ -92,10 +98,10 @@ export function Planner() {
           onChange={setPlanIds}
         />
       </SectionHeader>
-      <Screen label={selected?.name ?? ""} isOpen={selected !== undefined}>
-        {selected ? (
+      <Screen label={shown?.name ?? ""} isOpen={selected !== undefined}>
+        {shown ? (
           <PlanItemDetail
-            item={selected}
+            item={shown}
             context={context}
             descendants={descendants}
             onSelect={openItem.replace}
