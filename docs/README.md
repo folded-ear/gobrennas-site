@@ -121,6 +121,7 @@ Start new documents from the [product](templates/product.md),
 
 ### Product
 
+- [Navigation](product/navigation.md)
 - [Planner](product/planner.md)
 
 ### Domain

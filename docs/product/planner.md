@@ -15,7 +15,11 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - A user can choose which of their accessible plans appear in the planner.
 - The planner displays items from all selected plans in one view.
 - When the user has access to only one plan, the planner does not show a plan
-  selector.
+  picker.
+- The picker lists the user's own plans apart from plans shared with them,
+  and shows each selected plan as its colored avatar.
+- The selected plans are remembered per device, not per page visit. At least
+  one plan is always selected; with nothing remembered, the first plan is.
 - A plan can be marked complete.
 - A plan item can be assigned to a user.
 - A plan item can be given a date.
@@ -34,7 +38,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
   with no date passes the question up to the item's ancestors.
 - The planner shows top-level items, items assigned to a bucket, and items
   that have children of their own. Anything else — a leaf nobody has
-  bucketed — appears only in the drawer.
+  bucketed — appears only in the item screen.
 - An item appears beneath its parent when they fall on the same day, and
   on its own day when its bucket moves it elsewhere.
 - A past date appears only when it carries an item. Today and the following
@@ -43,19 +47,20 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - Days that nothing falls on collapse into a single break saying how long
   the skipped stretch is.
 - A day nothing falls on still leaves room for something to be put there.
-- Choosing an item on the timeline opens it in the drawer, together with
+- Choosing an item on the timeline opens it in the item screen, together with
   everything below it, however deep and wherever those descendants sit on
   the calendar.
-- The item open in the drawer is marked on the timeline, and stays marked
-  while the drawer is closed.
+- The item open in the item screen is marked on the timeline.
 - An item on a different day from its parent names that parent and says
   which day the parent falls on.
 - An item falling after the thing it belongs to is marked as out of order,
   since preparation cannot follow what it feeds.
 
-### The drawer
+### The item screen
 
-- The drawer opens with the walk from the plan's root down to the item,
+- The item screen slides in over the planner. Closing it, by its close
+  button, a flick, or Back, returns to the planner.
+- The item screen opens with the walk from the plan's root down to the item,
   naming every step along the way.
 - A step says which day it falls on wherever that differs from the step
   above it, so a plan whose parts share a day says its date once.
@@ -64,6 +69,12 @@ The terms used here are defined in the [domain model](../domain/model.md).
   item can be chosen: it is already in view, and opening it would only
   narrow what is shown.
 - An item below the open one that falls on another day says which day.
+
+### Cooking
+
+- An item with anything below it, on the timeline or in the item screen,
+  links to its cook view. The cook view slides in over whatever it was opened
+  from, and Back returns there.
 
 ### Moving items
 
@@ -77,13 +88,13 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - On the timeline, dropping a top-level item above or below another
   top-level item on the same day reorders it. Its day doesn't change. A
   nested item can't be reordered from the timeline.
-- In the drawer:
+- In the item screen:
   - dropping an item on the right three-quarters of another makes it that
     item's first child;
   - dropping it on the left quarter puts it before or after that item,
     depending on which half it lands in.
 - An item can't be dropped inside itself.
-- An item can't be dragged from the drawer to the timeline or back.
+- An item can't be dragged from the item screen to the timeline or back.
   Moving it in either one updates both.
 - A move shows immediately. If it fails, the item goes back where it was
   and a message says so.
@@ -98,7 +109,6 @@ earlier day, and keep the pumpkin with that work.
 
 ## Open questions
 
-- Is the set of selected plans stored per user or per device?
 - How far into the past should a plan's oldest items keep the timeline
   running? Today every dated item shows, however old.
 - What else happens when a plan is marked complete?
@@ -110,3 +120,4 @@ earlier day, and keep the pumpkin with that work.
 ## Related documents
 
 - [Domain model](../domain/model.md)
+- [Navigation](navigation.md)

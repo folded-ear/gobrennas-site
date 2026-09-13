@@ -91,9 +91,9 @@ throws and tells you so rather than rendering blank. `variables` goes in
 the same options, for a fragment whose own fields take arguments.
 
 **Anything else the cache needs**, write directly — `cache.writeQuery` to
-warm a screen's query the way `sidebar.test.tsx` does, `cache.writeFragment`
-for a shape `seedFragment` doesn't cover, `cache.readFragment` to assert on
-what a component wrote. `seedFragment` is a convenience over the cache, not
+warm a screen's query the way `use-plan-moves.test.tsx` does,
+`cache.writeFragment` for a shape `seedFragment` doesn't cover,
+`cache.readFragment` to assert on what a component wrote. `seedFragment` is a convenience over the cache, not
 a gate in front of it; the cache's own API stays available.
 
 **Component runs its own query or mutation.** Pass `mocks` — request and

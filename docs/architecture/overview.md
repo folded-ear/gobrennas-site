@@ -24,6 +24,27 @@ Shared UI belongs in `src/components/`. Shared hooks and providers belong in
 `src/hooks/` and `src/providers/`. Feature-specific code stays together under
 `src/features/<feature-name>/`.
 
+## Navigation shell
+
+`app/(private)/layout.tsx` renders the page, the bottom section nav
+(`src/features/section-nav/`, driven by its `SECTIONS` list), and an
+`@screen` parallel-route slot.
+
+Content that slides in over a page renders in `Screen`
+(`src/components/screen.tsx`). A screen closes only by going back in
+history, so it opens by adding a history entry in one of two ways:
+
+- A routed screen is an intercepting route under `app/(private)/@screen/`,
+  such as `(.)recipes/[id]`. Loading the same address directly renders the
+  full page route instead. `@screen/[...rest]` clears the slot on navigation
+  elsewhere.
+- A screen without a route keeps what it shows on its own history entry with
+  `useHistoryState` (`src/hooks/use-history-state/`), as the planner does for
+  the open plan item.
+
+Preferences such as selected plans are per-device values stored by the API.
+They are never part of a URL.
+
 ## GraphQL data
 
 The root `schema.graphql` and `schema-local.graphql` files define the schema
