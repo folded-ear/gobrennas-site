@@ -26,6 +26,8 @@ type PlanTimelineProps = {
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
+  /** Left out, no item offers to be cooked. */
+  planId?: string;
 };
 
 /** I lay a plan out down the calendar, anchored at the viewer's today. */
@@ -36,6 +38,7 @@ export function PlanTimeline({
   openId,
   onSelect,
   dnd,
+  planId,
 }: PlanTimelineProps) {
   const today = useToday();
   const entries = useMemo(
@@ -60,6 +63,7 @@ export function PlanTimeline({
         context={context}
         openId={openId}
         onSelect={onSelect}
+        planId={planId}
       />
     );
   }
@@ -77,6 +81,7 @@ export function PlanTimeline({
         openId={openId}
         onSelect={onSelect}
         dnd={timelineDnd}
+        planId={planId}
       />
     </DragSession>
   );

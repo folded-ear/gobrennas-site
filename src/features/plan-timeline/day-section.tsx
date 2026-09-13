@@ -17,6 +17,8 @@ type DaySectionProps = {
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
+  /** Left out, no item offers to be cooked. */
+  planId?: string;
 };
 
 /** I label one calendar day and show whatever it holds. */
@@ -27,6 +29,7 @@ export function DaySection({
   openId,
   onSelect,
   dnd,
+  planId,
 }: DaySectionProps) {
   const { dragged } = useDragSession();
   const label = formatDayLabel(day.date);
@@ -70,6 +73,7 @@ export function DaySection({
                 openId={openId}
                 dnd={dnd}
                 onSelect={onSelect}
+                planId={planId}
               />
             )}
           />

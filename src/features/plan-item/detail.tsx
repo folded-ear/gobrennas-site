@@ -24,6 +24,8 @@ type PlanItemDetailProps = {
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
+  /** Left out, no item offers to be cooked. */
+  planId?: string;
 };
 
 export function PlanItemDetail({
@@ -32,6 +34,7 @@ export function PlanItemDetail({
   descendants,
   onSelect,
   dnd,
+  planId,
 }: PlanItemDetailProps) {
   const { data, complete } = useFragment({
     fragment: PlanItemFragmentDoc,
@@ -52,6 +55,7 @@ export function PlanItemDetail({
           context={context}
           tree={dnd?.tree}
           onMove={dnd?.moves.moveInTree}
+          planId={planId}
         />
       )}
     />

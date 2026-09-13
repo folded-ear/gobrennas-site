@@ -162,6 +162,42 @@ describe("PlanItemDetail", () => {
     expect(screen.getByText("Pie crust")).toBeVisible();
   });
 
+  it("offers to cook whatever below the item has something below it", () => {
+    const cache = buildInMemoryCache();
+    const pie = seedFragment(
+      cache,
+      PlanItemFragmentDoc,
+      "planItem",
+      fragment(PIE, null),
+    );
+    seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
+    seedFragment(
+      cache,
+      PlanItemFragmentDoc,
+      "planItem",
+      fragment(FILLING, null),
+    );
+    render(
+      <PlanItemDetail
+        item={pie}
+        context={planContext()}
+        descendants={[
+          {
+            item: timelineItem(CRUST, [FILLING.id]),
+            children: [node(FILLING)],
+          },
+        ]}
+        planId="7"
+      />,
+      { cache },
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Cook Pie crust" }),
+    ).toHaveAttribute("href", "/plan/7/recipe/43");
+    expect(screen.getAllByRole("link", { name: /^Cook / })).toHaveLength(1);
+  });
+
   it("shows nothing below the item when nothing is there", () => {
     renderDetail(null, []);
 

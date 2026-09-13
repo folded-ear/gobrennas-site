@@ -100,6 +100,7 @@ export function Planner() {
             descendants={descendants}
             onSelect={openItem.replace}
             dnd={dnd}
+            planId={plan?.id}
           />
         ) : null}
       </Screen>
@@ -113,6 +114,7 @@ export function Planner() {
             openId={selected?.id}
             onSelect={openItem.push}
             dnd={dnd}
+            planId={plan.id}
           />
         ) : (
           <p>There are no plans to show.</p>
