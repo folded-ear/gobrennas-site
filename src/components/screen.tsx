@@ -12,8 +12,9 @@ type ScreenProps = PropsWithChildren<{
 
 /**
  * I slide in over everything else to show one thing. However I'm
- * dismissed — my close button, a flick, Escape — I go back in history,
- * and it's leaving the history entry I belong to that closes me.
+ * dismissed — my close button, a flick to the right, Escape — I go back
+ * in history, and it's leaving the history entry I belong to that closes
+ * me.
  */
 export function Screen({ label, isOpen = true, children }: ScreenProps) {
   const router = useRouter();
@@ -29,9 +30,10 @@ export function Screen({ label, isOpen = true, children }: ScreenProps) {
           aria-label={label}
           className="w-full max-w-none sm:max-w-[90vw]"
         >
-          <Drawer.Handle />
           <Drawer.CloseTrigger />
-          <Drawer.Body>{children}</Drawer.Body>
+          <Drawer.Body className="text-base text-foreground">
+            {children}
+          </Drawer.Body>
         </Drawer.Dialog>
       </Drawer.Content>
     </Drawer.Backdrop>
