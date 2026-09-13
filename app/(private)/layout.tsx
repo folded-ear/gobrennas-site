@@ -1,7 +1,16 @@
 import { SectionNav } from "@/features/section-nav";
-import { PropsWithChildren } from "react";
+import { ReactNode } from "react";
 
-export default async function PrivateLayout({ children }: PropsWithChildren) {
+type PrivateLayoutProps = {
+  children: ReactNode;
+  /** Whatever slides in over the page, if anything. */
+  screen: ReactNode;
+};
+
+export default async function PrivateLayout({
+  children,
+  screen,
+}: PrivateLayoutProps) {
   return (
     <>
       {/* clears the fixed section nav, however tall the device's inset */}
@@ -9,6 +18,7 @@ export default async function PrivateLayout({ children }: PropsWithChildren) {
         {children}
       </main>
       <SectionNav />
+      {screen}
     </>
   );
 }
