@@ -27,7 +27,7 @@ export function Screen({ label, isOpen = true, children }: ScreenProps) {
       <Drawer.Content placement="right">
         <Drawer.Dialog
           aria-label={label}
-          className="w-full max-w-none sm:w-96 sm:max-w-[85vw]"
+          className="w-full max-w-none sm:max-w-[90vw]"
         >
           <Drawer.Handle />
           <Drawer.CloseTrigger />
