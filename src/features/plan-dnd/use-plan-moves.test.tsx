@@ -1,6 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
-import { PlanNavLinkFragmentDoc } from "@/features/sidebar/__generated__/planNavLink.generated";
+import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
 import {
   PlannerDocument,
   PlannerQuery,
@@ -294,11 +294,11 @@ const PUT_BREAKFAST_FIRST = {
 };
 
 describe("usePlanMoves, among the plan's own items", () => {
-  // The sidebar reads the plan through a fragment on Plan, which stops
+  // The plan picker reads the plan through a fragment on Plan, which stops
   // matching, silently, if the plan's cache entry is retyped.
-  function sidebarName(cache: ReturnType<typeof buildInMemoryCache>) {
+  function pickerName(cache: ReturnType<typeof buildInMemoryCache>) {
     return cache.readFragment(
-      { fragment: PlanNavLinkFragmentDoc, id: `PlanItem:${PLAN_ID}` },
+      { fragment: PlanPickerPlanFragmentDoc, id: `PlanItem:${PLAN_ID}` },
       true,
     )?.name;
   }
@@ -313,7 +313,7 @@ describe("usePlanMoves, among the plan's own items", () => {
     expect(childrenOf("Thanksgiving")).toHaveTextContent(
       /^Thanksgiving: Breakfast, Thanksgiving dinner$/,
     );
-    expect(sidebarName(cache)).toBe("Thanksgiving");
+    expect(pickerName(cache)).toBe("Thanksgiving");
   });
 
   it("keeps the plan a plan once the server answers", async () => {
@@ -329,7 +329,7 @@ describe("usePlanMoves, among the plan's own items", () => {
     expect(childrenOf("Thanksgiving")).toHaveTextContent(
       /^Thanksgiving: Breakfast, Thanksgiving dinner$/,
     );
-    expect(sidebarName(cache)).toBe("Thanksgiving");
+    expect(pickerName(cache)).toBe("Thanksgiving");
   });
 });
 

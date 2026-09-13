@@ -1,26 +1,25 @@
 "use client";
 
-import {
-  defineDrawer,
-  ScreenDrawer,
-  useDrawer,
-} from "@/components/screen-drawer";
+import { Screen } from "@/components/screen";
+import { SectionHeader } from "@/components/section-header";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree, canChangePlan } from "@/features/plan-dnd/moves";
 import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemDetail } from "@/features/plan-item/detail";
+import { PlanPicker } from "@/features/plan-picker";
+import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import {
   buildPlanContext,
   PlanContext,
 } from "@/features/plan-timeline/context";
 import { buildSubtree } from "@/features/plan-timeline/model";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
-import { usePreference } from "@/hooks/use-preference";
-import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
+import { useHistoryState } from "@/hooks/use-history-state";
+import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
 import dynamic from "next/dynamic";
-import { PropsWithChildren, useMemo } from "react";
+import { useMemo, useState } from "react";
 
 // Only the viewer's browser knows the viewer's date, so the timeline never
 // renders on the server.
@@ -29,46 +28,40 @@ const PlanTimeline = dynamic(
   { ssr: false, loading: () => <TimelineSkeleton /> },
 );
 
-type PlannerMemento = {
-  itemId: string;
-};
+// The open item rides its own history entry, so going back closes it.
+const OPEN_ITEM_KEY = "planItem";
 
 // Stands in while there's no plan, when nothing is shown to move anyway.
 const NO_PLAN_TREE = buildPlanTree({ id: "", children: [] }, []);
 const NO_PLAN_CONTEXT: PlanContext = new Map();
 
-const PLANNER_DRAWER = defineDrawer<PlannerMemento>({
-  id: "planner",
-  defaultExpanded: false,
-});
-
-function Layout({ children }: PropsWithChildren) {
-  return (
-    <div className="bg-surface rounded-md p-md mx-xs">
-      <div className="border-b border-divider py-sm flex justify-between">
-        <h2 className="text-xl font-semibold text-foreground">Planner</h2>
-      </div>
-      {children}
-    </div>
-  );
-}
-
 export function Planner() {
   const { data } = useSuspenseQuery(PlannerDocument);
-  const drawer = useDrawer(PLANNER_DRAWER);
+  const openItem = useHistoryState<string>(OPEN_ITEM_KEY);
 
-  const activePlanId = usePreference(PREF_ACTIVE_PLAN);
-  const plan = data.planner.plans.find((p) => p.id === activePlanId);
-  const selected = plan?.descendants.find(
-    (it) => it.id === drawer.memento?.itemId,
+  const plans = data.planner.plans;
+  const [planIds, setPlanIds] = usePlanSelection(
+    PREF_PLANNER_PLANS,
+    plans,
+    "multiple",
   );
+  // Merging selected plans into one timeline is yet to come; until then the
+  // first one stands for them all.
+  const plan = plans.find((p) => p.id === planIds[0]);
+  const selected = plan?.descendants.find((it) => it.id === openItem.value);
+  // A closing screen slides away still showing its item, not an empty panel.
+  const [shownId, setShownId] = useState(openItem.value);
+  if (openItem.value !== undefined && openItem.value !== shownId) {
+    setShownId(openItem.value);
+  }
+  const shown = plan?.descendants.find((it) => it.id === shownId);
   const rootIds = useMemo(
     () => plan?.children.map((it) => it.id) ?? [],
     [plan],
   );
   const descendants = useMemo(
-    () => (selected ? buildSubtree(plan?.descendants ?? [], selected.id) : []),
-    [plan, selected],
+    () => (shown ? buildSubtree(plan?.descendants ?? [], shown.id) : []),
+    [plan, shown],
   );
   const tree = useMemo(
     () => (plan ? buildPlanTree(plan, plan.descendants) : NO_PLAN_TREE),
@@ -94,41 +87,45 @@ export function Planner() {
     ? { tree, canMove: canChangePlan(plan), moves }
     : undefined;
 
-  function select(itemId: string) {
-    drawer.setMemento({ itemId });
-    drawer.expand();
-  }
-
   return (
-    <Layout>
-      <ScreenDrawer drawer={PLANNER_DRAWER}>
-        {selected ? (
+    <>
+      <SectionHeader title="Planner">
+        <PlanPicker
+          label="Plans"
+          plans={plans}
+          selectionMode="multiple"
+          selectedIds={planIds}
+          onChange={setPlanIds}
+        />
+      </SectionHeader>
+      <Screen label={shown?.name ?? ""} isOpen={selected !== undefined}>
+        {shown ? (
           <PlanItemDetail
-            item={selected}
+            item={shown}
             context={context}
             descendants={descendants}
-            onSelect={select}
+            onSelect={openItem.replace}
             dnd={dnd}
+            planId={plan?.id}
+          />
+        ) : null}
+      </Screen>
+
+      <div className="p-md">
+        {plan ? (
+          <PlanTimeline
+            rootIds={rootIds}
+            items={plan.descendants}
+            buckets={plan.buckets}
+            openId={selected?.id}
+            onSelect={openItem.push}
+            dnd={dnd}
+            planId={plan.id}
           />
         ) : (
-          <p>Select a plan item to see it here.</p>
+          <p>There are no plans to show.</p>
         )}
-      </ScreenDrawer>
-
-      {plan ? (
-        <PlanTimeline
-          rootIds={rootIds}
-          items={plan.descendants}
-          buckets={plan.buckets}
-          openId={selected?.id}
-          onSelect={select}
-          dnd={dnd}
-        />
-      ) : (
-        <div className="flex flex-col gap-sm">
-          <p>No active plan found. Please select a plan from the sidebar.</p>
-        </div>
-      )}
-    </Layout>
+      </div>
+    </>
   );
 }

@@ -1,0 +1,8 @@
+query Recipes {
+  planner {
+    plans {
+      id
+      ...planPickerPlan @unmask
+    }
+  }
+}

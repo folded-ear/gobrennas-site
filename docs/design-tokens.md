@@ -61,6 +61,11 @@ Used as e.g. `p-md`, `gap-xl`. Prefer these named steps over Tailwind's
 numeric scale (`p-3`, `gap-6`) when the numeric value doesn't map cleanly —
 they read as intent (`sm`/`md`/`lg`) rather than a magic number.
 
+Widths are the exception: `w-*`, `min-w-*`, and `max-w-*` with `xs` through
+`xl` (and `max-w-none`) keep Tailwind's container sizes, so `max-w-lg` is
+32rem, not 16px. Use `w-lg`-style spacing widths through arbitrary values
+(`w-(--spacing-lg)`) if you need them.
+
 ## Typography
 
 Font is Figtree (`--font-figtree`, mapped to `--font-sans`). Tailwind's

@@ -1,9 +1,0 @@
-query getSidebar {
-  planner {
-    plans {
-      id
-      mine
-      ...planNavLink
-    }
-  }
-}

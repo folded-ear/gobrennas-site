@@ -152,6 +152,53 @@ function renderMovable(dnd: Partial<PlanDnd> = {}) {
   );
 }
 
+describe("PlanTimeline, cooking", () => {
+  function renderCookable(planId?: string) {
+    const cache = buildInMemoryCache();
+    for (const it of THANKSGIVING) {
+      seedFragment(cache, PlanItemFragmentDoc, "planItem", {
+        __typename: "PlanItem",
+        id: it.id,
+        name: it.name,
+        status: PlanItemStatus.NEEDED,
+        notes: null,
+        preparation: null,
+        parent: { __typename: "Plan", id: "7" },
+        aggregate: null,
+        ingredient: null,
+        quantity: null,
+        components: [],
+        bucket: null,
+      });
+    }
+    return render(
+      <PlanTimeline
+        rootIds={ROOT_IDS}
+        items={THANKSGIVING}
+        buckets={[SEP_12]}
+        planId={planId}
+      />,
+      { cache },
+    );
+  }
+
+  it("offers to cook only items with something below them", () => {
+    renderCookable("7");
+
+    expect(
+      screen.getByRole("link", { name: "Cook Thanksgiving dinner" }),
+    ).toHaveAttribute("href", "/plan/7/recipe/1");
+    expect(screen.getAllByRole("link", { name: /^Cook / })).toHaveLength(1);
+  });
+
+  it("offers to cook nothing without knowing the plan", () => {
+    renderCookable();
+
+    expect(screen.getByText("Thanksgiving dinner")).toBeVisible();
+    expect(screen.queryByRole("link", { name: /^Cook / })).toBeNull();
+  });
+});
+
 describe("PlanTimeline, moving items", () => {
   beforeEach(() => {
     // Only the date: a keyboard drag runs on real timers and frames.
@@ -334,16 +381,16 @@ describe("PlanTimeline, items apart from their parents", () => {
     expect(within(friday).queryByText(/out of order/)).toBeNull();
   });
 
-  it("marks the item open in the drawer, and not by colour alone", () => {
+  it("marks the item open in its screen, and not by colour alone", () => {
     const dayHeaded = renderApart(SEP_11.id, "3");
 
     const friday = dayHeaded("Fri, Sep 11");
-    expect(within(friday).getByText(/open in the drawer/)).toBeInTheDocument();
+    expect(within(friday).getByText(/open in its screen/)).toBeInTheDocument();
   });
 
-  it("marks nothing when the drawer holds no item", () => {
+  it("marks nothing when no item is open", () => {
     renderApart(SEP_11.id);
 
-    expect(screen.queryByText(/open in the drawer/)).toBeNull();
+    expect(screen.queryByText(/open in its screen/)).toBeNull();
   });
 });

@@ -12,11 +12,13 @@ type DaySectionProps = {
   day: TimelineDay;
   isToday: boolean;
   context: PlanContext;
-  /** The item open in the drawer, marked wherever it shows. */
+  /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
+  /** Left out, no item offers to be cooked. */
+  planId?: string;
 };
 
 /** I label one calendar day and show whatever it holds. */
@@ -27,6 +29,7 @@ export function DaySection({
   openId,
   onSelect,
   dnd,
+  planId,
 }: DaySectionProps) {
   const { dragged } = useDragSession();
   const label = formatDayLabel(day.date);
@@ -70,6 +73,7 @@ export function DaySection({
                 openId={openId}
                 dnd={dnd}
                 onSelect={onSelect}
+                planId={planId}
               />
             )}
           />

@@ -9,6 +9,7 @@ import { PlanItem } from "@/features/plan-item";
 import { PlanContext } from "@/features/plan-timeline/context";
 import { PlanItemNode } from "@/features/plan-timeline/model";
 import { DateChip } from "./chips";
+import { CookLink } from "./cook-link";
 
 type DrawerRowProps = {
   node: PlanItemNode;
@@ -16,14 +17,22 @@ type DrawerRowProps = {
   /** Left out, nothing can be dropped on me. */
   tree?: PlanTree;
   onMove?: (move: TreeMove, name: string) => void;
+  /** Left out, no item offers to be cooked. */
+  planId?: string;
 };
 
 /**
- * I am one item's line in the drawer: it can be nested under, or put
- * before or after, by a drag from elsewhere in the drawer. When my item
+ * I am one item's line in the item screen: it can be nested under, or put
+ * before or after, by a drag from elsewhere in the item screen. When my item
  * sits apart from its parent, I say which day it has been moved to.
  */
-export function DrawerRow({ node, context, tree, onMove }: DrawerRowProps) {
+export function DrawerRow({
+  node,
+  context,
+  tree,
+  onMove,
+  planId,
+}: DrawerRowProps) {
   const { dragged } = useDragSession();
   const { id, name } = node.item;
   const zones =
@@ -38,7 +47,7 @@ export function DrawerRow({ node, context, tree, onMove }: DrawerRowProps) {
       : [];
 
   const own = context.get(id);
-  // My own day is what the drawer cannot otherwise show: nothing here
+  // My own day is what the item screen cannot otherwise show: nothing here
   // stands under a date the way a timeline row does.
   const apartOn =
     own && own.separation !== null && own.date !== null ? own.date : null;
@@ -46,6 +55,9 @@ export function DrawerRow({ node, context, tree, onMove }: DrawerRowProps) {
   return (
     <ItemRow itemId={id} name={name} zones={zones}>
       <PlanItem item={node.item} />
+      {planId !== undefined && node.item.children.length > 0 ? (
+        <CookLink planId={planId} itemId={id} name={name} />
+      ) : null}
       {apartOn !== null ? (
         <span className="ms-auto">
           <DateChip date={apartOn} separation={own?.separation} />

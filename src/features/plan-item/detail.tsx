@@ -24,6 +24,8 @@ type PlanItemDetailProps = {
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
+  /** Left out, no item offers to be cooked. */
+  planId?: string;
 };
 
 export function PlanItemDetail({
@@ -32,6 +34,7 @@ export function PlanItemDetail({
   descendants,
   onSelect,
   dnd,
+  planId,
 }: PlanItemDetailProps) {
   const { data, complete } = useFragment({
     fragment: PlanItemFragmentDoc,
@@ -52,6 +55,7 @@ export function PlanItemDetail({
           context={context}
           tree={dnd?.tree}
           onMove={dnd?.moves.moveInTree}
+          planId={planId}
         />
       )}
     />
@@ -59,7 +63,13 @@ export function PlanItemDetail({
 
   return (
     <div className="flex flex-col gap-sm">
-      <Ladder context={context} id={data.id} onSelect={onSelect} />
+      <Ladder
+        context={context}
+        id={data.id}
+        onSelect={onSelect}
+        planId={planId}
+        openHasChildren={descendants.length > 0}
+      />
       {data.notes ? <p className="text-sm text-muted">{data.notes}</p> : null}
       {descendants.length > 0 ? (
         // Where the item's own context stops and its contents start.

@@ -8,10 +8,12 @@ type DayListProps = {
   entries: readonly TimelineEntry[];
   today: string;
   context: PlanContext;
-  /** The item open in the drawer, marked wherever it shows. */
+  /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   onSelect?: (id: string) => void;
   dnd?: TimelineDnd;
+  /** Left out, no item offers to be cooked. */
+  planId?: string;
 };
 
 /** I run the calendar down the page: labelled days, breaks between. */
@@ -22,6 +24,7 @@ export function DayList({
   openId,
   onSelect,
   dnd,
+  planId,
 }: DayListProps) {
   return (
     <ol className="flex flex-col">
@@ -35,6 +38,7 @@ export function DayList({
             openId={openId}
             onSelect={onSelect}
             dnd={dnd}
+            planId={planId}
           />
         ) : (
           <GapRow key={`gap:${entry.after}`} gap={entry} />

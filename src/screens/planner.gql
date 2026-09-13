@@ -5,6 +5,7 @@ query Planner {
       name
       color
       mine
+      ...planPickerPlan @unmask
       grants {
         level
         user {

@@ -134,7 +134,7 @@ describe("Ladder", () => {
     expect(screen.getByText("Salad")).toBeVisible();
   });
 
-  it("heads the drawer with the open item", () => {
+  it("heads the item screen with the open item", () => {
     render(<Ladder context={thanksgiving("wed")} id="dressing" />);
 
     expect(screen.getByRole("heading", { name: "Dressing" })).toBeVisible();
@@ -174,6 +174,47 @@ describe("Ladder", () => {
 
     expect(screen.getByRole("heading", { name: "Dressing" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Dressing" })).toBeNull();
+  });
+
+  it("offers to cook every step above the open item", () => {
+    render(
+      <Ladder
+        context={thanksgiving("wed")}
+        id="dressing"
+        planId="7"
+        openHasChildren={false}
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Cook Thanksgiving" }),
+    ).toHaveAttribute("href", "/plan/7/recipe/thanksgiving");
+    expect(screen.getByRole("link", { name: "Cook Dinner" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Cook Salad" })).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Cook Dressing" })).toBeNull();
+  });
+
+  it("offers to cook the open item when it has something below it", () => {
+    render(
+      <Ladder
+        context={thanksgiving("wed")}
+        id="salad"
+        planId="7"
+        openHasChildren
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "Cook Salad" })).toHaveAttribute(
+      "href",
+      "/plan/7/recipe/salad",
+    );
+  });
+
+  it("offers to cook nothing without knowing the plan", () => {
+    render(<Ladder context={thanksgiving("wed")} id="salad" openHasChildren />);
+
+    expect(screen.getByText("Dinner")).toBeVisible();
+    expect(screen.queryByRole("link")).toBeNull();
   });
 
   it("offers nothing to click when items cannot be opened", () => {

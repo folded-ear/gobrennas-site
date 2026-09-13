@@ -7,6 +7,7 @@ import { treeZones } from "@/features/plan-dnd/tree-zones";
 import { REORDER_ZONES } from "@/features/plan-dnd/zones";
 import { PlanItem } from "@/features/plan-item";
 import { DateChip, ParentChip } from "@/features/plan-item/chips";
+import { CookLink } from "@/features/plan-item/cook-link";
 import clsx from "clsx";
 import { PlanContext } from "./context";
 import { PlanItemNode } from "./model";
@@ -21,11 +22,13 @@ type TimelineRowProps = {
   node: PlanItemNode;
   date: string;
   context: PlanContext;
-  /** The item open in the drawer, marked wherever it shows. */
+  /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
   onSelect?: (id: string) => void;
+  /** Left out, no item offers to be cooked. */
+  planId?: string;
 };
 
 /**
@@ -40,6 +43,7 @@ export function TimelineRow({
   openId,
   dnd,
   onSelect,
+  planId,
 }: TimelineRowProps) {
   const { dragged } = useDragSession();
   const { id, name } = node.item;
@@ -75,7 +79,10 @@ export function TimelineRow({
         <PlanItem item={node.item} onSelect={onSelect} />
         {openId === id ? (
           // The bars say this to everyone who can see them.
-          <span className="sr-only">, open in the drawer</span>
+          <span className="sr-only">, open in its screen</span>
+        ) : null}
+        {planId !== undefined && node.item.children.length > 0 ? (
+          <CookLink planId={planId} itemId={id} name={name} />
         ) : null}
         {apart?.parent ? (
           <span className="ms-auto flex items-center gap-xs">

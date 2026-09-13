@@ -1,19 +1,24 @@
-import { Container } from "@/components/container";
-import { Drawer } from "@/components/drawer";
-import { Sidebar } from "@/features/sidebar";
-import { DrawerProvider } from "@/providers/drawer-provider";
-import { PropsWithChildren } from "react";
+import { SectionNav } from "@/features/section-nav";
+import { ReactNode } from "react";
 
-export default async function PrivateLayout({ children }: PropsWithChildren) {
+type PrivateLayoutProps = {
+  children: ReactNode;
+  /** Whatever slides in over the page, if anything. */
+  screen: ReactNode;
+};
+
+export default async function PrivateLayout({
+  children,
+  screen,
+}: PrivateLayoutProps) {
   return (
-    <DrawerProvider>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Container>{children}</Container>
-        </main>
-        <Drawer />
-      </div>
-    </DrawerProvider>
+    <>
+      {/* clears the fixed section nav, however tall the device's inset */}
+      <main className="min-h-dvh pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
+        {children}
+      </main>
+      <SectionNav />
+      {screen}
+    </>
   );
 }
