@@ -414,7 +414,8 @@ type Plan implements AccessControlled & CorePlanItem & Node & Owned {
   "A plan's assignee is always its owner."
   assignee: User!
   bucketCount: NonNegativeInt!
-  buckets: [PlanBucket!]!
+  "The plan's buckets, in the requested order (by date if omitted)."
+  buckets(sort: PlanBucketSort! = DATE): [PlanBucket!]!
   childCount: NonNegativeInt!
   children: [PlanItem!]!
   """
@@ -519,6 +520,12 @@ type PlannerMutation {
   deletePlan(id: ID!): Deletion!
   "Create a new plan by duplicating the specified source plan."
   duplicatePlan(name: String!, sourcePlanId: ID!): Plan!
+  """
+
+  Move a bucket within its plan, after the specified bucket (null means
+  first). The plan's info is returned.
+  """
+  moveBucket(afterId: ID, bucketId: ID!, planId: ID!): Plan!
   """
 
   Move the given items under the given parent, in order, optionally after a
@@ -898,6 +905,19 @@ enum DataType {
 enum LibrarySearchScope {
   EVERYONE
   MINE
+}
+
+enum PlanBucketSort {
+  "Undated buckets first, then by date. Ties are broken by position."
+  DATE
+  """
+
+  Unnamed buckets first, then by name, ignoring case. Ties are broken
+  by position.
+  """
+  NAME
+  "The order buckets were created in, adjusted by any moves."
+  POSITION
 }
 
 enum PlanItemStatus {
