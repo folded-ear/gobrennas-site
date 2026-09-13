@@ -28,7 +28,6 @@ away and lets focused content slide in without losing the user's place.
 - A screen slides in from the right over the page it was opened from.
 - A recipe opened from within the Library opens in a screen. Opening a
   recipe's address directly shows it as a full page instead.
-- A screen can open over another screen.
 - Every way of closing a screen — its close button, a flick, tapping outside
   it, Escape, or Back — goes back one step in history.
 

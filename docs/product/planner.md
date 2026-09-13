@@ -73,8 +73,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
 ### Cooking
 
 - An item with anything below it links to its cook view: on the timeline,
-  in the item screen's walk down to the open item, and below it. The cook view slides in over whatever it was opened
-  from, and Back returns there.
+  in the item screen's walk down to the open item, and below it.
+- The cook view is a page of its own, in the Planner section. Back returns
+  to where it was opened from, with the item screen still open if it was.
 
 ### Moving items
 
