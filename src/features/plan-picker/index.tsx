@@ -2,6 +2,7 @@
 
 import PlanAvatar from "@/components/plan-avatar";
 import { Header, Key, Label, ListBox, Select, Separator } from "@heroui/react";
+import clsx from "clsx";
 import { PlanPickerPlanFragment } from "./__generated__/planPickerPlan.generated";
 import { pickerOrder, SelectionMode } from "./selection";
 
@@ -21,12 +22,26 @@ type AvatarGroupProps = {
   plans: readonly Plan[];
 };
 
+/** Past this many avatars, a group stacks them, each half over the last. */
+const MOST_SIDE_BY_SIDE = 3;
+
 function AvatarGroup({ label, plans }: AvatarGroupProps) {
   if (plans.length === 0) return null;
+  const stacked = plans.length > MOST_SIDE_BY_SIDE;
   return (
-    <span role="group" aria-label={label} className="flex items-center gap-xs">
+    <span
+      role="group"
+      aria-label={label}
+      className={clsx("flex items-center", !stacked && "gap-xs")}
+    >
       {plans.map((plan) => (
-        <PlanAvatar key={plan.id} plan={plan} size="sm" />
+        <PlanAvatar
+          key={plan.id}
+          plan={plan}
+          size="sm"
+          // half of a small avatar's width, ringed so each edge stays clear
+          className={clsx(stacked && "-ms-4 ring-2 ring-surface first:ms-0")}
+        />
       ))}
     </span>
   );
