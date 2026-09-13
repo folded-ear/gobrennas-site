@@ -24,8 +24,11 @@ export function Screen({ label, isOpen = true, children }: ScreenProps) {
         if (!open) router.back();
       }}
     >
-      <Drawer.Content placement="right" className="w-full sm:max-w-lg">
-        <Drawer.Dialog aria-label={label}>
+      <Drawer.Content placement="right">
+        <Drawer.Dialog
+          aria-label={label}
+          className="w-full max-w-none sm:w-96 sm:max-w-[85vw]"
+        >
           <Drawer.Handle />
           <Drawer.CloseTrigger />
           <Drawer.Body>{children}</Drawer.Body>
