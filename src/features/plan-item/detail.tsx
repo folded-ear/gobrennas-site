@@ -63,7 +63,13 @@ export function PlanItemDetail({
 
   return (
     <div className="flex flex-col gap-sm">
-      <Ladder context={context} id={data.id} onSelect={onSelect} />
+      <Ladder
+        context={context}
+        id={data.id}
+        onSelect={onSelect}
+        planId={planId}
+        openHasChildren={descendants.length > 0}
+      />
       {data.notes ? <p className="text-sm text-muted">{data.notes}</p> : null}
       {descendants.length > 0 ? (
         // Where the item's own context stops and its contents start.

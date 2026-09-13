@@ -72,8 +72,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Cooking
 
-- An item with anything below it, on the timeline or in the item screen,
-  links to its cook view. The cook view slides in over whatever it was opened
+- An item with anything below it links to its cook view: on the timeline,
+  in the item screen's walk down to the open item, and below it. The cook view slides in over whatever it was opened
   from, and Back returns there.
 
 ### Moving items

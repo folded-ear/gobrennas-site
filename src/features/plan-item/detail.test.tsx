@@ -162,7 +162,7 @@ describe("PlanItemDetail", () => {
     expect(screen.getByText("Pie crust")).toBeVisible();
   });
 
-  it("offers to cook whatever below the item has something below it", () => {
+  it("offers to cook the item, and whatever below it has something below it", () => {
     const cache = buildInMemoryCache();
     const pie = seedFragment(
       cache,
@@ -195,7 +195,10 @@ describe("PlanItemDetail", () => {
     expect(
       screen.getByRole("link", { name: "Cook Pie crust" }),
     ).toHaveAttribute("href", "/plan/7/recipe/43");
-    expect(screen.getAllByRole("link", { name: /^Cook / })).toHaveLength(1);
+    expect(
+      screen.getByRole("link", { name: "Cook Pumpkin pie" }),
+    ).toHaveAttribute("href", "/plan/7/recipe/42");
+    expect(screen.queryByRole("link", { name: "Cook Pie filling" })).toBeNull();
   });
 
   it("shows nothing below the item when nothing is there", () => {
