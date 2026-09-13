@@ -3,7 +3,7 @@
 import PlanAvatar from "@/components/plan-avatar";
 import { Header, Key, Label, ListBox, Select, Separator } from "@heroui/react";
 import { PlanPickerPlanFragment } from "./__generated__/planPickerPlan.generated";
-import { SelectionMode } from "./selection";
+import { pickerOrder, SelectionMode } from "./selection";
 
 type Plan = PlanPickerPlanFragment;
 
@@ -15,6 +15,22 @@ type PlanPickerProps = {
   selectedIds: readonly string[];
   onChange: (ids: string[]) => void;
 };
+
+type AvatarGroupProps = {
+  label: string;
+  plans: readonly Plan[];
+};
+
+function AvatarGroup({ label, plans }: AvatarGroupProps) {
+  if (plans.length === 0) return null;
+  return (
+    <span role="group" aria-label={label} className="flex items-center gap-xs">
+      {plans.map((plan) => (
+        <PlanAvatar key={plan.id} plan={plan} size="sm" />
+      ))}
+    </span>
+  );
+}
 
 type PlanSectionProps = {
   title: string;
@@ -53,7 +69,11 @@ export function PlanPicker({
 
   const mine = plans.filter((it) => it.mine);
   const shared = plans.filter((it) => !it.mine);
-  const selected = plans.filter((it) => selectedIds.includes(it.id));
+  const selected = pickerOrder(plans).filter((it) =>
+    selectedIds.includes(it.id),
+  );
+  const selectedMine = selected.filter((it) => it.mine);
+  const selectedShared = selected.filter((it) => !it.mine);
   const single = selectionMode === "single";
 
   return (
@@ -74,9 +94,11 @@ export function PlanPicker({
       <Select.Trigger>
         <Select.Value>
           <span className="flex items-center gap-xs">
-            {selected.map((plan) => (
-              <PlanAvatar key={plan.id} plan={plan} size="sm" />
-            ))}
+            <AvatarGroup label="My Plans" plans={selectedMine} />
+            {selectedMine.length > 0 && selectedShared.length > 0 ? (
+              <span aria-hidden className="h-5 w-px bg-separator" />
+            ) : null}
+            <AvatarGroup label="Shared Plans" plans={selectedShared} />
             {selected.length === 1 ? (
               <span className="truncate">{selected[0].name}</span>
             ) : null}

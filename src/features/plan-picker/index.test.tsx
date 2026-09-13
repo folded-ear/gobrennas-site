@@ -62,6 +62,31 @@ describe("PlanPicker", () => {
     expect(within(trigger).queryByTitle(WEEKNIGHTS.name)).toBeNull();
   });
 
+  it("keeps owned and shared plans apart on its trigger", () => {
+    render(
+      <PlanPicker
+        label="Plans"
+        plans={PLANS}
+        selectionMode="multiple"
+        selectedIds={[NEIGHBOR.id, FEAST_DAY.id, WEEKNIGHTS.id]}
+        onChange={vi.fn()}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", { name: /Plans/ });
+    const [mine, shared] = within(trigger).getAllByRole("group");
+    expect(
+      within(mine)
+        .getAllByTitle(/./)
+        .map((it) => it.title),
+    ).toEqual([WEEKNIGHTS.name, FEAST_DAY.name]);
+    expect(
+      within(shared)
+        .getAllByTitle(/./)
+        .map((it) => it.title),
+    ).toEqual([NEIGHBOR.name]);
+  });
+
   it("offers owned and shared plans in separate groups", async () => {
     render(
       <PlanPicker
