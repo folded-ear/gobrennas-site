@@ -21,7 +21,7 @@ type TimelineRowProps = {
   node: PlanItemNode;
   date: string;
   context: PlanContext;
-  /** The item open in the drawer, marked wherever it shows. */
+  /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
@@ -75,7 +75,7 @@ export function TimelineRow({
         <PlanItem item={node.item} onSelect={onSelect} />
         {openId === id ? (
           // The bars say this to everyone who can see them.
-          <span className="sr-only">, open in the drawer</span>
+          <span className="sr-only">, open in its screen</span>
         ) : null}
         {apart?.parent ? (
           <span className="ms-auto flex items-center gap-xs">

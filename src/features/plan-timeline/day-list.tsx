@@ -8,7 +8,7 @@ type DayListProps = {
   entries: readonly TimelineEntry[];
   today: string;
   context: PlanContext;
-  /** The item open in the drawer, marked wherever it shows. */
+  /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   onSelect?: (id: string) => void;
   dnd?: TimelineDnd;

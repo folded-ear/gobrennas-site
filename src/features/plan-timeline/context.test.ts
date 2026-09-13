@@ -88,7 +88,7 @@ describe("an item's date", () => {
   });
 
   it("dates a leaf the timeline never shows", () => {
-    // Oil is an unbucketed leaf, so the timeline hides it; the drawer
+    // Oil is an unbucketed leaf, so the timeline hides it; the item screen
     // still shows it and still needs to know when it happens.
     expect(contextFor(thanksgiving("wed"), "oil").date).toBe(WEDNESDAY);
   });

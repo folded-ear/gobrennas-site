@@ -21,7 +21,7 @@ type PlanTimelineProps = {
   rootIds: readonly string[];
   items: readonly TimelineItem[];
   buckets: readonly TimelineBucket[];
-  /** The item open in the drawer, marked wherever it shows. */
+  /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */

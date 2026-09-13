@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  defineDrawer,
-  ScreenDrawer,
-  useDrawer,
-} from "@/components/screen-drawer";
+import { Screen } from "@/components/screen";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree, canChangePlan } from "@/features/plan-dnd/moves";
 import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
@@ -15,6 +11,7 @@ import {
 } from "@/features/plan-timeline/context";
 import { buildSubtree } from "@/features/plan-timeline/model";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
+import { useHistoryState } from "@/hooks/use-history-state";
 import { usePreference } from "@/hooks/use-preference";
 import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
@@ -29,18 +26,12 @@ const PlanTimeline = dynamic(
   { ssr: false, loading: () => <TimelineSkeleton /> },
 );
 
-type PlannerMemento = {
-  itemId: string;
-};
+// The open item rides its own history entry, so going back closes it.
+const OPEN_ITEM_KEY = "planItem";
 
 // Stands in while there's no plan, when nothing is shown to move anyway.
 const NO_PLAN_TREE = buildPlanTree({ id: "", children: [] }, []);
 const NO_PLAN_CONTEXT: PlanContext = new Map();
-
-const PLANNER_DRAWER = defineDrawer<PlannerMemento>({
-  id: "planner",
-  defaultExpanded: false,
-});
 
 function Layout({ children }: PropsWithChildren) {
   return (
@@ -55,13 +46,11 @@ function Layout({ children }: PropsWithChildren) {
 
 export function Planner() {
   const { data } = useSuspenseQuery(PlannerDocument);
-  const drawer = useDrawer(PLANNER_DRAWER);
+  const openItem = useHistoryState<string>(OPEN_ITEM_KEY);
 
   const activePlanId = usePreference(PREF_ACTIVE_PLAN);
   const plan = data.planner.plans.find((p) => p.id === activePlanId);
-  const selected = plan?.descendants.find(
-    (it) => it.id === drawer.memento?.itemId,
-  );
+  const selected = plan?.descendants.find((it) => it.id === openItem.value);
   const rootIds = useMemo(
     () => plan?.children.map((it) => it.id) ?? [],
     [plan],
@@ -94,26 +83,19 @@ export function Planner() {
     ? { tree, canMove: canChangePlan(plan), moves }
     : undefined;
 
-  function select(itemId: string) {
-    drawer.setMemento({ itemId });
-    drawer.expand();
-  }
-
   return (
     <Layout>
-      <ScreenDrawer drawer={PLANNER_DRAWER}>
+      <Screen label={selected?.name ?? ""} isOpen={selected !== undefined}>
         {selected ? (
           <PlanItemDetail
             item={selected}
             context={context}
             descendants={descendants}
-            onSelect={select}
+            onSelect={openItem.replace}
             dnd={dnd}
           />
-        ) : (
-          <p>Select a plan item to see it here.</p>
-        )}
-      </ScreenDrawer>
+        ) : null}
+      </Screen>
 
       {plan ? (
         <PlanTimeline
@@ -121,7 +103,7 @@ export function Planner() {
           items={plan.descendants}
           buckets={plan.buckets}
           openId={selected?.id}
-          onSelect={select}
+          onSelect={openItem.push}
           dnd={dnd}
         />
       ) : (

@@ -134,7 +134,7 @@ describe("Ladder", () => {
     expect(screen.getByText("Salad")).toBeVisible();
   });
 
-  it("heads the drawer with the open item", () => {
+  it("heads the item screen with the open item", () => {
     render(<Ladder context={thanksgiving("wed")} id="dressing" />);
 
     expect(screen.getByRole("heading", { name: "Dressing" })).toBeVisible();

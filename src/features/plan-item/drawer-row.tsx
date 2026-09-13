@@ -19,8 +19,8 @@ type DrawerRowProps = {
 };
 
 /**
- * I am one item's line in the drawer: it can be nested under, or put
- * before or after, by a drag from elsewhere in the drawer. When my item
+ * I am one item's line in the item screen: it can be nested under, or put
+ * before or after, by a drag from elsewhere in the item screen. When my item
  * sits apart from its parent, I say which day it has been moved to.
  */
 export function DrawerRow({ node, context, tree, onMove }: DrawerRowProps) {
@@ -38,7 +38,7 @@ export function DrawerRow({ node, context, tree, onMove }: DrawerRowProps) {
       : [];
 
   const own = context.get(id);
-  // My own day is what the drawer cannot otherwise show: nothing here
+  // My own day is what the item screen cannot otherwise show: nothing here
   // stands under a date the way a timeline row does.
   const apartOn =
     own && own.separation !== null && own.date !== null ? own.date : null;

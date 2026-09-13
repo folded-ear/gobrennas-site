@@ -334,16 +334,16 @@ describe("PlanTimeline, items apart from their parents", () => {
     expect(within(friday).queryByText(/out of order/)).toBeNull();
   });
 
-  it("marks the item open in the drawer, and not by colour alone", () => {
+  it("marks the item open in its screen, and not by colour alone", () => {
     const dayHeaded = renderApart(SEP_11.id, "3");
 
     const friday = dayHeaded("Fri, Sep 11");
-    expect(within(friday).getByText(/open in the drawer/)).toBeInTheDocument();
+    expect(within(friday).getByText(/open in its screen/)).toBeInTheDocument();
   });
 
-  it("marks nothing when the drawer holds no item", () => {
+  it("marks nothing when no item is open", () => {
     renderApart(SEP_11.id);
 
-    expect(screen.queryByText(/open in the drawer/)).toBeNull();
+    expect(screen.queryByText(/open in its screen/)).toBeNull();
   });
 });

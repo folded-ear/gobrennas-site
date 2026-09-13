@@ -63,7 +63,7 @@ export function ladderLines(
   return lines;
 }
 
-/** I name one step: the open item heads the drawer, its ancestry opens. */
+/** I name one step: the open item heads its screen, its ancestry opens. */
 function LadderName({ line, isOpen, onSelect }: LadderNameProps) {
   if (isOpen) {
     return (
