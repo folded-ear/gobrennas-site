@@ -1,5 +1,4 @@
 export const PREF_ACTIVE_PLAN = "activePlan";
-export const PREF_NAV_COLLAPSED = "navCollapsed";
 export const PREF_PLANNER_PLANS = "plannerPlans";
 
 const TRUE_WORDS = ["true", "t", "yes", "y"];

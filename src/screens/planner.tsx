@@ -1,10 +1,13 @@
 "use client";
 
 import { Screen } from "@/components/screen";
+import { SectionHeader } from "@/components/section-header";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree, canChangePlan } from "@/features/plan-dnd/moves";
 import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemDetail } from "@/features/plan-item/detail";
+import { PlanPicker } from "@/features/plan-picker";
+import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import {
   buildPlanContext,
   PlanContext,
@@ -12,12 +15,11 @@ import {
 import { buildSubtree } from "@/features/plan-timeline/model";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
 import { useHistoryState } from "@/hooks/use-history-state";
-import { usePreference } from "@/hooks/use-preference";
-import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
+import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
 import dynamic from "next/dynamic";
-import { PropsWithChildren, useMemo } from "react";
+import { useMemo } from "react";
 
 // Only the viewer's browser knows the viewer's date, so the timeline never
 // renders on the server.
@@ -33,23 +35,19 @@ const OPEN_ITEM_KEY = "planItem";
 const NO_PLAN_TREE = buildPlanTree({ id: "", children: [] }, []);
 const NO_PLAN_CONTEXT: PlanContext = new Map();
 
-function Layout({ children }: PropsWithChildren) {
-  return (
-    <div className="bg-surface rounded-md p-md mx-xs">
-      <div className="border-b border-divider py-sm flex justify-between">
-        <h2 className="text-xl font-semibold text-foreground">Planner</h2>
-      </div>
-      {children}
-    </div>
-  );
-}
-
 export function Planner() {
   const { data } = useSuspenseQuery(PlannerDocument);
   const openItem = useHistoryState<string>(OPEN_ITEM_KEY);
 
-  const activePlanId = usePreference(PREF_ACTIVE_PLAN);
-  const plan = data.planner.plans.find((p) => p.id === activePlanId);
+  const plans = data.planner.plans;
+  const [planIds, setPlanIds] = usePlanSelection(
+    PREF_PLANNER_PLANS,
+    plans,
+    "multiple",
+  );
+  // Merging selected plans into one timeline is yet to come; until then the
+  // first one stands for them all.
+  const plan = plans.find((p) => p.id === planIds[0]);
   const selected = plan?.descendants.find((it) => it.id === openItem.value);
   const rootIds = useMemo(
     () => plan?.children.map((it) => it.id) ?? [],
@@ -84,7 +82,16 @@ export function Planner() {
     : undefined;
 
   return (
-    <Layout>
+    <>
+      <SectionHeader title="Planner">
+        <PlanPicker
+          label="Plans"
+          plans={plans}
+          selectionMode="multiple"
+          selectedIds={planIds}
+          onChange={setPlanIds}
+        />
+      </SectionHeader>
       <Screen label={selected?.name ?? ""} isOpen={selected !== undefined}>
         {selected ? (
           <PlanItemDetail
@@ -97,20 +104,20 @@ export function Planner() {
         ) : null}
       </Screen>
 
-      {plan ? (
-        <PlanTimeline
-          rootIds={rootIds}
-          items={plan.descendants}
-          buckets={plan.buckets}
-          openId={selected?.id}
-          onSelect={openItem.push}
-          dnd={dnd}
-        />
-      ) : (
-        <div className="flex flex-col gap-sm">
-          <p>No active plan found. Please select a plan from the sidebar.</p>
-        </div>
-      )}
-    </Layout>
+      <div className="p-md">
+        {plan ? (
+          <PlanTimeline
+            rootIds={rootIds}
+            items={plan.descendants}
+            buckets={plan.buckets}
+            openId={selected?.id}
+            onSelect={openItem.push}
+            dnd={dnd}
+          />
+        ) : (
+          <p>There are no plans to show.</p>
+        )}
+      </div>
+    </>
   );
 }

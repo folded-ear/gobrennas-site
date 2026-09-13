@@ -2,8 +2,6 @@ import {
   BookOpen,
   Calendar,
   ChevronDown,
-  ChevronLeftSquare,
-  ChevronRightSquare,
   ChevronUp,
   EyeIcon,
   GripVertical,
@@ -57,5 +55,3 @@ export const RecipeViewIcon = createIcon(EyeIcon);
 export const SearchIcon = createIcon(Search);
 export const SendToPlanIcon = createIcon(SquareArrowRightEnter);
 export const ShoppingCartIcon = createIcon(ShoppingCart);
-export const SidebarOpenIcon = createIcon(ChevronRightSquare);
-export const SidebarCloseIcon = createIcon(ChevronLeftSquare);

@@ -20,6 +20,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   minimumScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
   themeColor: "#F57F17", // duplicated in styles
 };
 

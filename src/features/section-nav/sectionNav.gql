@@ -1,4 +1,4 @@
-fragment userMenu on Query {
+fragment sectionNav on Query {
   profile {
     me {
       id

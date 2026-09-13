@@ -1,5 +1,5 @@
-import { GetSidebarDocument } from "@/features/sidebar/__generated__/getSidebar.generated";
-import { PlanNavLinkFragmentDoc } from "@/features/sidebar/__generated__/planNavLink.generated";
+import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
+import { RecipesDocument } from "@/screens/__generated__/recipes.generated";
 import { gql } from "@apollo/client";
 import { describe, expect, it } from "vitest";
 import { buildInMemoryCache } from "./build-in-memory-cache";
@@ -26,7 +26,7 @@ const MUTATE_TREE = gql`
 function seededWithPlan() {
   const cache = buildInMemoryCache();
   cache.writeQuery({
-    query: GetSidebarDocument,
+    query: RecipesDocument,
     data: {
       planner: {
         __typename: "PlannerQuery",
@@ -51,10 +51,16 @@ describe("buildInMemoryCache", () => {
 
     expect(
       cache.readFragment({
-        fragment: PlanNavLinkFragmentDoc,
+        fragment: PlanPickerPlanFragmentDoc,
         id: `PlanItem:${PLAN_ID}`,
       }),
-    ).toEqual({ __typename: "Plan", name: "Thanksgiving", color: "#F57F17" });
+    ).toEqual({
+      __typename: "Plan",
+      id: PLAN_ID,
+      name: "Thanksgiving",
+      color: "#F57F17",
+      mine: true,
+    });
   });
 
   // Plans and items share a key, so a response that names a plan a
@@ -86,7 +92,7 @@ describe("buildInMemoryCache", () => {
 
     expect(
       cache.readFragment({
-        fragment: PlanNavLinkFragmentDoc,
+        fragment: PlanPickerPlanFragmentDoc,
         id: `PlanItem:${PLAN_ID}`,
       }),
     ).toEqual({ __typename: "PlanItem" });
