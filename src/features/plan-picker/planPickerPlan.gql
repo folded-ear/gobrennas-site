@@ -1,0 +1,6 @@
+fragment planPickerPlan on Plan {
+  id
+  name
+  color
+  mine
+}
