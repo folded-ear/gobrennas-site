@@ -30,6 +30,29 @@
   --spacing-xl: 24px;
   --spacing-xxl: 40px;
 
+  /*
+   * Tailwind sizes widths from the spacing scale before its container
+   * sizes, so the named steps above would make max-w-lg 16px and
+   * max-w-none 0px, here and in HeroUI's own styles. Widths keep
+   * Tailwind's container sizes instead.
+   */
+  --max-width-none: none;
+  --max-width-xs: var(--container-xs);
+  --max-width-sm: var(--container-sm);
+  --max-width-md: var(--container-md);
+  --max-width-lg: var(--container-lg);
+  --max-width-xl: var(--container-xl);
+  --min-width-xs: var(--container-xs);
+  --min-width-sm: var(--container-sm);
+  --min-width-md: var(--container-md);
+  --min-width-lg: var(--container-lg);
+  --min-width-xl: var(--container-xl);
+  --width-xs: var(--container-xs);
+  --width-sm: var(--container-sm);
+  --width-md: var(--container-md);
+  --width-lg: var(--container-lg);
+  --width-xl: var(--container-xl);
+
   --radius-xs: var(--spacing-xs);
   --radius-sm: var(--spacing-sm);
   --radius-md: var(--spacing-md);
