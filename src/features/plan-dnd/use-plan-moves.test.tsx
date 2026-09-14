@@ -73,7 +73,10 @@ function thanksgiving(): Plan {
     grants: [],
     ownedBy: null,
     notes: null,
-    buckets: [{ __typename: "PlanBucket", id: "b1", date: SEP_12, name: null }],
+    buckets: [
+      { __typename: "PlanBucket", id: "b1", date: SEP_12, name: null },
+      { __typename: "PlanBucket", id: "bLunch", date: null, name: "Lunch" },
+    ],
     children: [
       { __typename: "PlanItem", id: "1" },
       { __typename: "PlanItem", id: "6" },
@@ -107,6 +110,7 @@ function Probe() {
   const dateOf = (bucketId: string | undefined) =>
     plan.buckets.find((b) => b.id === bucketId)?.date ?? "no date";
   const breakfast = plan.descendants.find((it) => it.id === "6");
+  const breakfastBucket = breakfast?.bucket?.id ?? "unplanned";
 
   return (
     <>
@@ -118,6 +122,7 @@ function Probe() {
         ))}
       </ul>
       <p>Breakfast is on {dateOf(breakfast?.bucket?.id)}</p>
+      <p>Breakfast&apos;s bucket is {breakfastBucket}</p>
       <p>
         Moving:{" "}
         {["5", "6"].filter((id) => moves.isMoving(id)).join(", ") || "nothing"}
@@ -151,6 +156,20 @@ function Probe() {
           Put breakfast on {date}
         </button>
       ))}
+      <button
+        type="button"
+        disabled={moves.isMoving("6")}
+        onClick={() => moves.moveToBucket("6", "bLunch", "Breakfast")}
+      >
+        Put breakfast in Lunch
+      </button>
+      <button
+        type="button"
+        disabled={moves.isMoving("6")}
+        onClick={() => moves.moveToUnplanned("6", "Breakfast")}
+      >
+        Unplan breakfast
+      </button>
     </>
   );
 }
@@ -431,5 +450,101 @@ describe("usePlanMoves, onto a date", () => {
 
     expect(await screen.findByText("Couldn't move Breakfast")).toBeVisible();
     expect(screen.getByText(/Breakfast is on/)).toHaveTextContent("no date");
+  });
+});
+
+const ASSIGN_LUNCH = {
+  query: DoAssignBucketDocument,
+  variables: { id: "6", bucketId: "bLunch" },
+};
+
+describe("usePlanMoves, onto a named bucket", () => {
+  it("joins the bucket directly, without creating one", async () => {
+    renderProbe([{ request: ASSIGN_LUNCH, result: assigned("bLunch") }]);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Put breakfast in Lunch" }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Breakfast's bucket is/)).toHaveTextContent(
+        "bLunch",
+      ),
+    );
+  });
+
+  it("shows the item in the bucket before the server answers", async () => {
+    renderProbe([
+      { request: ASSIGN_LUNCH, result: assigned("bLunch"), delay: 60_000 },
+    ]);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Put breakfast in Lunch" }),
+    );
+
+    expect(screen.getByText(/Breakfast's bucket is/)).toHaveTextContent(
+      "bLunch",
+    );
+  });
+
+  it("puts the item back and says so when it can't join the bucket", async () => {
+    renderProbe([{ request: ASSIGN_LUNCH, error: new Error("Forbidden") }]);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Put breakfast in Lunch" }),
+    );
+
+    expect(await screen.findByText("Couldn't move Breakfast")).toBeVisible();
+    expect(screen.getByText(/Breakfast's bucket is/)).toHaveTextContent(
+      "unplanned",
+    );
+  });
+});
+
+const UNASSIGN_BREAKFAST = {
+  query: DoAssignBucketDocument,
+  variables: { id: "6", bucketId: null },
+};
+
+function unassigned() {
+  return {
+    data: {
+      planner: {
+        __typename: "PlannerMutation",
+        assignBucket: {
+          __typename: "PlanItem",
+          id: "6",
+          bucket: null,
+        },
+      },
+    },
+  };
+}
+
+describe("usePlanMoves, onto unplanned", () => {
+  it("clears the item's bucket", async () => {
+    renderProbe([{ request: UNASSIGN_BREAKFAST, result: unassigned() }]);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Unplan breakfast" }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Breakfast's bucket is/)).toHaveTextContent(
+        "unplanned",
+      ),
+    );
+  });
+
+  it("puts the item back and says so when it can't be cleared", async () => {
+    renderProbe([
+      { request: UNASSIGN_BREAKFAST, error: new Error("Forbidden") },
+    ]);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Unplan breakfast" }),
+    );
+
+    expect(await screen.findByText("Couldn't move Breakfast")).toBeVisible();
   });
 });

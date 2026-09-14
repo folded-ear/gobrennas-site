@@ -271,7 +271,13 @@ function pieTree() {
 }
 
 function fakeMoves(): PlanMoves {
-  return { moveInTree: vi.fn(), moveToDate: vi.fn(), isMoving: () => false };
+  return {
+    moveInTree: vi.fn(),
+    moveToDate: vi.fn(),
+    moveToBucket: vi.fn(),
+    moveToUnplanned: vi.fn(),
+    isMoving: () => false,
+  };
 }
 
 function renderMovable(dnd: Partial<PlanDnd> = {}) {

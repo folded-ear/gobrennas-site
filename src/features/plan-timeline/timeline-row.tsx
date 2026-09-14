@@ -15,12 +15,12 @@ import { PlanItemNode } from "./model";
 /** A plan's moves, plus what the timeline knows of where items show. */
 export type TimelineDnd = PlanDnd & {
   readonly rootIds: ReadonlySet<string>;
-  readonly dayOf: ReadonlyMap<string, string>;
+  readonly sectionOf: ReadonlyMap<string, string>;
 };
 
 type TimelineRowProps = {
   node: PlanItemNode;
-  date: string;
+  sectionKey: string;
   context: PlanContext;
   /** The item open in its screen, marked wherever it shows. */
   openId?: string;
@@ -33,12 +33,12 @@ type TimelineRowProps = {
 
 /**
  * I am one item's line on the timeline. When I'm top-level, another
- * top-level item on my day can be put before or after me. When my item
+ * top-level item in my section can be put before or after me. When my item
  * sits apart from its parent, I say what it is part of and when that is.
  */
 export function TimelineRow({
   node,
-  date,
+  sectionKey,
   context,
   openId,
   dnd,
@@ -52,7 +52,7 @@ export function TimelineRow({
     dragged !== null &&
     dnd.rootIds.has(id) &&
     dnd.rootIds.has(dragged.id) &&
-    dnd.dayOf.get(dragged.id) === date;
+    dnd.sectionOf.get(dragged.id) === sectionKey;
   const zones =
     reorderable && dragged !== null
       ? treeZones({

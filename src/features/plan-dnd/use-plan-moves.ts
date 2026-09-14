@@ -23,6 +23,8 @@ type UsePlanMovesOptions = {
 export type PlanMoves = {
   moveInTree(move: TreeMove, name: string): void;
   moveToDate(itemId: string, date: string, name: string): void;
+  moveToBucket(itemId: string, bucketId: string, name: string): void;
+  moveToUnplanned(itemId: string, name: string): void;
   isMoving(itemId: string): boolean;
 };
 
@@ -127,7 +129,7 @@ export function usePlanMoves({
     track(move.ids, work);
   }
 
-  function assign(itemId: string, bucketId: string) {
+  function assign(itemId: string, bucketId: string | null) {
     return assignBucket({
       variables: { id: itemId, bucketId },
       optimisticResponse: {
@@ -136,7 +138,10 @@ export function usePlanMoves({
           assignBucket: {
             __typename: "PlanItem",
             id: itemId,
-            bucket: { __typename: "PlanBucket", id: bucketId },
+            bucket:
+              bucketId === null
+                ? null
+                : { __typename: "PlanBucket", id: bucketId },
           },
         },
       },
@@ -208,9 +213,25 @@ export function usePlanMoves({
     track([itemId], work);
   }
 
+  function moveToBucket(itemId: string, bucketId: string, name: string) {
+    const work = assign(itemId, bucketId)
+      .then(() => {})
+      .catch(() => reportFailure(name));
+    track([itemId], work);
+  }
+
+  function moveToUnplanned(itemId: string, name: string) {
+    const work = assign(itemId, null)
+      .then(() => {})
+      .catch(() => reportFailure(name));
+    track([itemId], work);
+  }
+
   return {
     moveInTree,
     moveToDate,
+    moveToBucket,
+    moveToUnplanned,
     isMoving: (itemId) => moving.has(itemId),
   };
 }

@@ -9,19 +9,29 @@ const ENTRIES: readonly TimelineEntry[] = [
   { kind: "day", date: "2026-09-03", roots: [] },
   { kind: "gap", after: "2026-09-03", before: "2026-09-09", days: 5 },
   { kind: "day", date: TODAY, roots: [] },
+  {
+    kind: "bucket",
+    bucketId: "lunch",
+    name: "Lunch",
+    date: TODAY,
+    roots: [],
+  },
+  { kind: "unplanned", roots: [] },
   { kind: "day", date: "2026-09-10", roots: [] },
 ];
 
 describe("DayList", () => {
-  it("lays days and gaps out in the order it was given", () => {
+  it("lays every kind of entry out in the order it was given", () => {
     render(<DayList entries={ENTRIES} today={TODAY} context={new Map()} />);
 
     const rows = screen.getAllByRole("listitem");
-    expect(rows).toHaveLength(4);
+    expect(rows).toHaveLength(6);
     expect(rows[0]).toHaveTextContent(/Sep 3/);
     expect(rows[1]).toHaveTextContent("5 days");
     expect(rows[2]).toHaveTextContent(/Sep 9/);
-    expect(rows[3]).toHaveTextContent(/Sep 10/);
+    expect(rows[3]).toHaveTextContent(/^Lunch/);
+    expect(rows[4]).toHaveTextContent("Unplanned");
+    expect(rows[5]).toHaveTextContent(/Sep 10/);
   });
 
   it("marks exactly one day as today", () => {

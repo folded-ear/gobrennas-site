@@ -54,10 +54,7 @@ export type TimelineGap = {
 };
 
 export type TimelineEntry =
-  | TimelineDay
-  | TimelineBucketSection
-  | TimelineUnplanned
-  | TimelineGap;
+  TimelineDay | TimelineBucketSection | TimelineUnplanned | TimelineGap;
 
 export type BuildTimelineInput = {
   /** The plan's own children, in display order. */
@@ -99,11 +96,7 @@ type Parent = {
 export function buildTimeline(
   input: BuildTimelineInput,
 ): readonly TimelineEntry[] {
-  return layOutTimeline(
-    groupRootsBySection(input),
-    input.buckets,
-    input.today,
-  );
+  return layOutTimeline(groupRootsBySection(input), input.buckets, input.today);
 }
 
 /**
