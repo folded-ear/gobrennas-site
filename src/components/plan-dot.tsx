@@ -27,15 +27,21 @@ function Dot({ plan, className }: DotProps) {
 
 type PlanDotProps = {
   plan: DottedPlan;
+  className?: string;
 };
 
 /**
  * I mark something as belonging to a plan: a dot in its color, sized to the
  * text around me, so I never make a line any taller.
  */
-export function PlanDot({ plan }: PlanDotProps) {
+export function PlanDot({ plan, className }: PlanDotProps) {
   return (
-    <span className="inline-flex h-[1lh] shrink-0 items-center align-top">
+    <span
+      className={clsx(
+        "inline-flex h-[1lh] shrink-0 items-center align-top",
+        className,
+      )}
+    >
       <Dot plan={plan} />
     </span>
   );

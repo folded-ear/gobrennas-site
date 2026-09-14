@@ -85,7 +85,9 @@ export function TimelineRow({
       )}
     >
       <ItemRow itemId={id} name={name} zones={zones}>
-        {sectionRoot && showsPlan && plan ? <PlanDot plan={plan} /> : null}
+        {sectionRoot && showsPlan && plan ? (
+          <PlanDot plan={plan} className="me-xxs" />
+        ) : null}
         <PlanItem item={node.item} onSelect={onSelect} />
         {openId === id ? (
           // The bars say this to everyone who can see them.
