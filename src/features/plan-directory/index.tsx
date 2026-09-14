@@ -71,6 +71,14 @@ export function useItemPlan(itemId: string): DirectoryPlan | undefined {
   return useContext(PlanDirectoryContext).planOfItem.get(itemId);
 }
 
+/** I give a way to look up the plan any item belongs to. */
+export function useItemPlanLookup(): (
+  itemId: string,
+) => DirectoryPlan | undefined {
+  const { planOfItem } = useContext(PlanDirectoryContext);
+  return (itemId) => planOfItem.get(itemId);
+}
+
 /** I give the plans some buckets belong to, each once, in plan order. */
 export function useBucketPlans(
   bucketIds: readonly string[],

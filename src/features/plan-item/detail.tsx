@@ -1,3 +1,4 @@
+import { useItemPlanLookup } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { DragSession } from "@/features/plan-dnd/drag-session";
 import { PlanContext } from "@/features/plan-timeline/context";
@@ -66,6 +67,11 @@ type PlanItemDetailProps = {
   descendants: readonly PlanItemNode[];
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
+  /**
+   * Whether my top-level rows are a section's own items, which stay where
+   * the timeline puts them.
+   */
+  holdsSection?: boolean;
 };
 
 /** I show everything below an open item, however deep. */
@@ -73,7 +79,13 @@ export function PlanItemDetail({
   context,
   descendants,
   dnd,
+  holdsSection = false,
 }: PlanItemDetailProps) {
+  const planOf = useItemPlanLookup();
+  const spansPlans =
+    holdsSection &&
+    new Set(descendants.map((root) => planOf(root.item.id))).size > 1;
+
   // One way of drawing a row, whether or not the plan can be changed:
   // a row says where its item has been moved to either way.
   const rows = (
@@ -82,6 +94,8 @@ export function PlanItemDetail({
       renderItem={(node) => (
         <DrawerRow
           node={node}
+          sectionRoot={holdsSection && descendants.includes(node)}
+          spansPlans={spansPlans}
           context={context}
           tree={dnd?.tree}
           onMove={dnd?.moves.moveInTree}

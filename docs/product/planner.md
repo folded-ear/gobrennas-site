@@ -134,11 +134,17 @@ The terms used here are defined in the [domain model](../domain/model.md).
   top-level item of the same plan, in the same section, reorders it. Its
   section doesn't change. A nested item can't be reordered from the
   timeline, and no item can be reordered among another plan's.
-- In the item screen:
+- In the item or section screen:
   - dropping an item on the right three-quarters of another makes it that
     item's first child;
   - dropping it on the left quarter puts it before or after that item,
-    depending on which half it lands in.
+    depending on which half it lands in;
+  - an item can only be dropped among its own plan's items.
+- In the section screen, the section's own items stay where the timeline
+  put them: they can't be dragged, and an item dropped on one can only
+  nest under it. A user who can change their plan sees a disabled handle
+  on them; where the section holds several plans' items, each shows its
+  plan's dot in the handle's place instead.
 - An item can't be dropped inside itself.
 - An item can't be dragged from the item screen to the timeline or back.
   Moving it in either one updates both.

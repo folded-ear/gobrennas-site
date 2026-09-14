@@ -164,6 +164,7 @@ export function Planner() {
             context={context}
             descendants={descendants}
             dnd={dnd}
+            holdsSection={!shown}
           />
         ) : null}
       </Screen>

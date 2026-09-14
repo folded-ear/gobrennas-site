@@ -436,3 +436,125 @@ describe("PlanItemDetail, moving items", () => {
     );
   });
 });
+
+// Plan 9: Tacos (50), holding Salsa (51), sharing a section with the pie.
+const TACOS = { id: "50", name: "Tacos" };
+const SALSA = { id: "51", name: "Salsa" };
+
+describe("PlanItemDetail, a section's items", () => {
+  const pieNode: PlanItemNode = {
+    item: timelineItem(PIE, [CRUST.id, FILLING.id]),
+    children: [node(CRUST), node(FILLING)],
+  };
+  const tacosNode: PlanItemNode = {
+    item: timelineItem(TACOS, [SALSA.id]),
+    children: [node(SALSA)],
+  };
+
+  function renderSection(roots: readonly PlanItemNode[]) {
+    const cache = buildInMemoryCache();
+    for (const spec of [PIE, CRUST, FILLING, TACOS, SALSA]) {
+      seedFragment(
+        cache,
+        PlanItemFragmentDoc,
+        "planItem",
+        fragment(spec, null),
+      );
+    }
+    const tree = buildPlanTree([
+      { id: "7", children: [{ id: PIE.id }] },
+      { id: PIE.id, children: [{ id: CRUST.id }, { id: FILLING.id }] },
+      { id: CRUST.id, children: [] },
+      { id: FILLING.id, children: [] },
+      { id: "9", children: [{ id: TACOS.id }] },
+      { id: TACOS.id, children: [{ id: SALSA.id }] },
+      { id: SALSA.id, children: [] },
+    ]);
+    const directory = buildPlanDirectory([
+      {
+        id: "7",
+        name: "Holidays",
+        color: "#F57F17",
+        mine: true,
+        descendants: [PIE, CRUST, FILLING],
+        buckets: [],
+      },
+      {
+        id: "9",
+        name: "Weeknights",
+        color: "#1E88E5",
+        mine: true,
+        descendants: [TACOS, SALSA],
+        buckets: [],
+      },
+    ]);
+    return render(
+      <PlanDirectoryProvider directory={directory}>
+        <PlanItemDetail
+          context={new Map()}
+          descendants={roots}
+          holdsSection
+          dnd={{ tree, canMove: () => true, moves: fakeMoves() }}
+        />
+      </PlanDirectoryProvider>,
+      { cache },
+    );
+  }
+
+  it("holds a single plan's section items still, their handles disabled", () => {
+    renderSection([pieNode]);
+
+    expect(
+      screen.getByRole("button", { name: "Move Pumpkin pie" }),
+    ).toHaveAttribute("aria-disabled", "true");
+    expect(
+      screen.getByRole("button", { name: "Move Pie crust" }),
+    ).not.toHaveAttribute("aria-disabled");
+  });
+
+  it("marks several plans' section items with their plan, not a handle", () => {
+    renderSection([pieNode, tacosNode]);
+
+    expect(
+      screen.queryByRole("button", { name: /^Move (Pumpkin pie|Tacos)$/ }),
+    ).toBeNull();
+    expect(screen.getByRole("img", { name: "Holidays" })).toBeVisible();
+    expect(screen.getByRole("img", { name: "Weeknights" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Move Salsa" })).toBeVisible();
+  });
+
+  it("offers a section's own items only to nest under", async () => {
+    renderSection([pieNode]);
+
+    await keyboardDrag("Move Pie filling");
+
+    expect(
+      screen.getByRole("button", { name: "Nest under Pumpkin pie" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^Put \w+ Pumpkin pie$/ }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Put before Pie crust" }),
+    ).toBeInTheDocument();
+
+    await keyboardCancel();
+  });
+
+  it("offers nowhere in another plan to drop an item", async () => {
+    renderSection([pieNode, tacosNode]);
+
+    await keyboardDrag("Move Pie filling");
+
+    expect(
+      screen.queryAllByRole("button", {
+        name: /^(Nest under|Put \w+) (Tacos|Salsa)$/,
+      }),
+    ).toHaveLength(0);
+    expect(
+      screen.getByRole("button", { name: "Nest under Pie crust" }),
+    ).toBeInTheDocument();
+
+    await keyboardCancel();
+  });
+});

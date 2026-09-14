@@ -7,6 +7,7 @@ import {
   PlanDirectoryProvider,
   useBucketPlans,
   useItemPlan,
+  useItemPlanLookup,
   useShowsPlanIndicators,
 } from ".";
 
@@ -63,6 +64,18 @@ describe("useItemPlan", () => {
     const { result } = renderHook(() => useItemPlan("12"));
 
     expect(result.current).toBeUndefined();
+  });
+});
+
+describe("useItemPlanLookup", () => {
+  it("looks up the plan of any item asked about", () => {
+    const { result } = renderHook(() => useItemPlanLookup(), {
+      wrapper: within([NEIGHBOR, WEEKNIGHTS]),
+    });
+
+    expect(result.current("31")?.name).toBe("Neighborhood potluck");
+    expect(result.current("11")?.name).toBe("Weeknights");
+    expect(result.current("99")).toBeUndefined();
   });
 });
 
