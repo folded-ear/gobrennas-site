@@ -63,8 +63,8 @@ export function PlanDotStack({ plans }: PlanDotStackProps) {
         <Dot
           key={plan.id}
           plan={plan}
-          // half of a dot's width, ringed so each edge stays clear
-          className="-ms-[0.3em] ring-[0.1em] ring-background first:ms-0"
+          // half of a dot's width, less the ring that hides its neighbor
+          className="-ms-[0.2em] ring-[0.1em] ring-background first:ms-0"
         />
       ))}
     </span>
