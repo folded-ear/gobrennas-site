@@ -548,3 +548,157 @@ describe("usePlanMoves, onto unplanned", () => {
     expect(await screen.findByText("Couldn't move Breakfast")).toBeVisible();
   });
 });
+
+// Plan 20 (Redundancy), with bA on Sep 12 and bB on Sep 14:
+//   Ancestor (10), bA
+//     Middle (11), bC
+//   Solo (13)
+//     Solo child (14), bB
+const REDUNDANCY_PLAN_ID = "20";
+const BUCKET_A = "bA";
+const BUCKET_B = "bB";
+const BUCKET_C = "bC";
+
+function redundancyPlan(): Plan {
+  return {
+    __typename: "Plan",
+    id: REDUNDANCY_PLAN_ID,
+    name: "Redundancy",
+    color: "#000000",
+    mine: true,
+    grants: [],
+    ownedBy: null,
+    notes: null,
+    buckets: [
+      { __typename: "PlanBucket", id: BUCKET_A, date: SEP_12, name: null },
+      { __typename: "PlanBucket", id: BUCKET_B, date: SEP_14, name: null },
+      { __typename: "PlanBucket", id: BUCKET_C, date: null, name: "Other" },
+    ],
+    children: [
+      { __typename: "PlanItem", id: "10" },
+      { __typename: "PlanItem", id: "13" },
+    ],
+    descendants: [
+      item("10", "Ancestor", REDUNDANCY_PLAN_ID, ["11"], BUCKET_A),
+      item("11", "Middle", "10", [], BUCKET_C),
+      item("13", "Solo", REDUNDANCY_PLAN_ID, ["14"]),
+      item("14", "Solo child", "13", [], BUCKET_B),
+    ],
+  };
+}
+
+function RedundancyProbe() {
+  const { data } = useQuery(PlannerDocument, { fetchPolicy: "cache-only" });
+  const plan = data?.planner.plans[0];
+  const tree = plan ? buildPlanTree(plan, plan.descendants) : null;
+  const moves = usePlanMoves({
+    planId: REDUNDANCY_PLAN_ID,
+    tree: tree ?? buildPlanTree({ id: REDUNDANCY_PLAN_ID, children: [] }, []),
+    buckets: plan?.buckets ?? [],
+  });
+  if (!plan || !tree) return null;
+
+  const bucketOf = (id: string) =>
+    plan.descendants.find((it) => it.id === id)?.bucket?.id ?? "unplanned";
+
+  return (
+    <>
+      <p>Middle&apos;s bucket is {bucketOf("11")}</p>
+      <p>Solo child&apos;s bucket is {bucketOf("14")}</p>
+      <button
+        type="button"
+        onClick={() => moves.moveToBucket("11", BUCKET_A, "Middle")}
+      >
+        Put middle in bucket A
+      </button>
+      <button
+        type="button"
+        onClick={() => moves.moveToBucket("13", BUCKET_B, "Solo")}
+      >
+        Put solo in bucket B
+      </button>
+    </>
+  );
+}
+
+function renderRedundancyProbe(mocks: MockLink.MockedResponse[]) {
+  const cache = buildInMemoryCache();
+  cache.writeQuery({
+    query: PlannerDocument,
+    data: {
+      planner: { __typename: "PlannerQuery", plans: [redundancyPlan()] },
+    },
+  });
+  render(<RedundancyProbe />, { cache, mocks });
+}
+
+function assignedItem(id: string, bucketId: string | null) {
+  return {
+    data: {
+      planner: {
+        __typename: "PlannerMutation",
+        assignBucket: {
+          __typename: "PlanItem",
+          id,
+          bucket:
+            bucketId === null
+              ? null
+              : { __typename: "PlanBucket", id: bucketId },
+        },
+      },
+    },
+  };
+}
+
+describe("usePlanMoves, folding away redundant buckets", () => {
+  it("clears a descendant's bucket once it would inherit the very same one", async () => {
+    renderRedundancyProbe([
+      {
+        request: {
+          query: DoAssignBucketDocument,
+          variables: { id: "13", bucketId: BUCKET_B },
+        },
+        result: assignedItem("13", BUCKET_B),
+      },
+      {
+        request: {
+          query: DoAssignBucketDocument,
+          variables: { id: "14", bucketId: null },
+        },
+        result: assignedItem("14", null),
+      },
+    ]);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Put solo in bucket B" }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Solo child's bucket is/)).toHaveTextContent(
+        "unplanned",
+      ),
+    );
+  });
+
+  it("clears the dropped item's own bucket when an ancestor already carries it", async () => {
+    renderRedundancyProbe([
+      {
+        request: {
+          query: DoAssignBucketDocument,
+          variables: { id: "11", bucketId: null },
+        },
+        result: assignedItem("11", null),
+      },
+    ]);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Put middle in bucket A" }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Middle's bucket is/)).toHaveTextContent(
+        "unplanned",
+      ),
+    );
+  });
+});

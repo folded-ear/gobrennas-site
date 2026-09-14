@@ -7,6 +7,7 @@ import { DoCreateBucketDocument } from "./__generated__/doCreateBucket.generated
 import { DoMutateTreeDocument } from "./__generated__/doMutateTree.generated";
 import {
   applyTreeMove,
+  bucketChangeFor,
   bucketForDate,
   BucketSummary,
   PlanTree,
@@ -203,28 +204,49 @@ export function usePlanMoves({
     }
   }
 
+  /**
+   * I assign a bucket, clearing it instead when an ancestor already
+   * carries the very one given, and clear it from any descendant left
+   * duplicating what it would now inherit either way.
+   */
+  function applyBucketChange(
+    itemId: string,
+    newBucketId: string | null,
+    name: string,
+  ) {
+    const { ownBucketId, redundant } = bucketChangeFor(
+      tree,
+      itemId,
+      newBucketId,
+    );
+    const ids = [itemId, ...redundant];
+    const work = Promise.all([
+      assign(itemId, ownBucketId),
+      ...redundant.map((id) => assign(id, null)),
+    ])
+      .then(() => {})
+      .catch(() => reportFailure(name));
+    track(ids, work);
+  }
+
   function moveToDate(itemId: string, date: string, name: string) {
     const bucketId = bucketForDate(buckets, date);
-    const work = (
-      bucketId === null
-        ? assignNewBucket(itemId, date)
-        : assign(itemId, bucketId).then(() => {})
-    ).catch(() => reportFailure(name));
-    track([itemId], work);
+    if (bucketId === null) {
+      const work = assignNewBucket(itemId, date).catch(() =>
+        reportFailure(name),
+      );
+      track([itemId], work);
+      return;
+    }
+    applyBucketChange(itemId, bucketId, name);
   }
 
   function moveToBucket(itemId: string, bucketId: string, name: string) {
-    const work = assign(itemId, bucketId)
-      .then(() => {})
-      .catch(() => reportFailure(name));
-    track([itemId], work);
+    applyBucketChange(itemId, bucketId, name);
   }
 
   function moveToUnplanned(itemId: string, name: string) {
-    const work = assign(itemId, null)
-      .then(() => {})
-      .catch(() => reportFailure(name));
-    track([itemId], work);
+    applyBucketChange(itemId, null, name);
   }
 
   return {
