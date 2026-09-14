@@ -63,7 +63,7 @@ afterEach(() => {
 
 describe("PlanTimeline", () => {
   it("anchors an empty plan at today and runs on a week", () => {
-    render(<PlanTimeline rootIds={[]} items={[]} buckets={[]} />);
+    render(<PlanTimeline plans={[{ rootIds: [], items: [], buckets: [] }]} />);
 
     const days = screen.getAllByRole("listitem");
     expect(days).toHaveLength(8);
@@ -76,9 +76,13 @@ describe("PlanTimeline", () => {
   it("puts a past item on its own date, with a break before today", () => {
     renderTimeline(
       <PlanTimeline
-        rootIds={["1"]}
-        items={[PUMPKIN]}
-        buckets={[{ id: "b1", date: "2026-09-03", name: null }]}
+        plans={[
+          {
+            rootIds: ["1"],
+            items: [PUMPKIN],
+            buckets: [{ id: "b1", date: "2026-09-03", name: null }],
+          },
+        ]}
       />,
     );
 
@@ -158,47 +162,68 @@ function renderMovable(
   ]);
   return render(
     <PlanTimeline
-      rootIds={ROOT_IDS}
-      items={THANKSGIVING}
-      buckets={buckets}
+      plans={[{ rootIds: ROOT_IDS, items: THANKSGIVING, buckets }]}
       dnd={{ tree, canMove: () => true, moves: fakeMoves(), ...dnd }}
     />,
     { cache },
   );
 }
 
+const HOLIDAYS_PLAN = {
+  id: "7",
+  name: "Holidays",
+  color: "#F57F17",
+  mine: true,
+  descendants: THANKSGIVING,
+  buckets: [SEP_12],
+};
+
+function seedItems(
+  cache: ReturnType<typeof buildInMemoryCache>,
+  items: readonly TimelineItem[],
+  planId: string,
+) {
+  for (const it of items) {
+    seedFragment(cache, PlanItemFragmentDoc, "planItem", {
+      __typename: "PlanItem",
+      id: it.id,
+      name: it.name,
+      status: PlanItemStatus.NEEDED,
+      notes: null,
+      preparation: null,
+      parent: { __typename: "Plan", id: planId },
+      aggregate: null,
+      ingredient: null,
+      quantity: null,
+      components: [],
+      bucket: null,
+    });
+  }
+}
+
 describe("PlanTimeline, cooking", () => {
-  function renderCookable(planId?: string) {
+  function renderCookable(directory?: PlanDirectory) {
     const cache = buildInMemoryCache();
-    for (const it of THANKSGIVING) {
-      seedFragment(cache, PlanItemFragmentDoc, "planItem", {
-        __typename: "PlanItem",
-        id: it.id,
-        name: it.name,
-        status: PlanItemStatus.NEEDED,
-        notes: null,
-        preparation: null,
-        parent: { __typename: "Plan", id: "7" },
-        aggregate: null,
-        ingredient: null,
-        quantity: null,
-        components: [],
-        bucket: null,
-      });
-    }
-    return render(
+    seedItems(cache, THANKSGIVING, "7");
+    const timeline = (
       <PlanTimeline
-        rootIds={ROOT_IDS}
-        items={THANKSGIVING}
-        buckets={[SEP_12]}
-        planId={planId}
-      />,
+        plans={[{ rootIds: ROOT_IDS, items: THANKSGIVING, buckets: [SEP_12] }]}
+      />
+    );
+    return render(
+      directory ? (
+        <PlanDirectoryProvider directory={directory}>
+          {timeline}
+        </PlanDirectoryProvider>
+      ) : (
+        timeline
+      ),
       { cache },
     );
   }
 
   it("offers to cook only items with something below them", () => {
-    renderCookable("7");
+    renderCookable(buildPlanDirectory([HOLIDAYS_PLAN]));
 
     expect(
       screen.getByRole("link", { name: "Cook Thanksgiving dinner" }),
@@ -211,6 +236,109 @@ describe("PlanTimeline, cooking", () => {
 
     expect(screen.getByText("Thanksgiving dinner")).toBeVisible();
     expect(screen.queryByRole("link", { name: /^Cook / })).toBeNull();
+  });
+});
+
+// Plan 9 (Weeknights), alongside Thanksgiving:
+//   Tacos (30), Sat Sep 12
+//     Salsa (31), Sat Sep 12
+const WEEKNIGHTS_SEP_12 = { id: "wSep12", date: "2026-09-12", name: null };
+const WEEKNIGHTS_ITEMS = [
+  timelineItem("30", "Tacos", WEEKNIGHTS_SEP_12.id, ["31"]),
+  timelineItem("31", "Salsa", WEEKNIGHTS_SEP_12.id),
+];
+
+describe("PlanTimeline, several plans", () => {
+  beforeEach(() => {
+    // Only the date: a keyboard drag runs on real timers and frames.
+    vi.useRealTimers();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 8, 9, 9, 0));
+  });
+
+  function renderPlans() {
+    const cache = buildInMemoryCache();
+    seedItems(cache, THANKSGIVING, "7");
+    seedItems(cache, WEEKNIGHTS_ITEMS, "9");
+    const tree = buildPlanTree([
+      { id: "7", children: ROOT_IDS.map((id) => ({ id })) },
+      ...THANKSGIVING,
+      { id: "9", children: [{ id: "30" }] },
+      ...WEEKNIGHTS_ITEMS,
+    ]);
+    const directory = buildPlanDirectory([
+      HOLIDAYS_PLAN,
+      {
+        id: "9",
+        name: "Weeknights",
+        color: "#1E88E5",
+        mine: true,
+        descendants: WEEKNIGHTS_ITEMS,
+        buckets: [WEEKNIGHTS_SEP_12],
+      },
+    ]);
+    return render(
+      <PlanDirectoryProvider directory={directory}>
+        <PlanTimeline
+          plans={[
+            { rootIds: ROOT_IDS, items: THANKSGIVING, buckets: [SEP_12] },
+            {
+              rootIds: ["30"],
+              items: WEEKNIGHTS_ITEMS,
+              buckets: [WEEKNIGHTS_SEP_12],
+            },
+          ]}
+          dnd={{ tree, canMove: () => true, moves: fakeMoves() }}
+        />
+      </PlanDirectoryProvider>,
+      { cache },
+    );
+  }
+
+  function saturday() {
+    const found = screen
+      .getAllByRole("listitem")
+      .find(
+        (day) =>
+          within(day).queryByRole("heading")?.textContent === "Sat, Sep 12",
+      );
+    if (!found) throw new Error("No Saturday");
+    return found;
+  }
+
+  it("shows every plan's items on a day they share, in plan order", () => {
+    renderPlans();
+
+    expect(saturday()).toHaveTextContent(
+      /Thanksgiving dinner.*Pumpkin pie.*Breakfast.*Tacos.*Salsa/,
+    );
+  });
+
+  it("points each item's cook link at its own plan", () => {
+    renderPlans();
+
+    expect(
+      screen.getByRole("link", { name: "Cook Thanksgiving dinner" }),
+    ).toHaveAttribute("href", "/plan/7/recipe/1");
+    expect(screen.getByRole("link", { name: "Cook Tacos" })).toHaveAttribute(
+      "href",
+      "/plan/9/recipe/30",
+    );
+  });
+
+  it("reorders a top-level item only among its own plan's", async () => {
+    renderPlans();
+
+    await keyboardDrag("Move Tacos");
+
+    expect(
+      screen.queryByRole("button", { name: /^Put \w+ Breakfast$/ }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /^Put \w+ Thanksgiving dinner$/ }),
+    ).toBeNull();
+
+    await keyboardCancel();
   });
 });
 
@@ -382,9 +510,13 @@ function renderApart(
   }
   const timeline = (
     <PlanTimeline
-      rootIds={["1"]}
-      items={items}
-      buckets={[SEP_11, SEP_12, SEP_13, PREP, SAUCES]}
+      plans={[
+        {
+          rootIds: ["1"],
+          items,
+          buckets: [SEP_11, SEP_12, SEP_13, PREP, SAUCES],
+        },
+      ]}
       openId={openId}
     />
   );

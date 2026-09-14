@@ -22,8 +22,6 @@ type SectionShellProps = {
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
-  /** Left out, no item offers to be cooked. */
-  planId?: string;
 };
 
 /** I am the heading, item list, and drop target shared by every section. */
@@ -39,7 +37,6 @@ export function SectionShell({
   openId,
   onSelect,
   dnd,
-  planId,
 }: SectionShellProps) {
   return (
     <li aria-current={ariaCurrent} className="relative py-xxs">
@@ -70,7 +67,6 @@ export function SectionShell({
                 openId={openId}
                 dnd={dnd}
                 onSelect={onSelect}
-                planId={planId}
               />
             )}
           />

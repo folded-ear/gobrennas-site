@@ -13,8 +13,6 @@ type DayListProps = {
   openId?: string;
   onSelect?: (id: string) => void;
   dnd?: TimelineDnd;
-  /** Left out, no item offers to be cooked. */
-  planId?: string;
 };
 
 /** I run the calendar down the page: labelled days, breaks between. */
@@ -25,7 +23,6 @@ export function DayList({
   openId,
   onSelect,
   dnd,
-  planId,
 }: DayListProps) {
   return (
     <ol className="flex flex-col">
@@ -41,7 +38,6 @@ export function DayList({
                 openId={openId}
                 onSelect={onSelect}
                 dnd={dnd}
-                planId={planId}
               />
             );
           case "bucket":
@@ -53,7 +49,6 @@ export function DayList({
                 openId={openId}
                 onSelect={onSelect}
                 dnd={dnd}
-                planId={planId}
               />
             );
           case "unplanned":
@@ -65,7 +60,6 @@ export function DayList({
                 openId={openId}
                 onSelect={onSelect}
                 dnd={dnd}
-                planId={planId}
               />
             );
           case "gap":

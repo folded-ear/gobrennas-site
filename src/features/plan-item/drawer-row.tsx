@@ -1,5 +1,6 @@
 "use client";
 
+import { useItemPlan } from "@/features/plan-directory";
 import { useDragSession } from "@/features/plan-dnd/drag-session";
 import { ItemRow } from "@/features/plan-dnd/item-row";
 import { PlanTree, TreeMove } from "@/features/plan-dnd/moves";
@@ -17,8 +18,6 @@ type DrawerRowProps = {
   /** Left out, nothing can be dropped on me. */
   tree?: PlanTree;
   onMove?: (move: TreeMove, name: string) => void;
-  /** Left out, no item offers to be cooked. */
-  planId?: string;
 };
 
 /**
@@ -26,13 +25,7 @@ type DrawerRowProps = {
  * before or after, by a drag from elsewhere in the item screen. When my item
  * sits apart from its parent, I say which day it has been moved to.
  */
-export function DrawerRow({
-  node,
-  context,
-  tree,
-  onMove,
-  planId,
-}: DrawerRowProps) {
+export function DrawerRow({ node, context, tree, onMove }: DrawerRowProps) {
   const { dragged } = useDragSession();
   const { id, name } = node.item;
   const zones =
@@ -46,6 +39,7 @@ export function DrawerRow({
         })
       : [];
 
+  const plan = useItemPlan(id);
   const own = context.get(id);
   // My own day is what the item screen cannot otherwise show: nothing here
   // stands under a date the way a timeline row does.
@@ -55,8 +49,8 @@ export function DrawerRow({
   return (
     <ItemRow itemId={id} name={name} zones={zones}>
       <PlanItem item={node.item} />
-      {planId !== undefined && node.item.children.length > 0 ? (
-        <CookLink planId={planId} itemId={id} name={name} />
+      {plan !== undefined && node.item.children.length > 0 ? (
+        <CookLink planId={plan.id} itemId={id} name={name} />
       ) : null}
       {apartOn !== null ? (
         <span className="ms-auto">

@@ -5,55 +5,43 @@ import { DragSession } from "@/features/plan-dnd/drag-session";
 import { useMemo } from "react";
 import { buildPlanContext } from "./context";
 import { DayList } from "./day-list";
-import {
-  buildTimeline,
-  sectionOfItems,
-  TimelineBucket,
-  TimelineItem,
-} from "./model";
+import { buildTimeline, sectionOfItems, TimelinePlan } from "./model";
 import { TimelineDnd } from "./timeline-row";
 import { useToday } from "./use-today";
 
 const TIMELINE_DRAG_TYPE = "application/x.gobrennas.timeline-item";
 
 type PlanTimelineProps = {
-  /** The plan's own children, in display order. */
-  rootIds: readonly string[];
-  items: readonly TimelineItem[];
-  buckets: readonly TimelineBucket[];
+  /** In plan order. */
+  plans: readonly TimelinePlan[];
   /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
-  /** Left out, no item offers to be cooked. */
-  planId?: string;
 };
 
-/** I lay a plan out down the calendar, anchored at the viewer's today. */
+/** I lay plans out down one calendar, anchored at the viewer's today. */
 export function PlanTimeline({
-  rootIds,
-  items,
-  buckets,
+  plans,
   openId,
   onSelect,
   dnd,
-  planId,
 }: PlanTimelineProps) {
   const today = useToday();
   const entries = useMemo(
-    () => buildTimeline({ plans: [{ rootIds, items, buckets }], today }),
-    [rootIds, items, buckets, today],
+    () => buildTimeline({ plans, today }),
+    [plans, today],
   );
   // I hold everything context needs already, so I ask for it myself
   // rather than making every caller keep one in step with my own props.
-  const context = useMemo(
-    () => buildPlanContext({ plans: [{ rootIds, items, buckets }] }),
-    [rootIds, items, buckets],
-  );
+  const context = useMemo(() => buildPlanContext({ plans }), [plans]);
 
   const sectionOf = useMemo(() => sectionOfItems(entries), [entries]);
-  const rootIdSet = useMemo(() => new Set(rootIds), [rootIds]);
+  const rootIdSet = useMemo(
+    () => new Set(plans.flatMap((plan) => plan.rootIds)),
+    [plans],
+  );
 
   if (!dnd) {
     return (
@@ -63,7 +51,6 @@ export function PlanTimeline({
         context={context}
         openId={openId}
         onSelect={onSelect}
-        planId={planId}
       />
     );
   }
@@ -81,7 +68,6 @@ export function PlanTimeline({
         openId={openId}
         onSelect={onSelect}
         dnd={timelineDnd}
-        planId={planId}
       />
     </DragSession>
   );

@@ -1,4 +1,8 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import {
+  buildPlanDirectory,
+  PlanDirectoryProvider,
+} from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import {
   keyboardCancel,
@@ -186,17 +190,29 @@ describe("PlanItemDetail", () => {
       fragment(FILLING, null),
     );
     render(
-      <PlanItemDetail
-        item={pie}
-        context={planContext()}
-        descendants={[
+      <PlanDirectoryProvider
+        directory={buildPlanDirectory([
           {
-            item: timelineItem(CRUST, [FILLING.id]),
-            children: [node(FILLING)],
+            id: "7",
+            name: "Holidays",
+            color: "#F57F17",
+            mine: true,
+            descendants: [PIE, CRUST, FILLING],
+            buckets: [],
           },
-        ]}
-        planId="7"
-      />,
+        ])}
+      >
+        <PlanItemDetail
+          item={pie}
+          context={planContext()}
+          descendants={[
+            {
+              item: timelineItem(CRUST, [FILLING.id]),
+              children: [node(FILLING)],
+            },
+          ]}
+        />
+      </PlanDirectoryProvider>,
       { cache },
     );
 

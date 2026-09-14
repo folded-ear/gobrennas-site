@@ -31,8 +31,6 @@ type TimelineRowProps = {
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
   onSelect?: (id: string) => void;
-  /** Left out, no item offers to be cooked. */
-  planId?: string;
 };
 
 /**
@@ -49,7 +47,6 @@ export function TimelineRow({
   openId,
   dnd,
   onSelect,
-  planId,
 }: TimelineRowProps) {
   const { dragged } = useDragSession();
   const { id, name } = node.item;
@@ -58,6 +55,9 @@ export function TimelineRow({
     dragged !== null &&
     dnd.rootIds.has(id) &&
     dnd.rootIds.has(dragged.id) &&
+    // Top-level items are their plan's own children: sharing a parent is
+    // sharing a plan, and a reorder can't carry an item to another plan.
+    dnd.tree.parentOf.get(id) === dnd.tree.parentOf.get(dragged.id) &&
     dnd.sectionOf.get(dragged.id) === sectionKey;
   const zones =
     reorderable && dragged !== null
@@ -93,8 +93,8 @@ export function TimelineRow({
           // The bars say this to everyone who can see them.
           <span className="sr-only">, open in its screen</span>
         ) : null}
-        {planId !== undefined && node.item.children.length > 0 ? (
-          <CookLink planId={planId} itemId={id} name={name} />
+        {plan !== undefined && node.item.children.length > 0 ? (
+          <CookLink planId={plan.id} itemId={id} name={name} />
         ) : null}
         {apart?.parent ? (
           <span className="ms-auto flex items-center gap-xs">

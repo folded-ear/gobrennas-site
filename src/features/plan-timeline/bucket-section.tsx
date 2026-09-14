@@ -24,8 +24,6 @@ type SectionProps = {
   onSelect?: (id: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
-  /** Left out, no item offers to be cooked. */
-  planId?: string;
 };
 
 type BucketSectionProps = SectionProps & {
@@ -40,7 +38,6 @@ export function BucketSection({
   openId,
   onSelect,
   dnd,
-  planId,
 }: BucketSectionProps) {
   const { dragged } = useDragSession();
   const label =
@@ -80,7 +77,6 @@ export function BucketSection({
       openId={openId}
       onSelect={onSelect}
       dnd={dnd}
-      planId={planId}
     />
   );
 }
@@ -97,7 +93,6 @@ export function UnplannedSection({
   openId,
   onSelect,
   dnd,
-  planId,
 }: UnplannedSectionProps) {
   const { dragged } = useDragSession();
   const zones: readonly ZoneSpec[] =
@@ -122,7 +117,6 @@ export function UnplannedSection({
       openId={openId}
       onSelect={onSelect}
       dnd={dnd}
-      planId={planId}
     />
   );
 }

@@ -30,7 +30,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### The timeline
 
-- The planner lays a plan out down the calendar, anchored on today.
+- The planner lays every selected plan out down one calendar, anchored on
+  today. Where plans share a day or section, their items appear in plan
+  order: the user's own plans, then those shared with them.
 - Each day is introduced by a separator carrying its weekday and date, and
   today is marked as the current date.
 - An item's section comes from its own bucket, or else from the nearest
@@ -114,8 +116,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
   any item below it left with the same bucket it now inherits has that
   bucket cleared too.
 - On the timeline, dropping a top-level item above or below another
-  top-level item in the same section reorders it. Its section doesn't
-  change. A nested item can't be reordered from the timeline.
+  top-level item of the same plan, in the same section, reorders it. Its
+  section doesn't change. A nested item can't be reordered from the
+  timeline, and no item can be reordered among another plan's.
 - In the item screen:
   - dropping an item on the right three-quarters of another makes it that
     item's first child;

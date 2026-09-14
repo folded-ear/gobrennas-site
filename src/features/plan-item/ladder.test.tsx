@@ -137,6 +137,23 @@ describe("ladderLines", () => {
   });
 });
 
+/** The whole of Thanksgiving, as the one plan a directory knows. */
+const HOLIDAYS_DIRECTORY = buildPlanDirectory([
+  {
+    id: "7",
+    name: "Holidays",
+    color: "#F57F17",
+    mine: true,
+    descendants: [
+      { id: "thanksgiving" },
+      { id: "dinner" },
+      { id: "salad" },
+      { id: "dressing" },
+    ],
+    buckets: [],
+  },
+]);
+
 describe("Ladder", () => {
   it("shows every step from the root down to the open item", () => {
     render(<Ladder context={thanksgiving("wed")} id="dressing" />);
@@ -190,12 +207,13 @@ describe("Ladder", () => {
 
   it("offers to cook every step above the open item", () => {
     render(
-      <Ladder
-        context={thanksgiving("wed")}
-        id="dressing"
-        planId="7"
-        openHasChildren={false}
-      />,
+      <PlanDirectoryProvider directory={HOLIDAYS_DIRECTORY}>
+        <Ladder
+          context={thanksgiving("wed")}
+          id="dressing"
+          openHasChildren={false}
+        />
+      </PlanDirectoryProvider>,
     );
 
     expect(
@@ -208,12 +226,9 @@ describe("Ladder", () => {
 
   it("offers to cook the open item when it has something below it", () => {
     render(
-      <Ladder
-        context={thanksgiving("wed")}
-        id="salad"
-        planId="7"
-        openHasChildren
-      />,
+      <PlanDirectoryProvider directory={HOLIDAYS_DIRECTORY}>
+        <Ladder context={thanksgiving("wed")} id="salad" openHasChildren />
+      </PlanDirectoryProvider>,
     );
 
     expect(screen.getByRole("link", { name: "Cook Salad" })).toHaveAttribute(

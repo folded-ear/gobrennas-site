@@ -26,8 +26,6 @@ type LadderProps = {
   readonly id: string;
   /** Left out, no step can be opened. */
   readonly onSelect?: (id: string) => void;
-  /** Left out, no step offers to be cooked. */
-  readonly planId?: string;
   /** Whether anything sits below the open item, so it can be cooked. */
   readonly openHasChildren?: boolean;
 };
@@ -99,7 +97,6 @@ export function Ladder({
   context,
   id,
   onSelect,
-  planId,
   openHasChildren = false,
 }: LadderProps) {
   const plan = useItemPlan(id);
@@ -130,8 +127,8 @@ export function Ladder({
             />
           )}
           {/* every step above the open item holds the step below it */}
-          {planId !== undefined && (index < lastIndex || openHasChildren) ? (
-            <CookLink planId={planId} itemId={line.id} name={line.name} />
+          {plan !== undefined && (index < lastIndex || openHasChildren) ? (
+            <CookLink planId={plan.id} itemId={line.id} name={line.name} />
           ) : null}
           {line.chip && line.date !== null ? (
             <span className="ms-auto">
