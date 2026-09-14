@@ -74,6 +74,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   button, a flick, or Back, returns to the planner.
 - The item screen opens with the walk from the plan's root down to the item,
   naming every step along the way.
+- When the user can reach more than one plan, the open item carries its
+  plan's dot. The steps above it share its plan, so carry none.
 - A step says which day it falls on wherever that differs from the step
   above it, so a plan whose parts share a day says its date once.
 - An item nothing in the plan dates says nothing about when it happens.

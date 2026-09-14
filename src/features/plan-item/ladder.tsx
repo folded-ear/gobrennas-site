@@ -1,3 +1,5 @@
+import { PlanDot } from "@/components/plan-dot";
+import { useItemPlan, useShowsPlanIndicators } from "@/features/plan-directory";
 import {
   ancestorsOf,
   PlanContext,
@@ -100,6 +102,8 @@ export function Ladder({
   planId,
   openHasChildren = false,
 }: LadderProps) {
+  const plan = useItemPlan(id);
+  const showsPlan = useShowsPlanIndicators();
   const lines = ladderLines(context, id);
   if (lines.length === 0) return null;
   const lastIndex = lines.length - 1;
@@ -112,11 +116,19 @@ export function Ladder({
           className="flex items-start gap-sm"
           style={{ paddingInlineStart: `calc(${STEP_INDENT} * ${line.depth})` }}
         >
-          <LadderName
-            line={line}
-            isOpen={index === lastIndex}
-            onSelect={onSelect}
-          />
+          {index === lastIndex && showsPlan && plan ? (
+            // Sized to the heading it sits beside, not the line around it.
+            <span className="flex items-start text-xl">
+              <PlanDot plan={plan} className="me-xs" />
+              <LadderName line={line} isOpen onSelect={onSelect} />
+            </span>
+          ) : (
+            <LadderName
+              line={line}
+              isOpen={index === lastIndex}
+              onSelect={onSelect}
+            />
+          )}
           {/* every step above the open item holds the step below it */}
           {planId !== undefined && (index < lastIndex || openHasChildren) ? (
             <CookLink planId={planId} itemId={line.id} name={line.name} />

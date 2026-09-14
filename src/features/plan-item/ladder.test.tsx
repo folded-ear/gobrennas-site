@@ -1,9 +1,13 @@
 import {
+  buildPlanDirectory,
+  PlanDirectoryProvider,
+} from "@/features/plan-directory";
+import {
   buildPlanContext,
   PlanContext,
 } from "@/features/plan-timeline/context";
 import { TimelineItem } from "@/features/plan-timeline/model";
-import { render, screen, userEvent } from "@/test";
+import { render, screen, userEvent, within } from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import { Ladder, ladderLines } from "./ladder";
 
@@ -222,5 +226,54 @@ describe("Ladder", () => {
 
     expect(screen.getByText("Dinner")).toBeVisible();
     expect(screen.queryByRole("button")).toBeNull();
+  });
+});
+
+describe("Ladder, plan indicators", () => {
+  function renderWithPlans(planCount: number) {
+    const plans = [
+      {
+        id: "7",
+        name: "Holidays",
+        color: "#F57F17",
+        mine: true,
+        descendants: [
+          { id: "thanksgiving" },
+          { id: "dinner" },
+          { id: "salad" },
+          { id: "dressing" },
+        ],
+        buckets: [],
+      },
+      {
+        id: "9",
+        name: "Weeknights",
+        color: "#1E88E5",
+        mine: true,
+        descendants: [],
+        buckets: [],
+      },
+    ].slice(0, planCount);
+    render(
+      <PlanDirectoryProvider directory={buildPlanDirectory(plans)}>
+        <Ladder context={thanksgiving("wed")} id="dressing" />
+      </PlanDirectoryProvider>,
+    );
+  }
+
+  it("marks the open item with its plan, and none of its ancestors", () => {
+    renderWithPlans(2);
+
+    const lines = screen.getAllByRole("listitem");
+    expect(
+      within(lines.at(-1)!).getByRole("img", { name: "Holidays" }),
+    ).toBeVisible();
+    expect(screen.getAllByRole("img")).toHaveLength(1);
+  });
+
+  it("marks nothing when only one plan is available", () => {
+    renderWithPlans(1);
+
+    expect(screen.queryByRole("img")).toBeNull();
   });
 });
