@@ -60,7 +60,7 @@ export function BucketSection({
             onDrop: () =>
               dnd.moves.moveToBucket(
                 dragged.id,
-                bucket.bucketIds[0],
+                { name: bucket.name, date: bucket.date },
                 dragged.name,
               ),
           },

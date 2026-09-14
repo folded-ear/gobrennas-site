@@ -161,7 +161,7 @@ function renderMovable(
       rootIds={ROOT_IDS}
       items={THANKSGIVING}
       buckets={buckets}
-      dnd={{ tree, canMove: true, moves: fakeMoves(), ...dnd }}
+      dnd={{ tree, canMove: () => true, moves: fakeMoves(), ...dnd }}
     />,
     { cache },
   );
@@ -234,7 +234,7 @@ describe("PlanTimeline, moving items", () => {
   });
 
   it("offers no handles when the plan can't be changed", () => {
-    renderMovable({ canMove: false });
+    renderMovable({ canMove: () => false });
 
     expect(screen.getByText("Breakfast")).toBeVisible();
     expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
@@ -320,7 +320,11 @@ describe("PlanTimeline, moving items", () => {
     const lunch = screen.getByRole("button", { name: /^Move to Lunch/ });
     await keyboardDrop(lunch.getAttribute("aria-label")!);
 
-    expect(moves.moveToBucket).toHaveBeenCalledWith("6", "bLunch", "Breakfast");
+    expect(moves.moveToBucket).toHaveBeenCalledWith(
+      "6",
+      { name: "Lunch", date: null },
+      "Breakfast",
+    );
   });
 
   it("moves any item to unplanned when dropped there", async () => {

@@ -304,7 +304,7 @@ function renderMovable(dnd: Partial<PlanDnd> = {}) {
       item={pie}
       context={planContext()}
       descendants={[node(CRUST), node(FILLING)]}
-      dnd={{ tree: pieTree(), canMove: true, moves: fakeMoves(), ...dnd }}
+      dnd={{ tree: pieTree(), canMove: () => true, moves: fakeMoves(), ...dnd }}
     />,
     { cache },
   );
@@ -326,7 +326,7 @@ describe("PlanItemDetail, moving items", () => {
   });
 
   it("offers no handles when the plan can't be changed", () => {
-    renderMovable({ canMove: false });
+    renderMovable({ canMove: () => false });
 
     expect(screen.getByText("Pie crust")).toBeVisible();
     expect(screen.queryByRole("button")).toBeNull();

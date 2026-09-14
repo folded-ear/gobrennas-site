@@ -1,4 +1,4 @@
-import { isNamedBucket } from "@/features/plan-dnd/moves";
+import { canonBucketName, isNamedBucket } from "@/features/plan-dnd/moves";
 import { PlanItemFragment } from "@/features/plan-item/__generated__/planItem.generated";
 import { FragmentType } from "@apollo/client";
 import { TimelineItemFragment } from "./__generated__/timelineItem.generated";
@@ -80,11 +80,6 @@ const WEEK_RADIUS_DAYS = 6;
 export const UNPLANNED_SECTION = "unplanned";
 
 const BUCKET_SECTION_PREFIX = "bucket:";
-
-/** I give a bucket name as it compares: case and spacing aside. */
-export function canonBucketName(name: string): string {
-  return name.trim().replace(/\s+/g, " ").toLowerCase();
-}
 
 /** I give the section key named buckets sharing a name and date group under. */
 export function bucketSectionKey(name: string, date: string | null): string {

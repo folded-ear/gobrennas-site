@@ -99,13 +99,16 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - A user who can change a plan sees a handle on the left edge of each of
   its items. Anyone else sees no handles.
 - Dragging an item by its handle moves everything below it too.
+- An item only ever joins a bucket of its own plan.
 - On the timeline, dropping an item on another day puts it on that day.
-  - The item joins a bucket already on that day, preferring an unnamed one.
-  - If the day has no bucket yet, an unnamed one is created for it.
+  - The item joins a bucket its plan already has on that day, preferring an
+    unnamed one.
+  - If its plan has no bucket on that day yet, an unnamed one is created.
   - The item keeps its place in the plan.
 - On the timeline, dropping an item on a named bucket's section puts it in
-  that bucket, and dropping it on Unplanned clears its bucket. An item
-  whose ancestor has a bucket then shows wherever that bucket puts it.
+  its plan's bucket of that name and date, creating one if its plan has
+  none. Dropping it on Unplanned clears its bucket. An item whose ancestor
+  has a bucket then shows wherever that bucket puts it.
 - A bucket an item would inherit anyway isn't set on it: dropping an item
   where its ancestor's bucket already puts it clears its own bucket, and
   any item below it left with the same bucket it now inherits has that

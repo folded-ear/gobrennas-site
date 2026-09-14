@@ -83,13 +83,10 @@ export function Planner() {
         : NO_PLAN_CONTEXT,
     [plan, rootIds],
   );
-  const moves = usePlanMoves({
-    planId: plan?.id ?? "",
-    tree,
-    buckets: plan?.buckets ?? [],
-  });
+  const movePlans = useMemo(() => (plan ? [plan] : []), [plan]);
+  const moves = usePlanMoves({ plans: movePlans, tree });
   const dnd: PlanDnd | undefined = plan
-    ? { tree, canMove: canChangePlan(plan), moves }
+    ? { tree, canMove: () => canChangePlan(plan), moves }
     : undefined;
 
   return (

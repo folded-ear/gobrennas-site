@@ -1,7 +1,7 @@
 import { ApolloCache, Reference } from "@apollo/client";
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { toast } from "@heroui/react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { DoAssignBucketDocument } from "./__generated__/doAssignBucket.generated";
 import { DoCreateBucketDocument } from "./__generated__/doCreateBucket.generated";
 import { DoMutateTreeDocument } from "./__generated__/doMutateTree.generated";
@@ -9,22 +9,36 @@ import {
   applyTreeMove,
   bucketChangeFor,
   bucketForDate,
+  bucketForName,
   BucketSummary,
   PlanTree,
   TreeMove,
 } from "./moves";
 
+/** A plan as moves need it: its buckets, and which items it holds. */
+export type MovePlan = {
+  readonly id: string;
+  readonly buckets: readonly BucketSummary[];
+  readonly descendants: readonly { readonly id: string }[];
+};
+
+/** What names a named bucket's section, whichever plan's bucket it is. */
+export type BucketName = {
+  readonly name: string;
+  readonly date: string | null;
+};
+
 type UsePlanMovesOptions = {
-  planId: string;
+  plans: readonly MovePlan[];
+  /** Every plan's tree, together. */
   tree: PlanTree;
-  buckets: readonly BucketSummary[];
 };
 
 /** The moves a planner can make, and which items are mid-move. */
 export type PlanMoves = {
   moveInTree(move: TreeMove, name: string): void;
   moveToDate(itemId: string, date: string, name: string): void;
-  moveToBucket(itemId: string, bucketId: string, name: string): void;
+  moveToBucket(itemId: string, bucket: BucketName, name: string): void;
   moveToUnplanned(itemId: string, name: string): void;
   isMoving(itemId: string): boolean;
 };
@@ -44,18 +58,22 @@ function reportFailure(name: string) {
 
 /**
  * I make moves against the server, showing each as done the moment it's
- * asked for, and undoing it if the server refuses.
+ * asked for, and undoing it if the server refuses. A bucket an item joins
+ * is always one of its own plan's.
  */
-export function usePlanMoves({
-  planId,
-  tree,
-  buckets,
-}: UsePlanMovesOptions): PlanMoves {
+export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
   const { cache } = useApolloClient();
   const [mutateTree] = useMutation(DoMutateTreeDocument);
   const [assignBucket] = useMutation(DoAssignBucketDocument);
   const [createBucket] = useMutation(DoCreateBucketDocument);
   const [moving, setMoving] = useState<ReadonlySet<string>>(new Set());
+  const planOf = useMemo(
+    () =>
+      new Map(
+        plans.flatMap((plan) => plan.descendants.map((it) => [it.id, plan])),
+      ),
+    [plans],
+  );
 
   const track = useCallback((ids: readonly string[], work: Promise<void>) => {
     setMoving((prev) => new Set([...prev, ...ids]));
@@ -149,10 +167,15 @@ export function usePlanMoves({
     });
   }
 
-  async function assignNewBucket(itemId: string, date: string) {
-    // Until the real bucket exists, a stand-in on the same date carries
-    // the item there, so it never shows anywhere but where it was dropped.
-    const layerId = `${STAND_IN_ID_PREFIX}${itemId}:${date}`;
+  async function assignNewBucket(
+    itemId: string,
+    planId: string,
+    date: string | null,
+    bucketName: string | null,
+  ) {
+    // Until the real bucket exists, a stand-in just like it carries the
+    // item there, so it never shows anywhere but where it was dropped.
+    const layerId = `${STAND_IN_ID_PREFIX}${itemId}:${date}:${bucketName}`;
     cache.recordOptimisticTransaction((c) => {
       const standIn = c.identify({
         __typename: "PlanBucket",
@@ -164,7 +187,12 @@ export function usePlanMoves({
           buckets: (existing, { toReference }) => [
             ...existing,
             toReference(
-              { __typename: "PlanBucket", id: layerId, date, name: null },
+              {
+                __typename: "PlanBucket",
+                id: layerId,
+                date,
+                name: bucketName,
+              },
               true,
             )!,
           ],
@@ -179,7 +207,7 @@ export function usePlanMoves({
     }, layerId);
     try {
       const { data } = await createBucket({
-        variables: { planId, date },
+        variables: { planId, date, name: bucketName },
         update(c, { data }) {
           const created = data?.planner.createBucket;
           if (!created) return;
@@ -228,11 +256,23 @@ export function usePlanMoves({
     track(ids, work);
   }
 
-  function moveToDate(itemId: string, date: string, name: string) {
-    const bucketId = bucketForDate(buckets, date);
+  /** I join a bucket of the item's own plan, making it first if need be. */
+  function joinOwnBucket(
+    itemId: string,
+    name: string,
+    find: (buckets: readonly BucketSummary[]) => string | null,
+    date: string | null,
+    bucketName: string | null,
+  ) {
+    const plan = planOf.get(itemId);
+    if (plan === undefined) {
+      reportFailure(name);
+      return;
+    }
+    const bucketId = find(plan.buckets);
     if (bucketId === null) {
-      const work = assignNewBucket(itemId, date).catch(() =>
-        reportFailure(name),
+      const work = assignNewBucket(itemId, plan.id, date, bucketName).catch(
+        () => reportFailure(name),
       );
       track([itemId], work);
       return;
@@ -240,8 +280,24 @@ export function usePlanMoves({
     applyBucketChange(itemId, bucketId, name);
   }
 
-  function moveToBucket(itemId: string, bucketId: string, name: string) {
-    applyBucketChange(itemId, bucketId, name);
+  function moveToDate(itemId: string, date: string, name: string) {
+    joinOwnBucket(
+      itemId,
+      name,
+      (buckets) => bucketForDate(buckets, date),
+      date,
+      null,
+    );
+  }
+
+  function moveToBucket(itemId: string, bucket: BucketName, name: string) {
+    joinOwnBucket(
+      itemId,
+      name,
+      (buckets) => bucketForName(buckets, bucket.name, bucket.date),
+      bucket.date,
+      bucket.name,
+    );
   }
 
   function moveToUnplanned(itemId: string, name: string) {

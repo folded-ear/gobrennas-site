@@ -47,11 +47,11 @@ function Row({
 }
 
 function Harness({
-  canMove = true,
+  canMove = () => true,
   moving = [],
   offer = "after",
 }: {
-  canMove?: boolean;
+  canMove?: (itemId: string) => boolean;
   moving?: readonly string[];
   offer?: Offer;
 }) {
@@ -98,10 +98,21 @@ describe("ItemRow", () => {
   });
 
   it("offers no handle when items can't be moved", () => {
-    render(<Harness canMove={false} />);
+    render(<Harness canMove={() => false} />);
 
     expect(screen.getByText("Pumpkin pie")).toBeVisible();
     expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
+  });
+
+  it("offers a handle only on the items that can be moved", () => {
+    render(<Harness canMove={(id) => id === "5"} />);
+
+    expect(
+      screen.getByRole("button", { name: "Move Roast turkey" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Move Pumpkin pie" }),
+    ).toBeNull();
   });
 
   it("shows its item outside any drag session, offering no handle", () => {

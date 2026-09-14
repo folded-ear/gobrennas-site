@@ -25,7 +25,7 @@ export function ItemRow({ itemId, name, zones, children }: ItemRowProps) {
         dragged?.id === itemId && "opacity-40",
       )}
     >
-      {canMove ? <DragHandle itemId={itemId} name={name} /> : null}
+      {canMove(itemId) ? <DragHandle itemId={itemId} name={name} /> : null}
       {children}
       <ZoneLayer zones={zones} />
     </div>

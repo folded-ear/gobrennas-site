@@ -4,6 +4,7 @@ import {
   applyTreeMove,
   bucketChangeFor,
   bucketForDate,
+  bucketForName,
   buildPlanTree,
   canChangePlan,
   PlanTree,
@@ -215,6 +216,44 @@ describe("applyTreeMove", () => {
 
     expect(tree.childrenOf.get(DINNER)).toEqual([PIE, TURKEY]);
     expect(tree.parentOf.get(TURKEY)).toBe(DINNER);
+  });
+});
+
+describe("bucketForName", () => {
+  const SAT = "2026-09-12";
+
+  it("joins the first named bucket sharing the name and date", () => {
+    expect(
+      bucketForName(
+        [
+          { id: "b1", date: "2026-09-13", name: "Party prep" },
+          { id: "b2", date: SAT, name: "Party" },
+          { id: "b3", date: SAT, name: " party  PREP" },
+          { id: "b4", date: SAT, name: "Party prep" },
+        ],
+        "Party prep",
+        SAT,
+      ),
+    ).toBe("b3");
+  });
+
+  it("matches an undated name only among undated buckets", () => {
+    expect(
+      bucketForName(
+        [
+          { id: "b1", date: SAT, name: "Lunch" },
+          { id: "b2", date: null, name: "Lunch" },
+        ],
+        "Lunch",
+        null,
+      ),
+    ).toBe("b2");
+  });
+
+  it("gives nothing when no bucket shares the name and date", () => {
+    expect(
+      bucketForName([{ id: "b1", date: SAT, name: "Lunch" }], "Lunch", null),
+    ).toBeNull();
   });
 });
 

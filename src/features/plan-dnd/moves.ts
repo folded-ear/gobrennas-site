@@ -164,6 +164,31 @@ export function bucketForDate(
   return (onDate.find((b) => !isNamedBucket(b)) ?? onDate[0])?.id ?? null;
 }
 
+/**
+ * I pick the bucket a drop on a named bucket's section joins: the first
+ * named one sharing its name and date, else none.
+ */
+export function bucketForName(
+  buckets: readonly BucketSummary[],
+  name: string,
+  date: string | null,
+): string | null {
+  const canon = canonBucketName(name);
+  return (
+    buckets.find(
+      (b) =>
+        isNamedBucket(b) &&
+        b.date === date &&
+        canonBucketName(b.name) === canon,
+    )?.id ?? null
+  );
+}
+
+/** I give a bucket name as it compares: case and spacing aside. */
+export function canonBucketName(name: string): string {
+  return name.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
 /** I say whether a bucket is named: its name has more than whitespace. */
 export function isNamedBucket<B extends BucketSummary>(
   bucket: B,
