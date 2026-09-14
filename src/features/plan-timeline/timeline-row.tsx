@@ -1,5 +1,7 @@
 "use client";
 
+import { PlanDot } from "@/components/plan-dot";
+import { useItemPlan, useShowsPlanIndicators } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { useDragSession } from "@/features/plan-dnd/drag-session";
 import { ItemRow } from "@/features/plan-dnd/item-row";
@@ -68,6 +70,9 @@ export function TimelineRow({
         })
       : [];
 
+  const plan = useItemPlan(id);
+  const showsPlan = useShowsPlanIndicators();
+
   const own = context.get(id);
   const apart = sectionRoot && own !== undefined ? own : null;
 
@@ -80,6 +85,7 @@ export function TimelineRow({
       )}
     >
       <ItemRow itemId={id} name={name} zones={zones}>
+        {sectionRoot && showsPlan && plan ? <PlanDot plan={plan} /> : null}
         <PlanItem item={node.item} onSelect={onSelect} />
         {openId === id ? (
           // The bars say this to everyone who can see them.

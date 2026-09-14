@@ -1,3 +1,8 @@
+import { PlanDotStack } from "@/components/plan-dot";
+import {
+  useBucketPlans,
+  useShowsPlanIndicators,
+} from "@/features/plan-directory";
 import { useDragSession } from "@/features/plan-dnd/drag-session";
 import { ZoneSpec } from "@/features/plan-dnd/zone-layer";
 import { WHOLE_ZONE } from "@/features/plan-dnd/zones";
@@ -44,6 +49,8 @@ export function BucketSection({
       ? `${bucket.name} – ${formatDayLabel(bucket.date)}`
       : bucket.name;
   const sectionKey = bucketSectionKey(bucket.bucketId);
+  const plans = useBucketPlans([bucket.bucketId]);
+  const showsPlans = useShowsPlanIndicators();
   const zones: readonly ZoneSpec[] =
     dnd && dragged && dnd.sectionOf.get(dragged.id) !== sectionKey
       ? [
@@ -60,6 +67,9 @@ export function BucketSection({
   return (
     <SectionShell
       label={label}
+      marker={
+        showsPlans && plans.length > 0 ? <PlanDotStack plans={plans} /> : null
+      }
       roots={bucket.roots}
       zones={zones}
       sectionKey={sectionKey}

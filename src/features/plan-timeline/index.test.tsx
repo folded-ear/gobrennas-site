@@ -1,4 +1,9 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import {
+  buildPlanDirectory,
+  PlanDirectory,
+  PlanDirectoryProvider,
+} from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import {
   keyboardCancel,
@@ -348,7 +353,11 @@ function apartItems(dressingBucket: string): readonly TimelineItem[] {
 }
 
 /** I render the plan and give back a way to ask for one labelled day. */
-function renderApart(dressingBucket: string, openId?: string) {
+function renderApart(
+  dressingBucket: string,
+  openId?: string,
+  directory?: PlanDirectory,
+) {
   const cache = buildInMemoryCache();
   const items = apartItems(dressingBucket);
   for (const it of items) {
@@ -367,13 +376,22 @@ function renderApart(dressingBucket: string, openId?: string) {
       bucket: null,
     });
   }
-  render(
+  const timeline = (
     <PlanTimeline
       rootIds={["1"]}
       items={items}
       buckets={[SEP_11, SEP_12, SEP_13, PREP, SAUCES]}
       openId={openId}
-    />,
+    />
+  );
+  render(
+    directory ? (
+      <PlanDirectoryProvider directory={directory}>
+        {timeline}
+      </PlanDirectoryProvider>
+    ) : (
+      timeline
+    ),
     { cache },
   );
   // A day is the one its own heading names: a chip elsewhere can carry
@@ -447,5 +465,66 @@ describe("PlanTimeline, items apart from their parents", () => {
     renderApart(SEP_11.id);
 
     expect(screen.queryByText(/open in its screen/)).toBeNull();
+  });
+});
+
+describe("PlanTimeline, plan indicators", () => {
+  const THANKSGIVING_PLAN = {
+    id: "7",
+    name: "Thanksgiving",
+    color: "#F57F17",
+    mine: true,
+    descendants: apartItems(SEP_11.id),
+    buckets: [SEP_11, SEP_12, SEP_13, PREP, SAUCES],
+  };
+  const WEEKNIGHTS_PLAN = {
+    id: "9",
+    name: "Weeknights",
+    color: "#1E88E5",
+    mine: true,
+    descendants: [],
+    buckets: [],
+  };
+
+  it("marks each section's top-level items with their plan, not nested ones", () => {
+    const dayHeaded = renderApart(
+      SEP_11.id,
+      undefined,
+      buildPlanDirectory([THANKSGIVING_PLAN, WEEKNIGHTS_PLAN]),
+    );
+
+    const friday = dayHeaded("Fri, Sep 11");
+    const saturday = dayHeaded("Sat, Sep 12");
+    expect(
+      within(friday).getAllByRole("img", { name: "Thanksgiving" }),
+    ).toHaveLength(1);
+    expect(
+      within(saturday).getAllByRole("img", { name: "Thanksgiving" }),
+    ).toHaveLength(1);
+  });
+
+  it("marks a named bucket with its plan, but not a day or Unplanned", () => {
+    const sectionHeaded = renderApart(
+      PREP.id,
+      undefined,
+      buildPlanDirectory([THANKSGIVING_PLAN, WEEKNIGHTS_PLAN]),
+    );
+
+    const prepHeading = within(sectionHeaded("Prep – Sat, Sep 12")).getByRole(
+      "heading",
+    );
+    expect(
+      within(prepHeading).getByRole("img", { name: "Thanksgiving" }),
+    ).toBeVisible();
+    for (const label of ["Sat, Sep 12", "Unplanned"]) {
+      const heading = within(sectionHeaded(label)).getByRole("heading");
+      expect(within(heading).queryByRole("img")).toBeNull();
+    }
+  });
+
+  it("marks nothing when only one plan is available", () => {
+    renderApart(SEP_11.id, undefined, buildPlanDirectory([THANKSGIVING_PLAN]));
+
+    expect(screen.queryByRole("img", { name: "Thanksgiving" })).toBeNull();
   });
 });

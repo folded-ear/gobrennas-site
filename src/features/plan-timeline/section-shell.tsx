@@ -1,12 +1,15 @@
 import { ZoneLayer, ZoneSpec } from "@/features/plan-dnd/zone-layer";
 import { PlanItemTree } from "@/features/plan-item/tree";
 import clsx from "clsx";
+import { ReactNode } from "react";
 import { PlanContext } from "./context";
 import { PlanItemNode } from "./model";
 import { TimelineDnd, TimelineRow } from "./timeline-row";
 
 type SectionShellProps = {
   label: string;
+  /** Set after my label in my heading. */
+  marker?: ReactNode;
   /** The accent styling a day gets for being today. */
   emphasized?: boolean;
   ariaCurrent?: "date";
@@ -26,6 +29,7 @@ type SectionShellProps = {
 /** I am the heading, item list, and drop target shared by every section. */
 export function SectionShell({
   label,
+  marker,
   emphasized = false,
   ariaCurrent,
   roots,
@@ -48,6 +52,7 @@ export function SectionShell({
         )}
       >
         {label}
+        {marker ? <span className="ms-xs">{marker}</span> : null}
       </h3>
       {roots.length === 0 ? (
         // Room to read the section as somewhere an item could go.

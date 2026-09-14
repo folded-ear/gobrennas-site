@@ -40,6 +40,10 @@ The terms used here are defined in the [domain model](../domain/model.md).
     bucket's name and, if it has one, its date;
   - with no bucket anywhere above, it is Unplanned.
 - A bucket whose name is blank or only whitespace is unnamed.
+- When the user can reach more than one plan, each item heading its section
+  carries a dot in its plan's color, named for the plan, and so does each
+  named bucket's heading. Days and Unplanned carry none, and an item nested
+  beneath another shares its plan, so carries none either.
 - A named bucket's section always appears: a dated one right after its
   day, an undated one right after today. Unplanned always appears after
   those.

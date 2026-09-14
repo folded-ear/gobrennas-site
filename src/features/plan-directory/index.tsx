@@ -1,7 +1,7 @@
 "use client";
 
 import { orderPlans } from "@/lib/plans";
-import { createContext, PropsWithChildren, useContext, useMemo } from "react";
+import { createContext, PropsWithChildren, useContext } from "react";
 
 /** A plan as its indicators show it. */
 export type DirectoryPlan = {
@@ -76,10 +76,8 @@ export function useBucketPlans(
   bucketIds: readonly string[],
 ): readonly DirectoryPlan[] {
   const { plans, planOfBucket } = useContext(PlanDirectoryContext);
-  return useMemo(() => {
-    const held = new Set(bucketIds.map((id) => planOfBucket.get(id)));
-    return plans.filter((plan) => held.has(plan));
-  }, [plans, planOfBucket, bucketIds]);
+  const held = new Set(bucketIds.map((id) => planOfBucket.get(id)));
+  return plans.filter((plan) => held.has(plan));
 }
 
 /** I tell whether there are enough plans for indicators to tell apart. */
