@@ -60,6 +60,7 @@ export function SectionShell({
               <TimelineRow
                 node={node}
                 sectionKey={sectionKey}
+                sectionRoot={roots.includes(node)}
                 context={context}
                 openId={openId}
                 dnd={dnd}

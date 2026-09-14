@@ -21,6 +21,8 @@ export type TimelineDnd = PlanDnd & {
 type TimelineRowProps = {
   node: PlanItemNode;
   sectionKey: string;
+  /** Whether I head my section's tree rather than nest under my parent. */
+  sectionRoot: boolean;
   context: PlanContext;
   /** The item open in its screen, marked wherever it shows. */
   openId?: string;
@@ -34,11 +36,13 @@ type TimelineRowProps = {
 /**
  * I am one item's line on the timeline. When I'm top-level, another
  * top-level item in my section can be put before or after me. When my item
- * sits apart from its parent, I say what it is part of and when that is.
+ * sits in another section from its parent, I say what it is part of, and
+ * when that is if it's another day.
  */
 export function TimelineRow({
   node,
   sectionKey,
+  sectionRoot,
   context,
   openId,
   dnd,
@@ -65,7 +69,7 @@ export function TimelineRow({
       : [];
 
   const own = context.get(id);
-  const apart = own !== undefined && own.separation !== null ? own : null;
+  const apart = sectionRoot && own !== undefined ? own : null;
 
   return (
     <div
@@ -87,7 +91,7 @@ export function TimelineRow({
         {apart?.parent ? (
           <span className="ms-auto flex items-center gap-xs">
             <ParentChip name={apart.parent.name} />
-            {apart.parent.date !== null ? (
+            {apart.parent.date !== null && apart.separation !== null ? (
               <DateChip
                 date={apart.parent.date}
                 separation={apart.separation}

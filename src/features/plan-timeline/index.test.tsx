@@ -336,6 +336,8 @@ describe("PlanTimeline, moving items", () => {
 // holds Dressing (3) on whichever day a test puts it.
 const SEP_11 = { id: "bSep11", date: "2026-09-11", name: null };
 const SEP_13 = { id: "bSep13", date: "2026-09-13", name: null };
+const PREP = { id: "bPrep", date: "2026-09-12", name: "Prep" };
+const SAUCES = { id: "bSauces", date: null, name: "Sauces" };
 
 function apartItems(dressingBucket: string): readonly TimelineItem[] {
   return [
@@ -369,7 +371,7 @@ function renderApart(dressingBucket: string, openId?: string) {
     <PlanTimeline
       rootIds={["1"]}
       items={items}
-      buckets={[SEP_11, SEP_12, SEP_13]}
+      buckets={[SEP_11, SEP_12, SEP_13, PREP, SAUCES]}
       openId={openId}
     />,
     { cache },
@@ -393,6 +395,22 @@ describe("PlanTimeline, items apart from their parents", () => {
     expect(within(friday).getByText("Dressing")).toBeVisible();
     expect(within(friday).getByText("Salad")).toBeVisible();
     expect(within(friday).getByText("Sat, Sep 12")).toBeVisible();
+  });
+
+  it("says what an item is part of in another section on its parent's day", () => {
+    const sectionHeaded = renderApart(PREP.id);
+
+    const prep = sectionHeaded("Prep – Sat, Sep 12");
+    expect(within(prep).getByText("Dressing")).toBeVisible();
+    expect(within(prep).getByText("Salad")).toBeVisible();
+  });
+
+  it("says what an item is part of in a section with no day", () => {
+    const sectionHeaded = renderApart(SAUCES.id);
+
+    const sauces = sectionHeaded("Sauces");
+    expect(within(sauces).getByText("Dressing")).toBeVisible();
+    expect(within(sauces).getByText("Salad")).toBeVisible();
   });
 
   it("leaves an item sitting with its parent unremarked", () => {
