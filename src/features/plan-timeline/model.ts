@@ -23,10 +23,25 @@ export type PlanItemNode = {
   readonly children: readonly PlanItemNode[];
 };
 
-/** One calendar day and the item trees rooted in it. */
+/** One calendar day and the item trees rooted directly in it. */
 export type TimelineDay = {
   readonly kind: "day";
   readonly date: string;
+  readonly roots: readonly PlanItemNode[];
+};
+
+/** One named bucket's own section, dated or not. */
+export type TimelineBucketSection = {
+  readonly kind: "bucket";
+  readonly bucketId: string;
+  readonly name: string;
+  readonly date: string | null;
+  readonly roots: readonly PlanItemNode[];
+};
+
+/** Items with no bucket to place them anywhere else. */
+export type TimelineUnplanned = {
+  readonly kind: "unplanned";
   readonly roots: readonly PlanItemNode[];
 };
 
@@ -38,7 +53,11 @@ export type TimelineGap = {
   readonly days: number;
 };
 
-export type TimelineEntry = TimelineDay | TimelineGap;
+export type TimelineEntry =
+  | TimelineDay
+  | TimelineBucketSection
+  | TimelineUnplanned
+  | TimelineGap;
 
 export type BuildTimelineInput = {
   /** The plan's own children, in display order. */
@@ -51,6 +70,20 @@ export type BuildTimelineInput = {
 /** A week counted inclusively: the day itself plus six more. */
 const WEEK_RADIUS_DAYS = 6;
 
+/** The section key for items with no bucket to place them anywhere else. */
+export const UNPLANNED_SECTION = "unplanned";
+
+const BUCKET_SECTION_PREFIX = "bucket:";
+
+/** I give a named bucket's own section the key its items group under. */
+export function bucketSectionKey(bucketId: string): string {
+  return `${BUCKET_SECTION_PREFIX}${bucketId}`;
+}
+
+function isDateKey(key: string): boolean {
+  return key !== UNPLANNED_SECTION && !key.startsWith(BUCKET_SECTION_PREFIX);
+}
+
 type Span = [start: string, end: string];
 
 type MutableNode = {
@@ -60,31 +93,50 @@ type MutableNode = {
 
 type Parent = {
   readonly node: MutableNode;
-  readonly date: string;
+  readonly key: string;
 };
 
 export function buildTimeline(
   input: BuildTimelineInput,
 ): readonly TimelineEntry[] {
-  return layOutDates(groupRootsByDate(input), input.today);
+  return layOutTimeline(
+    groupRootsBySection(input),
+    input.buckets,
+    input.today,
+  );
 }
 
-function groupRootsByDate({
+/**
+ * I give an item's own section key: a day for a plain dated bucket, a
+ * bucket's own section for a named one (dated or not), or nothing when its
+ * bucket doesn't place it anywhere of its own.
+ */
+function ownSectionKey(
+  item: TimelineItem,
+  bucketById: ReadonlyMap<string, TimelineBucket>,
+): string | null {
+  if (item.bucket === null) return null;
+  const bucket = bucketById.get(item.bucket.id);
+  if (bucket === undefined) return null;
+  if (bucket.name !== null) return bucketSectionKey(bucket.id);
+  return bucket.date;
+}
+
+function groupRootsBySection({
   rootIds,
   items,
   buckets,
-  today,
 }: BuildTimelineInput): ReadonlyMap<string, readonly PlanItemNode[]> {
   const byId = new Map(items.map((it) => [it.id, it]));
-  const bucketDates = new Map(buckets.map((b) => [b.id, b.date]));
-  const byDate = new Map<string, MutableNode[]>();
+  const bucketById = new Map(buckets.map((b) => [b.id, b]));
+  const bySection = new Map<string, MutableNode[]>();
   const visited = new Set<string>();
 
-  function rootsOn(date: string): MutableNode[] {
-    const existing = byDate.get(date);
+  function rootsIn(key: string): MutableNode[] {
+    const existing = bySection.get(key);
     if (existing !== undefined) return existing;
     const created: MutableNode[] = [];
-    byDate.set(date, created);
+    bySection.set(key, created);
     return created;
   }
 
@@ -94,38 +146,66 @@ function groupRootsByDate({
     if (item === undefined || visited.has(id)) return;
     visited.add(id);
 
-    const own = item.bucket ? (bucketDates.get(item.bucket.id) ?? null) : null;
-    const date = own ?? inherited;
+    const key = ownSectionKey(item, bucketById) ?? inherited;
 
     const hidden =
       parent !== null && item.bucket === null && item.children.length === 0;
     if (hidden) return;
 
     const node: MutableNode = { item, children: [] };
-    if (parent !== null && parent.date === date) {
+    if (parent !== null && parent.key === key) {
       parent.node.children.push(node);
     } else {
-      rootsOn(date).push(node);
+      rootsIn(key).push(node);
     }
     for (const child of item.children) {
-      visit(child.id, { node, date }, date);
+      visit(child.id, { node, key }, key);
     }
   }
 
   for (const id of rootIds) {
-    visit(id, null, today);
+    visit(id, null, UNPLANNED_SECTION);
   }
-  return byDate;
+  return bySection;
 }
 
-function layOutDates(
-  roots: ReadonlyMap<string, readonly PlanItemNode[]>,
+function layOutTimeline(
+  bySection: ReadonlyMap<string, readonly PlanItemNode[]>,
+  buckets: readonly TimelineBucket[],
   today: string,
 ): readonly TimelineEntry[] {
+  const namedBuckets = buckets.filter((b) => b.name !== null);
+  const datedNamedByDate = new Map<string, TimelineBucket[]>();
+  for (const bucket of namedBuckets) {
+    if (bucket.date === null) continue;
+    const onDate = datedNamedByDate.get(bucket.date) ?? [];
+    onDate.push(bucket);
+    datedNamedByDate.set(bucket.date, onDate);
+  }
+  const undatedNamedBuckets = namedBuckets.filter((b) => b.date === null);
+
+  const dayDates = [...bySection.keys()].filter(isDateKey);
+  const namedBucketDates = namedBuckets.flatMap((b) =>
+    b.date !== null ? [b.date] : [],
+  );
+
+  function bucketSection(bucket: TimelineBucket): TimelineBucketSection {
+    return {
+      kind: "bucket",
+      bucketId: bucket.id,
+      // Filtered to named buckets above.
+      name: bucket.name!,
+      date: bucket.date,
+      roots: bySection.get(bucketSectionKey(bucket.id)) ?? [],
+    };
+  }
+
   const entries: TimelineEntry[] = [];
   let previousEnd: string | null = null;
 
-  for (const [start, end] of mergeSpans(buildSpans([...roots.keys()], today))) {
+  for (const [start, end] of mergeSpans(
+    buildSpans([...dayDates, ...namedBucketDates], today),
+  )) {
     if (previousEnd !== null) {
       entries.push({
         kind: "gap",
@@ -138,8 +218,22 @@ function layOutDates(
       entries.push({
         kind: "day",
         date,
-        roots: roots.get(date) ?? [],
+        roots: bySection.get(date) ?? [],
       });
+      for (const bucket of datedNamedByDate.get(date) ?? []) {
+        entries.push(bucketSection(bucket));
+      }
+      // Today's own extras: buckets no date claims, then whatever has no
+      // bucket at all, both always shown, right before tomorrow.
+      if (date === today) {
+        for (const bucket of undatedNamedBuckets) {
+          entries.push(bucketSection(bucket));
+        }
+        entries.push({
+          kind: "unplanned",
+          roots: bySection.get(UNPLANNED_SECTION) ?? [],
+        });
+      }
     }
     previousEnd = end;
   }
@@ -181,21 +275,26 @@ function mergeSpans(spans: readonly Span[]): readonly Span[] {
   return merged;
 }
 
-/** I map each item the timeline shows to the day it shows on. */
-export function dayOfItems(
+/** I map each item the timeline shows to the section it shows in. */
+export function sectionOfItems(
   entries: readonly TimelineEntry[],
 ): ReadonlyMap<string, string> {
-  const days = new Map<string, string>();
-  function visit(nodes: readonly PlanItemNode[], date: string): void {
+  const sections = new Map<string, string>();
+  function visit(nodes: readonly PlanItemNode[], key: string): void {
     for (const node of nodes) {
-      days.set(node.item.id, date);
-      visit(node.children, date);
+      sections.set(node.item.id, key);
+      visit(node.children, key);
     }
   }
   for (const entry of entries) {
     if (entry.kind === "day") visit(entry.roots, entry.date);
+    else if (entry.kind === "bucket") {
+      visit(entry.roots, bucketSectionKey(entry.bucketId));
+    } else if (entry.kind === "unplanned") {
+      visit(entry.roots, UNPLANNED_SECTION);
+    }
   }
-  return days;
+  return sections;
 }
 
 /**
