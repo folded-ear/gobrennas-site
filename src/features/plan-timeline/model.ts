@@ -56,6 +56,10 @@ export type TimelineGap = {
   readonly days: number;
 };
 
+/** Any section an item can sit in. */
+export type TimelineSection =
+  TimelineDay | TimelineBucketSection | TimelineUnplanned;
+
 export type TimelineEntry =
   TimelineDay | TimelineBucketSection | TimelineUnplanned | TimelineGap;
 
@@ -84,6 +88,43 @@ const BUCKET_SECTION_PREFIX = "bucket:";
 /** I give the section key named buckets sharing a name and date group under. */
 export function bucketSectionKey(name: string, date: string | null): string {
   return `${BUCKET_SECTION_PREFIX}${canonBucketName(name)}@${date ?? ""}`;
+}
+
+/**
+ * I give the one section a key names, with what every plan roots in it, or
+ * nothing when the key names a bucket section no bucket has.
+ */
+export function buildSection(
+  plans: readonly TimelinePlan[],
+  key: string,
+): TimelineSection | null {
+  const bySection = groupRootsBySection(plans);
+  const roots = bySection.get(key) ?? [];
+  if (key === UNPLANNED_SECTION) return { kind: "unplanned", roots };
+  if (isDateKey(key)) return { kind: "day", date: key, roots };
+  const buckets = plans.flatMap((plan) => plan.buckets);
+  return bucketSectionsOf(buckets, bySection).get(key) ?? null;
+}
+
+/** I gather named buckets sharing a name and date into their sections. */
+function bucketSectionsOf(
+  buckets: readonly TimelineBucket[],
+  bySection: ReadonlyMap<string, readonly PlanItemNode[]>,
+): ReadonlyMap<string, TimelineBucketSection> {
+  const sectionsByKey = new Map<string, TimelineBucketSection>();
+  for (const bucket of buckets.filter(isNamedBucket)) {
+    const key = bucketSectionKey(bucket.name, bucket.date);
+    const existing = sectionsByKey.get(key);
+    sectionsByKey.set(key, {
+      kind: "bucket",
+      key,
+      bucketIds: [...(existing?.bucketIds ?? []), bucket.id],
+      name: existing?.name ?? bucket.name,
+      date: bucket.date,
+      roots: bySection.get(key) ?? [],
+    });
+  }
+  return sectionsByKey;
 }
 
 function isDateKey(key: string): boolean {
@@ -184,21 +225,7 @@ function layOutTimeline(
   buckets: readonly TimelineBucket[],
   today: string,
 ): readonly TimelineEntry[] {
-  const namedBuckets = buckets.filter(isNamedBucket);
-  const sectionsByKey = new Map<string, TimelineBucketSection>();
-  for (const bucket of namedBuckets) {
-    const key = bucketSectionKey(bucket.name, bucket.date);
-    const existing = sectionsByKey.get(key);
-    sectionsByKey.set(key, {
-      kind: "bucket",
-      key,
-      bucketIds: [...(existing?.bucketIds ?? []), bucket.id],
-      name: existing?.name ?? bucket.name,
-      date: bucket.date,
-      roots: bySection.get(key) ?? [],
-    });
-  }
-  const bucketSections = [...sectionsByKey.values()];
+  const bucketSections = [...bucketSectionsOf(buckets, bySection).values()];
   const datedByDate = new Map<string, TimelineBucketSection[]>();
   for (const section of bucketSections) {
     if (section.date === null) continue;

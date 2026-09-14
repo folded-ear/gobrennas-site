@@ -18,12 +18,13 @@ import {
   render,
   screen,
   seedFragment,
+  userEvent,
   within,
 } from "@/test";
 import { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlanTimeline } from "./index";
-import { TimelineBucket, TimelineItem } from "./model";
+import { TimelineBucket, TimelineItem, UNPLANNED_SECTION } from "./model";
 
 const PUMPKIN: TimelineItem = {
   __typename: "PlanItem",
@@ -236,6 +237,58 @@ describe("PlanTimeline, cooking", () => {
 
     expect(screen.getByText("Thanksgiving dinner")).toBeVisible();
     expect(screen.queryByRole("link", { name: /^Cook / })).toBeNull();
+  });
+});
+
+describe("PlanTimeline, opening sections", () => {
+  beforeEach(() => {
+    // Only the date: a click runs on real timers.
+    vi.useRealTimers();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 8, 9, 9, 0));
+  });
+
+  function renderOpenable(onOpenSection = vi.fn()) {
+    const cache = buildInMemoryCache();
+    seedItems(cache, THANKSGIVING, "7");
+    render(
+      <PlanTimeline
+        plans={[
+          {
+            rootIds: ROOT_IDS,
+            items: THANKSGIVING,
+            buckets: [SEP_12, { id: "bLunch", date: null, name: "Lunch" }],
+          },
+        ]}
+        onOpenSection={onOpenSection}
+      />,
+      { cache },
+    );
+    return onOpenSection;
+  }
+
+  it("opens a day with something in it", async () => {
+    const onOpenSection = renderOpenable();
+
+    await userEvent.click(screen.getByRole("button", { name: "Sat, Sep 12" }));
+
+    expect(onOpenSection).toHaveBeenCalledWith("2026-09-12");
+  });
+
+  it("opens Unplanned when something is in it", async () => {
+    const onOpenSection = renderOpenable();
+
+    await userEvent.click(screen.getByRole("button", { name: "Unplanned" }));
+
+    expect(onOpenSection).toHaveBeenCalledWith(UNPLANNED_SECTION);
+  });
+
+  it("offers no way to open a day or bucket with nothing in it", () => {
+    renderOpenable();
+
+    expect(screen.getByRole("heading", { name: "Sun, Sep 13" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Sun, Sep 13" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Lunch" })).toBeNull();
   });
 });
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   bucketSectionKey,
+  buildSection,
   buildSubtree,
   buildTimeline,
   PlanItemNode,
@@ -551,6 +552,72 @@ describe("several plans", () => {
 
   it("gathers every plan's unplanned items together, in plan order", () => {
     expect(names(unplanned(buildBoth()).roots)).toEqual(["Tidy up", "Laundry"]);
+  });
+});
+
+describe("buildSection", () => {
+  const PLANS: readonly TimelinePlan[] = [
+    {
+      rootIds: ["dinner", "tidy", "brine"],
+      items: [
+        item({ id: "dinner", name: "Thanksgiving dinner", bucket: "hSat" }),
+        item({ id: "tidy", name: "Tidy up" }),
+        item({ id: "brine", name: "Brine turkey", bucket: "hPrep" }),
+      ],
+      buckets: [
+        { id: "hSat", date: "2026-09-12", name: null },
+        { id: "hPrep", date: "2026-09-11", name: "Prep" },
+      ],
+    },
+    {
+      rootIds: ["tacos", "stock"],
+      items: [
+        item({ id: "tacos", name: "Tacos", bucket: "wSat" }),
+        item({ id: "stock", name: "Stock", bucket: "wPrep" }),
+      ],
+      buckets: [
+        { id: "wSat", date: "2026-09-12", name: null },
+        { id: "wPrep", date: "2026-09-11", name: "prep" },
+      ],
+    },
+  ];
+
+  it("gives a day and what every plan roots in it", () => {
+    const section = buildSection(PLANS, "2026-09-12");
+
+    expect(section).toMatchObject({ kind: "day", date: "2026-09-12" });
+    expect(names(section!.roots)).toEqual(["Thanksgiving dinner", "Tacos"]);
+  });
+
+  it("gives a day with nothing in it", () => {
+    expect(buildSection(PLANS, "2026-09-20")).toEqual({
+      kind: "day",
+      date: "2026-09-20",
+      roots: [],
+    });
+  });
+
+  it("gives a bucket section shared across plans", () => {
+    const section = buildSection(PLANS, bucketSectionKey("Prep", "2026-09-11"));
+
+    expect(section).toMatchObject({
+      kind: "bucket",
+      name: "Prep",
+      date: "2026-09-11",
+      bucketIds: ["hPrep", "wPrep"],
+    });
+    expect(names(section!.roots)).toEqual(["Brine turkey", "Stock"]);
+  });
+
+  it("gives Unplanned", () => {
+    const section = buildSection(PLANS, UNPLANNED_SECTION);
+
+    expect(section).toMatchObject({ kind: "unplanned" });
+    expect(names(section!.roots)).toEqual(["Tidy up"]);
+  });
+
+  it("gives nothing for a bucket section no bucket has", () => {
+    expect(buildSection(PLANS, bucketSectionKey("Gone", null))).toBeNull();
   });
 });
 

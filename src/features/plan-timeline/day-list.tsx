@@ -12,6 +12,8 @@ type DayListProps = {
   /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   onSelect?: (id: string) => void;
+  /** Opens a section by its key. Left out, no section opens. */
+  onOpenSection?: (key: string) => void;
   dnd?: TimelineDnd;
 };
 
@@ -22,6 +24,7 @@ export function DayList({
   context,
   openId,
   onSelect,
+  onOpenSection,
   dnd,
 }: DayListProps) {
   return (
@@ -37,6 +40,7 @@ export function DayList({
                 context={context}
                 openId={openId}
                 onSelect={onSelect}
+                onOpenSection={onOpenSection}
                 dnd={dnd}
               />
             );
@@ -48,6 +52,7 @@ export function DayList({
                 context={context}
                 openId={openId}
                 onSelect={onSelect}
+                onOpenSection={onOpenSection}
                 dnd={dnd}
               />
             );
@@ -59,6 +64,7 @@ export function DayList({
                 context={context}
                 openId={openId}
                 onSelect={onSelect}
+                onOpenSection={onOpenSection}
                 dnd={dnd}
               />
             );

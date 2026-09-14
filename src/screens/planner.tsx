@@ -10,10 +10,16 @@ import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree, canChangePlan } from "@/features/plan-dnd/moves";
 import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
+import { PlanSectionHeader } from "@/features/plan-item/section-header";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { buildPlanContext } from "@/features/plan-timeline/context";
-import { buildSubtree } from "@/features/plan-timeline/model";
+import {
+  buildSection,
+  buildSubtree,
+  PlanItemNode,
+} from "@/features/plan-timeline/model";
+import { sectionLabel } from "@/features/plan-timeline/section-label";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
 import { useHistoryState } from "@/hooks/use-history-state";
 import { orderPlans } from "@/lib/plans";
@@ -30,12 +36,23 @@ const PlanTimeline = dynamic(
   { ssr: false, loading: () => <TimelineSkeleton /> },
 );
 
-// The open item rides its own history entry, so going back closes it.
-const OPEN_ITEM_KEY = "planItem";
+/** What the screen over the planner shows: one item, or one section. */
+type PlannerOpen = { readonly item: string } | { readonly section: string };
+
+// What's open rides its own history entry, so going back closes it.
+const OPEN_KEY = "plannerOpen";
+
+function openItemId(open: PlannerOpen | undefined): string | undefined {
+  return open !== undefined && "item" in open ? open.item : undefined;
+}
+
+function openSectionKey(open: PlannerOpen | undefined): string | undefined {
+  return open !== undefined && "section" in open ? open.section : undefined;
+}
 
 export function Planner() {
   const { data } = useSuspenseQuery(PlannerDocument);
-  const openItem = useHistoryState<string>(OPEN_ITEM_KEY);
+  const open = useHistoryState<PlannerOpen>(OPEN_KEY);
 
   const plans = data.planner.plans;
   const directory = useMemo(() => buildPlanDirectory(plans), [plans]);
@@ -61,17 +78,38 @@ export function Planner() {
     () => shownPlans.flatMap((plan) => plan.descendants),
     [shownPlans],
   );
-  const selected = items.find((it) => it.id === openItem.value);
-  // A closing screen slides away still showing its item, not an empty panel.
-  const [shownId, setShownId] = useState(openItem.value);
-  if (openItem.value !== undefined && openItem.value !== shownId) {
-    setShownId(openItem.value);
+  const selected = items.find((it) => it.id === openItemId(open.value));
+  // A closing screen slides away still showing what it showed, not an
+  // empty panel.
+  const [shownOpen, setShownOpen] = useState(open.value);
+  if (
+    open.value !== undefined &&
+    (openItemId(open.value) !== openItemId(shownOpen) ||
+      openSectionKey(open.value) !== openSectionKey(shownOpen))
+  ) {
+    setShownOpen(open.value);
   }
-  const shown = items.find((it) => it.id === shownId);
-  const descendants = useMemo(
-    () => (shown ? buildSubtree(items, shown.id) : []),
-    [items, shown],
+  const shown = items.find((it) => it.id === openItemId(shownOpen));
+  const shownSectionKey = openSectionKey(shownOpen);
+  const shownSection = useMemo(
+    () =>
+      shownSectionKey === undefined
+        ? null
+        : buildSection(timelinePlans, shownSectionKey),
+    [timelinePlans, shownSectionKey],
   );
+  const descendants = useMemo((): readonly PlanItemNode[] => {
+    if (shown) return buildSubtree(items, shown.id);
+    // A section's own items head its screen's tree, each with everything
+    // below it, however deep.
+    return (shownSection?.roots ?? []).map((root) => ({
+      item: root.item,
+      children: buildSubtree(items, root.item.id),
+    }));
+  }, [items, shown, shownSection]);
+  const isOpen =
+    selected !== undefined ||
+    (openSectionKey(open.value) !== undefined && shownSection !== null);
   const tree = useMemo(
     () =>
       buildPlanTree(shownPlans.flatMap((plan) => [plan, ...plan.descendants])),
@@ -106,20 +144,22 @@ export function Planner() {
         />
       </SectionHeader>
       <Screen
-        label={shown?.name ?? ""}
-        isOpen={selected !== undefined}
+        label={shown?.name ?? (shownSection ? sectionLabel(shownSection) : "")}
+        isOpen={isOpen}
         header={
           shown ? (
             <PlanItemHeader
               item={shown}
               context={context}
               hasDescendants={descendants.length > 0}
-              onSelect={openItem.replace}
+              onSelect={(id) => open.replace({ item: id })}
             />
+          ) : shownSection ? (
+            <PlanSectionHeader section={shownSection} />
           ) : null
         }
       >
-        {shown ? (
+        {shown || shownSection ? (
           <PlanItemDetail
             context={context}
             descendants={descendants}
@@ -133,7 +173,8 @@ export function Planner() {
           <PlanTimeline
             plans={timelinePlans}
             openId={selected?.id}
-            onSelect={openItem.push}
+            onSelect={(id) => open.push({ item: id })}
+            onOpenSection={(key) => open.push({ section: key })}
             dnd={dnd}
           />
         ) : (

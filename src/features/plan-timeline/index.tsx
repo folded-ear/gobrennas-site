@@ -17,6 +17,8 @@ type PlanTimelineProps = {
   /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   onSelect?: (id: string) => void;
+  /** Opens a section by its key. Left out, no section opens. */
+  onOpenSection?: (key: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
 };
@@ -26,6 +28,7 @@ export function PlanTimeline({
   plans,
   openId,
   onSelect,
+  onOpenSection,
   dnd,
 }: PlanTimelineProps) {
   const today = useToday();
@@ -51,6 +54,7 @@ export function PlanTimeline({
         context={context}
         openId={openId}
         onSelect={onSelect}
+        onOpenSection={onOpenSection}
       />
     );
   }
@@ -67,6 +71,7 @@ export function PlanTimeline({
         context={context}
         openId={openId}
         onSelect={onSelect}
+        onOpenSection={onOpenSection}
         dnd={timelineDnd}
       />
     </DragSession>

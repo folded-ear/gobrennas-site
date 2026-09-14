@@ -68,6 +68,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   everything below it, however deep and wherever those descendants sit on
   the calendar.
 - The item open in the item screen is marked on the timeline.
+- Choosing a day, named bucket, or Unplanned with anything in it opens it
+  in a screen of its own; one with nothing in it can't be chosen.
 - An item in a different section from its parent names that parent, and
   says which day the parent falls on when that day differs.
 - An item falling after the thing it belongs to is marked as out of order,
@@ -90,6 +92,17 @@ The terms used here are defined in the [domain model](../domain/model.md).
   item can be chosen: it is already in view, and opening it would only
   narrow what is shown.
 - An item below the open one that falls on another day says which day.
+
+### The section screen
+
+- The section screen slides in over the planner like the item screen, and
+  closes the same ways.
+- It is headed by the section's label, as on the timeline. A named bucket's
+  heading carries the dots of every plan it spans; a day or Unplanned
+  carries none.
+- Below the heading, each item in the section appears with everything below
+  it, however deep, from every selected plan.
+- A section emptied while its screen is open stays open, showing nothing.
 
 ### Cooking
 

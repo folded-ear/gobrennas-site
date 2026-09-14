@@ -20,6 +20,8 @@ type SectionShellProps = {
   /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   onSelect?: (id: string) => void;
+  /** Opens a section by its key. Left out, no section opens. */
+  onOpenSection?: (key: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
 };
@@ -36,8 +38,16 @@ export function SectionShell({
   context,
   openId,
   onSelect,
+  onOpenSection,
   dnd,
 }: SectionShellProps) {
+  const title = (
+    <>
+      {label}
+      {marker ? <span className="ms-xs">{marker}</span> : null}
+    </>
+  );
+
   return (
     <li aria-current={ariaCurrent} className="relative py-xxs">
       <h3
@@ -48,8 +58,17 @@ export function SectionShell({
             : "border-separator font-normal text-muted",
         )}
       >
-        {label}
-        {marker ? <span className="ms-xs">{marker}</span> : null}
+        {onOpenSection && roots.length > 0 ? (
+          <button
+            type="button"
+            className="text-left"
+            onClick={() => onOpenSection(sectionKey)}
+          >
+            {title}
+          </button>
+        ) : (
+          title
+        )}
       </h3>
       {roots.length === 0 ? (
         // Room to read the section as somewhere an item could go.
