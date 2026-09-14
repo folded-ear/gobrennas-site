@@ -18,9 +18,9 @@ export function CookLink({ planId, itemId, name }: CookLinkProps) {
   return (
     <Link
       href={cookHref(planId, itemId)}
-      className="shrink-0 rounded-full p-xs text-foreground"
+      className="shrink-0 rounded-full p-xs text-primary"
     >
-      <CookIcon size="small" aria-hidden="true" className={"text-primary"} />
+      <CookIcon size="small" aria-hidden="true" />
       <span className="sr-only">Cook {name}</span>
     </Link>
   );
