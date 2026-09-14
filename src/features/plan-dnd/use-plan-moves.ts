@@ -206,8 +206,9 @@ export function usePlanMoves({
 
   /**
    * I assign a bucket, clearing it instead when an ancestor already
-   * carries the very one given, and clear it from any descendant left
-   * duplicating what it would now inherit either way.
+   * carries the very one given, then clear it from any descendant left
+   * duplicating what it would now inherit. A descendant is only cleared
+   * once the item's own assignment lands, so a failed one moves nothing.
    */
   function applyBucketChange(
     itemId: string,
@@ -220,10 +221,8 @@ export function usePlanMoves({
       newBucketId,
     );
     const ids = [itemId, ...redundant];
-    const work = Promise.all([
-      assign(itemId, ownBucketId),
-      ...redundant.map((id) => assign(id, null)),
-    ])
+    const work = assign(itemId, ownBucketId)
+      .then(() => Promise.all(redundant.map((id) => assign(id, null))))
       .then(() => {})
       .catch(() => reportFailure(name));
     track(ids, work);

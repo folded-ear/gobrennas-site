@@ -680,6 +680,35 @@ describe("usePlanMoves, folding away redundant buckets", () => {
     );
   });
 
+  it("leaves a descendant's bucket alone when the dropped item can't move", async () => {
+    renderRedundancyProbe([
+      {
+        request: {
+          query: DoAssignBucketDocument,
+          variables: { id: "13", bucketId: BUCKET_B },
+        },
+        error: new Error("Forbidden"),
+        delay: RESPONSE_DELAY_MS,
+      },
+      {
+        request: {
+          query: DoAssignBucketDocument,
+          variables: { id: "14", bucketId: null },
+        },
+        result: assignedItem("14", null),
+      },
+    ]);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Put solo in bucket B" }),
+    );
+
+    expect(await screen.findByText("Couldn't move Solo")).toBeVisible();
+    expect(screen.getByText(/Solo child's bucket is/)).toHaveTextContent(
+      BUCKET_B,
+    );
+  });
+
   it("clears the dropped item's own bucket when an ancestor already carries it", async () => {
     renderRedundancyProbe([
       {
