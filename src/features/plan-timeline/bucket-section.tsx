@@ -9,7 +9,6 @@ import { WHOLE_ZONE } from "@/features/plan-dnd/zones";
 import { PlanContext } from "./context";
 import { formatDayLabel } from "./dates";
 import {
-  bucketSectionKey,
   TimelineBucketSection,
   TimelineUnplanned,
   UNPLANNED_SECTION,
@@ -48,8 +47,8 @@ export function BucketSection({
     bucket.date !== null
       ? `${bucket.name} – ${formatDayLabel(bucket.date)}`
       : bucket.name;
-  const sectionKey = bucketSectionKey(bucket.bucketId);
-  const plans = useBucketPlans([bucket.bucketId]);
+  const sectionKey = bucket.key;
+  const plans = useBucketPlans(bucket.bucketIds);
   const showsPlans = useShowsPlanIndicators();
   const zones: readonly ZoneSpec[] =
     dnd && dragged && dnd.sectionOf.get(dragged.id) !== sectionKey
@@ -59,7 +58,11 @@ export function BucketSection({
             indicator: "fill",
             label: `Move to ${label}`,
             onDrop: () =>
-              dnd.moves.moveToBucket(dragged.id, bucket.bucketId, dragged.name),
+              dnd.moves.moveToBucket(
+                dragged.id,
+                bucket.bucketIds[0],
+                dragged.name,
+              ),
           },
         ]
       : [];

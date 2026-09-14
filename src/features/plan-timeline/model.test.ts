@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  bucketSectionKey,
   buildSubtree,
   buildTimeline,
   BuildTimelineInput,
@@ -78,7 +79,9 @@ function bucketOn(
   entries: readonly TimelineEntry[],
   bucketId: string,
 ): TimelineBucketSection {
-  const found = bucketSections(entries).find((b) => b.bucketId === bucketId);
+  const found = bucketSections(entries).find((b) =>
+    b.bucketIds.includes(bucketId),
+  );
   if (!found) throw new Error(`No bucket section for ${bucketId}`);
   return found;
 }
@@ -376,7 +379,7 @@ describe("named bucket sections", () => {
     );
     expect(entries[dayIndex + 1]).toMatchObject({
       kind: "bucket",
-      bucketId: "lunch",
+      bucketIds: ["lunch"],
     });
   });
 
@@ -392,8 +395,8 @@ describe("named bucket sections", () => {
       (e) => e.kind === "day" && e.date === "2026-09-14",
     );
     expect(entries.slice(dayIndex + 1, dayIndex + 3)).toMatchObject([
-      { kind: "bucket", bucketId: "dinner" },
-      { kind: "bucket", bucketId: "lunch" },
+      { kind: "bucket", bucketIds: ["dinner"] },
+      { kind: "bucket", bucketIds: ["lunch"] },
     ]);
   });
 
@@ -445,6 +448,55 @@ describe("named bucket sections", () => {
 
     expect(names(dayOn(entries, "2026-09-14").roots)).toEqual(["Spice mix"]);
     expect(bucketSections(entries)).toEqual([]);
+  });
+});
+
+describe("buckets sharing a name and date", () => {
+  it("shows them as one section, named as the first spells it", () => {
+    const entries = build({
+      rootIds: ["pie", "rolls"],
+      items: [
+        item({ id: "pie", name: "Pumpkin pie", bucket: "prep" }),
+        item({ id: "rolls", name: "Dinner rolls", bucket: "prep2" }),
+      ],
+      buckets: [
+        { id: "prep", date: "2026-09-14", name: "Day-before prep" },
+        { id: "prep2", date: "2026-09-14", name: " day-before   PREP " },
+      ],
+    });
+
+    expect(bucketSections(entries)).toHaveLength(1);
+    const section = bucketOn(entries, "prep2");
+    expect(section).toMatchObject({
+      name: "Day-before prep",
+      bucketIds: ["prep", "prep2"],
+    });
+    expect(names(section.roots)).toEqual(["Pumpkin pie", "Dinner rolls"]);
+  });
+
+  it("shows undated ones as one section too", () => {
+    const entries = build({
+      buckets: [
+        { id: "list", date: null, name: "Grocery list" },
+        { id: "list2", date: null, name: "grocery list" },
+      ],
+    });
+
+    expect(bucketSections(entries)).toMatchObject([
+      { bucketIds: ["list", "list2"] },
+    ]);
+  });
+
+  it("keeps same-named buckets on different dates apart", () => {
+    const entries = build({
+      buckets: [
+        { id: "mon", date: "2026-09-14", name: "Lunch" },
+        { id: "tue", date: "2026-09-15", name: "Lunch" },
+        { id: "someday", date: null, name: "Lunch" },
+      ],
+    });
+
+    expect(bucketSections(entries)).toHaveLength(3);
   });
 });
 
@@ -644,7 +696,7 @@ describe("sectionOfItems", () => {
       dinner: "2026-09-12",
       pie: "2026-09-12",
       prep: "2026-09-11",
-      lunch: "bucket:lunchOut",
+      lunch: bucketSectionKey("Lunch", "2026-09-12"),
       shop: UNPLANNED_SECTION,
     });
   });

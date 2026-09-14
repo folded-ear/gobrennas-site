@@ -47,7 +47,7 @@ export function DayList({
           case "bucket":
             return (
               <BucketSection
-                key={entry.bucketId}
+                key={entry.key}
                 bucket={entry}
                 context={context}
                 openId={openId}
