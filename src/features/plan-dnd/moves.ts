@@ -4,12 +4,16 @@ import { AccessLevel } from "@/__generated__/graphql";
 export type TreeSource = {
   readonly id: string;
   readonly children: readonly { readonly id: string }[];
+  /** Left out for a plan, which carries no bucket of its own. */
+  readonly bucket?: { readonly id: string } | null;
 };
 
 /** A plan's tree as moves see it, the plan itself included. */
 export type PlanTree = {
   readonly childrenOf: ReadonlyMap<string, readonly string[]>;
   readonly parentOf: ReadonlyMap<string, string>;
+  /** Each item's own bucket, or nothing for one that only inherits. */
+  readonly bucketOf: ReadonlyMap<string, string | null>;
 };
 
 /** Where on a target item a dragged item lands. */
@@ -48,12 +52,14 @@ export function buildPlanTree(
 ): PlanTree {
   const childrenOf = new Map<string, readonly string[]>();
   const parentOf = new Map<string, string>();
+  const bucketOf = new Map<string, string | null>();
   for (const source of [plan, ...items]) {
     const ids = source.children.map((c) => c.id);
     childrenOf.set(source.id, ids);
     for (const id of ids) parentOf.set(id, source.id);
+    bucketOf.set(source.id, source.bucket?.id ?? null);
   }
-  return { childrenOf, parentOf };
+  return { childrenOf, parentOf, bucketOf };
 }
 
 /**
@@ -146,7 +152,7 @@ export function applyTreeMove(tree: PlanTree, move: TreeMove): PlanTree {
     parentOf.set(id, move.parentId);
     afterId = id;
   }
-  return { childrenOf, parentOf };
+  return { childrenOf, parentOf, bucketOf: tree.bucketOf };
 }
 
 /**
@@ -159,6 +165,88 @@ export function bucketForDate(
 ): string | null {
   const onDate = buckets.filter((b) => b.date === date);
   return (onDate.find((b) => b.name === null) ?? onDate[0])?.id ?? null;
+}
+
+/** What a bucket assignment really touches, once redundant copies fold away. */
+export type BucketChange = {
+  /**
+   * What the dropped item's own bucket becomes: the one it was given, or
+   * nothing when an ancestor already carries it, so it would inherit the
+   * very same bucket anyway.
+   */
+  readonly ownBucketId: string | null;
+  /**
+   * Descendants whose own bucket duplicates what they'd now inherit from
+   * the dropped item, and so should be cleared rather than left explicit.
+   */
+  readonly redundant: readonly string[];
+};
+
+/** I give an item's own bucket by walking up past everything that inherits. */
+function nearestAncestorBucket(tree: PlanTree, itemId: string): string | null {
+  const seen = new Set<string>([itemId]);
+  for (
+    let at = tree.parentOf.get(itemId);
+    at !== undefined && !seen.has(at);
+    at = tree.parentOf.get(at)
+  ) {
+    const bucket = tree.bucketOf.get(at) ?? null;
+    if (bucket !== null) return bucket;
+    seen.add(at);
+  }
+  return null;
+}
+
+/**
+ * I give every descendant of an item that carries a bucket of its own
+ * matching one it would inherit anyway, stopping each branch at its first
+ * bucketed item either way: that item's own descendants inherit from it,
+ * not from the item this walk started at.
+ */
+function redundantDescendants(
+  tree: PlanTree,
+  itemId: string,
+  effectiveBucket: string,
+): readonly string[] {
+  const redundant: string[] = [];
+  const visited = new Set<string>([itemId]);
+  function walk(id: string): void {
+    for (const childId of tree.childrenOf.get(id) ?? []) {
+      // A cycle would come from data this app doesn't own.
+      if (visited.has(childId)) continue;
+      visited.add(childId);
+      const own = tree.bucketOf.get(childId) ?? null;
+      if (own !== null) {
+        if (own === effectiveBucket) redundant.push(childId);
+        continue;
+      }
+      walk(childId);
+    }
+  }
+  walk(itemId);
+  return redundant;
+}
+
+/**
+ * I say what a bucket assignment should really change: the dropped item's
+ * own bucket, cleared instead of set when an ancestor already carries the
+ * very one it was dropped on, and every descendant whose own bucket now
+ * just duplicates what it would inherit regardless.
+ */
+export function bucketChangeFor(
+  tree: PlanTree,
+  itemId: string,
+  newBucketId: string | null,
+): BucketChange {
+  const inherited = nearestAncestorBucket(tree, itemId);
+  const ownBucketId =
+    newBucketId !== null && newBucketId === inherited ? null : newBucketId;
+  const effective = ownBucketId ?? inherited;
+  return {
+    ownBucketId,
+    redundant:
+      effective === null ? [] : redundantDescendants(tree, itemId, effective),
+  };
 }
 
 /** I tell whether the viewer may change a plan's items. */

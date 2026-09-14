@@ -33,26 +33,33 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - The planner lays a plan out down the calendar, anchored on today.
 - Each day is introduced by a separator carrying its weekday and date, and
   today is marked as the current date.
-- An item's day comes from its bucket's date, from the nearest ancestor
-  whose bucket has one, or from today when no ancestor has one. A bucket
-  with no date passes the question up to the item's ancestors.
+- An item's section comes from its own bucket, or else from the nearest
+  ancestor with one:
+  - an unnamed bucket puts it on that bucket's day;
+  - a named bucket puts it in that bucket's own section, headed by the
+    bucket's name and, if it has one, its date;
+  - with no bucket anywhere above, it is Unplanned.
+- A named bucket's section always appears: a dated one right after its
+  day, an undated one right after today. Unplanned always appears after
+  those.
 - The planner shows top-level items, items assigned to a bucket, and items
   that have children of their own. Anything else — a leaf nobody has
   bucketed — appears only in the item screen.
-- An item appears beneath its parent when they fall on the same day, and
-  on its own day when its bucket moves it elsewhere.
-- A past date appears only when it carries an item. Today and the following
-  week always appear. A future date carrying an item appears with the week
-  either side of it.
+- An item appears beneath its parent when they fall in the same section,
+  and in its own section when its bucket moves it elsewhere.
+- A past date appears only when it carries an item or a named bucket.
+  Today and the following week always appear. A future date carrying an
+  item or a named bucket appears with the week either side of it.
 - Days that nothing falls on collapse into a single break saying how long
   the skipped stretch is.
-- A day nothing falls on still leaves room for something to be put there.
+- A day or section nothing falls in still leaves room for something to be
+  put there.
 - Choosing an item on the timeline opens it in the item screen, together with
   everything below it, however deep and wherever those descendants sit on
   the calendar.
 - The item open in the item screen is marked on the timeline.
-- An item on a different day from its parent names that parent and says
-  which day the parent falls on.
+- An item in a different section from its parent names that parent, and
+  says which day the parent falls on when that day differs.
 - An item falling after the thing it belongs to is marked as out of order,
   since preparation cannot follow what it feeds.
 
@@ -86,9 +93,16 @@ The terms used here are defined in the [domain model](../domain/model.md).
   - The item joins a bucket already on that day, preferring an unnamed one.
   - If the day has no bucket yet, an unnamed one is created for it.
   - The item keeps its place in the plan.
+- On the timeline, dropping an item on a named bucket's section puts it in
+  that bucket, and dropping it on Unplanned clears its bucket. An item
+  whose ancestor has a bucket then shows wherever that bucket puts it.
+- A bucket an item would inherit anyway isn't set on it: dropping an item
+  where its ancestor's bucket already puts it clears its own bucket, and
+  any item below it left with the same bucket it now inherits has that
+  bucket cleared too.
 - On the timeline, dropping a top-level item above or below another
-  top-level item on the same day reorders it. Its day doesn't change. A
-  nested item can't be reordered from the timeline.
+  top-level item in the same section reorders it. Its section doesn't
+  change. A nested item can't be reordered from the timeline.
 - In the item screen:
   - dropping an item on the right three-quarters of another makes it that
     item's first child;

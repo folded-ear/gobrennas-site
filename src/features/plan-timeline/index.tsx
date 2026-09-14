@@ -7,7 +7,7 @@ import { buildPlanContext } from "./context";
 import { DayList } from "./day-list";
 import {
   buildTimeline,
-  dayOfItems,
+  sectionOfItems,
   TimelineBucket,
   TimelineItem,
 } from "./model";
@@ -52,7 +52,7 @@ export function PlanTimeline({
     [rootIds, items, buckets],
   );
 
-  const dayOf = useMemo(() => dayOfItems(entries), [entries]);
+  const sectionOf = useMemo(() => sectionOfItems(entries), [entries]);
   const rootIdSet = useMemo(() => new Set(rootIds), [rootIds]);
 
   if (!dnd) {
@@ -67,7 +67,7 @@ export function PlanTimeline({
       />
     );
   }
-  const timelineDnd: TimelineDnd = { ...dnd, rootIds: rootIdSet, dayOf };
+  const timelineDnd: TimelineDnd = { ...dnd, rootIds: rootIdSet, sectionOf };
   return (
     <DragSession
       dragType={TIMELINE_DRAG_TYPE}

@@ -1,3 +1,4 @@
+import { BucketSection, UnplannedSection } from "./bucket-section";
 import { PlanContext } from "./context";
 import { DaySection } from "./day-section";
 import { GapRow } from "./gap-row";
@@ -28,22 +29,49 @@ export function DayList({
 }: DayListProps) {
   return (
     <ol className="flex flex-col">
-      {entries.map((entry) =>
-        entry.kind === "day" ? (
-          <DaySection
-            key={entry.date}
-            day={entry}
-            isToday={entry.date === today}
-            context={context}
-            openId={openId}
-            onSelect={onSelect}
-            dnd={dnd}
-            planId={planId}
-          />
-        ) : (
-          <GapRow key={`gap:${entry.after}`} gap={entry} />
-        ),
-      )}
+      {entries.map((entry) => {
+        switch (entry.kind) {
+          case "day":
+            return (
+              <DaySection
+                key={entry.date}
+                day={entry}
+                isToday={entry.date === today}
+                context={context}
+                openId={openId}
+                onSelect={onSelect}
+                dnd={dnd}
+                planId={planId}
+              />
+            );
+          case "bucket":
+            return (
+              <BucketSection
+                key={entry.bucketId}
+                bucket={entry}
+                context={context}
+                openId={openId}
+                onSelect={onSelect}
+                dnd={dnd}
+                planId={planId}
+              />
+            );
+          case "unplanned":
+            return (
+              <UnplannedSection
+                key="unplanned"
+                unplanned={entry}
+                context={context}
+                openId={openId}
+                onSelect={onSelect}
+                dnd={dnd}
+                planId={planId}
+              />
+            );
+          case "gap":
+            return <GapRow key={`gap:${entry.after}`} gap={entry} />;
+        }
+      })}
     </ol>
   );
 }

@@ -15,12 +15,14 @@ import { PlanItemNode } from "./model";
 /** A plan's moves, plus what the timeline knows of where items show. */
 export type TimelineDnd = PlanDnd & {
   readonly rootIds: ReadonlySet<string>;
-  readonly dayOf: ReadonlyMap<string, string>;
+  readonly sectionOf: ReadonlyMap<string, string>;
 };
 
 type TimelineRowProps = {
   node: PlanItemNode;
-  date: string;
+  sectionKey: string;
+  /** Whether I head my section's tree rather than nest under my parent. */
+  sectionRoot: boolean;
   context: PlanContext;
   /** The item open in its screen, marked wherever it shows. */
   openId?: string;
@@ -33,12 +35,14 @@ type TimelineRowProps = {
 
 /**
  * I am one item's line on the timeline. When I'm top-level, another
- * top-level item on my day can be put before or after me. When my item
- * sits apart from its parent, I say what it is part of and when that is.
+ * top-level item in my section can be put before or after me. When my item
+ * sits in another section from its parent, I say what it is part of, and
+ * when that is if it's another day.
  */
 export function TimelineRow({
   node,
-  date,
+  sectionKey,
+  sectionRoot,
   context,
   openId,
   dnd,
@@ -52,7 +56,7 @@ export function TimelineRow({
     dragged !== null &&
     dnd.rootIds.has(id) &&
     dnd.rootIds.has(dragged.id) &&
-    dnd.dayOf.get(dragged.id) === date;
+    dnd.sectionOf.get(dragged.id) === sectionKey;
   const zones =
     reorderable && dragged !== null
       ? treeZones({
@@ -65,7 +69,7 @@ export function TimelineRow({
       : [];
 
   const own = context.get(id);
-  const apart = own !== undefined && own.separation !== null ? own : null;
+  const apart = sectionRoot && own !== undefined ? own : null;
 
   return (
     <div
@@ -87,7 +91,7 @@ export function TimelineRow({
         {apart?.parent ? (
           <span className="ms-auto flex items-center gap-xs">
             <ParentChip name={apart.parent.name} />
-            {apart.parent.date !== null ? (
+            {apart.parent.date !== null && apart.separation !== null ? (
               <DateChip
                 date={apart.parent.date}
                 separation={apart.separation}

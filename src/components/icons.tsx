@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Calendar,
+  ChefHat,
   ChevronDown,
   ChevronUp,
   EyeIcon,
@@ -41,6 +42,7 @@ const createIcon = (Icon: LucideIcon, defaults?: Partial<LucideProps>) =>
 
 export const AddIcon = createIcon(Plus);
 export const BuyingIcon = createIcon(ShoppingCart);
+export const CookIcon = createIcon(ChefHat);
 export const DragHandleIcon = createIcon(GripVertical);
 export const ExpandDownIcon = createIcon(ChevronDown);
 export const ExpandUpIcon = createIcon(ChevronUp);

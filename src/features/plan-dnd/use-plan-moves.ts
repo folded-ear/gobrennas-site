@@ -7,6 +7,7 @@ import { DoCreateBucketDocument } from "./__generated__/doCreateBucket.generated
 import { DoMutateTreeDocument } from "./__generated__/doMutateTree.generated";
 import {
   applyTreeMove,
+  bucketChangeFor,
   bucketForDate,
   BucketSummary,
   PlanTree,
@@ -23,6 +24,8 @@ type UsePlanMovesOptions = {
 export type PlanMoves = {
   moveInTree(move: TreeMove, name: string): void;
   moveToDate(itemId: string, date: string, name: string): void;
+  moveToBucket(itemId: string, bucketId: string, name: string): void;
+  moveToUnplanned(itemId: string, name: string): void;
   isMoving(itemId: string): boolean;
 };
 
@@ -127,7 +130,7 @@ export function usePlanMoves({
     track(move.ids, work);
   }
 
-  function assign(itemId: string, bucketId: string) {
+  function assign(itemId: string, bucketId: string | null) {
     return assignBucket({
       variables: { id: itemId, bucketId },
       optimisticResponse: {
@@ -136,7 +139,10 @@ export function usePlanMoves({
           assignBucket: {
             __typename: "PlanItem",
             id: itemId,
-            bucket: { __typename: "PlanBucket", id: bucketId },
+            bucket:
+              bucketId === null
+                ? null
+                : { __typename: "PlanBucket", id: bucketId },
           },
         },
       },
@@ -198,19 +204,55 @@ export function usePlanMoves({
     }
   }
 
+  /**
+   * I assign a bucket, clearing it instead when an ancestor already
+   * carries the very one given, then clear it from any descendant left
+   * duplicating what it would now inherit. A descendant is only cleared
+   * once the item's own assignment lands, so a failed one moves nothing.
+   */
+  function applyBucketChange(
+    itemId: string,
+    newBucketId: string | null,
+    name: string,
+  ) {
+    const { ownBucketId, redundant } = bucketChangeFor(
+      tree,
+      itemId,
+      newBucketId,
+    );
+    const ids = [itemId, ...redundant];
+    const work = assign(itemId, ownBucketId)
+      .then(() => Promise.all(redundant.map((id) => assign(id, null))))
+      .then(() => {})
+      .catch(() => reportFailure(name));
+    track(ids, work);
+  }
+
   function moveToDate(itemId: string, date: string, name: string) {
     const bucketId = bucketForDate(buckets, date);
-    const work = (
-      bucketId === null
-        ? assignNewBucket(itemId, date)
-        : assign(itemId, bucketId).then(() => {})
-    ).catch(() => reportFailure(name));
-    track([itemId], work);
+    if (bucketId === null) {
+      const work = assignNewBucket(itemId, date).catch(() =>
+        reportFailure(name),
+      );
+      track([itemId], work);
+      return;
+    }
+    applyBucketChange(itemId, bucketId, name);
+  }
+
+  function moveToBucket(itemId: string, bucketId: string, name: string) {
+    applyBucketChange(itemId, bucketId, name);
+  }
+
+  function moveToUnplanned(itemId: string, name: string) {
+    applyBucketChange(itemId, null, name);
   }
 
   return {
     moveInTree,
     moveToDate,
+    moveToBucket,
+    moveToUnplanned,
     isMoving: (itemId) => moving.has(itemId),
   };
 }

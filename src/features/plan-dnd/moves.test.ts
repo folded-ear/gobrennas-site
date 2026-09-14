@@ -2,6 +2,7 @@ import { AccessLevel } from "@/__generated__/graphql";
 import { describe, expect, it } from "vitest";
 import {
   applyTreeMove,
+  bucketChangeFor,
   bucketForDate,
   buildPlanTree,
   canChangePlan,
@@ -28,8 +29,16 @@ const TURKEY = "5";
 const BREAKFAST = "6";
 const LUNCH = "8";
 
-function source(id: string, childIds: readonly string[] = []): TreeSource {
-  return { id, children: childIds.map((c) => ({ id: c })) };
+function source(
+  id: string,
+  childIds: readonly string[] = [],
+  bucketId: string | null = null,
+): TreeSource {
+  return {
+    id,
+    children: childIds.map((c) => ({ id: c })),
+    bucket: bucketId ? { id: bucketId } : null,
+  };
 }
 
 function thanksgiving(): PlanTree {
@@ -57,6 +66,15 @@ describe("buildPlanTree", () => {
 
     expect(tree.parentOf.get(DINNER)).toBe(PLAN_ID);
     expect(tree.parentOf.get(BUTTER)).toBe(CRUST);
+  });
+
+  it("knows each item's own bucket, or nothing when it has none", () => {
+    const tree = buildPlanTree(source(PLAN_ID, [DINNER]), [
+      source(DINNER, [], "bDinner"),
+    ]);
+
+    expect(tree.bucketOf.get(DINNER)).toBe("bDinner");
+    expect(tree.bucketOf.get(PLAN_ID)).toBeNull();
   });
 });
 
@@ -237,6 +255,105 @@ describe("bucketForDate", () => {
         SAT,
       ),
     ).toBeNull();
+  });
+});
+
+// Plan 7:
+//   Dinner (1), bDinner
+//     Dessert (2)
+//       Garnish (3)
+//     Sides (4), bSide
+//       Gravy (5)
+//   Breakfast (6)
+function bucketed(overrides: Readonly<Record<string, string | null>> = {}) {
+  const bucket = (id: string, fallback: string | null) =>
+    overrides[id] !== undefined ? overrides[id] : fallback;
+  return buildPlanTree(source(PLAN_ID, [DINNER, BREAKFAST]), [
+    source(DINNER, [PIE, "sides"], bucket(DINNER, "bDinner")),
+    source(PIE, [CRUST], bucket(PIE, null)),
+    source(CRUST, [], bucket(CRUST, null)),
+    source("sides", [TURKEY], bucket("sides", "bSide")),
+    source(TURKEY, [], bucket(TURKEY, null)),
+    source(BREAKFAST, [], bucket(BREAKFAST, null)),
+  ]);
+}
+
+describe("bucketChangeFor", () => {
+  it("gives the item its new bucket when nothing above already carries it", () => {
+    expect(bucketChangeFor(bucketed(), BREAKFAST, "bNew")).toEqual({
+      ownBucketId: "bNew",
+      redundant: [],
+    });
+  });
+
+  it("clears the item's bucket when an ancestor already carries the one it's given", () => {
+    // Crust's nearest bucketed ancestor, through Pie, is Dinner (bDinner).
+    expect(bucketChangeFor(bucketed(), CRUST, "bDinner")).toEqual({
+      ownBucketId: null,
+      redundant: [],
+    });
+  });
+
+  it("stops at the first bucketed ancestor, not just any that shares the bucket", () => {
+    // Turkey's nearest bucketed ancestor is Sides (bSide), not Dinner
+    // (bDinner) beyond it, so joining bDinner is still a real change.
+    expect(bucketChangeFor(bucketed(), TURKEY, "bDinner")).toEqual({
+      ownBucketId: "bDinner",
+      redundant: [],
+    });
+  });
+
+  it("clears a descendant whose own bucket duplicates what it would inherit", () => {
+    expect(
+      bucketChangeFor(bucketed({ [CRUST]: "bDinner" }), DINNER, "bDinner"),
+    ).toEqual({
+      ownBucketId: "bDinner",
+      redundant: [CRUST],
+    });
+  });
+
+  it("leaves a descendant with a different bucket alone, and its own descendants too", () => {
+    // Sides (bSide) is a wall: Gravy/Turkey beneath it inherits from Sides,
+    // not from Dinner, so neither is touched even if Turkey shared bDinner.
+    const tree = bucketed({ [TURKEY]: "bDinner" });
+
+    expect(bucketChangeFor(tree, DINNER, "bDinner").redundant).toEqual([]);
+  });
+
+  it("combines both: clears the dropped item and a matching descendant", () => {
+    // Pie has no bucket of its own; dropping it on Dinner's bucket makes
+    // that explicit, but Crust already duplicates it beneath Pie.
+    expect(
+      bucketChangeFor(bucketed({ [CRUST]: "bDinner" }), PIE, "bDinner"),
+    ).toEqual({
+      ownBucketId: null,
+      redundant: [CRUST],
+    });
+  });
+
+  it("gives nothing to clear when unplanning with no bucket to inherit", () => {
+    // Breakfast has no ancestor bucket, so nothing it inherits could make
+    // Fake's own bucket redundant, whatever Fake's bucket is.
+    const tree = buildPlanTree(source(PLAN_ID, [BREAKFAST]), [
+      source(BREAKFAST, ["fake"], null),
+      source("fake", [], "bSomething"),
+    ]);
+
+    expect(bucketChangeFor(tree, BREAKFAST, null)).toEqual({
+      ownBucketId: null,
+      redundant: [],
+    });
+  });
+
+  it("still clears a matching descendant when unplanning inherits a bucket", () => {
+    // Pie inherits bDinner once cleared, so Crust's explicit bDinner (with
+    // nothing bucketed between Pie and Crust) is still redundant.
+    expect(
+      bucketChangeFor(bucketed({ [CRUST]: "bDinner" }), PIE, null),
+    ).toEqual({
+      ownBucketId: null,
+      redundant: [CRUST],
+    });
   });
 });
 

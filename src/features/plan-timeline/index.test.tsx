@@ -18,7 +18,7 @@ import {
 import { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlanTimeline } from "./index";
-import { TimelineItem } from "./model";
+import { TimelineBucket, TimelineItem } from "./model";
 
 const PUMPKIN: TimelineItem = {
   __typename: "PlanItem",
@@ -61,10 +61,11 @@ describe("PlanTimeline", () => {
     render(<PlanTimeline rootIds={[]} items={[]} buckets={[]} />);
 
     const days = screen.getAllByRole("listitem");
-    expect(days).toHaveLength(7);
+    expect(days).toHaveLength(8);
     expect(days[0]).toHaveTextContent(/Sep 9/);
     expect(days[0]).toHaveAttribute("aria-current", "date");
-    expect(days[6]).toHaveTextContent(/Sep 15/);
+    expect(days[1]).toHaveTextContent("Unplanned");
+    expect(days[7]).toHaveTextContent(/Sep 15/);
   });
 
   it("puts a past item on its own date, with a break before today", () => {
@@ -89,7 +90,7 @@ describe("PlanTimeline", () => {
 //   Thanksgiving dinner (1), Sat Sep 12
 //     Pumpkin pie (2), Sat Sep 12, so shown beneath dinner
 //   Breakfast (6), Sat Sep 12
-//   Leftovers lunch (8), no date, so today
+//   Leftovers lunch (8), no bucket, so unplanned
 const SEP_12 = { id: "bSep12", date: "2026-09-12", name: null };
 
 function timelineItem(
@@ -116,10 +117,19 @@ const THANKSGIVING = [
 const ROOT_IDS = ["1", "6", "8"];
 
 function fakeMoves(): PlanMoves {
-  return { moveInTree: vi.fn(), moveToDate: vi.fn(), isMoving: () => false };
+  return {
+    moveInTree: vi.fn(),
+    moveToDate: vi.fn(),
+    moveToBucket: vi.fn(),
+    moveToUnplanned: vi.fn(),
+    isMoving: () => false,
+  };
 }
 
-function renderMovable(dnd: Partial<PlanDnd> = {}) {
+function renderMovable(
+  dnd: Partial<PlanDnd> = {},
+  buckets: readonly TimelineBucket[] = [SEP_12],
+) {
   const cache = buildInMemoryCache();
   for (const it of THANKSGIVING) {
     seedFragment(cache, PlanItemFragmentDoc, "planItem", {
@@ -145,7 +155,7 @@ function renderMovable(dnd: Partial<PlanDnd> = {}) {
     <PlanTimeline
       rootIds={ROOT_IDS}
       items={THANKSGIVING}
-      buckets={[SEP_12]}
+      buckets={buckets}
       dnd={{ tree, canMove: true, moves: fakeMoves(), ...dnd }}
     />,
     { cache },
@@ -293,12 +303,41 @@ describe("PlanTimeline, moving items", () => {
     );
     expect(moves.moveInTree).not.toHaveBeenCalled();
   });
+
+  it("moves any item to the named bucket it's dropped on", async () => {
+    const moves = fakeMoves();
+    renderMovable({ moves }, [
+      SEP_12,
+      { id: "bLunch", date: null, name: "Lunch" },
+    ]);
+
+    await keyboardDrag("Move Breakfast");
+    const lunch = screen.getByRole("button", { name: /^Move to Lunch/ });
+    await keyboardDrop(lunch.getAttribute("aria-label")!);
+
+    expect(moves.moveToBucket).toHaveBeenCalledWith("6", "bLunch", "Breakfast");
+  });
+
+  it("moves any item to unplanned when dropped there", async () => {
+    const moves = fakeMoves();
+    renderMovable({ moves });
+
+    await keyboardDrag("Move Breakfast");
+    const unplanned = screen.getByRole("button", {
+      name: /^Move to Unplanned/,
+    });
+    await keyboardDrop(unplanned.getAttribute("aria-label")!);
+
+    expect(moves.moveToUnplanned).toHaveBeenCalledWith("6", "Breakfast");
+  });
 });
 
 // Thanksgiving dinner (1) on Sat Sep 12, holding Salad (2) that day, which
 // holds Dressing (3) on whichever day a test puts it.
 const SEP_11 = { id: "bSep11", date: "2026-09-11", name: null };
 const SEP_13 = { id: "bSep13", date: "2026-09-13", name: null };
+const PREP = { id: "bPrep", date: "2026-09-12", name: "Prep" };
+const SAUCES = { id: "bSauces", date: null, name: "Sauces" };
 
 function apartItems(dressingBucket: string): readonly TimelineItem[] {
   return [
@@ -332,7 +371,7 @@ function renderApart(dressingBucket: string, openId?: string) {
     <PlanTimeline
       rootIds={["1"]}
       items={items}
-      buckets={[SEP_11, SEP_12, SEP_13]}
+      buckets={[SEP_11, SEP_12, SEP_13, PREP, SAUCES]}
       openId={openId}
     />,
     { cache },
@@ -356,6 +395,22 @@ describe("PlanTimeline, items apart from their parents", () => {
     expect(within(friday).getByText("Dressing")).toBeVisible();
     expect(within(friday).getByText("Salad")).toBeVisible();
     expect(within(friday).getByText("Sat, Sep 12")).toBeVisible();
+  });
+
+  it("says what an item is part of in another section on its parent's day", () => {
+    const sectionHeaded = renderApart(PREP.id);
+
+    const prep = sectionHeaded("Prep – Sat, Sep 12");
+    expect(within(prep).getByText("Dressing")).toBeVisible();
+    expect(within(prep).getByText("Salad")).toBeVisible();
+  });
+
+  it("says what an item is part of in a section with no day", () => {
+    const sectionHeaded = renderApart(SAUCES.id);
+
+    const sauces = sectionHeaded("Sauces");
+    expect(within(sauces).getByText("Dressing")).toBeVisible();
+    expect(within(sauces).getByText("Salad")).toBeVisible();
   });
 
   it("leaves an item sitting with its parent unremarked", () => {
