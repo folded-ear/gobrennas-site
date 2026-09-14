@@ -23,12 +23,13 @@ import {
   seedFragment,
   userEvent,
 } from "@/test";
+import { FragmentType } from "@apollo/client";
 import { describe, expect, it, vi } from "vitest";
 import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
-import { PlanItemDetail } from "./detail";
+import { PlanItemDetail, PlanItemHeader } from "./detail";
 
 const PIE = { id: "42", name: "Pumpkin pie" };
 const CRUST = { id: "43", name: "Pie crust" };
@@ -111,6 +112,29 @@ function movedContext(): PlanContext {
   });
 }
 
+type DetailProps = {
+  item: FragmentType<PlanItemFragment>;
+  context: PlanContext;
+  descendants: readonly PlanItemNode[];
+  onSelect?: (id: string) => void;
+  dnd?: PlanDnd;
+};
+
+/** I put an item's screen together the way the planner does. */
+function Detail({ item, context, descendants, onSelect, dnd }: DetailProps) {
+  return (
+    <>
+      <PlanItemHeader
+        item={item}
+        context={context}
+        hasDescendants={descendants.length > 0}
+        onSelect={onSelect}
+      />
+      <PlanItemDetail context={context} descendants={descendants} dnd={dnd} />
+    </>
+  );
+}
+
 function renderDetail(
   notes: string | null,
   descendants: readonly PlanItemNode[],
@@ -125,7 +149,7 @@ function renderDetail(
   );
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
   return render(
-    <PlanItemDetail
+    <Detail
       item={pie}
       context={planContext()}
       descendants={descendants}
@@ -145,7 +169,7 @@ function renderCrustOpen(onSelect?: (id: string) => void) {
     fragment(CRUST, null),
   );
   return render(
-    <PlanItemDetail
+    <Detail
       item={crust}
       context={planContext()}
       descendants={[]}
@@ -202,7 +226,7 @@ describe("PlanItemDetail", () => {
           },
         ])}
       >
-        <PlanItemDetail
+        <Detail
           item={pie}
           context={planContext()}
           descendants={[
@@ -258,7 +282,7 @@ describe("PlanItemDetail", () => {
     );
     seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
     render(
-      <PlanItemDetail
+      <Detail
         item={pie}
         context={movedContext()}
         descendants={[node(CRUST)]}
@@ -316,7 +340,7 @@ function renderMovable(dnd: Partial<PlanDnd> = {}) {
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(FILLING, null));
   return render(
-    <PlanItemDetail
+    <Detail
       item={pie}
       context={planContext()}
       descendants={[node(CRUST), node(FILLING)]}

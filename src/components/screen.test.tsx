@@ -24,6 +24,22 @@ describe("Screen", () => {
     expect(dialog).toHaveTextContent("Roast the pumpkin first.");
   });
 
+  it("keeps its header in view, out of the content that scrolls", () => {
+    render(
+      <Screen label="Pumpkin pie" header={<h2>Pumpkin pie</h2>}>
+        <p>Roast the pumpkin first.</p>
+      </Screen>,
+    );
+
+    const heading = screen.getByRole("heading", { name: "Pumpkin pie" });
+    const scrolling = screen
+      .getByText("Roast the pumpkin first.")
+      .closest('[data-slot="drawer-body"]');
+    expect(screen.getByRole("dialog")).toContainElement(heading);
+    expect(scrolling).not.toBeNull();
+    expect(scrolling).not.toContainElement(heading);
+  });
+
   it("shows nothing while closed", () => {
     render(
       <Screen label="Pumpkin pie" isOpen={false}>

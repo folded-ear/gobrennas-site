@@ -14,25 +14,26 @@ import { PlanItemTree } from "./tree";
 
 const DRAWER_DRAG_TYPE = "application/x.gobrennas.drawer-item";
 
-type PlanItemDetailProps = {
+type PlanItemHeaderProps = {
   item: FragmentType<PlanItemFragment>;
   /** Where every item in the plan sits, for the walk down to this one. */
   context: PlanContext;
-  /** Everything below the item, however deep and whatever its dates. */
-  descendants: readonly PlanItemNode[];
+  /** Whether anything sits below the item. */
+  hasDescendants: boolean;
   /** Opens one of the item's ancestors. Left out, none of them open. */
   onSelect?: (id: string) => void;
-  /** Left out, nothing can be dragged. */
-  dnd?: PlanDnd;
 };
 
-export function PlanItemDetail({
+/**
+ * I head an open item's screen: the walk down to it, its notes, and a rule
+ * before whatever sits below it.
+ */
+export function PlanItemHeader({
   item,
   context,
-  descendants,
+  hasDescendants,
   onSelect,
-  dnd,
-}: PlanItemDetailProps) {
+}: PlanItemHeaderProps) {
   const { data, complete } = useFragment({
     fragment: PlanItemFragmentDoc,
     fragmentName: "planItem",
@@ -41,6 +42,38 @@ export function PlanItemDetail({
 
   if (!complete) return null;
 
+  return (
+    <div className="flex flex-col gap-sm pb-sm">
+      <Ladder
+        context={context}
+        id={data.id}
+        onSelect={onSelect}
+        openHasChildren={hasDescendants}
+      />
+      {data.notes ? <p className="text-sm text-muted">{data.notes}</p> : null}
+      {hasDescendants ? (
+        // Where the item's own context stops and its contents start.
+        <hr className="border-separator" />
+      ) : null}
+    </div>
+  );
+}
+
+type PlanItemDetailProps = {
+  /** Where every item in the plan sits. */
+  context: PlanContext;
+  /** Everything below the item, however deep and whatever its dates. */
+  descendants: readonly PlanItemNode[];
+  /** Left out, nothing can be dragged. */
+  dnd?: PlanDnd;
+};
+
+/** I show everything below an open item, however deep. */
+export function PlanItemDetail({
+  context,
+  descendants,
+  dnd,
+}: PlanItemDetailProps) {
   // One way of drawing a row, whether or not the plan can be changed:
   // a row says where its item has been moved to either way.
   const rows = (
@@ -57,30 +90,15 @@ export function PlanItemDetail({
     />
   );
 
-  return (
-    <div className="flex flex-col gap-sm">
-      <Ladder
-        context={context}
-        id={data.id}
-        onSelect={onSelect}
-        openHasChildren={descendants.length > 0}
-      />
-      {data.notes ? <p className="text-sm text-muted">{data.notes}</p> : null}
-      {descendants.length > 0 ? (
-        // Where the item's own context stops and its contents start.
-        <hr className="border-separator" />
-      ) : null}
-      {dnd ? (
-        <DragSession
-          dragType={DRAWER_DRAG_TYPE}
-          canMove={dnd.canMove}
-          isMoving={dnd.moves.isMoving}
-        >
-          {rows}
-        </DragSession>
-      ) : (
-        rows
-      )}
-    </div>
+  return dnd ? (
+    <DragSession
+      dragType={DRAWER_DRAG_TYPE}
+      canMove={dnd.canMove}
+      isMoving={dnd.moves.isMoving}
+    >
+      {rows}
+    </DragSession>
+  ) : (
+    rows
   );
 }

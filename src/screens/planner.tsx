@@ -9,7 +9,7 @@ import {
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree, canChangePlan } from "@/features/plan-dnd/moves";
 import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
-import { PlanItemDetail } from "@/features/plan-item/detail";
+import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { buildPlanContext } from "@/features/plan-timeline/context";
@@ -105,13 +105,24 @@ export function Planner() {
           onChange={setPlanIds}
         />
       </SectionHeader>
-      <Screen label={shown?.name ?? ""} isOpen={selected !== undefined}>
+      <Screen
+        label={shown?.name ?? ""}
+        isOpen={selected !== undefined}
+        header={
+          shown ? (
+            <PlanItemHeader
+              item={shown}
+              context={context}
+              hasDescendants={descendants.length > 0}
+              onSelect={openItem.replace}
+            />
+          ) : null
+        }
+      >
         {shown ? (
           <PlanItemDetail
-            item={shown}
             context={context}
             descendants={descendants}
-            onSelect={openItem.replace}
             dnd={dnd}
           />
         ) : null}
