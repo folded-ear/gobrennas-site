@@ -39,6 +39,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
   - a named bucket puts it in that bucket's own section, headed by the
     bucket's name and, if it has one, its date;
   - with no bucket anywhere above, it is Unplanned.
+- A bucket whose name is blank or only whitespace is unnamed.
 - A named bucket's section always appears: a dated one right after its
   day, an undated one right after today. Unplanned always appears after
   those.

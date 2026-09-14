@@ -232,6 +232,18 @@ describe("bucketForDate", () => {
     ).toBe("b2");
   });
 
+  it.each(["", "  "])("counts a bucket named %j as unnamed", (name) => {
+    expect(
+      bucketForDate(
+        [
+          { id: "b1", date: SAT, name: "Party prep" },
+          { id: "b2", date: SAT, name },
+        ],
+        SAT,
+      ),
+    ).toBe("b2");
+  });
+
   it("falls back to the first named bucket on the date", () => {
     expect(
       bucketForDate(

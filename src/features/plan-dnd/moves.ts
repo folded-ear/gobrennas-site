@@ -164,7 +164,14 @@ export function bucketForDate(
   date: string,
 ): string | null {
   const onDate = buckets.filter((b) => b.date === date);
-  return (onDate.find((b) => b.name === null) ?? onDate[0])?.id ?? null;
+  return (onDate.find((b) => !isNamedBucket(b)) ?? onDate[0])?.id ?? null;
+}
+
+/** I say whether a bucket is named: its name has more than whitespace. */
+export function isNamedBucket<B extends BucketSummary>(
+  bucket: B,
+): bucket is B & { readonly name: string } {
+  return bucket.name !== null && bucket.name.trim() !== "";
 }
 
 /** What a bucket assignment really touches, once redundant copies fold away. */

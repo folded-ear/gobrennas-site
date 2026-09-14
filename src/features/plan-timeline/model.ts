@@ -1,3 +1,4 @@
+import { isNamedBucket } from "@/features/plan-dnd/moves";
 import { PlanItemFragment } from "@/features/plan-item/__generated__/planItem.generated";
 import { FragmentType } from "@apollo/client";
 import { TimelineItemFragment } from "./__generated__/timelineItem.generated";
@@ -111,7 +112,7 @@ function ownSectionKey(
   if (item.bucket === null) return null;
   const bucket = bucketById.get(item.bucket.id);
   if (bucket === undefined) return null;
-  if (bucket.name !== null) return bucketSectionKey(bucket.id);
+  if (isNamedBucket(bucket)) return bucketSectionKey(bucket.id);
   return bucket.date;
 }
 
@@ -167,8 +168,8 @@ function layOutTimeline(
   buckets: readonly TimelineBucket[],
   today: string,
 ): readonly TimelineEntry[] {
-  const namedBuckets = buckets.filter((b) => b.name !== null);
-  const datedNamedByDate = new Map<string, TimelineBucket[]>();
+  const namedBuckets = buckets.filter(isNamedBucket);
+  const datedNamedByDate = new Map<string, (typeof namedBuckets)[number][]>();
   for (const bucket of namedBuckets) {
     if (bucket.date === null) continue;
     const onDate = datedNamedByDate.get(bucket.date) ?? [];
@@ -182,12 +183,13 @@ function layOutTimeline(
     b.date !== null ? [b.date] : [],
   );
 
-  function bucketSection(bucket: TimelineBucket): TimelineBucketSection {
+  function bucketSection(
+    bucket: (typeof namedBuckets)[number],
+  ): TimelineBucketSection {
     return {
       kind: "bucket",
       bucketId: bucket.id,
-      // Filtered to named buckets above.
-      name: bucket.name!,
+      name: bucket.name,
       date: bucket.date,
       roots: bySection.get(bucketSectionKey(bucket.id)) ?? [],
     };
