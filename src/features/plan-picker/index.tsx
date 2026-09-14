@@ -1,10 +1,11 @@
 "use client";
 
 import PlanAvatar from "@/components/plan-avatar";
+import { orderPlans } from "@/lib/plans";
 import { Header, Key, Label, ListBox, Select, Separator } from "@heroui/react";
 import clsx from "clsx";
 import { PlanPickerPlanFragment } from "./__generated__/planPickerPlan.generated";
-import { pickerOrder, SelectionMode } from "./selection";
+import { SelectionMode } from "./selection";
 
 type Plan = PlanPickerPlanFragment;
 
@@ -84,7 +85,7 @@ export function PlanPicker({
 
   const mine = plans.filter((it) => it.mine);
   const shared = plans.filter((it) => !it.mine);
-  const selected = pickerOrder(plans).filter((it) =>
+  const selected = orderPlans(plans).filter((it) =>
     selectedIds.includes(it.id),
   );
   const selectedMine = selected.filter((it) => it.mine);
