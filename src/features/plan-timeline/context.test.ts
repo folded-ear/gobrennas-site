@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  ancestorsOf,
-  buildPlanContext,
-  BuildPlanContextInput,
-  PlanContext,
-} from "./context";
-import { TimelineItem } from "./model";
+import { ancestorsOf, buildPlanContext, PlanContext } from "./context";
+import { TimelineItem, TimelinePlan } from "./model";
 
 const WEDNESDAY = "2026-11-25";
 const THURSDAY = "2026-11-26";
@@ -31,12 +26,9 @@ function item({ id, name, bucket, children = [] }: ItemSpec): TimelineItem {
   };
 }
 
-function build(input: Partial<BuildPlanContextInput>): PlanContext {
+function build(input: Partial<TimelinePlan>): PlanContext {
   return buildPlanContext({
-    rootIds: [],
-    items: [],
-    buckets: [],
-    ...input,
+    plans: [{ rootIds: [], items: [], buckets: [], ...input }],
   });
 }
 
@@ -177,5 +169,33 @@ describe("the chain above an item", () => {
 
   it("gives a plan's own child an empty chain", () => {
     expect(ancestorsOf(thanksgiving(), "thanksgiving")).toEqual([]);
+  });
+});
+
+describe("buildPlanContext, several plans", () => {
+  it("places the items of every plan it's given", () => {
+    const context = buildPlanContext({
+      plans: [
+        {
+          rootIds: ["dinner"],
+          items: [item({ id: "dinner", bucket: "thu", children: ["pie"] })],
+          buckets: [{ id: "thu", date: THURSDAY, name: null }],
+        },
+        {
+          rootIds: ["tacos"],
+          items: [
+            item({ id: "tacos", bucket: "fri", children: ["salsa"] }),
+            item({ id: "salsa" }),
+          ],
+          buckets: [{ id: "fri", date: FRIDAY, name: null }],
+        },
+      ],
+    });
+
+    expect(context.get("dinner")?.date).toBe(THURSDAY);
+    expect(context.get("salsa")).toMatchObject({
+      date: FRIDAY,
+      parent: { id: "tacos" },
+    });
   });
 });

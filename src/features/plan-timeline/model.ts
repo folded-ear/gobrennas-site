@@ -1,4 +1,4 @@
-import { isNamedBucket } from "@/features/plan-dnd/moves";
+import { canonBucketName, isNamedBucket } from "@/features/plan-dnd/moves";
 import { PlanItemFragment } from "@/features/plan-item/__generated__/planItem.generated";
 import { FragmentType } from "@apollo/client";
 import { TimelineItemFragment } from "./__generated__/timelineItem.generated";
@@ -31,10 +31,12 @@ export type TimelineDay = {
   readonly roots: readonly PlanItemNode[];
 };
 
-/** One named bucket's own section, dated or not. */
+/** The section of one or more named buckets sharing a name and date. */
 export type TimelineBucketSection = {
   readonly kind: "bucket";
-  readonly bucketId: string;
+  readonly key: string;
+  /** Every bucket sharing my name and date, in the order they came. */
+  readonly bucketIds: readonly string[];
   readonly name: string;
   readonly date: string | null;
   readonly roots: readonly PlanItemNode[];
@@ -54,14 +56,24 @@ export type TimelineGap = {
   readonly days: number;
 };
 
+/** Any section an item can sit in. */
+export type TimelineSection =
+  TimelineDay | TimelineBucketSection | TimelineUnplanned;
+
 export type TimelineEntry =
   TimelineDay | TimelineBucketSection | TimelineUnplanned | TimelineGap;
 
-export type BuildTimelineInput = {
+/** One plan, as the timeline lays it out. */
+export type TimelinePlan = {
   /** The plan's own children, in display order. */
   readonly rootIds: readonly string[];
   readonly items: readonly TimelineItem[];
   readonly buckets: readonly TimelineBucket[];
+};
+
+export type BuildTimelineInput = {
+  /** In plan order. */
+  readonly plans: readonly TimelinePlan[];
   readonly today: string;
 };
 
@@ -73,9 +85,46 @@ export const UNPLANNED_SECTION = "unplanned";
 
 const BUCKET_SECTION_PREFIX = "bucket:";
 
-/** I give a named bucket's own section the key its items group under. */
-export function bucketSectionKey(bucketId: string): string {
-  return `${BUCKET_SECTION_PREFIX}${bucketId}`;
+/** I give the section key named buckets sharing a name and date group under. */
+export function bucketSectionKey(name: string, date: string | null): string {
+  return `${BUCKET_SECTION_PREFIX}${canonBucketName(name)}@${date ?? ""}`;
+}
+
+/**
+ * I give the one section a key names, with what every plan roots in it, or
+ * nothing when the key names a bucket section no bucket has.
+ */
+export function buildSection(
+  plans: readonly TimelinePlan[],
+  key: string,
+): TimelineSection | null {
+  const bySection = groupRootsBySection(plans);
+  const roots = bySection.get(key) ?? [];
+  if (key === UNPLANNED_SECTION) return { kind: "unplanned", roots };
+  if (isDateKey(key)) return { kind: "day", date: key, roots };
+  const buckets = plans.flatMap((plan) => plan.buckets);
+  return bucketSectionsOf(buckets, bySection).get(key) ?? null;
+}
+
+/** I gather named buckets sharing a name and date into their sections. */
+function bucketSectionsOf(
+  buckets: readonly TimelineBucket[],
+  bySection: ReadonlyMap<string, readonly PlanItemNode[]>,
+): ReadonlyMap<string, TimelineBucketSection> {
+  const sectionsByKey = new Map<string, TimelineBucketSection>();
+  for (const bucket of buckets.filter(isNamedBucket)) {
+    const key = bucketSectionKey(bucket.name, bucket.date);
+    const existing = sectionsByKey.get(key);
+    sectionsByKey.set(key, {
+      kind: "bucket",
+      key,
+      bucketIds: [...(existing?.bucketIds ?? []), bucket.id],
+      name: existing?.name ?? bucket.name,
+      date: bucket.date,
+      roots: bySection.get(key) ?? [],
+    });
+  }
+  return sectionsByKey;
 }
 
 function isDateKey(key: string): boolean {
@@ -97,7 +146,11 @@ type Parent = {
 export function buildTimeline(
   input: BuildTimelineInput,
 ): readonly TimelineEntry[] {
-  return layOutTimeline(groupRootsBySection(input), input.buckets, input.today);
+  return layOutTimeline(
+    groupRootsBySection(input.plans),
+    input.plans.flatMap((plan) => plan.buckets),
+    input.today,
+  );
 }
 
 /**
@@ -112,17 +165,21 @@ function ownSectionKey(
   if (item.bucket === null) return null;
   const bucket = bucketById.get(item.bucket.id);
   if (bucket === undefined) return null;
-  if (isNamedBucket(bucket)) return bucketSectionKey(bucket.id);
+  if (isNamedBucket(bucket)) {
+    return bucketSectionKey(bucket.name, bucket.date);
+  }
   return bucket.date;
 }
 
-function groupRootsBySection({
-  rootIds,
-  items,
-  buckets,
-}: BuildTimelineInput): ReadonlyMap<string, readonly PlanItemNode[]> {
-  const byId = new Map(items.map((it) => [it.id, it]));
-  const bucketById = new Map(buckets.map((b) => [b.id, b]));
+function groupRootsBySection(
+  plans: readonly TimelinePlan[],
+): ReadonlyMap<string, readonly PlanItemNode[]> {
+  const byId = new Map(
+    plans.flatMap((plan) => plan.items).map((it) => [it.id, it]),
+  );
+  const bucketById = new Map(
+    plans.flatMap((plan) => plan.buckets).map((b) => [b.id, b]),
+  );
   const bySection = new Map<string, MutableNode[]>();
   const visited = new Set<string>();
 
@@ -157,7 +214,7 @@ function groupRootsBySection({
     }
   }
 
-  for (const id of rootIds) {
+  for (const id of plans.flatMap((plan) => plan.rootIds)) {
     visit(id, null, UNPLANNED_SECTION);
   }
   return bySection;
@@ -168,38 +225,24 @@ function layOutTimeline(
   buckets: readonly TimelineBucket[],
   today: string,
 ): readonly TimelineEntry[] {
-  const namedBuckets = buckets.filter(isNamedBucket);
-  const datedNamedByDate = new Map<string, (typeof namedBuckets)[number][]>();
-  for (const bucket of namedBuckets) {
-    if (bucket.date === null) continue;
-    const onDate = datedNamedByDate.get(bucket.date) ?? [];
-    onDate.push(bucket);
-    datedNamedByDate.set(bucket.date, onDate);
+  const bucketSections = [...bucketSectionsOf(buckets, bySection).values()];
+  const datedByDate = new Map<string, TimelineBucketSection[]>();
+  for (const section of bucketSections) {
+    if (section.date === null) continue;
+    const onDate = datedByDate.get(section.date) ?? [];
+    onDate.push(section);
+    datedByDate.set(section.date, onDate);
   }
-  const undatedNamedBuckets = namedBuckets.filter((b) => b.date === null);
+  const undatedSections = bucketSections.filter((b) => b.date === null);
 
   const dayDates = [...bySection.keys()].filter(isDateKey);
-  const namedBucketDates = namedBuckets.flatMap((b) =>
-    b.date !== null ? [b.date] : [],
-  );
-
-  function bucketSection(
-    bucket: (typeof namedBuckets)[number],
-  ): TimelineBucketSection {
-    return {
-      kind: "bucket",
-      bucketId: bucket.id,
-      name: bucket.name,
-      date: bucket.date,
-      roots: bySection.get(bucketSectionKey(bucket.id)) ?? [],
-    };
-  }
+  const bucketDates = [...datedByDate.keys()];
 
   const entries: TimelineEntry[] = [];
   let previousEnd: string | null = null;
 
   for (const [start, end] of mergeSpans(
-    buildSpans([...dayDates, ...namedBucketDates], today),
+    buildSpans([...dayDates, ...bucketDates], today),
   )) {
     if (previousEnd !== null) {
       entries.push({
@@ -215,15 +258,11 @@ function layOutTimeline(
         date,
         roots: bySection.get(date) ?? [],
       });
-      for (const bucket of datedNamedByDate.get(date) ?? []) {
-        entries.push(bucketSection(bucket));
-      }
+      entries.push(...(datedByDate.get(date) ?? []));
       // Today's own extras: buckets no date claims, then whatever has no
       // bucket at all, both always shown, right before tomorrow.
       if (date === today) {
-        for (const bucket of undatedNamedBuckets) {
-          entries.push(bucketSection(bucket));
-        }
+        entries.push(...undatedSections);
         entries.push({
           kind: "unplanned",
           roots: bySection.get(UNPLANNED_SECTION) ?? [],
@@ -284,7 +323,7 @@ export function sectionOfItems(
   for (const entry of entries) {
     if (entry.kind === "day") visit(entry.roots, entry.date);
     else if (entry.kind === "bucket") {
-      visit(entry.roots, bucketSectionKey(entry.bucketId));
+      visit(entry.roots, entry.key);
     } else if (entry.kind === "unplanned") {
       visit(entry.roots, UNPLANNED_SECTION);
     }

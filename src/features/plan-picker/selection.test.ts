@@ -1,19 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { pickerOrder, resolveSelection } from "./selection";
+import { resolveSelection } from "./selection";
 
 const WEEKNIGHTS = { id: "1", mine: true };
 const NEIGHBOR = { id: "3", mine: false };
 const FEAST_DAY = { id: "2", mine: true };
 const PLANS = [WEEKNIGHTS, NEIGHBOR, FEAST_DAY];
 
-describe("pickerOrder", () => {
-  it("lists the user's own plans before shared ones, keeping order", () => {
-    expect(pickerOrder(PLANS)).toEqual([WEEKNIGHTS, FEAST_DAY, NEIGHBOR]);
-  });
-});
-
 describe("resolveSelection", () => {
-  it("keeps stored plans, in picker order", () => {
+  it("keeps stored plans, in plan order", () => {
     expect(resolveSelection(["3", "2"], PLANS, "multiple")).toEqual(["2", "3"]);
   });
 
@@ -21,7 +15,7 @@ describe("resolveSelection", () => {
     expect(resolveSelection(["gone", "3"], PLANS, "multiple")).toEqual(["3"]);
   });
 
-  it("falls back to the first plan in picker order when nothing's stored", () => {
+  it("falls back to the first plan in plan order when nothing's stored", () => {
     expect(resolveSelection([], [NEIGHBOR, FEAST_DAY], "multiple")).toEqual([
       "2",
     ]);

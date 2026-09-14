@@ -2,19 +2,27 @@
 
 import { Screen } from "@/components/screen";
 import { SectionHeader } from "@/components/section-header";
+import {
+  buildPlanDirectory,
+  PlanDirectoryProvider,
+} from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree, canChangePlan } from "@/features/plan-dnd/moves";
 import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
-import { PlanItemDetail } from "@/features/plan-item/detail";
+import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
+import { PlanSectionHeader } from "@/features/plan-item/section-header";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
+import { buildPlanContext } from "@/features/plan-timeline/context";
 import {
-  buildPlanContext,
-  PlanContext,
-} from "@/features/plan-timeline/context";
-import { buildSubtree } from "@/features/plan-timeline/model";
+  buildSection,
+  buildSubtree,
+  PlanItemNode,
+} from "@/features/plan-timeline/model";
+import { sectionLabel } from "@/features/plan-timeline/section-label";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
 import { useHistoryState } from "@/hooks/use-history-state";
+import { orderPlans } from "@/lib/plans";
 import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
@@ -28,67 +36,104 @@ const PlanTimeline = dynamic(
   { ssr: false, loading: () => <TimelineSkeleton /> },
 );
 
-// The open item rides its own history entry, so going back closes it.
-const OPEN_ITEM_KEY = "planItem";
+/** What the screen over the planner shows: one item, or one section. */
+type PlannerOpen = { readonly item: string } | { readonly section: string };
 
-// Stands in while there's no plan, when nothing is shown to move anyway.
-const NO_PLAN_TREE = buildPlanTree({ id: "", children: [] }, []);
-const NO_PLAN_CONTEXT: PlanContext = new Map();
+// What's open rides its own history entry, so going back closes it.
+const OPEN_KEY = "plannerOpen";
+
+function openItemId(open: PlannerOpen | undefined): string | undefined {
+  return open !== undefined && "item" in open ? open.item : undefined;
+}
+
+function openSectionKey(open: PlannerOpen | undefined): string | undefined {
+  return open !== undefined && "section" in open ? open.section : undefined;
+}
 
 export function Planner() {
   const { data } = useSuspenseQuery(PlannerDocument);
-  const openItem = useHistoryState<string>(OPEN_ITEM_KEY);
+  const open = useHistoryState<PlannerOpen>(OPEN_KEY);
 
   const plans = data.planner.plans;
+  const directory = useMemo(() => buildPlanDirectory(plans), [plans]);
   const [planIds, setPlanIds] = usePlanSelection(
     PREF_PLANNER_PLANS,
     plans,
     "multiple",
   );
-  // Merging selected plans into one timeline is yet to come; until then the
-  // first one stands for them all.
-  const plan = plans.find((p) => p.id === planIds[0]);
-  const selected = plan?.descendants.find((it) => it.id === openItem.value);
-  // A closing screen slides away still showing its item, not an empty panel.
-  const [shownId, setShownId] = useState(openItem.value);
-  if (openItem.value !== undefined && openItem.value !== shownId) {
-    setShownId(openItem.value);
+  const shownPlans = useMemo(
+    () => orderPlans(plans).filter((plan) => planIds.includes(plan.id)),
+    [plans, planIds],
+  );
+  const timelinePlans = useMemo(
+    () =>
+      shownPlans.map((plan) => ({
+        rootIds: plan.children.map((it) => it.id),
+        items: plan.descendants,
+        buckets: plan.buckets,
+      })),
+    [shownPlans],
+  );
+  const items = useMemo(
+    () => shownPlans.flatMap((plan) => plan.descendants),
+    [shownPlans],
+  );
+  const selected = items.find((it) => it.id === openItemId(open.value));
+  // A closing screen slides away still showing what it showed, not an
+  // empty panel.
+  const [shownOpen, setShownOpen] = useState(open.value);
+  if (
+    open.value !== undefined &&
+    (openItemId(open.value) !== openItemId(shownOpen) ||
+      openSectionKey(open.value) !== openSectionKey(shownOpen))
+  ) {
+    setShownOpen(open.value);
   }
-  const shown = plan?.descendants.find((it) => it.id === shownId);
-  const rootIds = useMemo(
-    () => plan?.children.map((it) => it.id) ?? [],
-    [plan],
+  const shown = items.find((it) => it.id === openItemId(shownOpen));
+  const shownSectionKey = openSectionKey(shownOpen);
+  const shownSection = useMemo(
+    () =>
+      shownSectionKey === undefined
+        ? null
+        : buildSection(timelinePlans, shownSectionKey),
+    [timelinePlans, shownSectionKey],
   );
-  const descendants = useMemo(
-    () => (shown ? buildSubtree(plan?.descendants ?? [], shown.id) : []),
-    [plan, shown],
-  );
+  const descendants = useMemo((): readonly PlanItemNode[] => {
+    if (shown) return buildSubtree(items, shown.id);
+    // A section's own items head its screen's tree, each with everything
+    // below it, however deep.
+    return (shownSection?.roots ?? []).map((root) => ({
+      item: root.item,
+      children: buildSubtree(items, root.item.id),
+    }));
+  }, [items, shown, shownSection]);
+  const isOpen =
+    selected !== undefined ||
+    (openSectionKey(open.value) !== undefined && shownSection !== null);
   const tree = useMemo(
-    () => (plan ? buildPlanTree(plan, plan.descendants) : NO_PLAN_TREE),
-    [plan],
+    () =>
+      buildPlanTree(shownPlans.flatMap((plan) => [plan, ...plan.descendants])),
+    [shownPlans],
   );
   const context = useMemo(
-    () =>
-      plan
-        ? buildPlanContext({
-            rootIds,
-            items: plan.descendants,
-            buckets: plan.buckets,
-          })
-        : NO_PLAN_CONTEXT,
-    [plan, rootIds],
+    () => buildPlanContext({ plans: timelinePlans }),
+    [timelinePlans],
   );
-  const moves = usePlanMoves({
-    planId: plan?.id ?? "",
+  const moves = usePlanMoves({ plans: shownPlans, tree });
+  const changeable = new Set(
+    shownPlans.filter(canChangePlan).map((plan) => plan.id),
+  );
+  const dnd: PlanDnd = {
     tree,
-    buckets: plan?.buckets ?? [],
-  });
-  const dnd: PlanDnd | undefined = plan
-    ? { tree, canMove: canChangePlan(plan), moves }
-    : undefined;
+    canMove: (itemId) => {
+      const plan = directory.planOfItem.get(itemId);
+      return plan !== undefined && changeable.has(plan.id);
+    },
+    moves,
+  };
 
   return (
-    <>
+    <PlanDirectoryProvider directory={directory}>
       <SectionHeader title="Planner">
         <PlanPicker
           label="Plans"
@@ -98,34 +143,45 @@ export function Planner() {
           onChange={setPlanIds}
         />
       </SectionHeader>
-      <Screen label={shown?.name ?? ""} isOpen={selected !== undefined}>
-        {shown ? (
+      <Screen
+        label={shown?.name ?? (shownSection ? sectionLabel(shownSection) : "")}
+        isOpen={isOpen}
+        header={
+          shown ? (
+            <PlanItemHeader
+              item={shown}
+              context={context}
+              hasDescendants={descendants.length > 0}
+              onSelect={(id) => open.replace({ item: id })}
+            />
+          ) : shownSection ? (
+            <PlanSectionHeader section={shownSection} />
+          ) : null
+        }
+      >
+        {shown || shownSection ? (
           <PlanItemDetail
-            item={shown}
             context={context}
             descendants={descendants}
-            onSelect={openItem.replace}
             dnd={dnd}
-            planId={plan?.id}
+            holdsSection={!shown}
           />
         ) : null}
       </Screen>
 
       <div className="p-md">
-        {plan ? (
+        {shownPlans.length > 0 ? (
           <PlanTimeline
-            rootIds={rootIds}
-            items={plan.descendants}
-            buckets={plan.buckets}
+            plans={timelinePlans}
             openId={selected?.id}
-            onSelect={openItem.push}
+            onSelect={(id) => open.push({ item: id })}
+            onOpenSection={(key) => open.push({ section: key })}
             dnd={dnd}
-            planId={plan.id}
           />
         ) : (
           <p>There are no plans to show.</p>
         )}
       </div>
-    </>
+    </PlanDirectoryProvider>
   );
 }

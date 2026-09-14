@@ -45,15 +45,12 @@ const CHANGING_LEVELS: ReadonlySet<AccessLevel> = new Set([
   AccessLevel.ADMINISTER,
 ]);
 
-/** I map a plan and its items into who holds whom. */
-export function buildPlanTree(
-  plan: TreeSource,
-  items: readonly TreeSource[],
-): PlanTree {
+/** I map plans and their items into who holds whom. */
+export function buildPlanTree(sources: readonly TreeSource[]): PlanTree {
   const childrenOf = new Map<string, readonly string[]>();
   const parentOf = new Map<string, string>();
   const bucketOf = new Map<string, string | null>();
-  for (const source of [plan, ...items]) {
+  for (const source of sources) {
     const ids = source.children.map((c) => c.id);
     childrenOf.set(source.id, ids);
     for (const id of ids) parentOf.set(id, source.id);
@@ -165,6 +162,31 @@ export function bucketForDate(
 ): string | null {
   const onDate = buckets.filter((b) => b.date === date);
   return (onDate.find((b) => !isNamedBucket(b)) ?? onDate[0])?.id ?? null;
+}
+
+/**
+ * I pick the bucket a drop on a named bucket's section joins: the first
+ * named one sharing its name and date, else none.
+ */
+export function bucketForName(
+  buckets: readonly BucketSummary[],
+  name: string,
+  date: string | null,
+): string | null {
+  const canon = canonBucketName(name);
+  return (
+    buckets.find(
+      (b) =>
+        isNamedBucket(b) &&
+        b.date === date &&
+        canonBucketName(b.name) === canon,
+    )?.id ?? null
+  );
+}
+
+/** I give a bucket name as it compares: case and spacing aside. */
+export function canonBucketName(name: string): string {
+  return name.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 /** I say whether a bucket is named: its name has more than whitespace. */

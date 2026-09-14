@@ -1,5 +1,7 @@
 "use client";
 
+import { PlanDot } from "@/components/plan-dot";
+import { useItemPlan, useShowsPlanIndicators } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { useDragSession } from "@/features/plan-dnd/drag-session";
 import { ItemRow } from "@/features/plan-dnd/item-row";
@@ -29,8 +31,6 @@ type TimelineRowProps = {
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
   onSelect?: (id: string) => void;
-  /** Left out, no item offers to be cooked. */
-  planId?: string;
 };
 
 /**
@@ -47,7 +47,6 @@ export function TimelineRow({
   openId,
   dnd,
   onSelect,
-  planId,
 }: TimelineRowProps) {
   const { dragged } = useDragSession();
   const { id, name } = node.item;
@@ -56,6 +55,9 @@ export function TimelineRow({
     dragged !== null &&
     dnd.rootIds.has(id) &&
     dnd.rootIds.has(dragged.id) &&
+    // Top-level items are their plan's own children: sharing a parent is
+    // sharing a plan, and a reorder can't carry an item to another plan.
+    dnd.tree.parentOf.get(id) === dnd.tree.parentOf.get(dragged.id) &&
     dnd.sectionOf.get(dragged.id) === sectionKey;
   const zones =
     reorderable && dragged !== null
@@ -67,6 +69,9 @@ export function TimelineRow({
           onMove: (move) => dnd.moves.moveInTree(move, dragged.name),
         })
       : [];
+
+  const plan = useItemPlan(id);
+  const showsPlan = useShowsPlanIndicators();
 
   const own = context.get(id);
   const apart = sectionRoot && own !== undefined ? own : null;
@@ -80,13 +85,16 @@ export function TimelineRow({
       )}
     >
       <ItemRow itemId={id} name={name} zones={zones}>
+        {sectionRoot && showsPlan && plan ? (
+          <PlanDot plan={plan} className="me-xxs" />
+        ) : null}
         <PlanItem item={node.item} onSelect={onSelect} />
         {openId === id ? (
           // The bars say this to everyone who can see them.
           <span className="sr-only">, open in its screen</span>
         ) : null}
-        {planId !== undefined && node.item.children.length > 0 ? (
-          <CookLink planId={planId} itemId={id} name={name} />
+        {plan !== undefined && node.item.children.length > 0 ? (
+          <CookLink planId={plan.id} itemId={id} name={name} />
         ) : null}
         {apart?.parent ? (
           <span className="ms-auto flex items-center gap-xs">

@@ -11,7 +11,8 @@ const ENTRIES: readonly TimelineEntry[] = [
   { kind: "day", date: TODAY, roots: [] },
   {
     kind: "bucket",
-    bucketId: "lunch",
+    key: "bucket:lunch@2026-09-09",
+    bucketIds: ["lunch"],
     name: "Lunch",
     date: TODAY,
     roots: [],

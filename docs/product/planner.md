@@ -30,7 +30,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### The timeline
 
-- The planner lays a plan out down the calendar, anchored on today.
+- The planner lays every selected plan out down one calendar, anchored on
+  today. Where plans share a day or section, their items appear in plan
+  order: the user's own plans, then those shared with them.
 - Each day is introduced by a separator carrying its weekday and date, and
   today is marked as the current date.
 - An item's section comes from its own bucket, or else from the nearest
@@ -40,6 +42,13 @@ The terms used here are defined in the [domain model](../domain/model.md).
     bucket's name and, if it has one, its date;
   - with no bucket anywhere above, it is Unplanned.
 - A bucket whose name is blank or only whitespace is unnamed.
+- Named buckets sharing a name and date (or both undated) share one
+  section, whatever their case or spacing. It takes the first bucket's
+  spelling.
+- When the user can reach more than one plan, each item heading its section
+  carries a dot in its plan's color, named for the plan, and so does each
+  named bucket's heading. Days and Unplanned carry none, and an item nested
+  beneath another shares its plan, so carries none either.
 - A named bucket's section always appears: a dated one right after its
   day, an undated one right after today. Unplanned always appears after
   those.
@@ -59,6 +68,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   everything below it, however deep and wherever those descendants sit on
   the calendar.
 - The item open in the item screen is marked on the timeline.
+- Choosing a day, named bucket, or Unplanned with anything in it opens it
+  in a screen of its own; one with nothing in it can't be chosen.
 - An item in a different section from its parent names that parent, and
   says which day the parent falls on when that day differs.
 - An item falling after the thing it belongs to is marked as out of order,
@@ -70,6 +81,10 @@ The terms used here are defined in the [domain model](../domain/model.md).
   button, a flick, or Back, returns to the planner.
 - The item screen opens with the walk from the plan's root down to the item,
   naming every step along the way.
+- The walk, the item's notes, and the rule beneath them stay in view; only
+  what sits below the item scrolls, right to the screen's edges.
+- When the user can reach more than one plan, the open item carries its
+  plan's dot. The steps above it share its plan, so carry none.
 - A step says which day it falls on wherever that differs from the step
   above it, so a plan whose parts share a day says its date once.
 - An item nothing in the plan dates says nothing about when it happens.
@@ -77,6 +92,17 @@ The terms used here are defined in the [domain model](../domain/model.md).
   item can be chosen: it is already in view, and opening it would only
   narrow what is shown.
 - An item below the open one that falls on another day says which day.
+
+### The section screen
+
+- The section screen slides in over the planner like the item screen, and
+  closes the same ways.
+- It is headed by the section's label, as on the timeline. A named bucket's
+  heading carries the dots of every plan it spans; a day or Unplanned
+  carries none.
+- Below the heading, each item in the section appears with everything below
+  it, however deep, from every selected plan.
+- A section emptied while its screen is open stays open, showing nothing.
 
 ### Cooking
 
@@ -90,25 +116,35 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - A user who can change a plan sees a handle on the left edge of each of
   its items. Anyone else sees no handles.
 - Dragging an item by its handle moves everything below it too.
+- An item only ever joins a bucket of its own plan.
 - On the timeline, dropping an item on another day puts it on that day.
-  - The item joins a bucket already on that day, preferring an unnamed one.
-  - If the day has no bucket yet, an unnamed one is created for it.
+  - The item joins a bucket its plan already has on that day, preferring an
+    unnamed one.
+  - If its plan has no bucket on that day yet, an unnamed one is created.
   - The item keeps its place in the plan.
 - On the timeline, dropping an item on a named bucket's section puts it in
-  that bucket, and dropping it on Unplanned clears its bucket. An item
-  whose ancestor has a bucket then shows wherever that bucket puts it.
+  its plan's bucket of that name and date, creating one if its plan has
+  none. Dropping it on Unplanned clears its bucket. An item whose ancestor
+  has a bucket then shows wherever that bucket puts it.
 - A bucket an item would inherit anyway isn't set on it: dropping an item
   where its ancestor's bucket already puts it clears its own bucket, and
   any item below it left with the same bucket it now inherits has that
   bucket cleared too.
 - On the timeline, dropping a top-level item above or below another
-  top-level item in the same section reorders it. Its section doesn't
-  change. A nested item can't be reordered from the timeline.
-- In the item screen:
+  top-level item of the same plan, in the same section, reorders it. Its
+  section doesn't change. A nested item can't be reordered from the
+  timeline, and no item can be reordered among another plan's.
+- In the item or section screen:
   - dropping an item on the right three-quarters of another makes it that
     item's first child;
   - dropping it on the left quarter puts it before or after that item,
-    depending on which half it lands in.
+    depending on which half it lands in;
+  - an item can only be dropped among its own plan's items.
+- In the section screen, the section's own items stay where the timeline
+  put them: they can't be dragged, and an item dropped on one can only
+  nest under it. A user who can change their plan sees a disabled handle
+  on them; where the section holds several plans' items, each shows its
+  plan's dot in the handle's place instead.
 - An item can't be dropped inside itself.
 - An item can't be dragged from the item screen to the timeline or back.
   Moving it in either one updates both.

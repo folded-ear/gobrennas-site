@@ -8,12 +8,14 @@ import { useDragSession } from "./drag-session";
 type DragHandleProps = {
   itemId: string;
   name: string;
+  /** Whether my item stays put, so I show but never start a drag. */
+  isFixed?: boolean;
 };
 
 const MOVE_ONLY = ["move" as const];
 
 /** I start dragging my item, by pointer, touch, or Enter from the keyboard. */
-export function DragHandle({ itemId, name }: DragHandleProps) {
+export function DragHandle({ itemId, name, isFixed = false }: DragHandleProps) {
   const { dragType, dragged, isMoving, setDragged } = useDragSession();
   const preview = useRef<DragPreviewRenderer>(null);
   // A drop starts the move before the drag ends, and a disabled useDrag
@@ -23,7 +25,7 @@ export function DragHandle({ itemId, name }: DragHandleProps) {
     getItems: () => [{ [dragType]: itemId }],
     getAllowedDropOperations: () => MOVE_ONLY,
     preview,
-    isDisabled: moving,
+    isDisabled: moving || isFixed,
     onDragStart: () => setDragged({ id: itemId, name }),
     onDragEnd: () => setDragged(null),
   });
@@ -33,7 +35,7 @@ export function DragHandle({ itemId, name }: DragHandleProps) {
       <button
         type="button"
         aria-label={`Move ${name}`}
-        aria-disabled={moving || undefined}
+        aria-disabled={moving || isFixed || undefined}
         {...dragProps}
         className="flex size-xl shrink-0 cursor-grab touch-none items-center justify-center rounded-xs text-muted hover:text-foreground aria-disabled:cursor-default aria-disabled:opacity-40"
       >

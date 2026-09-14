@@ -2,11 +2,13 @@
 
 import { Drawer } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 
 type ScreenProps = PropsWithChildren<{
   /** Names me for assistive technology. */
   label: string;
+  /** Shown above my content, staying put while the content scrolls. */
+  header?: ReactNode;
   isOpen?: boolean;
 }>;
 
@@ -16,7 +18,12 @@ type ScreenProps = PropsWithChildren<{
  * in history, and it's leaving the history entry I belong to that closes
  * me.
  */
-export function Screen({ label, isOpen = true, children }: ScreenProps) {
+export function Screen({
+  label,
+  header,
+  isOpen = true,
+  children,
+}: ScreenProps) {
   const router = useRouter();
   return (
     <Drawer.Backdrop
@@ -28,13 +35,18 @@ export function Screen({ label, isOpen = true, children }: ScreenProps) {
       <Drawer.Content placement="right">
         <Drawer.Dialog
           aria-label={label}
-          className="w-full max-w-none sm:max-w-[90vw]"
+          // The padding moves inside the header and the scrolling body, so
+          // the body scrolls right to my edges.
+          className="w-full max-w-none p-0 sm:max-w-[90vw]"
         >
-          {/* in its own row, so content never runs underneath it */}
-          <Drawer.Header className="flex-row justify-end">
-            <Drawer.CloseTrigger className="static" />
+          <Drawer.Header className="gap-0 px-xl pt-xl text-base text-foreground">
+            {/* in its own row, so the header never runs underneath it */}
+            <div className="flex justify-end">
+              <Drawer.CloseTrigger className="static" />
+            </div>
+            {header}
           </Drawer.Header>
-          <Drawer.Body className="text-base text-foreground">
+          <Drawer.Body className="m-0 px-xl pb-xl text-base text-foreground">
             {children}
           </Drawer.Body>
         </Drawer.Dialog>

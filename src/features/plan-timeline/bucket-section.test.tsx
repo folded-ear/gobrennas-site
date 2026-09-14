@@ -61,7 +61,8 @@ function bucket(
 ): TimelineBucketSection {
   return {
     kind: "bucket",
-    bucketId: "b1",
+    key: "bucket:lunch@",
+    bucketIds: ["b1"],
     name: "Lunch",
     date: null,
     roots: [],

@@ -4,6 +4,7 @@ import {
   applyTreeMove,
   bucketChangeFor,
   bucketForDate,
+  bucketForName,
   buildPlanTree,
   canChangePlan,
   PlanTree,
@@ -42,7 +43,8 @@ function source(
 }
 
 function thanksgiving(): PlanTree {
-  return buildPlanTree(source(PLAN_ID, [DINNER, BREAKFAST, LUNCH]), [
+  return buildPlanTree([
+    source(PLAN_ID, [DINNER, BREAKFAST, LUNCH]),
     source(DINNER, [PIE, TURKEY]),
     source(PIE, [CRUST]),
     source(CRUST, [BUTTER]),
@@ -69,7 +71,8 @@ describe("buildPlanTree", () => {
   });
 
   it("knows each item's own bucket, or nothing when it has none", () => {
-    const tree = buildPlanTree(source(PLAN_ID, [DINNER]), [
+    const tree = buildPlanTree([
+      source(PLAN_ID, [DINNER]),
       source(DINNER, [], "bDinner"),
     ]);
 
@@ -216,6 +219,44 @@ describe("applyTreeMove", () => {
   });
 });
 
+describe("bucketForName", () => {
+  const SAT = "2026-09-12";
+
+  it("joins the first named bucket sharing the name and date", () => {
+    expect(
+      bucketForName(
+        [
+          { id: "b1", date: "2026-09-13", name: "Party prep" },
+          { id: "b2", date: SAT, name: "Party" },
+          { id: "b3", date: SAT, name: " party  PREP" },
+          { id: "b4", date: SAT, name: "Party prep" },
+        ],
+        "Party prep",
+        SAT,
+      ),
+    ).toBe("b3");
+  });
+
+  it("matches an undated name only among undated buckets", () => {
+    expect(
+      bucketForName(
+        [
+          { id: "b1", date: SAT, name: "Lunch" },
+          { id: "b2", date: null, name: "Lunch" },
+        ],
+        "Lunch",
+        null,
+      ),
+    ).toBe("b2");
+  });
+
+  it("gives nothing when no bucket shares the name and date", () => {
+    expect(
+      bucketForName([{ id: "b1", date: SAT, name: "Lunch" }], "Lunch", null),
+    ).toBeNull();
+  });
+});
+
 describe("bucketForDate", () => {
   const SAT = "2026-09-12";
 
@@ -280,7 +321,8 @@ describe("bucketForDate", () => {
 function bucketed(overrides: Readonly<Record<string, string | null>> = {}) {
   const bucket = (id: string, fallback: string | null) =>
     overrides[id] !== undefined ? overrides[id] : fallback;
-  return buildPlanTree(source(PLAN_ID, [DINNER, BREAKFAST]), [
+  return buildPlanTree([
+    source(PLAN_ID, [DINNER, BREAKFAST]),
     source(DINNER, [PIE, "sides"], bucket(DINNER, "bDinner")),
     source(PIE, [CRUST], bucket(PIE, null)),
     source(CRUST, [], bucket(CRUST, null)),
@@ -346,7 +388,8 @@ describe("bucketChangeFor", () => {
   it("gives nothing to clear when unplanning with no bucket to inherit", () => {
     // Breakfast has no ancestor bucket, so nothing it inherits could make
     // Fake's own bucket redundant, whatever Fake's bucket is.
-    const tree = buildPlanTree(source(PLAN_ID, [BREAKFAST]), [
+    const tree = buildPlanTree([
+      source(PLAN_ID, [BREAKFAST]),
       source(BREAKFAST, ["fake"], null),
       source("fake", [], "bSomething"),
     ]);

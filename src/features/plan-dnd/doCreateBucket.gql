@@ -1,6 +1,6 @@
-mutation doCreateBucket($planId: ID!, $date: Date) {
+mutation doCreateBucket($planId: ID!, $date: Date, $name: String) {
   planner {
-    createBucket(planId: $planId, date: $date) {
+    createBucket(planId: $planId, date: $date, name: $name) {
       id
       date
       name

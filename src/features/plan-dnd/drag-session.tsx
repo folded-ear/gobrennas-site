@@ -11,7 +11,7 @@ export type DraggedItem = {
 type DragSessionValue = {
   /** Marks a drag as belonging to this view, so other views ignore it. */
   readonly dragType: string;
-  readonly canMove: boolean;
+  canMove(itemId: string): boolean;
   readonly dragged: DraggedItem | null;
   setDragged(item: DraggedItem | null): void;
   isMoving(itemId: string): boolean;
@@ -19,7 +19,7 @@ type DragSessionValue = {
 
 const DragSessionContext = createContext<DragSessionValue>({
   dragType: "",
-  canMove: false,
+  canMove: () => false,
   dragged: null,
   setDragged: () => {},
   isMoving: () => false,
@@ -27,7 +27,7 @@ const DragSessionContext = createContext<DragSessionValue>({
 
 type DragSessionProps = PropsWithChildren<{
   dragType: string;
-  canMove: boolean;
+  canMove(itemId: string): boolean;
   isMoving(itemId: string): boolean;
 }>;
 

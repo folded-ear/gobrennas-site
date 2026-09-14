@@ -1,4 +1,8 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import {
+  buildPlanDirectory,
+  PlanDirectoryProvider,
+} from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import {
   keyboardCancel,
@@ -19,12 +23,13 @@ import {
   seedFragment,
   userEvent,
 } from "@/test";
+import { FragmentType } from "@apollo/client";
 import { describe, expect, it, vi } from "vitest";
 import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
-import { PlanItemDetail } from "./detail";
+import { PlanItemDetail, PlanItemHeader } from "./detail";
 
 const PIE = { id: "42", name: "Pumpkin pie" };
 const CRUST = { id: "43", name: "Pie crust" };
@@ -70,13 +75,17 @@ function node({ id, name }: Spec): PlanItemNode {
 // Plan 7: Pumpkin pie (42), holding Pie crust (43) then Pie filling (44).
 function planContext(): PlanContext {
   return buildPlanContext({
-    rootIds: [PIE.id],
-    items: [
-      timelineItem(PIE, [CRUST.id, FILLING.id]),
-      timelineItem(CRUST),
-      timelineItem(FILLING),
+    plans: [
+      {
+        rootIds: [PIE.id],
+        items: [
+          timelineItem(PIE, [CRUST.id, FILLING.id]),
+          timelineItem(CRUST),
+          timelineItem(FILLING),
+        ],
+        buckets: [],
+      },
     ],
-    buckets: [],
   });
 }
 
@@ -86,17 +95,44 @@ const SUNDAY = "2026-09-13";
 /** The same plan, with the crust made the day after the pie it goes in. */
 function movedContext(): PlanContext {
   return buildPlanContext({
-    rootIds: [PIE.id],
-    items: [
-      timelineItem(PIE, [CRUST.id, FILLING.id], "sat"),
-      timelineItem(CRUST, [], "sun"),
-      timelineItem(FILLING),
-    ],
-    buckets: [
-      { id: "sat", date: SATURDAY, name: null },
-      { id: "sun", date: SUNDAY, name: null },
+    plans: [
+      {
+        rootIds: [PIE.id],
+        items: [
+          timelineItem(PIE, [CRUST.id, FILLING.id], "sat"),
+          timelineItem(CRUST, [], "sun"),
+          timelineItem(FILLING),
+        ],
+        buckets: [
+          { id: "sat", date: SATURDAY, name: null },
+          { id: "sun", date: SUNDAY, name: null },
+        ],
+      },
     ],
   });
+}
+
+type DetailProps = {
+  item: FragmentType<PlanItemFragment>;
+  context: PlanContext;
+  descendants: readonly PlanItemNode[];
+  onSelect?: (id: string) => void;
+  dnd?: PlanDnd;
+};
+
+/** I put an item's screen together the way the planner does. */
+function Detail({ item, context, descendants, onSelect, dnd }: DetailProps) {
+  return (
+    <>
+      <PlanItemHeader
+        item={item}
+        context={context}
+        hasDescendants={descendants.length > 0}
+        onSelect={onSelect}
+      />
+      <PlanItemDetail context={context} descendants={descendants} dnd={dnd} />
+    </>
+  );
 }
 
 function renderDetail(
@@ -113,7 +149,7 @@ function renderDetail(
   );
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
   return render(
-    <PlanItemDetail
+    <Detail
       item={pie}
       context={planContext()}
       descendants={descendants}
@@ -133,7 +169,7 @@ function renderCrustOpen(onSelect?: (id: string) => void) {
     fragment(CRUST, null),
   );
   return render(
-    <PlanItemDetail
+    <Detail
       item={crust}
       context={planContext()}
       descendants={[]}
@@ -178,17 +214,29 @@ describe("PlanItemDetail", () => {
       fragment(FILLING, null),
     );
     render(
-      <PlanItemDetail
-        item={pie}
-        context={planContext()}
-        descendants={[
+      <PlanDirectoryProvider
+        directory={buildPlanDirectory([
           {
-            item: timelineItem(CRUST, [FILLING.id]),
-            children: [node(FILLING)],
+            id: "7",
+            name: "Holidays",
+            color: "#F57F17",
+            mine: true,
+            descendants: [PIE, CRUST, FILLING],
+            buckets: [],
           },
-        ]}
-        planId="7"
-      />,
+        ])}
+      >
+        <Detail
+          item={pie}
+          context={planContext()}
+          descendants={[
+            {
+              item: timelineItem(CRUST, [FILLING.id]),
+              children: [node(FILLING)],
+            },
+          ]}
+        />
+      </PlanDirectoryProvider>,
       { cache },
     );
 
@@ -234,7 +282,7 @@ describe("PlanItemDetail", () => {
     );
     seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
     render(
-      <PlanItemDetail
+      <Detail
         item={pie}
         context={movedContext()}
         descendants={[node(CRUST)]}
@@ -263,7 +311,8 @@ describe("PlanItemDetail", () => {
 });
 
 function pieTree() {
-  return buildPlanTree({ id: "7", children: [{ id: PIE.id }] }, [
+  return buildPlanTree([
+    { id: "7", children: [{ id: PIE.id }] },
     { id: PIE.id, children: [{ id: CRUST.id }, { id: FILLING.id }] },
     { id: CRUST.id, children: [] },
     { id: FILLING.id, children: [] },
@@ -291,11 +340,11 @@ function renderMovable(dnd: Partial<PlanDnd> = {}) {
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(FILLING, null));
   return render(
-    <PlanItemDetail
+    <Detail
       item={pie}
       context={planContext()}
       descendants={[node(CRUST), node(FILLING)]}
-      dnd={{ tree: pieTree(), canMove: true, moves: fakeMoves(), ...dnd }}
+      dnd={{ tree: pieTree(), canMove: () => true, moves: fakeMoves(), ...dnd }}
     />,
     { cache },
   );
@@ -317,7 +366,7 @@ describe("PlanItemDetail, moving items", () => {
   });
 
   it("offers no handles when the plan can't be changed", () => {
-    renderMovable({ canMove: false });
+    renderMovable({ canMove: () => false });
 
     expect(screen.getByText("Pie crust")).toBeVisible();
     expect(screen.queryByRole("button")).toBeNull();
@@ -385,5 +434,127 @@ describe("PlanItemDetail, moving items", () => {
       { ids: [CRUST.id], parentId: PIE.id, afterId: FILLING.id },
       "Pie crust",
     );
+  });
+});
+
+// Plan 9: Tacos (50), holding Salsa (51), sharing a section with the pie.
+const TACOS = { id: "50", name: "Tacos" };
+const SALSA = { id: "51", name: "Salsa" };
+
+describe("PlanItemDetail, a section's items", () => {
+  const pieNode: PlanItemNode = {
+    item: timelineItem(PIE, [CRUST.id, FILLING.id]),
+    children: [node(CRUST), node(FILLING)],
+  };
+  const tacosNode: PlanItemNode = {
+    item: timelineItem(TACOS, [SALSA.id]),
+    children: [node(SALSA)],
+  };
+
+  function renderSection(roots: readonly PlanItemNode[]) {
+    const cache = buildInMemoryCache();
+    for (const spec of [PIE, CRUST, FILLING, TACOS, SALSA]) {
+      seedFragment(
+        cache,
+        PlanItemFragmentDoc,
+        "planItem",
+        fragment(spec, null),
+      );
+    }
+    const tree = buildPlanTree([
+      { id: "7", children: [{ id: PIE.id }] },
+      { id: PIE.id, children: [{ id: CRUST.id }, { id: FILLING.id }] },
+      { id: CRUST.id, children: [] },
+      { id: FILLING.id, children: [] },
+      { id: "9", children: [{ id: TACOS.id }] },
+      { id: TACOS.id, children: [{ id: SALSA.id }] },
+      { id: SALSA.id, children: [] },
+    ]);
+    const directory = buildPlanDirectory([
+      {
+        id: "7",
+        name: "Holidays",
+        color: "#F57F17",
+        mine: true,
+        descendants: [PIE, CRUST, FILLING],
+        buckets: [],
+      },
+      {
+        id: "9",
+        name: "Weeknights",
+        color: "#1E88E5",
+        mine: true,
+        descendants: [TACOS, SALSA],
+        buckets: [],
+      },
+    ]);
+    return render(
+      <PlanDirectoryProvider directory={directory}>
+        <PlanItemDetail
+          context={new Map()}
+          descendants={roots}
+          holdsSection
+          dnd={{ tree, canMove: () => true, moves: fakeMoves() }}
+        />
+      </PlanDirectoryProvider>,
+      { cache },
+    );
+  }
+
+  it("holds a single plan's section items still, their handles disabled", () => {
+    renderSection([pieNode]);
+
+    expect(
+      screen.getByRole("button", { name: "Move Pumpkin pie" }),
+    ).toHaveAttribute("aria-disabled", "true");
+    expect(
+      screen.getByRole("button", { name: "Move Pie crust" }),
+    ).not.toHaveAttribute("aria-disabled");
+  });
+
+  it("marks several plans' section items with their plan, not a handle", () => {
+    renderSection([pieNode, tacosNode]);
+
+    expect(
+      screen.queryByRole("button", { name: /^Move (Pumpkin pie|Tacos)$/ }),
+    ).toBeNull();
+    expect(screen.getByRole("img", { name: "Holidays" })).toBeVisible();
+    expect(screen.getByRole("img", { name: "Weeknights" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Move Salsa" })).toBeVisible();
+  });
+
+  it("offers a section's own items only to nest under", async () => {
+    renderSection([pieNode]);
+
+    await keyboardDrag("Move Pie filling");
+
+    expect(
+      screen.getByRole("button", { name: "Nest under Pumpkin pie" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^Put \w+ Pumpkin pie$/ }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Put before Pie crust" }),
+    ).toBeInTheDocument();
+
+    await keyboardCancel();
+  });
+
+  it("offers nowhere in another plan to drop an item", async () => {
+    renderSection([pieNode, tacosNode]);
+
+    await keyboardDrag("Move Pie filling");
+
+    expect(
+      screen.queryAllByRole("button", {
+        name: /^(Nest under|Put \w+) (Tacos|Salsa)$/,
+      }),
+    ).toHaveLength(0);
+    expect(
+      screen.getByRole("button", { name: "Nest under Pie crust" }),
+    ).toBeInTheDocument();
+
+    await keyboardCancel();
   });
 });

@@ -1,12 +1,15 @@
 import { ZoneLayer, ZoneSpec } from "@/features/plan-dnd/zone-layer";
 import { PlanItemTree } from "@/features/plan-item/tree";
 import clsx from "clsx";
+import { ReactNode } from "react";
 import { PlanContext } from "./context";
 import { PlanItemNode } from "./model";
 import { TimelineDnd, TimelineRow } from "./timeline-row";
 
 type SectionShellProps = {
   label: string;
+  /** Set after my label in my heading. */
+  marker?: ReactNode;
   /** The accent styling a day gets for being today. */
   emphasized?: boolean;
   ariaCurrent?: "date";
@@ -17,15 +20,16 @@ type SectionShellProps = {
   /** The item open in its screen, marked wherever it shows. */
   openId?: string;
   onSelect?: (id: string) => void;
+  /** Opens a section by its key. Left out, no section opens. */
+  onOpenSection?: (key: string) => void;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
-  /** Left out, no item offers to be cooked. */
-  planId?: string;
 };
 
 /** I am the heading, item list, and drop target shared by every section. */
 export function SectionShell({
   label,
+  marker,
   emphasized = false,
   ariaCurrent,
   roots,
@@ -34,9 +38,16 @@ export function SectionShell({
   context,
   openId,
   onSelect,
+  onOpenSection,
   dnd,
-  planId,
 }: SectionShellProps) {
+  const title = (
+    <>
+      {label}
+      {marker ? <span className="ms-xs">{marker}</span> : null}
+    </>
+  );
+
   return (
     <li aria-current={ariaCurrent} className="relative py-xxs">
       <h3
@@ -47,7 +58,17 @@ export function SectionShell({
             : "border-separator font-normal text-muted",
         )}
       >
-        {label}
+        {onOpenSection && roots.length > 0 ? (
+          <button
+            type="button"
+            className="cursor-pointer text-left"
+            onClick={() => onOpenSection(sectionKey)}
+          >
+            {title}
+          </button>
+        ) : (
+          title
+        )}
       </h3>
       {roots.length === 0 ? (
         // Room to read the section as somewhere an item could go.
@@ -65,7 +86,6 @@ export function SectionShell({
                 openId={openId}
                 dnd={dnd}
                 onSelect={onSelect}
-                planId={planId}
               />
             )}
           />
