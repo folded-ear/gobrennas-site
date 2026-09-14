@@ -25,7 +25,7 @@ export function PlanItem({ item, onSelect }: PlanItemProps) {
   return (
     <button
       type="button"
-      className="text-left hover:text-accent"
+      className="cursor-pointer text-left hover:text-accent"
       onClick={() => onSelect(data.id)}
     >
       {data.name}

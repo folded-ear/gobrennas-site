@@ -61,7 +61,7 @@ export function SectionShell({
         {onOpenSection && roots.length > 0 ? (
           <button
             type="button"
-            className="text-left"
+            className="cursor-pointer text-left"
             onClick={() => onOpenSection(sectionKey)}
           >
             {title}
