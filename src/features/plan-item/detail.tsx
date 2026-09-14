@@ -61,9 +61,9 @@ export function PlanItemHeader({
 }
 
 type PlanItemDetailProps = {
-  /** Where every item in the plan sits. */
+  /** Where every item in the plans sits. */
   context: PlanContext;
-  /** Everything below the item, however deep and whatever its dates. */
+  /** Everything I show, however deep and whatever its dates. */
   descendants: readonly PlanItemNode[];
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
@@ -74,7 +74,10 @@ type PlanItemDetailProps = {
   holdsSection?: boolean;
 };
 
-/** I show everything below an open item, however deep. */
+/**
+ * I show everything below an open item, or everything in an open section,
+ * however deep.
+ */
 export function PlanItemDetail({
   context,
   descendants,

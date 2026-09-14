@@ -15,8 +15,9 @@ type ItemRowProps = PropsWithChildren<{
 }>;
 
 /**
- * I am one item's line: a handle on my left edge when items can be moved,
- * then my content, with whatever drop zones I'm given laid over the top.
+ * I am one item's line: whatever leads it on my left edge, a handle by
+ * default when my item can be moved, then my content, with whatever drop
+ * zones I'm given laid over the top.
  */
 export function ItemRow({ itemId, name, zones, lead, children }: ItemRowProps) {
   const { canMove, dragged } = useDragSession();
