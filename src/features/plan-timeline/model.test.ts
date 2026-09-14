@@ -435,6 +435,17 @@ describe("named bucket sections", () => {
     expect(names(unplanned(entries).roots)).toEqual(["Go shopping"]);
     expect(bucketSections(entries)).toEqual([]);
   });
+
+  it.each(["", "  "])("treats a bucket named %j as unnamed", (name) => {
+    const entries = build({
+      rootIds: ["mix"],
+      items: [item({ id: "mix", name: "Spice mix", bucket: "blank" })],
+      buckets: [{ id: "blank", date: "2026-09-14", name }],
+    });
+
+    expect(names(dayOn(entries, "2026-09-14").roots)).toEqual(["Spice mix"]);
+    expect(bucketSections(entries)).toEqual([]);
+  });
 });
 
 describe("the timeline's full order", () => {
