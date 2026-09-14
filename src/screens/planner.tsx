@@ -2,6 +2,10 @@
 
 import { Screen } from "@/components/screen";
 import { SectionHeader } from "@/components/section-header";
+import {
+  buildPlanDirectory,
+  PlanDirectoryProvider,
+} from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree, canChangePlan } from "@/features/plan-dnd/moves";
 import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
@@ -40,6 +44,7 @@ export function Planner() {
   const openItem = useHistoryState<string>(OPEN_ITEM_KEY);
 
   const plans = data.planner.plans;
+  const directory = useMemo(() => buildPlanDirectory(plans), [plans]);
   const [planIds, setPlanIds] = usePlanSelection(
     PREF_PLANNER_PLANS,
     plans,
@@ -88,7 +93,7 @@ export function Planner() {
     : undefined;
 
   return (
-    <>
+    <PlanDirectoryProvider directory={directory}>
       <SectionHeader title="Planner">
         <PlanPicker
           label="Plans"
@@ -126,6 +131,6 @@ export function Planner() {
           <p>There are no plans to show.</p>
         )}
       </div>
-    </>
+    </PlanDirectoryProvider>
   );
 }
