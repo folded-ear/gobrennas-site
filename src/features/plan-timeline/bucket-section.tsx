@@ -41,7 +41,7 @@ export function BucketSection({
   const { dragged } = useDragSession();
   const label =
     bucket.date !== null
-      ? `${bucket.name} - ${formatDayLabel(bucket.date)}`
+      ? `${bucket.name} – ${formatDayLabel(bucket.date)}`
       : bucket.name;
   const sectionKey = bucketSectionKey(bucket.bucketId);
   const zones: readonly ZoneSpec[] =

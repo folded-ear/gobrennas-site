@@ -98,7 +98,7 @@ describe("BucketSection", () => {
     renderBucket({ name: "Lunch", date: "2026-09-14" });
 
     expect(
-      screen.getByRole("heading", { name: /^Lunch - .*Sep 14/ }),
+      screen.getByRole("heading", { name: /^Lunch – .*Sep 14/ }),
     ).toBeVisible();
   });
 
