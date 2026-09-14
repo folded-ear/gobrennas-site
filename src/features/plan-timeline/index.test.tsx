@@ -152,10 +152,10 @@ function renderMovable(
       bucket: null,
     });
   }
-  const tree = buildPlanTree(
+  const tree = buildPlanTree([
     { id: "7", children: ROOT_IDS.map((id) => ({ id })) },
-    THANKSGIVING,
-  );
+    ...THANKSGIVING,
+  ]);
   return render(
     <PlanTimeline
       rootIds={ROOT_IDS}

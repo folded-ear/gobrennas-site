@@ -3,7 +3,6 @@ import {
   bucketSectionKey,
   buildSubtree,
   buildTimeline,
-  BuildTimelineInput,
   PlanItemNode,
   sectionOfItems,
   TimelineBucketSection,
@@ -11,6 +10,7 @@ import {
   TimelineEntry,
   TimelineGap,
   TimelineItem,
+  TimelinePlan,
   TimelineUnplanned,
   UNPLANNED_SECTION,
 } from "./model";
@@ -37,13 +37,10 @@ function item({ id, name, bucket, children = [] }: ItemSpec): TimelineItem {
   };
 }
 
-function build(input: Partial<BuildTimelineInput>): readonly TimelineEntry[] {
+function build(input: Partial<TimelinePlan>): readonly TimelineEntry[] {
   return buildTimeline({
-    rootIds: [],
-    items: [],
-    buckets: [],
+    plans: [{ rootIds: [], items: [], buckets: [], ...input }],
     today: TODAY,
-    ...input,
   });
 }
 
@@ -497,6 +494,63 @@ describe("buckets sharing a name and date", () => {
     });
 
     expect(bucketSections(entries)).toHaveLength(3);
+  });
+});
+
+describe("several plans", () => {
+  const HOLIDAYS: TimelinePlan = {
+    rootIds: ["dinner", "tidy"],
+    items: [
+      item({ id: "dinner", name: "Thanksgiving dinner", bucket: "hSat" }),
+      item({ id: "tidy", name: "Tidy up" }),
+      item({ id: "brine", name: "Brine turkey", bucket: "hPrep" }),
+    ],
+    buckets: [
+      { id: "hSat", date: "2026-09-12", name: null },
+      { id: "hPrep", date: "2026-09-11", name: "Prep" },
+    ],
+  };
+  const WEEKNIGHTS: TimelinePlan = {
+    rootIds: ["tacos", "stock", "laundry"],
+    items: [
+      item({ id: "tacos", name: "Tacos", bucket: "wSat" }),
+      item({ id: "stock", name: "Stock", bucket: "wPrep" }),
+      item({ id: "laundry", name: "Laundry" }),
+    ],
+    buckets: [
+      { id: "wSat", date: "2026-09-12", name: null },
+      { id: "wPrep", date: "2026-09-11", name: "prep" },
+    ],
+  };
+
+  function buildBoth() {
+    return buildTimeline({
+      plans: [
+        { ...HOLIDAYS, rootIds: [...HOLIDAYS.rootIds, "brine"] },
+        WEEKNIGHTS,
+      ],
+      today: TODAY,
+    });
+  }
+
+  it("puts every plan's items on a shared day, in plan order", () => {
+    expect(names(dayOn(buildBoth(), "2026-09-12").roots)).toEqual([
+      "Thanksgiving dinner",
+      "Tacos",
+    ]);
+  });
+
+  it("shares a bucket section across plans, in plan order", () => {
+    const entries = buildBoth();
+
+    expect(bucketSections(entries)).toHaveLength(1);
+    const prep = bucketOn(entries, "wPrep");
+    expect(prep).toMatchObject({ name: "Prep", bucketIds: ["hPrep", "wPrep"] });
+    expect(names(prep.roots)).toEqual(["Brine turkey", "Stock"]);
+  });
+
+  it("gathers every plan's unplanned items together, in plan order", () => {
+    expect(names(unplanned(buildBoth()).roots)).toEqual(["Tidy up", "Laundry"]);
   });
 });
 

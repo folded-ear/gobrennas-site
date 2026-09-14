@@ -97,10 +97,10 @@ function thanksgiving(): Plan {
 function Probe() {
   const { data } = useQuery(PlannerDocument, { fetchPolicy: "cache-only" });
   const plan = data?.planner.plans[0];
-  const tree = plan ? buildPlanTree(plan, plan.descendants) : null;
+  const tree = plan ? buildPlanTree([plan, ...plan.descendants]) : null;
   const moves = usePlanMoves({
     planId: PLAN_ID,
-    tree: tree ?? buildPlanTree({ id: PLAN_ID, children: [] }, []),
+    tree: tree ?? buildPlanTree([{ id: PLAN_ID, children: [] }]),
     buckets: plan?.buckets ?? [],
   });
   if (!plan || !tree) return null;
@@ -590,10 +590,10 @@ function redundancyPlan(): Plan {
 function RedundancyProbe() {
   const { data } = useQuery(PlannerDocument, { fetchPolicy: "cache-only" });
   const plan = data?.planner.plans[0];
-  const tree = plan ? buildPlanTree(plan, plan.descendants) : null;
+  const tree = plan ? buildPlanTree([plan, ...plan.descendants]) : null;
   const moves = usePlanMoves({
     planId: REDUNDANCY_PLAN_ID,
-    tree: tree ?? buildPlanTree({ id: REDUNDANCY_PLAN_ID, children: [] }, []),
+    tree: tree ?? buildPlanTree([{ id: REDUNDANCY_PLAN_ID, children: [] }]),
     buckets: plan?.buckets ?? [],
   });
   if (!plan || !tree) return null;

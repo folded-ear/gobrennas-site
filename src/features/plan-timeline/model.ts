@@ -59,11 +59,17 @@ export type TimelineGap = {
 export type TimelineEntry =
   TimelineDay | TimelineBucketSection | TimelineUnplanned | TimelineGap;
 
-export type BuildTimelineInput = {
+/** One plan, as the timeline lays it out. */
+export type TimelinePlan = {
   /** The plan's own children, in display order. */
   readonly rootIds: readonly string[];
   readonly items: readonly TimelineItem[];
   readonly buckets: readonly TimelineBucket[];
+};
+
+export type BuildTimelineInput = {
+  /** In plan order. */
+  readonly plans: readonly TimelinePlan[];
   readonly today: string;
 };
 
@@ -104,7 +110,11 @@ type Parent = {
 export function buildTimeline(
   input: BuildTimelineInput,
 ): readonly TimelineEntry[] {
-  return layOutTimeline(groupRootsBySection(input), input.buckets, input.today);
+  return layOutTimeline(
+    groupRootsBySection(input.plans),
+    input.plans.flatMap((plan) => plan.buckets),
+    input.today,
+  );
 }
 
 /**
@@ -125,13 +135,15 @@ function ownSectionKey(
   return bucket.date;
 }
 
-function groupRootsBySection({
-  rootIds,
-  items,
-  buckets,
-}: BuildTimelineInput): ReadonlyMap<string, readonly PlanItemNode[]> {
-  const byId = new Map(items.map((it) => [it.id, it]));
-  const bucketById = new Map(buckets.map((b) => [b.id, b]));
+function groupRootsBySection(
+  plans: readonly TimelinePlan[],
+): ReadonlyMap<string, readonly PlanItemNode[]> {
+  const byId = new Map(
+    plans.flatMap((plan) => plan.items).map((it) => [it.id, it]),
+  );
+  const bucketById = new Map(
+    plans.flatMap((plan) => plan.buckets).map((b) => [b.id, b]),
+  );
   const bySection = new Map<string, MutableNode[]>();
   const visited = new Set<string>();
 
@@ -166,7 +178,7 @@ function groupRootsBySection({
     }
   }
 
-  for (const id of rootIds) {
+  for (const id of plans.flatMap((plan) => plan.rootIds)) {
     visit(id, null, UNPLANNED_SECTION);
   }
   return bySection;

@@ -70,13 +70,17 @@ function node({ id, name }: Spec): PlanItemNode {
 // Plan 7: Pumpkin pie (42), holding Pie crust (43) then Pie filling (44).
 function planContext(): PlanContext {
   return buildPlanContext({
-    rootIds: [PIE.id],
-    items: [
-      timelineItem(PIE, [CRUST.id, FILLING.id]),
-      timelineItem(CRUST),
-      timelineItem(FILLING),
+    plans: [
+      {
+        rootIds: [PIE.id],
+        items: [
+          timelineItem(PIE, [CRUST.id, FILLING.id]),
+          timelineItem(CRUST),
+          timelineItem(FILLING),
+        ],
+        buckets: [],
+      },
     ],
-    buckets: [],
   });
 }
 
@@ -86,15 +90,19 @@ const SUNDAY = "2026-09-13";
 /** The same plan, with the crust made the day after the pie it goes in. */
 function movedContext(): PlanContext {
   return buildPlanContext({
-    rootIds: [PIE.id],
-    items: [
-      timelineItem(PIE, [CRUST.id, FILLING.id], "sat"),
-      timelineItem(CRUST, [], "sun"),
-      timelineItem(FILLING),
-    ],
-    buckets: [
-      { id: "sat", date: SATURDAY, name: null },
-      { id: "sun", date: SUNDAY, name: null },
+    plans: [
+      {
+        rootIds: [PIE.id],
+        items: [
+          timelineItem(PIE, [CRUST.id, FILLING.id], "sat"),
+          timelineItem(CRUST, [], "sun"),
+          timelineItem(FILLING),
+        ],
+        buckets: [
+          { id: "sat", date: SATURDAY, name: null },
+          { id: "sun", date: SUNDAY, name: null },
+        ],
+      },
     ],
   });
 }
@@ -263,7 +271,8 @@ describe("PlanItemDetail", () => {
 });
 
 function pieTree() {
-  return buildPlanTree({ id: "7", children: [{ id: PIE.id }] }, [
+  return buildPlanTree([
+    { id: "7", children: [{ id: PIE.id }] },
     { id: PIE.id, children: [{ id: CRUST.id }, { id: FILLING.id }] },
     { id: CRUST.id, children: [] },
     { id: FILLING.id, children: [] },

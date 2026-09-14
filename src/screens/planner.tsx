@@ -36,7 +36,7 @@ const PlanTimeline = dynamic(
 const OPEN_ITEM_KEY = "planItem";
 
 // Stands in while there's no plan, when nothing is shown to move anyway.
-const NO_PLAN_TREE = buildPlanTree({ id: "", children: [] }, []);
+const NO_PLAN_TREE = buildPlanTree([]);
 const NO_PLAN_CONTEXT: PlanContext = new Map();
 
 export function Planner() {
@@ -69,16 +69,16 @@ export function Planner() {
     [plan, shown],
   );
   const tree = useMemo(
-    () => (plan ? buildPlanTree(plan, plan.descendants) : NO_PLAN_TREE),
+    () => (plan ? buildPlanTree([plan, ...plan.descendants]) : NO_PLAN_TREE),
     [plan],
   );
   const context = useMemo(
     () =>
       plan
         ? buildPlanContext({
-            rootIds,
-            items: plan.descendants,
-            buckets: plan.buckets,
+            plans: [
+              { rootIds, items: plan.descendants, buckets: plan.buckets },
+            ],
           })
         : NO_PLAN_CONTEXT,
     [plan, rootIds],

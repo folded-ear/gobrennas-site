@@ -38,22 +38,26 @@ function item({ id, name, bucket, children = [] }: ItemSpec): TimelineItem {
 /** Thanksgiving > Dinner > Salad > Dressing, all Thursday but the dressing. */
 function thanksgiving(dressingBucket?: string): PlanContext {
   return buildPlanContext({
-    rootIds: ["thanksgiving"],
-    items: [
-      item({
-        id: "thanksgiving",
-        name: "Thanksgiving",
-        bucket: "thu",
-        children: ["dinner"],
-      }),
-      item({ id: "dinner", name: "Dinner", children: ["salad"] }),
-      item({ id: "salad", name: "Salad", children: ["dressing"] }),
-      item({ id: "dressing", name: "Dressing", bucket: dressingBucket }),
-    ],
-    buckets: [
-      { id: "thu", date: THURSDAY, name: null },
-      { id: "wed", date: WEDNESDAY, name: null },
-      { id: "fri", date: FRIDAY, name: null },
+    plans: [
+      {
+        rootIds: ["thanksgiving"],
+        items: [
+          item({
+            id: "thanksgiving",
+            name: "Thanksgiving",
+            bucket: "thu",
+            children: ["dinner"],
+          }),
+          item({ id: "dinner", name: "Dinner", children: ["salad"] }),
+          item({ id: "salad", name: "Salad", children: ["dressing"] }),
+          item({ id: "dressing", name: "Dressing", bucket: dressingBucket }),
+        ],
+        buckets: [
+          { id: "thu", date: THURSDAY, name: null },
+          { id: "wed", date: WEDNESDAY, name: null },
+          { id: "fri", date: FRIDAY, name: null },
+        ],
+      },
     ],
   });
 }
@@ -107,12 +111,16 @@ describe("ladderLines", () => {
 
   it("says nothing of a date nothing in the plan carries", () => {
     const context = buildPlanContext({
-      rootIds: ["dinner"],
-      items: [
-        item({ id: "dinner", name: "Dinner", children: ["salad"] }),
-        item({ id: "salad", name: "Salad" }),
+      plans: [
+        {
+          rootIds: ["dinner"],
+          items: [
+            item({ id: "dinner", name: "Dinner", children: ["salad"] }),
+            item({ id: "salad", name: "Salad" }),
+          ],
+          buckets: [],
+        },
       ],
-      buckets: [],
     });
 
     const lines = ladderLines(context, "salad");

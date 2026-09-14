@@ -45,15 +45,12 @@ const CHANGING_LEVELS: ReadonlySet<AccessLevel> = new Set([
   AccessLevel.ADMINISTER,
 ]);
 
-/** I map a plan and its items into who holds whom. */
-export function buildPlanTree(
-  plan: TreeSource,
-  items: readonly TreeSource[],
-): PlanTree {
+/** I map plans and their items into who holds whom. */
+export function buildPlanTree(sources: readonly TreeSource[]): PlanTree {
   const childrenOf = new Map<string, readonly string[]>();
   const parentOf = new Map<string, string>();
   const bucketOf = new Map<string, string | null>();
-  for (const source of [plan, ...items]) {
+  for (const source of sources) {
     const ids = source.children.map((c) => c.id);
     childrenOf.set(source.id, ids);
     for (const id of ids) parentOf.set(id, source.id);

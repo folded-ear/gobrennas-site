@@ -42,13 +42,13 @@ export function PlanTimeline({
 }: PlanTimelineProps) {
   const today = useToday();
   const entries = useMemo(
-    () => buildTimeline({ rootIds, items, buckets, today }),
+    () => buildTimeline({ plans: [{ rootIds, items, buckets }], today }),
     [rootIds, items, buckets, today],
   );
   // I hold everything context needs already, so I ask for it myself
   // rather than making every caller keep one in step with my own props.
   const context = useMemo(
-    () => buildPlanContext({ rootIds, items, buckets }),
+    () => buildPlanContext({ plans: [{ rootIds, items, buckets }] }),
     [rootIds, items, buckets],
   );
 

@@ -1,4 +1,4 @@
-import { TimelineBucket, TimelineItem } from "./model";
+import { TimelineItem, TimelinePlan } from "./model";
 
 /** How an item's date sits against its parent's. */
 export type Separation = "early" | "late";
@@ -22,14 +22,11 @@ export type ItemContext = {
   readonly separation: Separation | null;
 };
 
-/** Every item in a plan, by id. */
+/** Every item in the plans a context was built from, by id. */
 export type PlanContext = ReadonlyMap<string, ItemContext>;
 
 export type BuildPlanContextInput = {
-  /** The plan's own children, in display order. */
-  readonly rootIds: readonly string[];
-  readonly items: readonly TimelineItem[];
-  readonly buckets: readonly TimelineBucket[];
+  readonly plans: readonly TimelinePlan[];
 };
 
 /**
@@ -48,15 +45,16 @@ function separationOf(
 }
 
 /**
- * I say where every item in a plan sits and what it sits under, the ones
- * the timeline hides included. An item nothing dates has no date: where
- * the timeline draws such an item is its own business.
+ * I say where every item in the given plans sits and what it sits under,
+ * the ones the timeline hides included. An item nothing dates has no date:
+ * where the timeline draws such an item is its own business.
  */
 export function buildPlanContext({
-  rootIds,
-  items,
-  buckets,
+  plans,
 }: BuildPlanContextInput): PlanContext {
+  const rootIds = plans.flatMap((plan) => plan.rootIds);
+  const items = plans.flatMap((plan) => plan.items);
+  const buckets = plans.flatMap((plan) => plan.buckets);
   const byId = new Map(items.map((it) => [it.id, it]));
   const bucketDates = new Map(buckets.map((b) => [b.id, b.date]));
   const dateOf = new Map<string, string | null>();
