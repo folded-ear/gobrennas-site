@@ -122,8 +122,9 @@ These are recorded because the code does not match the rules above yet.
 - `src/hooks/use-set-preference/` returns its mutation promise, but its current
   callers do not handle rejection or show a failure.
 - `src/components/error-fallback.tsx` displays raw exception text to the user.
-- No `loading.tsx`, `error.tsx`, or `global-error.tsx` exists anywhere in
-  `app/`.
+- `app/(private)/recipes/new/loading.tsx` is the one route-specific loading
+  boundary. Most private routes still lack one, and no `error.tsx` or
+  `global-error.tsx` boundary exists.
 - The recipe library has no in-screen boundary around `RecipeGrid`, and its
   loading skeletons have not been built yet.
 - `src/features/recipe-grid/` does not return the `fetchMore()` promise from its
