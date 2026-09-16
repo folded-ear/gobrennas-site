@@ -123,6 +123,7 @@ Start new documents from the [product](templates/product.md),
 
 - [Navigation](product/navigation.md)
 - [Planner](product/planner.md)
+- [Recipes](product/recipes.md)
 
 ### Domain
 
@@ -133,4 +134,6 @@ Start new documents from the [product](templates/product.md),
 - [Site architecture](architecture/overview.md)
 - [Technical stack](architecture/stack.md)
 - [Testing conventions](testing.md)
+- [Loading and error conventions](loading-and-errors.md)
 - [Design tokens](design-tokens.md)
+- [Forms and validation](forms-and-validation.md)

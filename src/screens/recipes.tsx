@@ -2,6 +2,7 @@
 
 import { LibrarySearchScope } from "@/__generated__/graphql";
 import { RecipeFilter } from "@/components/filter";
+import { AddIcon } from "@/components/icons";
 import { SectionHeader } from "@/components/section-header";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
@@ -9,6 +10,8 @@ import { RecipeGrid } from "@/features/recipe-grid";
 import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { RecipesDocument } from "@/screens/__generated__/recipes.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
+import { buttonVariants } from "@heroui/react";
+import Link from "next/link";
 import { useDeferredValue, useState } from "react";
 
 export function Recipes() {
@@ -26,13 +29,22 @@ export function Recipes() {
   return (
     <>
       <SectionHeader title="Recipe Library">
-        <PlanPicker
-          label="Plan"
-          plans={plans}
-          selectionMode="single"
-          selectedIds={planIds}
-          onChange={setPlanIds}
-        />
+        <div className="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-xs">
+          <PlanPicker
+            label="Plan"
+            plans={plans}
+            selectionMode="single"
+            selectedIds={planIds}
+            onChange={setPlanIds}
+          />
+          <Link
+            href="/recipes/new"
+            className={buttonVariants({ variant: "primary" })}
+          >
+            <AddIcon aria-hidden size="small" />
+            Add Recipe
+          </Link>
+        </div>
       </SectionHeader>
       <div className="flex flex-col gap-lg p-md">
         <RecipeFilter

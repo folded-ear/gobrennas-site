@@ -26,8 +26,11 @@ away and lets focused content slide in without losing the user's place.
 ### Screens
 
 - A screen slides in from the right over the page it was opened from.
-- A recipe opened from within the Library opens in a screen. Opening a
-  recipe's address directly shows it as a full page instead.
+- Recipe detail and Add Recipe opened from the Library use screens over the
+  Library. Opening either address directly shows its full-page fallback instead.
+- Saving a new recipe replaces that focused screen with the new recipe detail.
+  The completed editor is not left behind in history.
+- Proposed edit-screen behavior is in the Draft [Recipes](recipes.md) document.
 - Every way of closing a screen — its close button, a flick, tapping outside
   it, Escape, or Back — goes back one step in history.
 
@@ -45,3 +48,4 @@ away and lets focused content slide in without losing the user's place.
 ## Related documents
 
 - [Planner](planner.md)
+- [Recipes](recipes.md)
