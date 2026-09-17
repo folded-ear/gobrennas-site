@@ -37,6 +37,10 @@ describe("RecipeCreate", () => {
               info: {
                 type: "Recipe",
                 name: "Cider-braised chicken",
+                externalUrl: null,
+                yield: null,
+                totalTime: null,
+                calories: null,
                 directions: "Brown the chicken first.",
               },
             },

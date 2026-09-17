@@ -3,6 +3,7 @@
 import {
   Alert,
   Button,
+  Description,
   FieldError,
   Form,
   Input,
@@ -12,7 +13,11 @@ import {
   TextField,
 } from "@heroui/react";
 import { FormEvent, useId, useRef, useState } from "react";
-import { RecipeDraft, validateRecipeDraft } from "./recipe-draft";
+import {
+  RecipeDraft,
+  RecipeDraftErrors,
+  validateRecipeDraft,
+} from "./recipe-draft";
 
 type RecipeFormProps = {
   initialDraft: RecipeDraft;
@@ -26,21 +31,25 @@ export function RecipeForm({
   onCancel,
 }: RecipeFormProps) {
   const [draft, setDraft] = useState<RecipeDraft>(() => ({ ...initialDraft }));
-  const [titleError, setTitleError] = useState<string>();
+  const [errors, setErrors] = useState<RecipeDraftErrors>({});
   const [hasSaveFailure, setHasSaveFailure] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const titleErrorId = useId();
+  const yieldErrorId = useId();
+  const totalTimeErrorId = useId();
+  const caloriesErrorId = useId();
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const yieldInputRef = useRef<HTMLInputElement>(null);
+  const totalTimeInputRef = useRef<HTMLInputElement>(null);
+  const caloriesInputRef = useRef<HTMLInputElement>(null);
   const isSubmittingRef = useRef(false);
 
-  function handleTitleChange(title: string): void {
-    setDraft((currentDraft) => ({ ...currentDraft, title }));
-    setTitleError(undefined);
-    setHasSaveFailure(false);
-  }
-
-  function handleDirectionsChange(directions: string): void {
-    setDraft((currentDraft) => ({ ...currentDraft, directions }));
+  function handleFieldChange<Key extends keyof RecipeDraft>(
+    field: Key,
+    value: RecipeDraft[Key],
+  ): void {
+    setDraft((currentDraft) => ({ ...currentDraft, [field]: value }));
+    setErrors((currentErrors) => ({ ...currentErrors, [field]: undefined }));
     setHasSaveFailure(false);
   }
 
@@ -54,9 +63,19 @@ export function RecipeForm({
     }
 
     const errors = validateRecipeDraft(draft);
-    if (errors.title !== undefined) {
-      setTitleError(errors.title);
-      titleInputRef.current?.focus();
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+
+      if (errors.title !== undefined) {
+        titleInputRef.current?.focus();
+      } else if (errors.yieldServings !== undefined) {
+        yieldInputRef.current?.focus();
+      } else if (errors.totalTimeText !== undefined) {
+        totalTimeInputRef.current?.focus();
+      } else if (errors.caloriesPerServing !== undefined) {
+        caloriesInputRef.current?.focus();
+      }
+
       return;
     }
 
@@ -96,26 +115,100 @@ export function RecipeForm({
 
       <TextField
         isDisabled={isSubmitting}
-        isInvalid={titleError !== undefined}
+        isInvalid={errors.title !== undefined}
         isRequired
         name="title"
-        onChange={handleTitleChange}
+        onChange={(value) => handleFieldChange("title", value)}
         value={draft.title}
       >
         <Label>Title</Label>
         <Input
           aria-errormessage={
-            titleError === undefined ? undefined : titleErrorId
+            errors.title === undefined ? undefined : titleErrorId
           }
           ref={titleInputRef}
         />
-        <FieldError id={titleErrorId}>{titleError}</FieldError>
+        <FieldError id={titleErrorId}>{errors.title}</FieldError>
       </TextField>
 
       <TextField
         isDisabled={isSubmitting}
+        name="sourceUrl"
+        onChange={(value) => handleFieldChange("sourceUrl", value)}
+        value={draft.sourceUrl}
+      >
+        <Label>Source URL</Label>
+        <Input autoComplete="url" type="url" />
+      </TextField>
+
+      <div className="grid grid-cols-1 gap-lg sm:grid-cols-3">
+        <TextField
+          isDisabled={isSubmitting}
+          isInvalid={errors.yieldServings !== undefined}
+          name="yieldServings"
+          onChange={(value) => handleFieldChange("yieldServings", value)}
+          value={draft.yieldServings}
+        >
+          <Label>Yield</Label>
+          <Input
+            aria-errormessage={
+              errors.yieldServings === undefined ? undefined : yieldErrorId
+            }
+            min={1}
+            ref={yieldInputRef}
+            step={1}
+            type="number"
+          />
+          <FieldError id={yieldErrorId}>{errors.yieldServings}</FieldError>
+        </TextField>
+
+        <TextField
+          isDisabled={isSubmitting}
+          isInvalid={errors.totalTimeText !== undefined}
+          name="totalTimeText"
+          onChange={(value) => handleFieldChange("totalTimeText", value)}
+          value={draft.totalTimeText}
+        >
+          <Label>Total cook time</Label>
+          <Input
+            aria-errormessage={
+              errors.totalTimeText === undefined ? undefined : totalTimeErrorId
+            }
+            ref={totalTimeInputRef}
+          />
+          <Description>For example: 80 min or 1 hr 20 min.</Description>
+          <FieldError id={totalTimeErrorId}>{errors.totalTimeText}</FieldError>
+        </TextField>
+
+        <TextField
+          isDisabled={isSubmitting}
+          isInvalid={errors.caloriesPerServing !== undefined}
+          name="caloriesPerServing"
+          onChange={(value) => handleFieldChange("caloriesPerServing", value)}
+          value={draft.caloriesPerServing}
+        >
+          <Label>Calories per serving</Label>
+          <Input
+            aria-errormessage={
+              errors.caloriesPerServing === undefined
+                ? undefined
+                : caloriesErrorId
+            }
+            min={0}
+            ref={caloriesInputRef}
+            step={1}
+            type="number"
+          />
+          <FieldError id={caloriesErrorId}>
+            {errors.caloriesPerServing}
+          </FieldError>
+        </TextField>
+      </div>
+
+      <TextField
+        isDisabled={isSubmitting}
         name="directions"
-        onChange={handleDirectionsChange}
+        onChange={(value) => handleFieldChange("directions", value)}
         value={draft.directions}
       >
         <Label>Directions</Label>
