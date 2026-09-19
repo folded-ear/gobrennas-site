@@ -137,6 +137,31 @@ describe("PlanPicker", () => {
     expect(option(WEEKNIGHTS.name)).toHaveAttribute("aria-selected", "false");
   });
 
+  it("fills the avatars of selected plans and rings the rest", async () => {
+    render(
+      <PlanPicker
+        label="Plans"
+        plans={PLANS}
+        selectionMode="multiple"
+        selectedIds={[FEAST_DAY.id]}
+        onChange={vi.fn()}
+      />,
+    );
+
+    const listbox = await openPicker();
+
+    const avatar = (name: string) =>
+      within(within(listbox).getByRole("option", { name })).getByText(
+        name.substring(0, 2),
+      );
+    expect(avatar(FEAST_DAY.name)).toHaveStyle({
+      backgroundColor: FEAST_DAY.color,
+    });
+    expect(avatar(WEEKNIGHTS.name)).not.toHaveStyle({
+      backgroundColor: WEEKNIGHTS.color,
+    });
+  });
+
   it("adds a plan to a multiple selection", async () => {
     const onChange = vi.fn();
     render(

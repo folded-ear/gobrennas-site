@@ -59,9 +59,17 @@ function PlanSection({ title, plans }: PlanSectionProps) {
       <Header>{title}</Header>
       {plans.map((plan) => (
         <ListBox.Item key={plan.id} id={plan.id} textValue={plan.name}>
-          <PlanAvatar plan={plan} size="sm" aria-hidden />
-          <Label>{plan.name}</Label>
-          <ListBox.ItemIndicator />
+          {({ isSelected }) => (
+            <>
+              <PlanAvatar
+                plan={plan}
+                selected={isSelected}
+                size="sm"
+                aria-hidden
+              />
+              <Label>{plan.name}</Label>
+            </>
+          )}
         </ListBox.Item>
       ))}
     </ListBox.Section>
