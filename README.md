@@ -67,7 +67,7 @@ which composes one or more `features/` components.
 ### Tailwind
 
 [Tailwind](https://tailwindcss.com/) is the CSS solution, along with Tailwind Variants for easily managing style
-variants. I dunno -- I am still learning it myself, so I'll let you know how it goes.
+variants. Inline styles should be avoided; use the tailwind classes.
 
 ### Data Fetching
 
