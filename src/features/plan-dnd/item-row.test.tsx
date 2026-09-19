@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@/test";
+import { fireEvent, render, screen, userEvent, waitFor } from "@/test";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
 import { DragSession, useDragSession } from "./drag-session";
@@ -145,6 +145,20 @@ describe("ItemRow", () => {
       await screen.findByText("Pumpkin pie went after Roast turkey"),
     ).toBeVisible();
     expect(screen.queryByRole("button", { name: /^Put after/ })).toBeNull();
+  });
+
+  it("starts no drag when its handle is clicked with a mouse", async () => {
+    render(<Harness />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Move Pumpkin pie" }),
+    );
+    const zones = screen.queryAllByRole("button", { name: /^Put / });
+    // A drag listens for Escape only from the frame after it starts.
+    await new Promise(requestAnimationFrame);
+    await keyboardCancel();
+
+    expect(zones).toHaveLength(0);
   });
 
   it("marks an item's handle unavailable while it is being moved", () => {
