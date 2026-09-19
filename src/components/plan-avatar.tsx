@@ -32,7 +32,7 @@ export default function PlanAvatar({
         className,
       )}
     >
-      <Avatar.Fallback className="bg-transparent">
+      <Avatar.Fallback className="bg-transparent text-inherit">
         {plan.name.substring(0, 2)}
       </Avatar.Fallback>
     </Avatar>
