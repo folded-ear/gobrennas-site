@@ -151,15 +151,9 @@ describe("PlanPicker", () => {
     const listbox = await openPicker();
 
     const avatar = (name: string) =>
-      within(within(listbox).getByRole("option", { name })).getByText(
-        name.substring(0, 2),
-      );
-    expect(avatar(FEAST_DAY.name)).toHaveStyle({
-      backgroundColor: FEAST_DAY.color,
-    });
-    expect(avatar(WEEKNIGHTS.name)).not.toHaveStyle({
-      backgroundColor: WEEKNIGHTS.color,
-    });
+      within(within(listbox).getByRole("option", { name })).getByTitle(name);
+    expect(avatar(FEAST_DAY.name)).not.toHaveAttribute("data-unselected");
+    expect(avatar(WEEKNIGHTS.name)).toHaveAttribute("data-unselected");
   });
 
   it("adds a plan to a multiple selection", async () => {

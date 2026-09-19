@@ -1,6 +1,6 @@
 import { Avatar, type AvatarProps } from "@heroui/react";
-
-const RING_WIDTH = "2px";
+import clsx from "clsx";
+import type { CSSProperties } from "react";
 
 type PlanAvatarProps = AvatarProps & {
   plan: {
@@ -16,20 +16,23 @@ export default function PlanAvatar({
   plan,
   empty = false,
   selected = true,
+  className,
   ...rest
 }: PlanAvatarProps) {
   return (
-    <Avatar {...rest} title={plan.name}>
-      <Avatar.Fallback
-        style={
-          selected
-            ? { backgroundColor: plan.color }
-            : {
-                backgroundColor: "transparent",
-                boxShadow: `inset 0 0 0 ${RING_WIDTH} ${plan.color}`,
-              }
-        }
-      >
+    <Avatar
+      {...rest}
+      title={plan.name}
+      data-unselected={!selected || undefined}
+      style={{ "--plan-color": plan.color } as CSSProperties}
+      className={clsx(
+        "bg-(--plan-color) text-[contrast-color(var(--plan-color))]",
+        "data-unselected:bg-transparent data-unselected:text-foreground",
+        "data-unselected:inset-ring-2 data-unselected:inset-ring-(--plan-color)",
+        className,
+      )}
+    >
+      <Avatar.Fallback className="bg-transparent">
         {plan.name.substring(0, 2)}
       </Avatar.Fallback>
     </Avatar>

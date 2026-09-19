@@ -5,27 +5,33 @@ import PlanAvatar from "./plan-avatar";
 const WEEKNIGHTS = { name: "Weeknights", color: "#89ac66" };
 
 describe("PlanAvatar", () => {
-  it("fills its circle with its plan's color", () => {
+  it("shows its plan's initials", () => {
     render(<PlanAvatar plan={WEEKNIGHTS} />);
 
-    expect(screen.getByText("We")).toHaveStyle({
-      backgroundColor: WEEKNIGHTS.color,
-    });
+    expect(screen.getByTitle(WEEKNIGHTS.name)).toHaveTextContent("We");
   });
 
-  it("fills its circle when its plan is selected", () => {
+  it("is filled by default", () => {
+    render(<PlanAvatar plan={WEEKNIGHTS} />);
+
+    expect(screen.getByTitle(WEEKNIGHTS.name)).not.toHaveAttribute(
+      "data-unselected",
+    );
+  });
+
+  it("is filled when its plan is selected", () => {
     render(<PlanAvatar plan={WEEKNIGHTS} selected />);
 
-    expect(screen.getByText("We")).toHaveStyle({
-      backgroundColor: WEEKNIGHTS.color,
-    });
+    expect(screen.getByTitle(WEEKNIGHTS.name)).not.toHaveAttribute(
+      "data-unselected",
+    );
   });
 
-  it("rings its circle when its plan isn't selected", () => {
+  it("is a ring when its plan isn't selected", () => {
     render(<PlanAvatar plan={WEEKNIGHTS} selected={false} />);
 
-    const circle = screen.getByText("We");
-    expect(circle).not.toHaveStyle({ backgroundColor: WEEKNIGHTS.color });
-    expect(circle.style.boxShadow).toContain("inset");
+    expect(screen.getByTitle(WEEKNIGHTS.name)).toHaveAttribute(
+      "data-unselected",
+    );
   });
 });
