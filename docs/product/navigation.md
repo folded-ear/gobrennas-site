@@ -19,8 +19,8 @@ away and lets focused content slide in without losing the user's place.
 - Each section's page has a header that stays at the top as the page
   scrolls, holding the section's title and controls.
 - The Library header has a picker for the one plan recipes are sent to. The
-  Planner header has a picker for the plans it shows. Neither picker shows
-  when the user has only one plan.
+  Planner and Shopping headers each have a picker for the plans they show.
+  No picker shows when the user has only one plan.
 - Logging out is on the Profile page.
 
 ### Screens
