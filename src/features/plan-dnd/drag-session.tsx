@@ -1,5 +1,6 @@
 "use client";
 
+import { useBlockScreenEscape } from "@/components/screen";
 import {
   Active,
   Announcements,
@@ -88,6 +89,7 @@ type DragSessionProps = PropsWithChildren<{
 export function DragSession({ canMove, isMoving, children }: DragSessionProps) {
   const id = useId();
   const [dragged, setDragged] = useState<DraggedItem | null>(null);
+  useBlockScreenEscape(dragged !== null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: ACTIVATION_DISTANCE },

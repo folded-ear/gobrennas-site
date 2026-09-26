@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from "@/test";
+import { Screen } from "@/components/screen";
+import { render, screen, userEvent, waitFor } from "@/test";
 import { useState } from "react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ACTIVATION_DISTANCE,
   DragSession,
@@ -20,6 +21,16 @@ import {
   queryDropZone,
 } from "./test/dnd-harness";
 import { TREE_ZONES } from "./zones";
+
+const back = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ back }),
+}));
+
+beforeEach(() => {
+  back.mockReset();
+});
 
 const ITEMS = [
   { id: "2", name: "Pumpkin pie" },
@@ -202,5 +213,52 @@ describe("ItemRow", () => {
     expect(indicators("after")).toHaveLength(0);
 
     await keyboardCancel();
+  });
+});
+
+describe("ItemRow, inside a Screen", () => {
+  it("calls off a pointer drag on Escape, leaving its Screen open", async () => {
+    render(
+      <Screen label="Thanksgiving">
+        <Harness />
+      </Screen>,
+    );
+
+    await pointerDrag("Move Pumpkin pie");
+    expect(getDropZone("Put after Roast turkey")).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+
+    expect(queryAllDropZones(/^Put /)).toHaveLength(0);
+    expect(back).not.toHaveBeenCalled();
+    await pointerRelease();
+  });
+
+  it("calls off a keyboard drag on Escape, leaving its Screen open", async () => {
+    render(
+      <Screen label="Thanksgiving">
+        <Harness />
+      </Screen>,
+    );
+
+    await keyboardDrag("Move Pumpkin pie");
+    await keyboardCancel();
+
+    expect(queryAllDropZones(/^Put /)).toHaveLength(0);
+    expect(back).not.toHaveBeenCalled();
+  });
+
+  it("lets its Screen close on Escape once a drag is dropped", async () => {
+    render(
+      <Screen label="Thanksgiving">
+        <Harness />
+      </Screen>,
+    );
+
+    await pointerDrag("Move Pumpkin pie");
+    await pointerDrop("Put after Roast turkey");
+    await screen.findByText("Pumpkin pie went after Roast turkey");
+    await userEvent.keyboard("{Escape}");
+
+    expect(back).toHaveBeenCalledTimes(1);
   });
 });
