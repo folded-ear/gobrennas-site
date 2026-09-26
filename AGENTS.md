@@ -16,6 +16,7 @@
 - Follow the documentation structure in `docs/README.md` instead of guessing at product behavior, domain rules, or
   architecture.
 - Prefer simple, scoped changes over broad or speculative refactors.
+- Prefer HeroUI components to hand-rolled behaviors.
 - Drafts and open questions in `docs/` are not requirements — do not invent answers for them.
 - Stay aligned with existing repository patterns (App Router, Apollo, HeroUI/Tailwind) unless asked to change them.
 

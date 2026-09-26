@@ -122,6 +122,11 @@ Co-located, matching the filename under test: `index.tsx` → `index.test.tsx`.
 This tightens the general "`*.test.tsx` anywhere" pattern into an actual
 convention.
 
+Test-only infrastructure that isn't itself a test module — helpers,
+harnesses, stubs — lives in a directory named exactly `test`: `src/test/`
+for what every feature shares, or a feature's own `test/` directory (e.g.
+`src/features/plan-dnd/test/dnd-harness.ts`).
+
 ## Coverage threshold
 
 None enforced yet. `pnpm run test:coverage` stays a visibility tool —

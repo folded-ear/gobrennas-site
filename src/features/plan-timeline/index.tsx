@@ -9,8 +9,6 @@ import { buildTimeline, sectionOfItems, TimelinePlan } from "./model";
 import { TimelineDnd } from "./timeline-row";
 import { useToday } from "./use-today";
 
-const TIMELINE_DRAG_TYPE = "application/x.gobrennas.timeline-item";
-
 type PlanTimelineProps = {
   /** In plan order. */
   plans: readonly TimelinePlan[];
@@ -60,11 +58,7 @@ export function PlanTimeline({
   }
   const timelineDnd: TimelineDnd = { ...dnd, rootIds: rootIdSet, sectionOf };
   return (
-    <DragSession
-      dragType={TIMELINE_DRAG_TYPE}
-      canMove={dnd.canMove}
-      isMoving={dnd.moves.isMoving}
-    >
+    <DragSession canMove={dnd.canMove} isMoving={dnd.moves.isMoving}>
       <DayList
         entries={entries}
         today={today}

@@ -150,8 +150,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
   Moving it in either one updates both.
 - A move shows immediately. If it fails, the item goes back where it was
   and a message says so.
-- Items can be moved by keyboard: Enter on a handle picks the item up, Tab
-  moves between the places it can go, Enter drops it, and Escape cancels.
+- Items can be moved by keyboard: Space or Enter on a handle picks the item
+  up, the arrow keys move it, Space, Enter, or Tab drops it, and Escape
+  cancels.
 
 ## Example
 

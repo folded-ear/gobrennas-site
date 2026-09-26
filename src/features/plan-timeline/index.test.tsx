@@ -5,12 +5,14 @@ import {
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
+import { buildPlanTree } from "@/features/plan-dnd/moves";
 import {
+  getDropZone,
   keyboardCancel,
   keyboardDrag,
   keyboardDrop,
-} from "@/features/plan-dnd/keyboard-drag";
-import { buildPlanTree } from "@/features/plan-dnd/moves";
+  queryDropZone,
+} from "@/features/plan-dnd/test/dnd-harness";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
 import {
@@ -384,12 +386,8 @@ describe("PlanTimeline, several plans", () => {
 
     await keyboardDrag("Move Tacos");
 
-    expect(
-      screen.queryByRole("button", { name: /^Put \w+ Breakfast$/ }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: /^Put \w+ Thanksgiving dinner$/ }),
-    ).toBeNull();
+    expect(queryDropZone(/^Put \w+ Breakfast$/)).toBeNull();
+    expect(queryDropZone(/^Put \w+ Thanksgiving dinner$/)).toBeNull();
 
     await keyboardCancel();
   });
@@ -426,23 +424,13 @@ describe("PlanTimeline, moving items", () => {
 
     await keyboardDrag("Move Breakfast");
 
-    expect(
-      screen.getByRole("button", { name: /^Move to .*Sep 9/ }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /^Move to .*Sep 12/ }),
-    ).toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Put before Thanksgiving dinner" }),
-    ).toBeInTheDocument();
+    expect(getDropZone(/^Move to .*Sep 9/)).toBeInTheDocument();
+    expect(queryDropZone(/^Move to .*Sep 12/)).toBeNull();
+    expect(getDropZone("Put before Thanksgiving dinner")).toBeInTheDocument();
     // Breakfast already comes right after dinner.
-    expect(
-      screen.queryByRole("button", { name: "Put after Thanksgiving dinner" }),
-    ).toBeNull();
+    expect(queryDropZone("Put after Thanksgiving dinner")).toBeNull();
     // Nested items can't be reordered around on the timeline.
-    expect(
-      screen.queryByRole("button", { name: /^Put \w+ Pumpkin pie$/ }),
-    ).toBeNull();
+    expect(queryDropZone(/^Put \w+ Pumpkin pie$/)).toBeNull();
 
     await keyboardCancel();
   });
@@ -452,10 +440,8 @@ describe("PlanTimeline, moving items", () => {
 
     await keyboardDrag("Move Pumpkin pie");
 
-    expect(
-      screen.getByRole("button", { name: /^Move to .*Sep 9/ }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^Put / })).toBeNull();
+    expect(getDropZone(/^Move to .*Sep 9/)).toBeInTheDocument();
+    expect(queryDropZone(/^Put /)).toBeNull();
 
     await keyboardCancel();
   });
@@ -479,8 +465,7 @@ describe("PlanTimeline, moving items", () => {
     renderMovable({ moves });
 
     await keyboardDrag("Move Pumpkin pie");
-    const today = screen.getByRole("button", { name: /^Move to .*Sep 9/ });
-    await keyboardDrop(today.getAttribute("aria-label")!);
+    await keyboardDrop(/^Move to .*Sep 9/);
 
     expect(moves.moveToDate).toHaveBeenCalledWith(
       "2",
@@ -498,8 +483,7 @@ describe("PlanTimeline, moving items", () => {
     ]);
 
     await keyboardDrag("Move Breakfast");
-    const lunch = screen.getByRole("button", { name: /^Move to Lunch/ });
-    await keyboardDrop(lunch.getAttribute("aria-label")!);
+    await keyboardDrop(/^Move to Lunch/);
 
     expect(moves.moveToBucket).toHaveBeenCalledWith(
       "6",
@@ -513,10 +497,7 @@ describe("PlanTimeline, moving items", () => {
     renderMovable({ moves });
 
     await keyboardDrag("Move Breakfast");
-    const unplanned = screen.getByRole("button", {
-      name: /^Move to Unplanned/,
-    });
-    await keyboardDrop(unplanned.getAttribute("aria-label")!);
+    await keyboardDrop(/^Move to Unplanned/);
 
     expect(moves.moveToUnplanned).toHaveBeenCalledWith("6", "Breakfast");
   });

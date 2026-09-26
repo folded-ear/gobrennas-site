@@ -1,6 +1,6 @@
 import { render, screen, userEvent } from "@/test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Screen } from "./screen";
+import { Screen, useBlockScreenEscape } from "./screen";
 
 const back = vi.fn();
 
@@ -11,6 +11,11 @@ vi.mock("next/navigation", () => ({
 beforeEach(() => {
   back.mockReset();
 });
+
+function EscapeBlocker({ isBlocked }: { isBlocked: boolean }) {
+  useBlockScreenEscape(isBlocked);
+  return <p>Roast the pumpkin first.</p>;
+}
 
 describe("Screen", () => {
   it("shows its content as a named dialog", () => {
@@ -69,6 +74,35 @@ describe("Screen", () => {
       </Screen>,
     );
 
+    await userEvent.keyboard("{Escape}");
+
+    expect(back).toHaveBeenCalledTimes(1);
+  });
+
+  it("stays open on Escape while something inside blocks it", async () => {
+    render(
+      <Screen label="Pumpkin pie">
+        <EscapeBlocker isBlocked />
+      </Screen>,
+    );
+
+    await userEvent.keyboard("{Escape}");
+
+    expect(back).not.toHaveBeenCalled();
+  });
+
+  it("goes back on Escape once nothing inside blocks it", async () => {
+    const { rerender } = render(
+      <Screen label="Pumpkin pie">
+        <EscapeBlocker isBlocked />
+      </Screen>,
+    );
+
+    rerender(
+      <Screen label="Pumpkin pie">
+        <EscapeBlocker isBlocked={false} />
+      </Screen>,
+    );
     await userEvent.keyboard("{Escape}");
 
     expect(back).toHaveBeenCalledTimes(1);
