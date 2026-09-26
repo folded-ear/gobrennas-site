@@ -61,7 +61,7 @@ export function ShoppingRegions({ list }: ShoppingRegionsProps) {
   }
 
   return (
-    // One group across both regions, so one item is expanded in all.
+    // One group spans both regions, so only one item is ever expanded.
     <DisclosureGroup className="flex flex-col gap-xl">
       <RegionSection title="Needed" showsTitle={false} region={list.needed} />
       <RegionSection title="Acquired" showsTitle region={list.acquired} />
