@@ -131,6 +131,12 @@ export function buildShoppingList(
   return { needed, acquired };
 }
 
+/** I write an amount out: its quantity, then its unit, if it has one. */
+export function formatAmount({ quantity, unit }: Amount): string {
+  const rounded = String(Math.round(quantity * 100) / 100);
+  return unit === null ? rounded : `${rounded} ${unit.name}`;
+}
+
 type MutableRegion = {
   readonly items: ShoppingItem[];
   readonly unresolved: Source[];

@@ -2,6 +2,7 @@ import { PlanItemStatus } from "@/__generated__/graphql";
 import { describe, expect, it } from "vitest";
 import {
   buildShoppingList,
+  formatAmount,
   ShoppingItem,
   ShoppingPlan,
   ShoppingPlanItem,
@@ -381,5 +382,21 @@ describe("buildShoppingList", () => {
       "Dinner",
     ]);
     expect(source.plan).toEqual({ id: "1", name: "Plan 1", color: "#F57F17" });
+  });
+});
+
+describe("formatAmount", () => {
+  it("gives the quantity, then the unit", () => {
+    expect(formatAmount({ quantity: 2, unit: CUP })).toBe("2 cup");
+  });
+
+  it("gives a bare quantity with no unit", () => {
+    expect(formatAmount({ quantity: 3, unit: null })).toBe("3");
+  });
+
+  it("rounds to two decimal places", () => {
+    expect(formatAmount({ quantity: 1 / 3 + 1 / 3, unit: TSP })).toBe(
+      "0.67 tsp",
+    );
   });
 });
