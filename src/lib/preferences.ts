@@ -1,5 +1,6 @@
 export const PREF_ACTIVE_PLAN = "activePlan";
 export const PREF_PLANNER_PLANS = "plannerPlans";
+export const PREF_SHOPPING_PLANS = "activeShoppingPlans";
 
 const TRUE_WORDS = ["true", "t", "yes", "y"];
 const FALSE_WORDS = ["false", "f", "no", "n"];

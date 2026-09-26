@@ -1,0 +1,27 @@
+query Shopping {
+  planner {
+    plans {
+      id
+      name
+      color
+      mine
+      ...planPickerPlan @unmask
+      buckets {
+        id
+        date
+        name
+      }
+      children {
+        id
+      }
+      descendants {
+        id
+        # Unmasked so plain JS can aggregate them, before they get passed to
+        # components for rendering.
+        ...timelineItem @unmask
+        ...shoppingPlanItem @unmask
+        ...planItem
+      }
+    }
+  }
+}
