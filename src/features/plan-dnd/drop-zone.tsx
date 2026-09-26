@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { DropOperation, useDrop } from "react-aria";
-import { useDragSession } from "./drag-session";
+import { useDroppable } from "@dnd-kit/core";
+import { useEffect, useId } from "react";
+import { ZoneData } from "./drag-session";
 import { ZoneRect, zoneStyle } from "./zones";
 
 type DropZoneProps = {
   rect: ZoneRect;
   label: string;
   onDrop(): void;
-  /** I say whether a drag is over or focused on me right now. */
+  /** I say whether a drag is over me right now. */
   onTargetChange?(isTarget: boolean): void;
 };
 
@@ -23,27 +23,19 @@ export function DropZone({
   onDrop,
   onTargetChange,
 }: DropZoneProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { dragType } = useDragSession();
-  const { dropProps, isDropTarget } = useDrop({
-    ref,
-    getDropOperation: (types): DropOperation =>
-      types.has(dragType) ? "move" : "cancel",
-    onDrop: () => onDrop(),
-  });
+  const id = useId();
+  const data: ZoneData = { label, onDrop };
+  const { setNodeRef, isOver } = useDroppable({ id, data });
 
   useEffect(() => {
-    onTargetChange?.(isDropTarget);
-  }, [isDropTarget, onTargetChange]);
+    onTargetChange?.(isOver);
+  }, [isOver, onTargetChange]);
 
   return (
     <div
-      ref={ref}
-      role="button"
-      tabIndex={0}
-      aria-label={label}
-      {...dropProps}
-      className="absolute z-10 outline-none"
+      ref={setNodeRef}
+      data-drop-zone={label}
+      className="absolute z-10"
       style={zoneStyle(rect)}
     />
   );

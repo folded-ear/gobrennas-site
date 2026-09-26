@@ -5,9 +5,13 @@ import {
 } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import {
+  dropZoneLabel,
+  getDropZone,
   keyboardCancel,
   keyboardDrag,
   keyboardDrop,
+  queryAllDropZones,
+  queryDropZone,
 } from "@/features/plan-dnd/keyboard-drag";
 import { buildPlanTree } from "@/features/plan-dnd/moves";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
@@ -377,21 +381,11 @@ describe("PlanItemDetail, moving items", () => {
 
     await keyboardDrag("Move Pie crust");
 
-    expect(
-      screen.getByRole("button", { name: "Nest under Pie filling" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Put after Pie filling" }),
-    ).toBeInTheDocument();
+    expect(getDropZone("Nest under Pie filling")).toBeInTheDocument();
+    expect(getDropZone("Put after Pie filling")).toBeInTheDocument();
     // The crust already comes right before the filling.
-    expect(
-      screen.queryByRole("button", { name: "Put before Pie filling" }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole("button", {
-        name: /^(Nest under|Put \w+) Pie crust$/,
-      }),
-    ).toBeNull();
+    expect(queryDropZone("Put before Pie filling")).toBeNull();
+    expect(queryDropZone(/^(Nest under|Put \w+) Pie crust$/)).toBeNull();
 
     await keyboardCancel();
   });
@@ -402,9 +396,7 @@ describe("PlanItemDetail, moving items", () => {
     await keyboardDrag("Move Pie filling");
 
     expect(
-      screen
-        .getAllByRole("button", { name: /^(Nest under|Put \w+) Pie crust$/ })
-        .map((zone) => zone.getAttribute("aria-label")),
+      queryAllDropZones(/^(Nest under|Put \w+) Pie crust$/).map(dropZoneLabel),
     ).toEqual(["Put before Pie crust", "Nest under Pie crust"]);
 
     await keyboardCancel();
@@ -528,15 +520,9 @@ describe("PlanItemDetail, a section's items", () => {
 
     await keyboardDrag("Move Pie filling");
 
-    expect(
-      screen.getByRole("button", { name: "Nest under Pumpkin pie" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /^Put \w+ Pumpkin pie$/ }),
-    ).toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Put before Pie crust" }),
-    ).toBeInTheDocument();
+    expect(getDropZone("Nest under Pumpkin pie")).toBeInTheDocument();
+    expect(queryDropZone(/^Put \w+ Pumpkin pie$/)).toBeNull();
+    expect(getDropZone("Put before Pie crust")).toBeInTheDocument();
 
     await keyboardCancel();
   });
@@ -547,13 +533,9 @@ describe("PlanItemDetail, a section's items", () => {
     await keyboardDrag("Move Pie filling");
 
     expect(
-      screen.queryAllByRole("button", {
-        name: /^(Nest under|Put \w+) (Tacos|Salsa)$/,
-      }),
+      queryAllDropZones(/^(Nest under|Put \w+) (Tacos|Salsa)$/),
     ).toHaveLength(0);
-    expect(
-      screen.getByRole("button", { name: "Nest under Pie crust" }),
-    ).toBeInTheDocument();
+    expect(getDropZone("Nest under Pie crust")).toBeInTheDocument();
 
     await keyboardCancel();
   });
