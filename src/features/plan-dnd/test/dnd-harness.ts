@@ -1,6 +1,6 @@
 import { screen, userEvent, waitFor } from "@/test";
 import { onTestFinished, vi } from "vitest";
-import { ACTIVATION_DISTANCE } from "./drag-session";
+import { ACTIVATION_DISTANCE } from "../drag-session";
 
 /** How far dnd-kit's stock keyboard sensor moves a drag per arrow press. */
 const KEYBOARD_STEP = 25;

@@ -18,7 +18,7 @@ import {
   pointerRelease,
   queryAllDropZones,
   queryDropZone,
-} from "./keyboard-drag";
+} from "./test/dnd-harness";
 import { TREE_ZONES } from "./zones";
 
 const ITEMS = [

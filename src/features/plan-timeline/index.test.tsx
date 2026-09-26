@@ -5,14 +5,14 @@ import {
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
+import { buildPlanTree } from "@/features/plan-dnd/moves";
 import {
   getDropZone,
   keyboardCancel,
   keyboardDrag,
   keyboardDrop,
   queryDropZone,
-} from "@/features/plan-dnd/keyboard-drag";
-import { buildPlanTree } from "@/features/plan-dnd/moves";
+} from "@/features/plan-dnd/test/dnd-harness";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
 import {

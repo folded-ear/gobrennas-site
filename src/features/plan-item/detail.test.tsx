@@ -4,6 +4,7 @@ import {
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
+import { buildPlanTree } from "@/features/plan-dnd/moves";
 import {
   dropZoneLabel,
   getDropZone,
@@ -12,8 +13,7 @@ import {
   keyboardDrop,
   queryAllDropZones,
   queryDropZone,
-} from "@/features/plan-dnd/keyboard-drag";
-import { buildPlanTree } from "@/features/plan-dnd/moves";
+} from "@/features/plan-dnd/test/dnd-harness";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import {
   buildPlanContext,
