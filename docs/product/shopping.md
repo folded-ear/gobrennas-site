@@ -38,8 +38,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Needed and acquired
 
-- The list has two regions: Needed on top, Acquired below. A region with
-  nothing in it doesn't appear.
+- The list has two regions: Needed on top, Acquired below. Only Acquired
+  is headed. A region with nothing in it doesn't appear.
 - A plan item with a zero quantity counts as acquired, whatever its status.
 - A shopping item is in Needed when any of its plan items is still needed,
   and its amounts sum only those. Once all are acquired, it moves to
@@ -51,7 +51,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
 ### Expanding a shopping item
 
 - Choosing a shopping item expands it in place, listing every plan item
-  behind it, whatever their status.
+  behind it, whatever their status. Expanding one collapses any other.
 - Each plan item shows its text first, with where it sits beneath: its
   ancestors, nearest first.
 - A plan item with a zero quantity is marked "NO".

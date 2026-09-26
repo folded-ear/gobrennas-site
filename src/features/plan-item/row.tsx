@@ -48,7 +48,7 @@ export function PlanItemRow({ item, ancestors, plan }: PlanItemRowProps) {
         <span>{data.name}</span>
       </span>
       {ancestry || showsPlan ? (
-        <small className="inline-flex flex-wrap items-start">
+        <small>
           {ancestry}
           {ancestry && showsPlan ? STEP_SEPARATOR : null}
           {showsPlan ? (

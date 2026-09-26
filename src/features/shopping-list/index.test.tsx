@@ -1,6 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanDirectoryProvider } from "@/features/plan-directory";
-import { buildInMemoryCache, render, screen, within } from "@/test";
+import { buildInMemoryCache, render, screen, userEvent, within } from "@/test";
 import { describe, expect, it } from "vitest";
 import { BASIL, plan, seedItem, SUGAR } from "./fixtures";
 import { ShoppingRegions } from "./index";
@@ -75,6 +75,78 @@ describe("ShoppingRegions", () => {
       needed.compareDocumentPosition(acquired) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+  });
+
+  it("heads the acquired region, but not the needed one", () => {
+    const cache = buildInMemoryCache();
+    const list = buildShoppingList([
+      plan(
+        WEEKNIGHTS.id,
+        WEEKNIGHTS.name,
+        WEEKNIGHTS.color,
+        ["b", "d"],
+        [
+          seedItem(cache, {
+            id: "b",
+            name: "basil",
+            parent: "7",
+            pantry: BASIL,
+          }),
+          seedItem(cache, {
+            id: "d",
+            name: "sugar",
+            parent: "7",
+            pantry: SUGAR,
+            status: PlanItemStatus.ACQUIRED,
+          }),
+        ],
+      ),
+    ]);
+
+    renderList(list, cache);
+
+    expect(screen.getByRole("heading", { name: "Acquired" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Needed" })).toBeNull();
+  });
+
+  it("expands one shopping item at a time", async () => {
+    const cache = buildInMemoryCache();
+    const list = buildShoppingList([
+      plan(
+        WEEKNIGHTS.id,
+        WEEKNIGHTS.name,
+        WEEKNIGHTS.color,
+        ["b", "d"],
+        [
+          seedItem(cache, {
+            id: "b",
+            name: "basil",
+            parent: "7",
+            pantry: BASIL,
+          }),
+          seedItem(cache, {
+            id: "d",
+            name: "sugar",
+            parent: "7",
+            pantry: SUGAR,
+            status: PlanItemStatus.ACQUIRED,
+          }),
+        ],
+      ),
+    ]);
+    renderList(list, cache);
+    const basil = screen.getByRole("button", { name: /basil/ });
+    const sugar = screen.getByRole("button", { name: /sugar/ });
+
+    await userEvent.click(basil);
+    await userEvent.click(sugar);
+
+    expect(basil).toHaveAttribute("aria-expanded", "false");
+    expect(sugar).toHaveAttribute("aria-expanded", "true");
+
+    await userEvent.click(sugar);
+
+    expect(sugar).toHaveAttribute("aria-expanded", "false");
   });
 
   it("leaves out a region with nothing in it", () => {
