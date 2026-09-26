@@ -1,0 +1,19 @@
+fragment shoppingPlanItem on PlanItem {
+  id
+  status
+  quantity {
+    quantity
+    units {
+      id
+      name
+    }
+  }
+  ingredient {
+    __typename
+    id
+    name
+    ... on PantryItem {
+      storeOrder
+    }
+  }
+}

@@ -30,6 +30,15 @@ export function DateChip({ date, separation }: DateChipProps) {
   );
 }
 
+/** I mark a plan item that calls for none of something. */
+export function NoChip() {
+  return (
+    <Chip size="sm" variant="primary" color="danger">
+      NO
+    </Chip>
+  );
+}
+
 /** I name the item something sits under. */
 export function ParentChip({ name }: ParentChipProps) {
   return (
