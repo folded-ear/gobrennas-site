@@ -5,8 +5,7 @@ import {
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
 import { buildInMemoryCache, render, screen, userEvent, within } from "@/test";
-import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { BASIL, plan, seedItem, SUGAR, TBSP, TSP } from "./fixtures";
 import { buildShoppingList, ShoppingItem } from "./model";
 import { ShoppingItemRow } from "./shopping-item";
@@ -96,17 +95,6 @@ function basil(cache: Cache): ShoppingItem {
   return list.needed.items[0];
 }
 
-function Expandable({ item }: { item: ShoppingItem }) {
-  const [isExpanded, setExpanded] = useState(false);
-  return (
-    <ShoppingItemRow
-      item={item}
-      isExpanded={isExpanded}
-      onExpandedChange={setExpanded}
-    />
-  );
-}
-
 function renderRow(
   cache: Cache,
   item: ShoppingItem,
@@ -114,7 +102,7 @@ function renderRow(
 ) {
   render(
     <PlanDirectoryProvider directory={directoryOf(plans)}>
-      <Expandable item={item} />
+      <ShoppingItemRow item={item} />
     </PlanDirectoryProvider>,
     { cache },
   );
@@ -127,7 +115,7 @@ describe("ShoppingItemRow", () => {
 
     const trigger = screen.getByRole("button", { name: /sugar/ });
     expect(within(trigger).getByText("sugar")).toBeVisible();
-    expect(within(trigger).getByText("1 tsp")).toBeVisible();
+    expect(within(trigger).getByText("(1 tsp)")).toBeVisible();
     expect(within(trigger).queryByText(/Tbsp/)).toBeNull();
   });
 
@@ -136,29 +124,6 @@ describe("ShoppingItemRow", () => {
     renderRow(cache, sugar(cache), [WEEKNIGHTS, PARTY]);
 
     expect(screen.queryByRole("heading")).toBeNull();
-  });
-
-  it("asks to expand or collapse, leaving it to its owner", async () => {
-    const cache = buildInMemoryCache();
-    const onExpandedChange = vi.fn();
-    render(
-      <PlanDirectoryProvider directory={directoryOf([WEEKNIGHTS])}>
-        <ShoppingItemRow
-          item={basil(cache)}
-          isExpanded={false}
-          onExpandedChange={onExpandedChange}
-        />
-      </PlanDirectoryProvider>,
-      { cache },
-    );
-
-    await userEvent.click(screen.getByRole("button", { name: /basil/ }));
-
-    expect(onExpandedChange).toHaveBeenCalledWith(true);
-    expect(screen.getByRole("button", { name: /basil/ })).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
   });
 
   it("shows no quantity for one plan item that gives none", () => {
