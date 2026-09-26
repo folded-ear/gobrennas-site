@@ -14,6 +14,7 @@ source of truth for exact versions.
 | Styling | Tailwind CSS with Tailwind Variants | `app/globals.css` |
 | Theme | CSS variables using OKLCh colors; light and dark modes through `next-themes` | `app/globals.css`, `src/providers/theme-provider.tsx` |
 | Icons | Lucide | `package.json` |
+| Drag and drop | dnd-kit | `src/features/plan-dnd/` |
 | Tests | Vitest, jsdom, and Testing Library | `vitest.config.ts`, `src/test/setup.ts` |
 | Font | Figtree | `app/globals.css` |
 
