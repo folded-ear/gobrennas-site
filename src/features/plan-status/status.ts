@@ -29,7 +29,7 @@ export const TOGGLE_LOOKS: Record<ToggleStatus, ToggleLook> = {
     action: "Mark acquired",
     next: PlanItemStatus.ACQUIRED,
     Icon: NeededIcon,
-    className: "text-status-needed",
+    className: "text-status-needed-foreground",
     buttonClassName:
       "data-hovered:bg-status-acquired data-hovered:text-status-acquired-foreground data-focus-visible:bg-status-acquired data-focus-visible:text-status-acquired-foreground",
   },
@@ -40,7 +40,7 @@ export const TOGGLE_LOOKS: Record<ToggleStatus, ToggleLook> = {
     Icon: AcquiredIcon,
     className: "text-status-acquired",
     buttonClassName:
-      "data-hovered:bg-status-needed-fill data-focus-visible:bg-status-needed-fill",
+      "data-hovered:bg-status-needed data-focus-visible:bg-status-needed",
   },
 };
 
