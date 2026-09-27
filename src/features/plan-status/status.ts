@@ -34,7 +34,7 @@ export const TOGGLE_LOOKS: Record<ToggleStatus, ToggleLook> = {
     next: PlanItemStatus.NEEDED,
     className: "text-status-acquired",
     buttonClassName:
-      "data-hovered:bg-status-needed data-hovered:text-status-needed-foreground data-focus-visible:bg-status-needed data-focus-visible:text-status-needed-foreground",
+      "data-hovered:bg-status-needed-fill data-hovered:text-status-needed-fill-foreground data-focus-visible:bg-status-needed-fill data-focus-visible:text-status-needed-fill-foreground",
   },
 };
 

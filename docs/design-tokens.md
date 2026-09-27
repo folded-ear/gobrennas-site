@@ -43,11 +43,14 @@ you don't need to define those yourself.
 ### Plan item statuses
 
 `status-needed`, `status-acquired`, `status-completed`, and
-`status-deleted` (each with a `-foreground` pair) are ours, not HeroUI's:
+`status-deleted` are ours, not HeroUI's:
 `text-status-acquired`, `bg-status-deleted`, and so on. They color a plan
 item's status — gray for needed, olive for acquired, bold green for
-completed, bold red for deleted. `status-needed` copies the theme's
-`muted`, but has its own name so it can change without touching code.
+completed, bold red for deleted. Each but needed has a `-foreground` pair
+for text on it. A needed background is lighter than a needed check, so it
+has `status-needed-fill` (with `status-needed-fill-foreground`) instead.
+The needed tokens copy the theme's `muted` and `default`, but have their
+own names so they can change without touching code.
 
 ### `primary` / `secondary` aliases
 
