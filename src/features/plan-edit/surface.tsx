@@ -60,6 +60,8 @@ export type SplitPlace = {
   readonly planId: string;
   /** Assigned once created; left out, the item only inherits one. */
   readonly bucketId?: string | null;
+  /** On a surface of flat lists, the list it's made in. */
+  readonly group?: string;
 };
 
 /** A surface's own state, kept by whoever renders its rows. */
@@ -194,7 +196,7 @@ export function EditSurfaceProvider({
       setFocusKey(neighborOf(editableOrder(), key, "backward"));
       setDrafts((prev) => dropDraft(prev, key.draftId));
     },
-    split(from, atStart, { planId, bucketId }) {
+    split(from, atStart, { planId, bucketId, group }) {
       const parentId = parentOf(from);
       if (parentId === undefined) return;
       addDraft({
@@ -203,6 +205,7 @@ export function EditSurfaceProvider({
         afterId: atStart ? siblingBefore(tree, drafts, parentId, from) : from,
         beside: { key: from, side: atStart ? "before" : "after" },
         ...(bucketId === undefined ? {} : { bucketId }),
+        ...(group === undefined ? {} : { group }),
       });
     },
     addFirstChild(parentId, planId) {

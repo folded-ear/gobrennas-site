@@ -51,6 +51,7 @@ export function DraftRow({ draft, className }: DraftRowProps) {
               surface.split(key, atStart, {
                 planId: draft.planId,
                 bucketId: draft.bucketId,
+                group: draft.group,
               }),
             remove: (direction) => surface.remove(key, direction),
             cancel: () => surface.cancel(key),

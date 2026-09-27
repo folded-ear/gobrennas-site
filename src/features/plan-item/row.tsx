@@ -3,10 +3,11 @@ import {
   DirectoryPlan,
   useShowsPlanIndicators,
 } from "@/features/plan-directory";
-import { StatusButton } from "@/features/plan-status";
+import { EditableName } from "@/features/plan-edit";
+import { StatusButton, useItemStatus } from "@/features/plan-status";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
-import { Fragment } from "react";
+import { Fragment, ReactNode } from "react";
 import {
   PlanItemFragment,
   PlanItemFragmentDoc,
@@ -25,6 +26,8 @@ type PlanItemRowProps = {
   /** Nearest first, the plan itself left out. */
   readonly ancestors: readonly RowAncestor[];
   readonly plan: DirectoryPlan;
+  /** The list I'm shown in, which a new item made from me joins. */
+  readonly group?: string;
 };
 
 const STEP_SEPARATOR = " / ";
@@ -33,7 +36,12 @@ const STEP_SEPARATOR = " / ";
  * I show a plan item first, then, beneath it, where it sits: its ancestors,
  * nearest first, and its plan when there are plans to tell apart.
  */
-export function PlanItemRow({ item, ancestors, plan }: PlanItemRowProps) {
+export function PlanItemRow({
+  item,
+  ancestors,
+  plan,
+  group,
+}: PlanItemRowProps) {
   const showsPlan = useShowsPlanIndicators();
   const { data, complete } = useFragment({
     fragment: PlanItemFragmentDoc,
@@ -56,26 +64,64 @@ export function PlanItemRow({ item, ancestors, plan }: PlanItemRowProps) {
         planId={plan.id}
         canChange={plan.changeable}
       />
-      <div className="flex flex-col">
-        <span className="flex items-start gap-xs">
-          {data.quantity?.quantity === 0 ? <NoChip /> : null}
-          <span>
-            <ItemName itemId={data.id} />
-          </span>
+      <RowName
+        itemId={data.id}
+        name={data.name}
+        plan={plan}
+        group={group}
+        below={
+          ancestors.length > 0 || showsPlan ? (
+            <small>
+              {ancestry}
+              {ancestors.length > 0 && showsPlan ? STEP_SEPARATOR : null}
+              {showsPlan ? (
+                <>
+                  <PlanDot plan={plan} className="me-xxs" />
+                  {plan.name}
+                </>
+              ) : null}
+            </small>
+          ) : null
+        }
+      >
+        {data.quantity?.quantity === 0 ? <NoChip /> : null}
+        <span>
+          <ItemName itemId={data.id} />
         </span>
-        {ancestors.length > 0 || showsPlan ? (
-          <small>
-            {ancestry}
-            {ancestors.length > 0 && showsPlan ? STEP_SEPARATOR : null}
-            {showsPlan ? (
-              <>
-                <PlanDot plan={plan} className="me-xxs" />
-                {plan.name}
-              </>
-            ) : null}
-          </small>
-        ) : null}
-      </div>
+      </RowName>
     </div>
+  );
+}
+
+type RowNameProps = {
+  readonly itemId: string;
+  readonly name: string;
+  readonly plan: DirectoryPlan;
+  readonly group?: string;
+  readonly below: ReactNode;
+  readonly children: ReactNode;
+};
+
+/** I am a row's name and where it sits, edited in place when it can be. */
+function RowName({ itemId, name, plan, group, below, children }: RowNameProps) {
+  const status = useItemStatus(itemId);
+  return (
+    <EditableName
+      itemId={itemId}
+      planId={plan.id}
+      name={name}
+      // The shopping list is made of leaves.
+      hasChildren={false}
+      canEdit={
+        plan.changeable &&
+        status !== null &&
+        !status.inert &&
+        status.pendingStatus === null
+      }
+      group={group}
+      below={below}
+    >
+      {children}
+    </EditableName>
   );
 }

@@ -1,15 +1,58 @@
 import { PlanDotStack } from "@/components/plan-dot";
 import { useShowsPlanIndicators } from "@/features/plan-directory";
+import { DraftRow } from "@/features/plan-edit";
 import { PlanItemRow } from "@/features/plan-item/row";
-import { BulkStatusButton, ToggleStatus } from "@/features/plan-status";
+import {
+  BulkStatusButton,
+  LINE_CONTROL_CLASS_NAME,
+  ToggleStatus,
+} from "@/features/plan-status";
 import { Disclosure } from "@heroui/react";
+import { groupOf, ShoppingRow, ShoppingRows } from "./entries";
 import { formatAmount, ShoppingItem } from "./model";
 
 type ShoppingItemRowProps = {
   readonly item: ShoppingItem;
   /** The status my plan items show as, together. */
   readonly status: ToggleStatus;
+  /** Every list's rows; left out, my plan items as they are. */
+  readonly rows?: ShoppingRows;
 };
+
+type ShoppingRowLineProps = {
+  readonly row: ShoppingRow;
+  /** The list I'm shown in. */
+  readonly group: string;
+};
+
+export function rowKey(row: ShoppingRow): string {
+  return row.kind === "item" ? row.source.item.id : row.draft.draftId;
+}
+
+/** I am one line of a list: a plan item, or a new one being made. */
+export function ShoppingRowLine({ row, group }: ShoppingRowLineProps) {
+  if (row.kind === "draft") {
+    return (
+      <li>
+        {/* spaced as a status is, so names line up */}
+        <div className="flex items-start gap-xs">
+          <span className={LINE_CONTROL_CLASS_NAME} />
+          <DraftRow draft={row.draft} />
+        </div>
+      </li>
+    );
+  }
+  return (
+    <li>
+      <PlanItemRow
+        item={row.source.item}
+        ancestors={row.source.ancestors}
+        plan={row.source.plan}
+        group={group}
+      />
+    </li>
+  );
+}
 
 const AMOUNT_SEPARATOR = ", ";
 
@@ -17,7 +60,7 @@ const AMOUNT_SEPARATOR = ", ";
  * I show one ingredient and how much of it is needed, expanding to show
  * every plan item that calls for it.
  */
-export function ShoppingItemRow({ item, status }: ShoppingItemRowProps) {
+export function ShoppingItemRow({ item, status, rows }: ShoppingItemRowProps) {
   const showsPlans = useShowsPlanIndicators();
   const amounts = item.implicit
     ? ""
@@ -46,14 +89,18 @@ export function ShoppingItemRow({ item, status }: ShoppingItemRowProps) {
       <Disclosure.Content>
         <Disclosure.Body>
           <ul className="flex flex-col gap-xs ps-lg">
-            {item.sources.map((source) => (
-              <li key={source.item.id}>
-                <PlanItemRow
-                  item={source.item}
-                  ancestors={source.ancestors}
-                  plan={source.plan}
-                />
-              </li>
+            {(
+              rows?.groups.get(groupOf(item)) ??
+              item.sources.map((source): ShoppingRow => ({
+                kind: "item",
+                source,
+              }))
+            ).map((row) => (
+              <ShoppingRowLine
+                key={rowKey(row)}
+                row={row}
+                group={groupOf(item)}
+              />
             ))}
           </ul>
         </Disclosure.Body>

@@ -20,11 +20,15 @@ type EditableNameProps = {
   readonly keys?: "row" | "heading";
   /** A new item made beside me is assigned this bucket once created. */
   readonly bucketId?: string | null;
+  /** On a surface of flat lists, the list I'm shown in. */
+  readonly group?: string;
   /** Called when an edit deletes my item. */
   readonly onRemoved?: () => void;
   readonly className?: string;
   /** How the name shows out of edit mode. */
   readonly children: ReactNode;
+  /** Shown under the name, edited or not, and pressed to edit it too. */
+  readonly below?: ReactNode;
 };
 
 /**
@@ -42,15 +46,18 @@ export function EditableName({
   canEdit,
   keys = "row",
   bucketId,
+  group,
   onRemoved,
   className,
   children,
+  below,
 }: EditableNameProps) {
   const surface = useEditSurface();
   const key = { id: itemId };
   const editable = surface !== null && canEdit;
   const editing = editable && surface.isEditing(key);
   const button = useRef<HTMLButtonElement>(null);
+  const stacked = below !== undefined && "flex-col";
 
   useLayoutEffect(() => {
     surface?.register(
@@ -73,14 +80,25 @@ export function EditableName({
     surface.focused({ id: itemId });
   });
 
-  if (!editable) return <span className={className}>{children}</span>;
+  if (!editable) {
+    return (
+      <span className={clsx("min-w-0", stacked && "flex", stacked, className)}>
+        {below === undefined ? (
+          children
+        ) : (
+          <span className="flex items-start gap-xs">{children}</span>
+        )}
+        {below}
+      </span>
+    );
+  }
 
   if (editing) {
     const actions: RowActions = {
       split: (atStart) =>
         keys === "heading"
           ? surface.addFirstChild(itemId, planId)
-          : surface.split(key, atStart, { planId, bucketId }),
+          : surface.split(key, atStart, { planId, bucketId, group }),
       remove: (direction) => surface.remove(key, direction),
       cancel: () => surface.cancel(key),
       hasChildren,
@@ -89,6 +107,7 @@ export function EditableName({
       <span
         className={clsx(
           "flex min-w-0 flex-1 rounded-xs bg-editing text-editing-foreground",
+          stacked,
           className,
         )}
       >
@@ -103,6 +122,7 @@ export function EditableName({
           onChange={surface.setText}
           onEnd={() => surface.end(key)}
         />
+        {below}
       </span>
     );
   }
@@ -110,12 +130,17 @@ export function EditableName({
   return (
     // A convenience for pointers; the name's own button serves everyone.
     <span
-      className={clsx("flex min-w-0 flex-1 cursor-text", className)}
+      className={clsx("flex min-w-0 flex-1 cursor-text", stacked, className)}
       onClick={() => surface.start(key)}
     >
-      <button ref={button} type="button" className="text-left">
+      <button
+        ref={button}
+        type="button"
+        className="flex items-start gap-xs text-left"
+      >
         {children}
       </button>
+      {below}
     </span>
   );
 }

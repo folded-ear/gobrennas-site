@@ -20,6 +20,8 @@ export type Draft = {
   readonly beside: Beside;
   /** Assigned once created; left out, the item only inherits one. */
   readonly bucketId?: string | null;
+  /** On a surface of flat lists, the list I was made in. */
+  readonly group?: string;
   readonly text: string;
   readonly state: DraftState;
 };
@@ -49,17 +51,20 @@ function keyOf(entry: TreeEntry): ItemKey {
 }
 
 /**
- * I put drafts among a list's entries, each in creation order: a first
- * child at the front, anything else right beside its row, so the newest
- * of several sits nearest the row they came from.
+ * I put drafts among a list's rows, each in creation order: a first child
+ * at the front, anything else right beside its row, so the newest of
+ * several sits nearest the row they came from. Each draft I place lands
+ * in `placed`.
  */
-function placeIn(
-  entries: readonly TreeEntry[],
+export function placeDraftsIn<T>(
+  rows: readonly T[],
+  keyOf: (row: T) => ItemKey,
+  rowOf: (draft: Draft) => T,
   drafts: readonly Draft[],
   parentId: string | null,
   placed: Set<string>,
-): TreeEntry[] {
-  const list = [...entries];
+): T[] {
+  const list = [...rows];
   for (const draft of drafts) {
     const { beside } = draft;
     let at: number;
@@ -71,10 +76,14 @@ function placeIn(
       if (anchor < 0) continue;
       at = beside.side === "before" ? anchor : anchor + 1;
     }
-    list.splice(at, 0, { kind: "draft", draft });
+    list.splice(at, 0, rowOf(draft));
     placed.add(draft.draftId);
   }
   return list;
+}
+
+function draftEntry(draft: Draft): TreeEntry {
+  return { kind: "draft", draft };
 }
 
 function build(
@@ -88,7 +97,7 @@ function build(
     node,
     children: build(node.children, drafts, node.item.id, placed),
   }));
-  return placeIn(entries, drafts, parentId, placed);
+  return placeDraftsIn(entries, keyOf, draftEntry, drafts, parentId, placed);
 }
 
 /**
@@ -103,10 +112,7 @@ export function buildEntries(
   const placed = new Set<string>();
   const entries = build(nodes, drafts, topParentId, placed);
   const orphans = drafts.filter((it) => !placed.has(it.draftId));
-  return [
-    ...entries,
-    ...orphans.map((draft) => ({ kind: "draft" as const, draft })),
-  ];
+  return [...entries, ...orphans.map(draftEntry)];
 }
 
 /** I give every row's key, top to bottom, after any heading. */

@@ -1,6 +1,20 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import {
+  changeApiClient,
+  ChangeRequest,
+} from "@/features/plan-changes/test/change-api";
 import { PlanDirectoryProvider } from "@/features/plan-directory";
-import { buildInMemoryCache, render, screen, userEvent, within } from "@/test";
+import { buildPlanTree } from "@/features/plan-dnd/moves";
+import {
+  buildInMemoryCache,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+  within,
+} from "@/test";
+import { ApolloProvider } from "@apollo/client/react";
+import { ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 import { BASIL, plan, seedItem, SUGAR } from "./fixtures";
 import { ShoppingRegions } from "./index";
@@ -184,5 +198,178 @@ describe("ShoppingRegions", () => {
 
     expect(screen.getByText("There's nothing to shop for.")).toBeVisible();
     expect(screen.queryByRole("region")).toBeNull();
+  });
+});
+
+describe("ShoppingRegions, editing", () => {
+  type Cache = ReturnType<typeof buildInMemoryCache>;
+
+  /** Weeknights: sugar for a sauce (s) and a tea (t), and paper towels. */
+  function weeknights(cache: Cache, { withSugar = true } = {}) {
+    const items = [
+      seedItem(cache, {
+        id: "s",
+        name: "Spag sauce",
+        parent: "7",
+        children: ["a"],
+      }),
+      seedItem(cache, {
+        id: "t",
+        name: "Iced tea",
+        parent: "7",
+        children: ["b"],
+      }),
+      seedItem(cache, { id: "c", name: "paper towels", parent: "7" }),
+      ...(withSugar
+        ? [
+            seedItem(cache, {
+              id: "a",
+              name: "1 tsp sugar",
+              parent: "s",
+              pantry: SUGAR,
+            }),
+            seedItem(cache, {
+              id: "b",
+              name: "2 Tbsp sugar",
+              parent: "t",
+              pantry: SUGAR,
+            }),
+          ]
+        : []),
+    ];
+    return buildShoppingList([
+      plan(
+        WEEKNIGHTS.id,
+        WEEKNIGHTS.name,
+        WEEKNIGHTS.color,
+        ["s", "t", "c"],
+        items,
+      ),
+    ]);
+  }
+
+  const TREE = buildPlanTree([
+    { id: "7", children: [{ id: "s" }, { id: "t" }, { id: "c" }] },
+    { id: "s", children: [{ id: "a" }] },
+    { id: "t", children: [{ id: "b" }] },
+    { id: "a", children: [] },
+    { id: "b", children: [] },
+    { id: "c", children: [] },
+  ]);
+
+  function renderEditable() {
+    const cache = buildInMemoryCache();
+    const requests: ChangeRequest[] = [];
+    const client = changeApiClient(cache, requests);
+    const wrap = (list: ShoppingList): ReactElement => (
+      <ApolloProvider client={client}>
+        <PlanDirectoryProvider
+          directory={{
+            plans: [WEEKNIGHTS],
+            planOfItem: new Map(),
+            planOfBucket: new Map(),
+          }}
+        >
+          <ShoppingRegions list={list} tree={TREE} />
+        </PlanDirectoryProvider>
+      </ApolloProvider>
+    );
+    const { rerender } = render(wrap(weeknights(cache)), { cache });
+    return {
+      requests,
+      without: () => rerender(wrap(weeknights(cache, { withSugar: false }))),
+    };
+  }
+
+  function sent(requests: readonly ChangeRequest[]) {
+    return requests.map((it) => it.variables);
+  }
+
+  async function expandSugar() {
+    await userEvent.click(screen.getByRole("button", { name: /^sugar/ }));
+  }
+
+  it("edits a plan item under an expanded shopping item", async () => {
+    const { requests } = renderEditable();
+    await expandSugar();
+    await userEvent.click(screen.getByRole("button", { name: "1 tsp sugar" }));
+
+    await userEvent.clear(screen.getByRole("textbox"));
+    await userEvent.type(screen.getByRole("textbox"), "2 tsp sugar");
+    await userEvent.tab();
+
+    await waitFor(() =>
+      expect(sent(requests)).toEqual([{ id0: "a", name0: "2 tsp sugar" }]),
+    );
+  });
+
+  it("edits a loose plan item", async () => {
+    const { requests } = renderEditable();
+    await userEvent.click(screen.getByRole("button", { name: "paper towels" }));
+
+    await userEvent.type(screen.getByRole("textbox"), ", big");
+    await userEvent.tab();
+
+    await waitFor(() =>
+      expect(sent(requests)).toEqual([
+        { id0: "c", name0: "paper towels, big" },
+      ]),
+    );
+  });
+
+  it("never edits a shopping item itself", async () => {
+    renderEditable();
+
+    await expandSugar();
+
+    expect(screen.queryByRole("textbox")).toBeNull();
+  });
+
+  it("ends an edit when its shopping item collapses, and doesn't resume it", async () => {
+    renderEditable();
+    await expandSugar();
+    await userEvent.click(screen.getByRole("button", { name: "1 tsp sugar" }));
+
+    await expandSugar();
+    await expandSugar();
+
+    expect(screen.queryByRole("textbox")).toBeNull();
+  });
+
+  it("keeps a second new item in place as the first is created and leaves", async () => {
+    const { requests } = renderEditable();
+    await expandSugar();
+    await userEvent.click(screen.getByRole("button", { name: "1 tsp sugar" }));
+    await userEvent.keyboard("{Enter}");
+    await userEvent.keyboard("2 eggs");
+
+    await userEvent.keyboard("{Enter}");
+
+    await waitFor(() => expect(requests).toHaveLength(1));
+    await waitFor(() => expect(screen.queryByText("2 eggs")).toBeNull());
+    const field = screen.getByRole("textbox", { name: "New item" });
+    expect(field).toHaveFocus();
+    const rows = within(
+      screen.getByRole("button", { name: "1 tsp sugar" }).closest("ul")!,
+    ).getAllByRole("listitem");
+    expect(rows[1]).toContainElement(field);
+  });
+
+  it("drops a new item whose shopping item vanishes to the loose items, still editing", async () => {
+    const { without } = renderEditable();
+    await expandSugar();
+    await userEvent.click(screen.getByRole("button", { name: "1 tsp sugar" }));
+    await userEvent.keyboard("{Enter}");
+    await userEvent.keyboard("2 eg");
+
+    without();
+
+    const field = screen.getByRole("textbox", { name: "New item" });
+    expect(field).toHaveFocus();
+    expect(field).toHaveValue("2 eg");
+    const loose = within(screen.getByRole("region", { name: "Needed" }))
+      .getAllByRole("listitem")
+      .at(-1);
+    expect(loose).toContainElement(field);
   });
 });
