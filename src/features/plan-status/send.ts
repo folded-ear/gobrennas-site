@@ -10,7 +10,7 @@ const RESULT = print(SetStatusResultFragmentDoc);
  * aliased by position. Codegen can't know how many there will be, so
  * only each field's selection comes from it.
  */
-function statusMutation(count: number) {
+export function statusMutation(count: number) {
   const indexes = [...Array(count).keys()];
   const variables = indexes
     .map((i) => `$id${i}: ID!, $status${i}: PlanItemStatus!`)
