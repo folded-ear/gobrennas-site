@@ -31,6 +31,10 @@
   --color-status-deleted: var(--status-deleted);
   --color-status-deleted-foreground: var(--status-deleted-foreground);
 
+  /* The plan item being edited. */
+  --color-editing: var(--editing);
+  --color-editing-foreground: var(--editing-foreground);
+
   --spacing-none: 0px;
   --spacing-xxs: 2px;
   --spacing-xs: 4px;
@@ -117,6 +121,9 @@
   --status-deleted: oklch(52% 0.2 27);
   --status-deleted-foreground: oklch(99.11% 0 0);
 
+  --editing: oklch(93% 0.045 230);
+  --editing-foreground: oklch(21.03% 0.0059 230);
+
   /* Border Radius */
   --radius: 0.5rem;
   --field-radius: 0.125rem;
@@ -168,6 +175,9 @@
   --status-completed-foreground: oklch(99.11% 0 0);
   --status-deleted: oklch(60% 0.2 27);
   --status-deleted-foreground: oklch(99.11% 0 0);
+
+  --editing: oklch(34% 0.07 230);
+  --editing-foreground: oklch(99.11% 0 0);
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
