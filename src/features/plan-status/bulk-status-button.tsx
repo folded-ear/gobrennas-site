@@ -1,10 +1,10 @@
 "use client";
 
+import { usePlanStatus } from "@/features/plan-changes/use-plan-status";
 import { useFragment } from "@apollo/client/react";
 import { PlanItemStatusFragmentDoc } from "./__generated__/planItemStatus.generated";
 import { actionLabel, TOGGLE_LOOKS, ToggleStatus } from "./status";
 import { ToggleButton } from "./status-button";
-import { usePlanStatus } from "./use-plan-status";
 
 /** One plan item behind a bulk status button. */
 export type BulkItem = {

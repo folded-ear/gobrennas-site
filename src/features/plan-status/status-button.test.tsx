@@ -1,10 +1,14 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { PlanItemStatusStateFragmentDoc } from "@/features/plan-changes/__generated__/planItemStatusState.generated";
+import {
+  readStatus,
+  seededCache,
+  THANKSGIVING,
+} from "@/features/plan-changes/test/status-cache";
+import { savedStatuses } from "@/features/plan-changes/test/status-mocks";
 import { render, screen, userEvent } from "@/test";
 import { describe, expect, it } from "vitest";
-import { PlanItemStatusStateFragmentDoc } from "./__generated__/planItemStatusState.generated";
 import { StatusButton } from "./status-button";
-import { readStatus, seededCache, THANKSGIVING } from "./test/status-cache";
-import { savedStatuses } from "./test/status-mocks";
 
 // Whipped cream (3), and the pumpkin (2) beneath the pie (1).
 const CREAM = "3";

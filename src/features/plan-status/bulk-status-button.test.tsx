@@ -1,14 +1,14 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { render, screen, userEvent, waitFor } from "@/test";
-import { describe, expect, it } from "vitest";
-import { BulkStatusButton } from "./bulk-status-button";
 import {
   PICNIC,
   readStatus,
   seededCache,
   THANKSGIVING,
-} from "./test/status-cache";
-import { savedStatuses } from "./test/status-mocks";
+} from "@/features/plan-changes/test/status-cache";
+import { savedStatuses } from "@/features/plan-changes/test/status-mocks";
+import { render, screen, userEvent, waitFor } from "@/test";
+import { describe, expect, it } from "vitest";
+import { BulkStatusButton } from "./bulk-status-button";
 
 // Whipped cream (3) at Thanksgiving, and salad (4) at the picnic.
 const ITEMS = [

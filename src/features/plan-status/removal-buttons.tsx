@@ -3,6 +3,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ControlTooltip } from "@/components/control-tooltip";
 import { CookedItIcon, DeleteIcon } from "@/components/icons";
+import { usePlanStatus } from "@/features/plan-changes/use-plan-status";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
 import {
@@ -12,7 +13,6 @@ import {
   RemovalStatus,
   useItemStatus,
 } from "./status";
-import { usePlanStatus } from "./use-plan-status";
 
 type RemovalButtonProps = {
   readonly itemId: string;

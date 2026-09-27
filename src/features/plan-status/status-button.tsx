@@ -1,6 +1,7 @@
 "use client";
 
 import { ControlTooltip } from "@/components/control-tooltip";
+import { usePlanStatus } from "@/features/plan-changes/use-plan-status";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
 import {
@@ -11,7 +12,6 @@ import {
   ToggleStatus,
   useItemStatus,
 } from "./status";
-import { usePlanStatus } from "./use-plan-status";
 
 type StatusButtonProps = {
   readonly itemId: string;

@@ -1,7 +1,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { PlanItemStatusFragmentDoc } from "@/features/plan-status/__generated__/planItemStatus.generated";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
 import { gql } from "@apollo/client";
-import { PlanItemStatusFragmentDoc } from "../__generated__/planItemStatus.generated";
 import { PlanItemStatusStateFragmentDoc } from "../__generated__/planItemStatusState.generated";
 
 type Cache = ReturnType<typeof buildInMemoryCache>;
