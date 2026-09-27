@@ -2,7 +2,7 @@ import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanItemStatusFragmentDoc } from "@/features/plan-status/__generated__/planItemStatus.generated";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
 import { gql } from "@apollo/client";
-import { PlanItemStatusStateFragmentDoc } from "../__generated__/planItemStatusState.generated";
+import { PlanItemChangeStateFragmentDoc } from "../__generated__/planItemChangeState.generated";
 
 type Cache = ReturnType<typeof buildInMemoryCache>;
 
@@ -130,12 +130,13 @@ export function markPending(
   status: PlanItemStatus.COMPLETED | PlanItemStatus.DELETED,
 ) {
   cache.writeFragment({
-    fragment: PlanItemStatusStateFragmentDoc,
+    fragment: PlanItemChangeStateFragmentDoc,
     id: `PlanItem:${id}`,
     data: {
       __typename: "PlanItem",
       pendingStatus: status,
       savingStatus: false,
+      pendingName: null,
     },
   });
 }

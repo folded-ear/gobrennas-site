@@ -1,5 +1,5 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { PlanItemStatusStateFragmentDoc } from "@/features/plan-changes/__generated__/planItemStatusState.generated";
+import { PlanItemChangeStateFragmentDoc } from "@/features/plan-changes/__generated__/planItemChangeState.generated";
 import {
   readStatus,
   seededCache,
@@ -62,12 +62,13 @@ describe("StatusButton", () => {
   it("can't be used while an ancestor is going away", () => {
     const cache = seededCache();
     cache.writeFragment({
-      fragment: PlanItemStatusStateFragmentDoc,
+      fragment: PlanItemChangeStateFragmentDoc,
       id: "PlanItem:1",
       data: {
         __typename: "PlanItem",
         pendingStatus: PlanItemStatus.DELETED,
         savingStatus: false,
+        pendingName: null,
       },
     });
 

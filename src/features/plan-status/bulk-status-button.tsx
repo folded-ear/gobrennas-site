@@ -1,6 +1,6 @@
 "use client";
 
-import { usePlanStatus } from "@/features/plan-changes/use-plan-status";
+import { usePlanChanges } from "@/features/plan-changes/use-plan-changes";
 import { useFragment } from "@apollo/client/react";
 import { PlanItemStatusFragmentDoc } from "./__generated__/planItemStatus.generated";
 import { actionLabel, TOGGLE_LOOKS, ToggleStatus } from "./status";
@@ -28,7 +28,7 @@ export function BulkStatusButton({
   name,
   canChange,
 }: BulkStatusButtonProps) {
-  const queue = usePlanStatus();
+  const queue = usePlanChanges();
   const { data } = useFragment({
     fragment: PlanItemStatusFragmentDoc,
     from: items.map((it) => ({ __typename: "PlanItem", id: it.id })),
@@ -45,6 +45,7 @@ export function BulkStatusButton({
       onPress={() =>
         queue.set(
           items.map((it, i) => ({
+            kind: "status",
             id: it.id,
             planId: it.planId,
             name: data[i]?.name ?? name,

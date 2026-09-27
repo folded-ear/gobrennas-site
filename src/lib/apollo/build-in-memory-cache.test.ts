@@ -1,5 +1,5 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { PlanItemStatusStateFragmentDoc } from "@/features/plan-changes/__generated__/planItemStatusState.generated";
+import { PlanItemChangeStateFragmentDoc } from "@/features/plan-changes/__generated__/planItemChangeState.generated";
 import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
 import { PlanItemStatusFragmentDoc } from "@/features/plan-status/__generated__/planItemStatus.generated";
 import { RecipesDocument } from "@/screens/__generated__/recipes.generated";
@@ -188,12 +188,13 @@ describe("plan item status state", () => {
     const cache = seededWithPie();
 
     cache.writeFragment({
-      fragment: PlanItemStatusStateFragmentDoc,
+      fragment: PlanItemChangeStateFragmentDoc,
       id: "PlanItem:1",
       data: {
         __typename: "PlanItem",
         pendingStatus: PlanItemStatus.DELETED,
         savingStatus: false,
+        pendingName: null,
       },
     });
 

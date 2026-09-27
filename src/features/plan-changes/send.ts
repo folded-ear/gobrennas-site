@@ -1,52 +1,117 @@
-import { ApolloClient, gql } from "@apollo/client";
-import { print } from "@apollo/client/utilities";
+import { ApolloClient, DocumentNode, gql } from "@apollo/client";
+import { AssignBucketResultFragmentDoc } from "./__generated__/assignBucketResult.generated";
+import { PlanItemResultFragmentDoc } from "./__generated__/planItemResult.generated";
 import { SetStatusResultFragmentDoc } from "./__generated__/setStatusResult.generated";
-import { StatusChange, StatusSender } from "./queue";
+import { ChangeSender, SentChange } from "./queue";
 
-const RESULT = print(SetStatusResultFragmentDoc);
+type Field = {
+  /** Each variable's declaration, by name. */
+  readonly declarations: Record<string, string>;
+  readonly values: Record<string, unknown>;
+  readonly selection: string;
+  readonly fragment: DocumentNode;
+};
 
-/**
- * I build a mutation setting each change's status in a field of its own,
- * aliased by position. Codegen can't know how many there will be, so
- * only each field's selection comes from it.
- */
-export function statusMutation(count: number) {
-  const indexes = [...Array(count).keys()];
-  const variables = indexes
-    .map((i) => `$id${i}: ID!, $status${i}: PlanItemStatus!`)
-    .join(", ");
-  const fields = indexes
-    .map(
-      (i) =>
-        `s${i}: setStatus(id: $id${i}, status: $status${i}) {` +
-        ` ...setStatusResult @unmask }`,
-    )
-    .join("\n");
-  return gql(
-    `mutation doSetStatuses(${variables}) { planner { ${fields} } }\n` + RESULT,
-  );
+/** I give one change's aliased field, suffixing its variables with i. */
+function fieldFor(change: SentChange, i: number): Field {
+  switch (change.kind) {
+    case "status":
+      return {
+        declarations: { [`id${i}`]: "ID!", [`status${i}`]: "PlanItemStatus!" },
+        values: { [`id${i}`]: change.id, [`status${i}`]: change.status },
+        selection:
+          `setStatus(id: $id${i}, status: $status${i})` +
+          ` { ...setStatusResult @unmask }`,
+        fragment: SetStatusResultFragmentDoc,
+      };
+    case "rename":
+      return {
+        declarations: { [`id${i}`]: "ID!", [`name${i}`]: "String!" },
+        values: { [`id${i}`]: change.id, [`name${i}`]: change.name },
+        // A plan can be renamed too, so the result is only an interface.
+        selection:
+          `rename(id: $id${i}, name: $name${i})` +
+          ` { id ... on PlanItem { ...planItemResult @unmask } }`,
+        fragment: PlanItemResultFragmentDoc,
+      };
+    case "create":
+      return {
+        declarations: {
+          [`parentId${i}`]: "ID!",
+          [`afterId${i}`]: "ID",
+          [`name${i}`]: "String!",
+        },
+        values: {
+          [`parentId${i}`]: change.parentId,
+          [`afterId${i}`]: change.afterId,
+          [`name${i}`]: change.name,
+        },
+        selection:
+          `createItem(parentId: $parentId${i}, afterId: $afterId${i},` +
+          ` name: $name${i}) { ...planItemResult @unmask }`,
+        fragment: PlanItemResultFragmentDoc,
+      };
+    case "assignBucket":
+      return {
+        declarations: { [`id${i}`]: "ID!", [`bucketId${i}`]: "ID" },
+        values: { [`id${i}`]: change.id, [`bucketId${i}`]: change.bucketId },
+        selection:
+          `assignBucket(id: $id${i}, bucketId: $bucketId${i})` +
+          ` { ...assignBucketResult @unmask }`,
+        fragment: AssignBucketResultFragmentDoc,
+      };
+  }
 }
 
-function variablesFor(changes: readonly StatusChange[]) {
-  return Object.fromEntries(
-    changes.flatMap((change, i) => [
-      [`id${i}`, change.id],
-      [`status${i}`, change.status],
-    ]),
+/** I give each named definition once, the first of any repeats. */
+function uniqueDefinitions(documents: readonly DocumentNode[]) {
+  const byName = new Map<string, DocumentNode["definitions"][number]>();
+  for (const definition of documents.flatMap((it) => it.definitions)) {
+    const name = "name" in definition ? definition.name?.value : undefined;
+    if (name !== undefined && !byName.has(name)) byName.set(name, definition);
+  }
+  return [...byName.values()];
+}
+
+/**
+ * I build a mutation making each change in a field of its own, aliased by
+ * position. Codegen can't know how many there will be, or of what kind,
+ * so only each field's selection comes from it.
+ */
+export function changeMutation(changes: readonly SentChange[]) {
+  const fields = changes.map(fieldFor);
+  const variables = fields
+    .flatMap((it) => Object.entries(it.declarations))
+    .map(([name, type]) => `$${name}: ${type}`)
+    .join(", ");
+  const selections = fields.map((it, i) => `s${i}: ${it.selection}`).join("\n");
+  const mutation = gql(
+    `mutation doChanges(${variables}) { planner { ${selections} } }`,
   );
+  return {
+    ...mutation,
+    definitions: [
+      ...mutation.definitions,
+      ...uniqueDefinitions(fields.map((it) => it.fragment)),
+    ],
+  };
+}
+
+function variablesFor(changes: readonly SentChange[]) {
+  return Object.assign({}, ...changes.map((it, i) => fieldFor(it, i).values));
 }
 
 /** I send a plan's changes as one mutation, one aliased field apiece. */
-export function aliasedSender(client: ApolloClient): StatusSender {
+export function aliasedSender(client: ApolloClient): ChangeSender {
   return async (changes, { keepalive }) => {
     const { data } = await client.mutate<{
-      planner: Record<string, unknown> | null;
+      planner: Record<string, { id: string } | null> | null;
     }>({
-      mutation: statusMutation(changes.length),
+      mutation: changeMutation(changes),
       variables: variablesFor(changes),
       errorPolicy: "all",
       context: { fetchOptions: { keepalive } },
     });
-    return changes.map((_, i) => data?.planner?.[`s${i}`] != null);
+    return changes.map((_, i) => data?.planner?.[`s${i}`]?.id ?? null);
   };
 }

@@ -30,6 +30,8 @@ extend type PlanItem {
   pendingStatus: PlanItemStatus
   "Whether a status change is being saved."
   savingStatus: Boolean!
+  "A new name being saved, if any."
+  pendingName: String
   "Whether an ancestor has a pending status, so nothing can be done to me."
   inert: Boolean!
 }
