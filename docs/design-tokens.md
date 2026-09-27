@@ -48,7 +48,7 @@ you don't need to define those yourself.
 item's status — gray for needed, olive for acquired, bold green for
 completed, bold red for deleted. Each but needed has a `-foreground` pair
 for text on it. A needed background is lighter than a needed check, so it
-has `status-needed-fill` (with `status-needed-fill-foreground`) instead.
+has `status-needed-fill` instead, on which an acquired check stays olive.
 The needed tokens copy the theme's `muted` and `default`, but have their
 own names so they can change without touching code.
 

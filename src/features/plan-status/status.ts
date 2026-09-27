@@ -40,7 +40,7 @@ export const TOGGLE_LOOKS: Record<ToggleStatus, ToggleLook> = {
     Icon: AcquiredIcon,
     className: "text-status-acquired",
     buttonClassName:
-      "data-hovered:bg-status-needed-fill data-hovered:text-status-needed-fill-foreground data-focus-visible:bg-status-needed-fill data-focus-visible:text-status-needed-fill-foreground",
+      "data-hovered:bg-status-needed-fill data-focus-visible:bg-status-needed-fill",
   },
 };
 

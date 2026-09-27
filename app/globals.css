@@ -24,7 +24,6 @@
   /* Plan item statuses. */
   --color-status-needed: var(--status-needed);
   --color-status-needed-fill: var(--status-needed-fill);
-  --color-status-needed-fill-foreground: var(--status-needed-fill-foreground);
   --color-status-acquired: var(--status-acquired);
   --color-status-acquired-foreground: var(--status-acquired-foreground);
   --color-status-completed: var(--status-completed);
@@ -112,7 +111,6 @@
   --status-needed: var(--muted);
   /* Lighter than the check itself, so a needed fill doesn't read heavy. */
   --status-needed-fill: var(--default);
-  --status-needed-fill-foreground: var(--default-foreground);
   --status-acquired: oklch(86.03% 0.1541 114.06);
   --status-acquired-foreground: oklch(21.03% 0.0059 114.06);
   --status-completed: oklch(52% 0.17 145);
@@ -166,7 +164,6 @@
   --status-needed: var(--muted);
   /* Lighter than the check itself, so a needed fill doesn't read heavy. */
   --status-needed-fill: var(--default);
-  --status-needed-fill-foreground: var(--default-foreground);
   --status-acquired: oklch(90% 0.15 114.06);
   --status-acquired-foreground: oklch(21.03% 0.0059 114.06);
   --status-completed: oklch(62% 0.17 145);
