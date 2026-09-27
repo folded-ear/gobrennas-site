@@ -101,7 +101,8 @@ export function TimelineRow({
             canChange={plan.changeable}
           />
         ) : null}
-        <span className={statusClassName}>
+        {/* Names and chips give way before a row runs off its edge. */}
+        <span className={clsx("min-w-0", statusClassName)}>
           <PlanItem item={node.item} onSelect={onSelect} />
         </span>
         {openId === id ? (
@@ -111,7 +112,7 @@ export function TimelineRow({
         {plan !== undefined && node.item.children.length > 0 ? (
           <CookLink planId={plan.id} itemId={id} name={name} />
         ) : null}
-        <span className="ms-auto flex items-center gap-xs">
+        <span className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-xs">
           {apart?.parent ? (
             <>
               <ParentChip name={apart.parent.name} />
@@ -123,10 +124,10 @@ export function TimelineRow({
               ) : null}
             </>
           ) : null}
-          {plan?.changeable ? (
-            <DeleteButton itemId={id} planId={plan.id} />
-          ) : null}
         </span>
+        {plan?.changeable ? (
+          <DeleteButton itemId={id} planId={plan.id} />
+        ) : null}
       </ItemRow>
     </div>
   );

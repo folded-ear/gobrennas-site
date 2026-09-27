@@ -36,7 +36,7 @@ export function ShoppingItemRow({ item, status }: ShoppingItemRowProps) {
           name={item.ingredient.name}
           canChange={item.sources.every((it) => it.plan.changeable)}
         />
-        <Disclosure.Trigger className="flex w-full items-start gap-sm text-left">
+        <Disclosure.Trigger className="flex min-w-0 flex-1 items-start gap-sm text-left">
           <span>{item.ingredient.name}</span>
           {amounts ? <span className="text-muted">({amounts})</span> : null}
           {showsPlans ? <PlanDotStack plans={item.plans} /> : null}

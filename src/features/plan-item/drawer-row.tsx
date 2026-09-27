@@ -16,6 +16,7 @@ import {
 } from "@/features/plan-status";
 import { PlanContext } from "@/features/plan-timeline/context";
 import { PlanItemNode } from "@/features/plan-timeline/model";
+import clsx from "clsx";
 import { DateChip } from "./chips";
 import { CookLink } from "./cook-link";
 
@@ -84,20 +85,19 @@ export function DrawerRow({
           canChange={plan.changeable}
         />
       ) : null}
-      <span className={statusClassName}>
+      {/* Names and chips give way before a row runs off its edge. */}
+      <span className={clsx("min-w-0", statusClassName)}>
         <PlanItem item={node.item} />
       </span>
       {plan !== undefined && node.item.children.length > 0 ? (
         <CookLink planId={plan.id} itemId={id} name={name} />
       ) : null}
-      <span className="ms-auto flex items-center gap-xs">
+      <span className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-xs">
         {apartOn !== null ? (
           <DateChip date={apartOn} separation={own?.separation} />
         ) : null}
-        {plan?.changeable ? (
-          <DeleteButton itemId={id} planId={plan.id} />
-        ) : null}
       </span>
+      {plan?.changeable ? <DeleteButton itemId={id} planId={plan.id} /> : null}
     </ItemRow>
   );
 }
