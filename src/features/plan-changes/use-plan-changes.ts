@@ -1,3 +1,4 @@
+import { displayName } from "@/lib/plan-item-name";
 import { ApolloClient } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
 import { toast } from "@heroui/react";
@@ -13,7 +14,7 @@ const queues = new WeakMap<ApolloClient, PlanChangeQueue>();
 function reportFailure(client: ApolloClient, failed: readonly PlanChange[]) {
   toast.danger(
     failed.length === 1
-      ? `Couldn't save ${failed[0].name}`
+      ? `Couldn't save ${displayName(failed[0].name)}`
       : `Couldn't save ${failed.length} items`,
   );
   // One refused field fails the whole request, so the server may have

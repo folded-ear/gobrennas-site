@@ -1,6 +1,7 @@
 import { Separation } from "@/features/plan-timeline/context";
 import { formatDayLabel } from "@/features/plan-timeline/dates";
 import { Chip } from "@heroui/react";
+import { NameText } from "./item-name";
 
 type DateChipProps = {
   readonly date: string;
@@ -43,7 +44,7 @@ export function NoChip() {
 export function ParentChip({ name }: ParentChipProps) {
   return (
     <Chip size="sm" variant="secondary">
-      {name}
+      <NameText name={name} />
     </Chip>
   );
 }

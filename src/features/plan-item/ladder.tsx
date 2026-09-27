@@ -7,6 +7,7 @@ import {
 } from "@/features/plan-timeline/context";
 import { DateChip } from "./chips";
 import { CookLink } from "./cook-link";
+import { NameText } from "./item-name";
 
 /** One step of the walk from a plan's root down to the open item. */
 export type LadderLine = {
@@ -72,7 +73,9 @@ export function ladderLines(
 function LadderName({ line, isOpen, onSelect }: LadderNameProps) {
   if (isOpen) {
     return (
-      <h2 className="text-xl font-semibold text-foreground">{line.name}</h2>
+      <h2 className="text-xl font-semibold text-foreground">
+        <NameText name={line.name} />
+      </h2>
     );
   }
   if (onSelect) {
@@ -82,11 +85,15 @@ function LadderName({ line, isOpen, onSelect }: LadderNameProps) {
         className="text-left text-sm text-muted hover:text-accent"
         onClick={() => onSelect(line.id)}
       >
-        {line.name}
+        <NameText name={line.name} />
       </button>
     );
   }
-  return <span className="text-sm text-muted">{line.name}</span>;
+  return (
+    <span className="text-sm text-muted">
+      <NameText name={line.name} />
+    </span>
+  );
 }
 
 /**

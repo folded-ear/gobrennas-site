@@ -6,11 +6,13 @@ import {
 import { StatusButton } from "@/features/plan-status";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
+import { Fragment } from "react";
 import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
 import { NoChip } from "./chips";
+import { ItemName, NameText } from "./item-name";
 
 /** One step of the ancestry beneath a plan item. */
 export type RowAncestor = {
@@ -41,7 +43,12 @@ export function PlanItemRow({ item, ancestors, plan }: PlanItemRowProps) {
 
   if (!complete) return null;
 
-  const ancestry = ancestors.map((it) => it.name).join(STEP_SEPARATOR);
+  const ancestry = ancestors.map((it, i) => (
+    <Fragment key={it.id}>
+      {i > 0 ? STEP_SEPARATOR : null}
+      <NameText name={it.name} />
+    </Fragment>
+  ));
   return (
     <div className="flex items-start gap-xs">
       <StatusButton
@@ -52,12 +59,14 @@ export function PlanItemRow({ item, ancestors, plan }: PlanItemRowProps) {
       <div className="flex flex-col">
         <span className="flex items-start gap-xs">
           {data.quantity?.quantity === 0 ? <NoChip /> : null}
-          <span>{data.name}</span>
+          <span>
+            <ItemName itemId={data.id} />
+          </span>
         </span>
-        {ancestry || showsPlan ? (
+        {ancestors.length > 0 || showsPlan ? (
           <small>
             {ancestry}
-            {ancestry && showsPlan ? STEP_SEPARATOR : null}
+            {ancestors.length > 0 && showsPlan ? STEP_SEPARATOR : null}
             {showsPlan ? (
               <>
                 <PlanDot plan={plan} className="me-xxs" />

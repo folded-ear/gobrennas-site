@@ -1,3 +1,4 @@
+import { displayName } from "@/lib/plan-item-name";
 import { ApolloCache, Reference } from "@apollo/client";
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { toast } from "@heroui/react";
@@ -53,7 +54,7 @@ function itemCacheId(cache: ApolloCache, id: string): string | undefined {
 }
 
 function reportFailure(name: string) {
-  toast.danger(`Couldn't move ${name}`);
+  toast.danger(`Couldn't move ${displayName(name)}`);
 }
 
 /**

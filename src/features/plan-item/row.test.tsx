@@ -56,12 +56,13 @@ function directoryOf(plans: readonly DirectoryPlan[]): PlanDirectory {
 function renderRow(
   data: PlanItemFragment,
   plans: readonly DirectoryPlan[] = [WEEKNIGHTS],
+  ancestors: readonly RowAncestor[] = ANCESTORS,
 ) {
   const cache = buildInMemoryCache();
   const item = seedFragment(cache, PlanItemFragmentDoc, "planItem", data);
   render(
     <PlanDirectoryProvider directory={directoryOf(plans)}>
-      <PlanItemRow item={item} ancestors={ANCESTORS} plan={WEEKNIGHTS} />
+      <PlanItemRow item={item} ancestors={ancestors} plan={WEEKNIGHTS} />
     </PlanDirectoryProvider>,
     { cache },
   );
@@ -73,6 +74,18 @@ describe("PlanItemRow", () => {
 
     expect(screen.getByText("1 tsp sugar")).toBeVisible();
     expect(screen.getByText("Spag sauce / Dinner")).toBeVisible();
+  });
+
+  it("shows a blank ancestor as Unnamed", () => {
+    renderRow(
+      SUGAR,
+      [WEEKNIGHTS],
+      [{ id: "41", name: "" }, ...ANCESTORS.slice(1)],
+    );
+
+    expect(screen.getByText("Unnamed").parentElement).toHaveTextContent(
+      "Unnamed / Dinner",
+    );
   });
 
   it("offers to acquire its item", () => {

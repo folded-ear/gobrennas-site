@@ -22,6 +22,7 @@ import {
 import { sectionLabel } from "@/features/plan-timeline/section-label";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
 import { useHistoryState } from "@/hooks/use-history-state";
+import { displayName } from "@/lib/plan-item-name";
 import { canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
@@ -144,7 +145,13 @@ export function Planner() {
         />
       </SectionHeader>
       <Screen
-        label={shown?.name ?? (shownSection ? sectionLabel(shownSection) : "")}
+        label={
+          shown
+            ? displayName(shown.name)
+            : shownSection
+              ? sectionLabel(shownSection)
+              : ""
+        }
         isOpen={isOpen}
         header={
           shown ? (
