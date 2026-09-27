@@ -183,6 +183,45 @@ function renderCrustOpen(onSelect?: (id: string) => void) {
   );
 }
 
+function renderPieInDirectory() {
+  const cache = buildInMemoryCache();
+  const pie = seedFragment(
+    cache,
+    PlanItemFragmentDoc,
+    "planItem",
+    fragment(PIE, null),
+  );
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(FILLING, null));
+  render(
+    <PlanDirectoryProvider
+      directory={buildPlanDirectory([
+        {
+          id: "7",
+          name: "Holidays",
+          color: "#F57F17",
+          mine: true,
+          grants: [],
+          descendants: [PIE, CRUST, FILLING],
+          buckets: [],
+        },
+      ])}
+    >
+      <Detail
+        item={pie}
+        context={planContext()}
+        descendants={[
+          {
+            item: timelineItem(CRUST, [FILLING.id]),
+            children: [node(FILLING)],
+          },
+        ]}
+      />
+    </PlanDirectoryProvider>,
+    { cache },
+  );
+}
+
 describe("PlanItemDetail", () => {
   it("names the item it is showing", () => {
     renderDetail(null, []);
@@ -203,47 +242,7 @@ describe("PlanItemDetail", () => {
   });
 
   it("offers to cook the item, and whatever below it has something below it", () => {
-    const cache = buildInMemoryCache();
-    const pie = seedFragment(
-      cache,
-      PlanItemFragmentDoc,
-      "planItem",
-      fragment(PIE, null),
-    );
-    seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
-    seedFragment(
-      cache,
-      PlanItemFragmentDoc,
-      "planItem",
-      fragment(FILLING, null),
-    );
-    render(
-      <PlanDirectoryProvider
-        directory={buildPlanDirectory([
-          {
-            id: "7",
-            name: "Holidays",
-            color: "#F57F17",
-            mine: true,
-            grants: [],
-            descendants: [PIE, CRUST, FILLING],
-            buckets: [],
-          },
-        ])}
-      >
-        <Detail
-          item={pie}
-          context={planContext()}
-          descendants={[
-            {
-              item: timelineItem(CRUST, [FILLING.id]),
-              children: [node(FILLING)],
-            },
-          ]}
-        />
-      </PlanDirectoryProvider>,
-      { cache },
-    );
+    renderPieInDirectory();
 
     expect(
       screen.getByRole("link", { name: "Cook Pie crust" }),
@@ -252,6 +251,20 @@ describe("PlanItemDetail", () => {
       screen.getByRole("link", { name: "Cook Pumpkin pie" }),
     ).toHaveAttribute("href", "/plan/7/recipe/42");
     expect(screen.queryByRole("link", { name: "Cook Pie filling" })).toBeNull();
+  });
+
+  it("offers to acquire or delete what sits below the item, but not the item", () => {
+    renderPieInDirectory();
+
+    expect(
+      screen.getByRole("button", { name: "Mark acquired: Pie filling" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Delete: Pie crust" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Delete: Pumpkin pie" }),
+    ).toBeNull();
   });
 
   it("shows nothing below the item when nothing is there", () => {

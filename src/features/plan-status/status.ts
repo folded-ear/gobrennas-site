@@ -72,3 +72,19 @@ export function useItemStatus(itemId: string) {
 export function isToggleStatus(status: PlanItemStatus): status is ToggleStatus {
   return status === PlanItemStatus.NEEDED || status === PlanItemStatus.ACQUIRED;
 }
+
+/**
+ * I give the classes an item's name takes: struck through while it's
+ * going away, faded while an ancestor is.
+ */
+export function useItemStatusClassName(itemId: string): string | undefined {
+  const item = useItemStatus(itemId);
+  if (item?.pendingStatus === PlanItemStatus.DELETED) {
+    return "text-status-deleted line-through";
+  }
+  if (item?.pendingStatus === PlanItemStatus.COMPLETED) {
+    return "text-status-completed line-through";
+  }
+  if (item?.inert) return "opacity-50";
+  return undefined;
+}

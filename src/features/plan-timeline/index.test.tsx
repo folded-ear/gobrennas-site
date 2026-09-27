@@ -243,6 +243,47 @@ describe("PlanTimeline, cooking", () => {
   });
 });
 
+describe("PlanTimeline, status", () => {
+  function renderWithStatus(mine: boolean) {
+    const cache = buildInMemoryCache();
+    seedItems(cache, THANKSGIVING, "7");
+    return render(
+      <PlanDirectoryProvider
+        directory={buildPlanDirectory([{ ...HOLIDAYS_PLAN, mine }])}
+      >
+        <PlanTimeline
+          plans={[
+            { rootIds: ROOT_IDS, items: THANKSGIVING, buckets: [SEP_12] },
+          ]}
+        />
+      </PlanDirectoryProvider>,
+      { cache },
+    );
+  }
+
+  it("offers to acquire or delete an item of a plan the viewer can change", () => {
+    renderWithStatus(true);
+
+    expect(
+      screen.getByRole("button", {
+        name: "Mark acquired: Thanksgiving dinner",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Delete: Thanksgiving dinner" }),
+    ).toBeVisible();
+  });
+
+  it("only shows the status of an item of someone else's plan", () => {
+    renderWithStatus(false);
+
+    expect(
+      screen.getAllByRole("img", { name: "Needed" }).length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: /^Delete: / })).toBeNull();
+  });
+});
+
 describe("PlanTimeline, opening sections", () => {
   beforeEach(() => {
     // Only the date: a click runs on real timers.

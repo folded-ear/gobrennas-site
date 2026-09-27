@@ -3,6 +3,7 @@ import {
   DirectoryPlan,
   useShowsPlanIndicators,
 } from "@/features/plan-directory";
+import { StatusButton } from "@/features/plan-status";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import {
@@ -42,23 +43,30 @@ export function PlanItemRow({ item, ancestors, plan }: PlanItemRowProps) {
 
   const ancestry = ancestors.map((it) => it.name).join(STEP_SEPARATOR);
   return (
-    <div className="flex flex-col">
-      <span className="flex items-start gap-xs">
-        {data.quantity?.quantity === 0 ? <NoChip /> : null}
-        <span>{data.name}</span>
-      </span>
-      {ancestry || showsPlan ? (
-        <small>
-          {ancestry}
-          {ancestry && showsPlan ? STEP_SEPARATOR : null}
-          {showsPlan ? (
-            <>
-              <PlanDot plan={plan} className="me-xxs" />
-              {plan.name}
-            </>
-          ) : null}
-        </small>
-      ) : null}
+    <div className="flex items-start gap-xs">
+      <StatusButton
+        itemId={data.id}
+        planId={plan.id}
+        canChange={plan.changeable}
+      />
+      <div className="flex flex-col">
+        <span className="flex items-start gap-xs">
+          {data.quantity?.quantity === 0 ? <NoChip /> : null}
+          <span>{data.name}</span>
+        </span>
+        {ancestry || showsPlan ? (
+          <small>
+            {ancestry}
+            {ancestry && showsPlan ? STEP_SEPARATOR : null}
+            {showsPlan ? (
+              <>
+                <PlanDot plan={plan} className="me-xxs" />
+                {plan.name}
+              </>
+            ) : null}
+          </small>
+        ) : null}
+      </div>
     </div>
   );
 }

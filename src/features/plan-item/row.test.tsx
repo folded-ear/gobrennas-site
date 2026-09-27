@@ -75,6 +75,14 @@ describe("PlanItemRow", () => {
     expect(screen.getByText("Spag sauce / Dinner")).toBeVisible();
   });
 
+  it("offers to acquire its item", () => {
+    renderRow(SUGAR);
+
+    expect(
+      screen.getByRole("button", { name: "Mark acquired: 1 tsp sugar" }),
+    ).toBeVisible();
+  });
+
   it("leaves its plan out when there's only one", () => {
     renderRow(SUGAR);
 

@@ -1,4 +1,6 @@
+import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanItemRow } from "@/features/plan-item/row";
+import { ToggleStatus } from "@/features/plan-status";
 import { DisclosureGroup } from "@heroui/react";
 import { useId } from "react";
 import { Region, ShoppingList } from "./model";
@@ -13,6 +15,8 @@ type RegionSectionProps = {
   /** Whether my title shows, or only names me to assistive tech. */
   readonly showsTitle: boolean;
   readonly region: Region;
+  /** The status my shopping items show as. */
+  readonly status: ToggleStatus;
 };
 
 function isEmpty({ items, unresolved }: Region): boolean {
@@ -20,7 +24,12 @@ function isEmpty({ items, unresolved }: Region): boolean {
 }
 
 /** I show one region: its shopping items, then its loose plan items. */
-function RegionSection({ title, showsTitle, region }: RegionSectionProps) {
+function RegionSection({
+  title,
+  showsTitle,
+  region,
+  status,
+}: RegionSectionProps) {
   const headingId = useId();
   if (isEmpty(region)) return null;
 
@@ -34,7 +43,7 @@ function RegionSection({ title, showsTitle, region }: RegionSectionProps) {
       <ul className="flex flex-col gap-sm">
         {region.items.map((item) => (
           <li key={item.ingredient.id}>
-            <ShoppingItemRow item={item} />
+            <ShoppingItemRow item={item} status={status} />
           </li>
         ))}
         {region.unresolved.map((source) => (
@@ -63,8 +72,18 @@ export function ShoppingRegions({ list }: ShoppingRegionsProps) {
   return (
     // One group spans both regions, so only one item is ever expanded.
     <DisclosureGroup className="flex flex-col gap-xl">
-      <RegionSection title="Needed" showsTitle={false} region={list.needed} />
-      <RegionSection title="Acquired" showsTitle region={list.acquired} />
+      <RegionSection
+        title="Needed"
+        showsTitle={false}
+        region={list.needed}
+        status={PlanItemStatus.NEEDED}
+      />
+      <RegionSection
+        title="Acquired"
+        showsTitle
+        region={list.acquired}
+        status={PlanItemStatus.ACQUIRED}
+      />
     </DisclosureGroup>
   );
 }
