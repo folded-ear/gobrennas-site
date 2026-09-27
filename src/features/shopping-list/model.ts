@@ -71,7 +71,8 @@ export type ShoppingList = {
 /**
  * I gather the leaves of the given plans, in plan order, into shopping
  * items by ingredient, split between what's still needed and what's been
- * acquired.
+ * acquired. Everything under an item of nothing, or an acquired one, counts
+ * as acquired.
  */
 export function buildShoppingList(
   plans: readonly ShoppingPlan[],
@@ -83,6 +84,11 @@ export function buildShoppingList(
     string,
     { ingredient: ShoppingIngredient; sources: Source[] }
   >();
+  const byId = new Map(
+    plans.flatMap((plan) => plan.items).map((it) => [it.id, it]),
+  );
+  const neededIds = new Set<string>();
+  const isNeeded = (item: ShoppingPlanItem) => neededIds.has(item.id);
 
   for (const plan of plans) {
     const directoryPlan = {
@@ -97,10 +103,15 @@ export function buildShoppingList(
       if (item.children.length > 0 || ingredient?.__typename === "Recipe") {
         continue;
       }
+      const ancestors = ancestorsOf(context, item.id);
+      const lineage = [item, ...ancestors.map((it) => byId.get(it.id))];
+      if (lineage.every((it) => it === undefined || isWanted(it))) {
+        neededIds.add(item.id);
+      }
       const source: Source = {
         item,
         plan: directoryPlan,
-        ancestors: [...ancestorsOf(context, item.id)].reverse(),
+        ancestors: [...ancestors].reverse(),
       };
       if (ingredient === null) {
         (isNeeded(item) ? needed : acquired).unresolved.push(source);
@@ -147,8 +158,11 @@ type MutableRegion = {
   readonly unresolved: Source[];
 };
 
-/** A plan item of nothing is as good as acquired. */
-function isNeeded(item: ShoppingPlanItem): boolean {
+/**
+ * I tell whether an item is still wanted on its own account. A plan item of
+ * nothing is as good as acquired.
+ */
+function isWanted(item: ShoppingPlanItem): boolean {
   return item.status === PlanItemStatus.NEEDED && item.quantity?.quantity !== 0;
 }
 
