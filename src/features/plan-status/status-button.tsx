@@ -87,7 +87,11 @@ export function ToggleButton({
     <ControlTooltip label={look.action}>
       <Button
         aria-label={label}
-        className={clsx(LINE_CONTROL_CLASS_NAME, look.className)}
+        className={clsx(
+          LINE_CONTROL_CLASS_NAME,
+          look.className,
+          look.buttonClassName,
+        )}
         isDisabled={isDisabled}
         isIconOnly
         isPending={isPending}

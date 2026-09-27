@@ -21,7 +21,9 @@
   --color-secondary: var(--default);
   --color-secondary-foreground: var(--default-foreground);
 
-  /* Plan item statuses. NEEDED is the theme's own `muted`. */
+  /* Plan item statuses. */
+  --color-status-needed: var(--status-needed);
+  --color-status-needed-foreground: var(--status-needed-foreground);
   --color-status-acquired: var(--status-acquired);
   --color-status-acquired-foreground: var(--status-acquired-foreground);
   --color-status-completed: var(--status-completed);
@@ -106,6 +108,8 @@
   --warning: oklch(78.19% 0.159 47.31);
   --warning-foreground: oklch(21.03% 0.0059 47.31);
 
+  --status-needed: var(--muted);
+  --status-needed-foreground: var(--background);
   --status-acquired: oklch(86.03% 0.1541 114.06);
   --status-acquired-foreground: oklch(21.03% 0.0059 114.06);
   --status-completed: oklch(52% 0.17 145);
@@ -156,6 +160,8 @@
   --warning: oklch(82.03% 0.1392 51.32);
   --warning-foreground: oklch(21.03% 0.0059 51.32);
 
+  --status-needed: var(--muted);
+  --status-needed-foreground: var(--background);
   --status-acquired: oklch(90% 0.15 114.06);
   --status-acquired-foreground: oklch(21.03% 0.0059 114.06);
   --status-completed: oklch(62% 0.17 145);

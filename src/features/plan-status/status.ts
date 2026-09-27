@@ -15,6 +15,8 @@ type ToggleLook = {
   readonly action: string;
   readonly next: ToggleStatus;
   readonly className: string;
+  /** How a button switching away from it looks: filled with where it goes. */
+  readonly buttonClassName: string;
 };
 
 export const TOGGLE_LOOKS: Record<ToggleStatus, ToggleLook> = {
@@ -22,13 +24,17 @@ export const TOGGLE_LOOKS: Record<ToggleStatus, ToggleLook> = {
     name: "Needed",
     action: "Mark acquired",
     next: PlanItemStatus.ACQUIRED,
-    className: "text-muted",
+    className: "text-status-needed",
+    buttonClassName:
+      "data-hovered:bg-status-acquired data-hovered:text-status-acquired-foreground data-focus-visible:bg-status-acquired data-focus-visible:text-status-acquired-foreground",
   },
   [PlanItemStatus.ACQUIRED]: {
     name: "Acquired",
     action: "Mark needed",
     next: PlanItemStatus.NEEDED,
     className: "text-status-acquired",
+    buttonClassName:
+      "data-hovered:bg-status-needed data-hovered:text-status-needed-foreground data-focus-visible:bg-status-needed data-focus-visible:text-status-needed-foreground",
   },
 };
 
