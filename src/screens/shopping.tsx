@@ -58,7 +58,7 @@ export function Shopping() {
           onChange={setPlanIds}
         />
       </SectionHeader>
-      <div className="p-md">
+      <div className="p-md bg-surface">
         <ShoppingRegions list={list} />
       </div>
     </PlanDirectoryProvider>

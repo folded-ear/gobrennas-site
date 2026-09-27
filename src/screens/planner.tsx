@@ -169,7 +169,7 @@ export function Planner() {
         ) : null}
       </Screen>
 
-      <div className="p-md">
+      <div className="p-md bg-surface">
         {shownPlans.length > 0 ? (
           <PlanTimeline
             plans={timelinePlans}
