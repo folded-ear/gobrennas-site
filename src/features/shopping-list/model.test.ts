@@ -303,6 +303,51 @@ describe("buildShoppingList", () => {
     expect(salt.implicit).toBe(false);
   });
 
+  it("counts everything under an acquired item as acquired, whatever its status", () => {
+    const list = buildShoppingList([
+      plan(
+        "1",
+        ["sauce", "tea"],
+        [
+          item({ id: "sauce", children: ["s1"] }),
+          item({ id: "s1", quantity: 1, unit: TSP, pantry: SUGAR }),
+          item({
+            id: "tea",
+            children: ["syrup", "t2"],
+            status: PlanItemStatus.ACQUIRED,
+          }),
+          item({ id: "syrup", children: ["t1"] }),
+          item({ id: "t1", quantity: 2, unit: TBSP, pantry: SUGAR }),
+          item({ id: "t2", name: "lemon" }),
+        ],
+      ),
+    ]);
+
+    const sugar = only(list.needed.items);
+    expect(sugar.amounts).toEqual([{ quantity: 1, unit: TSP }]);
+    expect(ids(sugar.sources)).toEqual(["s1", "t1"]);
+    expect(list.needed.unresolved).toEqual([]);
+    expect(ids(list.acquired.unresolved)).toEqual(["t2"]);
+  });
+
+  it("counts everything under a zero quantity as acquired, whatever its status", () => {
+    const list = buildShoppingList([
+      plan(
+        "1",
+        ["tea"],
+        [
+          item({ id: "tea", children: ["t1"], quantity: 0 }),
+          item({ id: "t1", quantity: 2, unit: TBSP, pantry: SUGAR }),
+        ],
+      ),
+    ]);
+
+    expect(list.needed.items).toEqual([]);
+    expect(only(list.acquired.items).amounts).toEqual([
+      { quantity: 2, unit: TBSP },
+    ]);
+  });
+
   it("hides the quantity of one plan item that gives none", () => {
     const list = buildShoppingList([
       plan(

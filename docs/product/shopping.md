@@ -41,11 +41,13 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - The list has two regions: Needed on top, Acquired below. Only Acquired
   is headed. A region with nothing in it doesn't appear.
 - A plan item with a zero quantity counts as acquired, whatever its status.
+- A plan item under an acquired item, or under one with a zero quantity,
+  counts as acquired too, whatever its own status. Its status isn't changed.
 - A shopping item is in Needed when any of its plan items is still needed,
   and its amounts sum only those. Once all are acquired, it moves to
   Acquired and sums them all.
-- A plan item with no ingredient appears in the region its own status puts
-  it in.
+- A plan item with no ingredient appears in the region it counts as being
+  in, on its own.
 - Shopping items in each region are in store order, then by name.
 
 ### Checking items off
