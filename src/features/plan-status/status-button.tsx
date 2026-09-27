@@ -1,10 +1,13 @@
 "use client";
 
+import { ControlTooltip } from "@/components/control-tooltip";
 import { StatusIcon } from "@/components/icons";
-import { Button, Tooltip } from "@heroui/react";
+import { Button } from "@heroui/react";
+import clsx from "clsx";
 import {
   actionLabel,
   isToggleStatus,
+  LINE_CONTROL_CLASS_NAME,
   TOGGLE_LOOKS,
   ToggleStatus,
   useItemStatus,
@@ -67,16 +70,24 @@ export function ToggleButton({
   const look = TOGGLE_LOOKS[status];
   if (!canChange) {
     return (
-      <span role="img" aria-label={look.name} className={look.className}>
+      <span
+        role="img"
+        aria-label={look.name}
+        className={clsx(
+          "flex items-center justify-center",
+          LINE_CONTROL_CLASS_NAME,
+          look.className,
+        )}
+      >
         <StatusIcon size="small" aria-hidden="true" />
       </span>
     );
   }
   return (
-    <Tooltip delay={0}>
+    <ControlTooltip label={look.action}>
       <Button
         aria-label={label}
-        className={look.className}
+        className={clsx(LINE_CONTROL_CLASS_NAME, look.className)}
         isDisabled={isDisabled}
         isIconOnly
         isPending={isPending}
@@ -86,9 +97,6 @@ export function ToggleButton({
       >
         <StatusIcon size="small" aria-hidden="true" />
       </Button>
-      <Tooltip.Content>
-        <p>{look.action}</p>
-      </Tooltip.Content>
-    </Tooltip>
+    </ControlTooltip>
   );
 }

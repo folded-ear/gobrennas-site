@@ -15,6 +15,7 @@ import {
   queryDropZone,
 } from "@/features/plan-dnd/test/dnd-harness";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
+import { markPending } from "@/features/plan-status/test/status-cache";
 import {
   buildPlanContext,
   PlanContext,
@@ -183,7 +184,7 @@ function renderCrustOpen(onSelect?: (id: string) => void) {
   );
 }
 
-function renderPieInDirectory() {
+function renderPieInDirectory(cookedIds: readonly string[] = []) {
   const cache = buildInMemoryCache();
   const pie = seedFragment(
     cache,
@@ -193,6 +194,9 @@ function renderPieInDirectory() {
   );
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(FILLING, null));
+  for (const id of cookedIds) {
+    markPending(cache, id, PlanItemStatus.COMPLETED);
+  }
   render(
     <PlanDirectoryProvider
       directory={buildPlanDirectory([
@@ -265,6 +269,18 @@ describe("PlanItemDetail", () => {
     expect(
       screen.queryByRole("button", { name: "Delete: Pumpkin pie" }),
     ).toBeNull();
+  });
+
+  it("offers to undo a cooking in place of its cook link, open or below", () => {
+    renderPieInDirectory([PIE.id, CRUST.id]);
+
+    expect(
+      screen.getByRole("button", { name: "Undo cooked: Pumpkin pie" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Undo cooked: Pie crust" }),
+    ).toBeVisible();
+    expect(screen.queryByRole("link", { name: /^Cook / })).toBeNull();
   });
 
   it("shows nothing below the item when nothing is there", () => {

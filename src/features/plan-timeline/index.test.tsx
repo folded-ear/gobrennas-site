@@ -15,6 +15,7 @@ import {
 } from "@/features/plan-dnd/test/dnd-harness";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
+import { markPending } from "@/features/plan-status/test/status-cache";
 import {
   buildInMemoryCache,
   render,
@@ -244,9 +245,10 @@ describe("PlanTimeline, cooking", () => {
 });
 
 describe("PlanTimeline, status", () => {
-  function renderWithStatus(mine: boolean) {
+  function renderWithStatus(mine: boolean, cookedId?: string) {
     const cache = buildInMemoryCache();
     seedItems(cache, THANKSGIVING, "7");
+    if (cookedId) markPending(cache, cookedId, PlanItemStatus.COMPLETED);
     return render(
       <PlanDirectoryProvider
         directory={buildPlanDirectory([{ ...HOLIDAYS_PLAN, mine }])}
@@ -272,6 +274,17 @@ describe("PlanTimeline, status", () => {
     expect(
       screen.getByRole("button", { name: "Delete: Thanksgiving dinner" }),
     ).toBeVisible();
+  });
+
+  it("offers to undo a cooking in place of its cook link", () => {
+    renderWithStatus(true, "1");
+
+    expect(
+      screen.getByRole("button", { name: "Undo cooked: Thanksgiving dinner" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: "Cook Thanksgiving dinner" }),
+    ).toBeNull();
   });
 
   it("only shows the status of an item of someone else's plan", () => {

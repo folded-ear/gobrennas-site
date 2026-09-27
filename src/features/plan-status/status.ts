@@ -54,6 +54,12 @@ export const REMOVAL_LOOKS: Record<RemovalStatus, RemovalLook> = {
   },
 };
 
+/**
+ * The box every control on an item's line takes: one line of text tall,
+ * so controls, dots, and names all sit on the same line.
+ */
+export const LINE_CONTROL_CLASS_NAME = "size-xl min-w-0 shrink-0 p-0";
+
 /** I name an action on one item, for anyone who can't see its row. */
 export function actionLabel(action: string, itemName: string) {
   return `${action}: ${itemName}`;
