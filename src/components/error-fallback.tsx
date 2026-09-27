@@ -14,7 +14,7 @@ export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
     }
   }
   return (
-    <div className="flex flex-col gap-lg bg-surface p-xl items-center rounded-md max-w-1/2 mx-auto my-4">
+    <div className="flex flex-col gap-lg bg-surface p-xl items-center rounded-md md:max-w-1/2 mx-auto my-4">
       <p>Something went wrong:</p>
       <pre className="text-danger text-wrap">
         {getErrorMessage(error) ?? "Unknown error"}
