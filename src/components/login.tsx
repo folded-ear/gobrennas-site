@@ -6,11 +6,11 @@ import { Button } from "@heroui/react";
 
 export function Login() {
   return (
-    <div className="flex flex-col gap-lg bg-surface p-xl items-center rounded-md max-w-1/2 mx-auto my-4">
+    <div className="flex flex-col gap-lg bg-surface p-xl items-center rounded-md md:max-w-1/2 mx-auto my-4">
       <BFSLogo size="lg" />
       <h1 className="text-xl">Brenna&apos;s Food Software</h1>
       <Button onPress={doLogin}>Login with Google</Button>
-      <p className="max-w-3/4">
+      <p className="md:max-w-3/4">
         Brenna&apos;s Food Software is a recipe library, meal planner, and
         digital shopping list. At the store with your partner or kids? Split up,
         without tearing the list in half. Preparing a holiday meal? Organize the
