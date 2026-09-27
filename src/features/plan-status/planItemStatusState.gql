@@ -1,0 +1,5 @@
+# What the status queue writes; the rest of an item is the server's.
+fragment planItemStatusState on PlanItem {
+  pendingStatus @client
+  savingStatus @client
+}

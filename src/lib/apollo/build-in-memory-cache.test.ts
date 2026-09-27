@@ -1,4 +1,6 @@
 import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
+import { PlanItemStatusFragmentDoc } from "@/features/plan-status/__generated__/planItemStatus.generated";
+import { PlanItemStatusStateFragmentDoc } from "@/features/plan-status/__generated__/planItemStatusState.generated";
 import { RecipesDocument } from "@/screens/__generated__/recipes.generated";
 import { gql } from "@apollo/client";
 import { describe, expect, it } from "vitest";
@@ -96,5 +98,109 @@ describe("buildInMemoryCache", () => {
         id: `PlanItem:${PLAN_ID}`,
       }),
     ).toEqual({ __typename: "PlanItem" });
+  });
+});
+
+// A plan holding a recipe, holding an ingredient, as the planner reads them.
+const PIE_TREE = gql`
+  query PieTree {
+    planner {
+      plan(id: "7") {
+        id
+        name
+        children {
+          id
+          name
+          status
+          parent {
+            id
+          }
+          children {
+            id
+            name
+            status
+            parent {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+function seededWithPie() {
+  const cache = buildInMemoryCache();
+  cache.writeQuery({
+    query: PIE_TREE,
+    data: {
+      planner: {
+        __typename: "PlannerQuery",
+        plan: {
+          __typename: "Plan",
+          id: PLAN_ID,
+          name: "Thanksgiving",
+          children: [
+            {
+              __typename: "PlanItem",
+              id: "1",
+              name: "Pumpkin pie",
+              status: "NEEDED",
+              parent: { __typename: "Plan", id: PLAN_ID },
+              children: [
+                {
+                  __typename: "PlanItem",
+                  id: "2",
+                  name: "Pumpkin",
+                  status: "NEEDED",
+                  parent: { __typename: "PlanItem", id: "1" },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    },
+  });
+  return cache;
+}
+
+function readStatus(cache: ReturnType<typeof buildInMemoryCache>, id: string) {
+  return cache.readFragment({
+    fragment: PlanItemStatusFragmentDoc,
+    id: `PlanItem:${id}`,
+  });
+}
+
+describe("plan item status state", () => {
+  it("reads an item nobody has touched as settled", () => {
+    const cache = seededWithPie();
+
+    expect(readStatus(cache, "2")).toMatchObject({
+      pendingStatus: null,
+      savingStatus: false,
+      inert: false,
+    });
+  });
+
+  it("makes an item inert while an ancestor's status is pending", () => {
+    const cache = seededWithPie();
+
+    cache.writeFragment({
+      fragment: PlanItemStatusStateFragmentDoc,
+      id: "PlanItem:1",
+      data: {
+        __typename: "PlanItem",
+        pendingStatus: "DELETED",
+        savingStatus: false,
+      },
+    });
+
+    expect(readStatus(cache, "2")?.inert).toBe(true);
+    // the item itself stays live, so its change can be cancelled
+    expect(readStatus(cache, "1")).toMatchObject({
+      pendingStatus: "DELETED",
+      inert: false,
+    });
   });
 });
