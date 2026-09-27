@@ -1,15 +1,9 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { ApolloClient, ApolloLink, Observable } from "@apollo/client";
-import { LocalState } from "@apollo/client/local-state";
 import { beforeEach, describe, expect, it } from "vitest";
 import { StatusChange } from "./queue";
 import { aliasedSender } from "./send";
+import { statusApiClient, StatusRequest } from "./test/status-api";
 import { readStatus, seededCache, THANKSGIVING } from "./test/status-cache";
-
-type Request = {
-  readonly variables: Record<string, unknown>;
-  readonly keepalive: unknown;
-};
 
 const PUMPKIN: StatusChange = {
   id: "2",
@@ -25,47 +19,10 @@ const CREAM: StatusChange = {
 };
 
 let cache: ReturnType<typeof seededCache>;
-let requests: Request[];
+let requests: StatusRequest[];
 
-/**
- * I play the API: every aliased setStatus in a request is answered with
- * its item, now in its new status, unless I'm told to refuse.
- */
 function clientFor(refuse = false) {
-  const link = new ApolloLink(
-    (operation) =>
-      new Observable((observer) => {
-        requests.push({
-          variables: operation.variables,
-          keepalive: operation.getContext().fetchOptions?.keepalive,
-        });
-        if (refuse) {
-          observer.next({ data: null, errors: [{ message: "Nope" }] });
-          observer.complete();
-          return;
-        }
-        const planner: Record<string, unknown> = {
-          __typename: "PlannerMutation",
-        };
-        for (const [name, value] of Object.entries(operation.variables)) {
-          const match = /^id(\d+)$/.exec(name);
-          if (match === null) continue;
-          planner[`s${match[1]}`] = {
-            __typename: "PlanItem",
-            id: value,
-            status: operation.variables[`status${match[1]}`],
-          };
-        }
-        observer.next({ data: { planner } });
-        observer.complete();
-      }),
-  );
-  return new ApolloClient({
-    dataMasking: true,
-    cache,
-    localState: new LocalState(),
-    link,
-  });
+  return statusApiClient(cache, requests, { refuse });
 }
 
 beforeEach(() => {
