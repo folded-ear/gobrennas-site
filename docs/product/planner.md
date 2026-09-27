@@ -112,7 +112,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   to where it was opened from, with the item screen still open if it was.
 - The cook view shows its item's status, and a user who can change the
   plan can mark it cooked. Marking it cooked goes back, and the item waits
-  out its undo window there.
+  out its undo window there, with a button to undo it in place of each of
+  its cook links.
 
 ### Status
 
