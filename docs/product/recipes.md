@@ -22,7 +22,8 @@ without leaving the Library behind.
 ### Create editor
 
 - The create editor lets a person save a new recipe or cancel.
-- Title is required; whitespace alone does not count. Directions are optional.
+- Title is required; whitespace alone does not count. Save recipe stays disabled
+  until the title contains non-whitespace text. Directions are optional.
 - It also offers optional Source URL, Yield, Total cook time, and Calories per
   serving fields, in that order between Title and Directions.
 - Yield is a positive whole number. Calories per serving is a non-negative
@@ -36,8 +37,18 @@ without leaving the Library behind.
 - Source URL is optional. Its surrounding whitespace is removed when saved,
   but its format is not validated in this slice.
 - An invalid save explains every invalid field, does not create a recipe, and
-  moves focus to the first invalid field in form order. Correcting a field
-  clears that field's error.
+  moves focus to the first invalid field in form order. After a save attempt,
+  editing a field rechecks its error; the error clears when the value is valid.
+- Ingredients are optional raw text rows before Directions. Rows can be added,
+  removed, or reordered with the up/down controls.
+- Enter in an ingredient inserts and focuses a new row immediately after it.
+  Backspace or Delete on a blank row removes it and focuses the previous row,
+  or the next row when the first is removed. Removing the last row leaves a
+  fresh blank input ready to use.
+- Pasting multiple lines replaces the selection, preserves surrounding text,
+  and creates one row per nonblank line. Focus moves to the last pasted row.
+- Blank ingredient rows are omitted when saving. Populated rows preserve their
+  raw text and order; ingredient recognition is not required.
 - Canceling create returns to the Library without creating a recipe.
 
 ### Saving

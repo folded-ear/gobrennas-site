@@ -11,6 +11,7 @@ source of truth for exact versions.
 | GraphQL client | Apollo Client with Next.js integration | `src/lib/apollo*` |
 | Generated GraphQL types | GraphQL Code Generator and typed document nodes | `codegen.ts`, `src/**/__generated__/` |
 | UI components | HeroUI | `package.json` |
+| Forms and validation | React Hook Form with Zod via `@hookform/resolvers` | `docs/forms-and-validation.md` |
 | Styling | Tailwind CSS with Tailwind Variants | `app/globals.css` |
 | Theme | CSS variables using OKLCh colors; light and dark modes through `next-themes` | `app/globals.css`, `src/providers/theme-provider.tsx` |
 | Icons | Lucide | `package.json` |
@@ -20,4 +21,3 @@ source of truth for exact versions.
 The reasons behind a durable choice belong in a decision record, not in this
 inventory. Use the [decision template](../templates/decision.md) when the reason
 will matter to future changes.
-

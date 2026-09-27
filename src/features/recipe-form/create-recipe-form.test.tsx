@@ -33,6 +33,7 @@ function successfulCreateMock(
     calories: number | null;
     name: string;
     directions: string;
+    ingredients?: { raw: string }[];
   },
   id = CREATED_RECIPE_ID,
 ): MockLink.MockedResponse {
@@ -42,6 +43,7 @@ function successfulCreateMock(
       variables: {
         info: {
           type: "Recipe",
+          ingredients: [],
           ...info,
         },
       },
@@ -61,6 +63,35 @@ function successfulCreateMock(
 }
 
 describe("CreateRecipeForm", () => {
+  it("saves reordered raw ingredients without sending placeholder rows or client IDs", async () => {
+    const user = userEvent.setup();
+    const onCreated = vi.fn();
+    render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
+      mocks: [
+        successfulCreateMock({
+          name: "Bread",
+          externalUrl: null,
+          yield: null,
+          totalTime: null,
+          calories: null,
+          directions: "",
+          ingredients: [{ raw: "1 tsp salt" }, { raw: " 2 cups flour " }],
+        }),
+      ],
+    });
+    await user.type(screen.getByRole("textbox", { name: "Title" }), "Bread");
+    await user.click(screen.getByRole("textbox", { name: "Ingredient 1" }));
+    await user.paste(" 2 cups flour \n1 tsp salt\n");
+    await user.click(
+      screen.getByRole("button", { name: "Move ingredient 2 up" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Add ingredient" }));
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    await waitFor(() =>
+      expect(onCreated).toHaveBeenCalledWith(CREATED_RECIPE_ID),
+    );
+  });
+
   it("creates a recipe with serialized metadata and invalidates Library before reporting its id", async () => {
     const user = userEvent.setup();
     const cache = buildInMemoryCache();
@@ -171,6 +202,7 @@ describe("CreateRecipeForm", () => {
             variables: {
               info: {
                 type: "Recipe",
+                ingredients: [],
                 name: "Cider-braised chicken",
                 externalUrl: null,
                 yield: null,
@@ -221,6 +253,7 @@ describe("CreateRecipeForm", () => {
             variables: {
               info: {
                 type: "Recipe",
+                ingredients: [],
                 name: "Cider-braised chicken",
                 externalUrl: null,
                 yield: null,

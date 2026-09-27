@@ -1,23 +1,12 @@
 "use client";
 
-import {
-  Alert,
-  Button,
-  Description,
-  FieldError,
-  Form,
-  Input,
-  Label,
-  Spinner,
-  TextArea,
-  TextField,
-} from "@heroui/react";
-import { FormEvent, useId, useRef, useState } from "react";
-import {
-  RecipeDraft,
-  RecipeDraftErrors,
-  validateRecipeDraft,
-} from "./recipe-draft";
+import { FormTextField } from "@/components/form-text-field";
+import { Alert, Button, Form, Spinner } from "@heroui/react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRef, useState, type FormEvent } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { IngredientRows } from "./ingredient-rows";
+import { recipeDraftSchema, type RecipeDraft } from "./recipe-draft";
 
 type RecipeFormProps = {
   initialDraft: RecipeDraft;
@@ -30,66 +19,46 @@ export function RecipeForm({
   onSubmit,
   onCancel,
 }: RecipeFormProps) {
-  const [draft, setDraft] = useState<RecipeDraft>(() => ({ ...initialDraft }));
-  const [errors, setErrors] = useState<RecipeDraftErrors>({});
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<RecipeDraft>({
+    defaultValues: initialDraft,
+    resolver: zodResolver(recipeDraftSchema, undefined, { raw: true }),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+  });
+  const title = useWatch({ control, name: "title" });
   const [hasSaveFailure, setHasSaveFailure] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const titleErrorId = useId();
-  const yieldErrorId = useId();
-  const totalTimeErrorId = useId();
-  const caloriesErrorId = useId();
-  const titleInputRef = useRef<HTMLInputElement>(null);
-  const yieldInputRef = useRef<HTMLInputElement>(null);
-  const totalTimeInputRef = useRef<HTMLInputElement>(null);
-  const caloriesInputRef = useRef<HTMLInputElement>(null);
   const isSubmittingRef = useRef(false);
 
-  function handleFieldChange<Key extends keyof RecipeDraft>(
-    field: Key,
-    value: RecipeDraft[Key],
-  ): void {
-    setDraft((currentDraft) => ({ ...currentDraft, [field]: value }));
-    setErrors((currentErrors) => ({ ...currentErrors, [field]: undefined }));
+  function clearSaveFailure(): void {
     setHasSaveFailure(false);
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ): Promise<void> {
-    event.preventDefault();
-
-    if (isSubmittingRef.current) {
-      return;
-    }
-
-    const errors = validateRecipeDraft(draft);
-    if (Object.keys(errors).length > 0) {
-      setErrors(errors);
-
-      if (errors.title !== undefined) {
-        titleInputRef.current?.focus();
-      } else if (errors.yieldServings !== undefined) {
-        yieldInputRef.current?.focus();
-      } else if (errors.totalTimeText !== undefined) {
-        totalTimeInputRef.current?.focus();
-      } else if (errors.caloriesPerServing !== undefined) {
-        caloriesInputRef.current?.focus();
-      }
-
-      return;
-    }
-
-    isSubmittingRef.current = true;
-    setIsSubmitting(true);
-    setHasSaveFailure(false);
-
+  async function submitRecipe(draft: RecipeDraft): Promise<void> {
+    clearSaveFailure();
     try {
       await onSubmit(draft);
     } catch {
       setHasSaveFailure(true);
+    }
+  }
+
+  async function handleFormSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
+    event.preventDefault();
+    if (isSubmittingRef.current) {
+      return;
+    }
+    // Acquire before async validation, so two submissions cannot race.
+    isSubmittingRef.current = true;
+    try {
+      await handleSubmit(submitRecipe)(event);
     } finally {
       isSubmittingRef.current = false;
-      setIsSubmitting(false);
     }
   }
 
@@ -98,7 +67,7 @@ export function RecipeForm({
       aria-busy={isSubmitting}
       aria-label="Recipe details"
       className="flex w-full max-w-lg flex-col gap-lg"
-      onSubmit={handleSubmit}
+      onSubmit={handleFormSubmit}
       validationBehavior="aria"
     >
       {hasSaveFailure ? (
@@ -113,111 +82,77 @@ export function RecipeForm({
         </Alert>
       ) : null}
 
-      <TextField
-        isDisabled={isSubmitting}
-        isInvalid={errors.title !== undefined}
-        isRequired
+      <FormTextField
+        control={control}
         name="title"
-        onChange={(value) => handleFieldChange("title", value)}
-        value={draft.title}
-      >
-        <Label>Title</Label>
-        <Input
-          aria-errormessage={
-            errors.title === undefined ? undefined : titleErrorId
-          }
-          ref={titleInputRef}
-        />
-        <FieldError id={titleErrorId}>{errors.title}</FieldError>
-      </TextField>
-
-      <TextField
-        isDisabled={isSubmitting}
+        label="Title"
+        isRequired
+        onValueChange={clearSaveFailure}
+      />
+      <FormTextField
+        control={control}
         name="sourceUrl"
-        onChange={(value) => handleFieldChange("sourceUrl", value)}
-        value={draft.sourceUrl}
-      >
-        <Label>Source URL</Label>
-        <Input autoComplete="url" type="url" />
-      </TextField>
+        label="Source URL"
+        type="url"
+        autoComplete="url"
+        onValueChange={clearSaveFailure}
+      />
 
       <div className="grid grid-cols-1 gap-lg sm:grid-cols-3">
-        <TextField
-          isDisabled={isSubmitting}
-          isInvalid={errors.yieldServings !== undefined}
+        <FormTextField
+          control={control}
           name="yieldServings"
-          onChange={(value) => handleFieldChange("yieldServings", value)}
-          value={draft.yieldServings}
-        >
-          <Label>Yield</Label>
-          <Input
-            aria-errormessage={
-              errors.yieldServings === undefined ? undefined : yieldErrorId
-            }
-            min={1}
-            ref={yieldInputRef}
-            step={1}
-            type="number"
-          />
-          <FieldError id={yieldErrorId}>{errors.yieldServings}</FieldError>
-        </TextField>
-
-        <TextField
-          isDisabled={isSubmitting}
-          isInvalid={errors.totalTimeText !== undefined}
+          label="Yield"
+          type="number"
+          min={1}
+          step={1}
+          onValueChange={clearSaveFailure}
+        />
+        <FormTextField
+          control={control}
           name="totalTimeText"
-          onChange={(value) => handleFieldChange("totalTimeText", value)}
-          value={draft.totalTimeText}
-        >
-          <Label>Total cook time</Label>
-          <Input
-            aria-errormessage={
-              errors.totalTimeText === undefined ? undefined : totalTimeErrorId
-            }
-            ref={totalTimeInputRef}
-          />
-          <Description>For example: 80 min or 1 hr 20 min.</Description>
-          <FieldError id={totalTimeErrorId}>{errors.totalTimeText}</FieldError>
-        </TextField>
-
-        <TextField
-          isDisabled={isSubmitting}
-          isInvalid={errors.caloriesPerServing !== undefined}
+          label="Total cook time"
+          description="For example: 80 min or 1 hr 20 min."
+          onValueChange={clearSaveFailure}
+        />
+        <FormTextField
+          control={control}
           name="caloriesPerServing"
-          onChange={(value) => handleFieldChange("caloriesPerServing", value)}
-          value={draft.caloriesPerServing}
-        >
-          <Label>Calories per serving</Label>
-          <Input
-            aria-errormessage={
-              errors.caloriesPerServing === undefined
-                ? undefined
-                : caloriesErrorId
-            }
-            min={0}
-            ref={caloriesInputRef}
-            step={1}
-            type="number"
-          />
-          <FieldError id={caloriesErrorId}>
-            {errors.caloriesPerServing}
-          </FieldError>
-        </TextField>
+          label="Calories per serving"
+          type="number"
+          min={0}
+          step={1}
+          onValueChange={clearSaveFailure}
+        />
       </div>
 
-      <TextField
-        isDisabled={isSubmitting}
+      <Controller
+        control={control}
+        name="ingredients"
+        render={({ field }) => (
+          <IngredientRows
+            rows={field.value}
+            onChange={(rows) => {
+              field.onChange(rows);
+              clearSaveFailure();
+            }}
+            isDisabled={isSubmitting}
+          />
+        )}
+      />
+
+      <FormTextField
+        control={control}
         name="directions"
-        onChange={(value) => handleFieldChange("directions", value)}
-        value={draft.directions}
-      >
-        <Label>Directions</Label>
-        <TextArea rows={6} />
-      </TextField>
+        label="Directions"
+        multiline
+        rows={6}
+        onValueChange={clearSaveFailure}
+      />
 
       <div className="flex gap-sm">
         <Button
-          isDisabled={isSubmitting}
+          isDisabled={isSubmitting || title.trim().length === 0}
           isPending={isSubmitting}
           type="submit"
           variant="primary"
