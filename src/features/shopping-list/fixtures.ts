@@ -83,5 +83,5 @@ export function plan(
   rootIds: readonly string[],
   items: readonly ShoppingPlanItem[],
 ): ShoppingPlan {
-  return { id, name, color, rootIds, items, buckets: [] };
+  return { id, name, color, changeable: true, rootIds, items, buckets: [] };
 }

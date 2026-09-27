@@ -6,7 +6,12 @@ import { BASIL, plan, seedItem, SUGAR } from "./fixtures";
 import { ShoppingRegions } from "./index";
 import { buildShoppingList, ShoppingList } from "./model";
 
-const WEEKNIGHTS = { id: "7", name: "Weeknights", color: "#F57F17" };
+const WEEKNIGHTS = {
+  id: "7",
+  name: "Weeknights",
+  color: "#F57F17",
+  changeable: true,
+};
 
 function renderList(list: ShoppingList, cache = buildInMemoryCache()) {
   render(

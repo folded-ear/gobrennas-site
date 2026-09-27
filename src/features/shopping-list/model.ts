@@ -85,7 +85,12 @@ export function buildShoppingList(
   >();
 
   for (const plan of plans) {
-    const directoryPlan = { id: plan.id, name: plan.name, color: plan.color };
+    const directoryPlan = {
+      id: plan.id,
+      name: plan.name,
+      color: plan.color,
+      changeable: plan.changeable,
+    };
     for (const item of plan.items) {
       const ingredient = item.ingredient;
       // A leaf with a recipe for its ingredient is a section header.

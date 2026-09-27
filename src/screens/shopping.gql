@@ -6,6 +6,13 @@ query Shopping {
       color
       mine
       ...planPickerPlan @unmask
+      grants {
+        level
+        user {
+          id
+          me
+        }
+      }
       buckets {
         id
         date

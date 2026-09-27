@@ -177,6 +177,7 @@ const HOLIDAYS_PLAN = {
   name: "Holidays",
   color: "#F57F17",
   mine: true,
+  grants: [],
   descendants: THANKSGIVING,
   buckets: [SEP_12],
 };
@@ -328,6 +329,7 @@ describe("PlanTimeline, several plans", () => {
         name: "Weeknights",
         color: "#1E88E5",
         mine: true,
+        grants: [],
         descendants: WEEKNIGHTS_ITEMS,
         buckets: [WEEKNIGHTS_SEP_12],
       },
@@ -644,6 +646,7 @@ describe("PlanTimeline, plan indicators", () => {
     name: "Thanksgiving",
     color: "#F57F17",
     mine: true,
+    grants: [],
     descendants: apartItems(SEP_11.id),
     buckets: [SEP_11, SEP_12, SEP_13, PREP, SAUCES],
   };
@@ -652,6 +655,7 @@ describe("PlanTimeline, plan indicators", () => {
     name: "Weeknights",
     color: "#1E88E5",
     mine: true,
+    grants: [],
     descendants: [],
     buckets: [],
   };

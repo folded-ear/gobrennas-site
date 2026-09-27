@@ -79,6 +79,7 @@ function plan(
     id,
     name: `Plan ${id}`,
     color: "#F57F17",
+    changeable: true,
     rootIds,
     items,
     buckets: [],
@@ -381,7 +382,12 @@ describe("buildShoppingList", () => {
       "Spag sauce",
       "Dinner",
     ]);
-    expect(source.plan).toEqual({ id: "1", name: "Plan 1", color: "#F57F17" });
+    expect(source.plan).toEqual({
+      id: "1",
+      name: "Plan 1",
+      color: "#F57F17",
+      changeable: true,
+    });
   });
 });
 

@@ -5,6 +5,7 @@ import {
   buildPlanDirectory,
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
+import { canChangePlan } from "@/features/plan-dnd/moves";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { ShoppingRegions } from "@/features/shopping-list";
@@ -38,6 +39,7 @@ export function Shopping() {
           id: plan.id,
           name: plan.name,
           color: plan.color,
+          changeable: canChangePlan(plan),
           rootIds: plan.children.map((it) => it.id),
           items: plan.descendants,
           buckets: plan.buckets,

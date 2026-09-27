@@ -1,5 +1,6 @@
 "use client";
 
+import { canChangePlan, PlanAccess } from "@/features/plan-dnd/moves";
 import { orderPlans } from "@/lib/plans";
 import { createContext, PropsWithChildren, useContext } from "react";
 
@@ -8,14 +9,16 @@ export type DirectoryPlan = {
   readonly id: string;
   readonly name: string;
   readonly color: string;
+  /** Whether the viewer may change my items. */
+  readonly changeable: boolean;
 };
 
 /** A plan and what it holds, as a directory is built from. */
-export type DirectorySource = DirectoryPlan & {
-  readonly mine: boolean;
-  readonly descendants: readonly { readonly id: string }[];
-  readonly buckets: readonly { readonly id: string }[];
-};
+export type DirectorySource = Omit<DirectoryPlan, "changeable"> &
+  PlanAccess & {
+    readonly descendants: readonly { readonly id: string }[];
+    readonly buckets: readonly { readonly id: string }[];
+  };
 
 /** Which plan each item and bucket belongs to, among the plans available. */
 export type PlanDirectory = {
@@ -43,8 +46,9 @@ export function buildPlanDirectory(
   const plans: DirectoryPlan[] = [];
   const planOfItem = new Map<string, DirectoryPlan>();
   const planOfBucket = new Map<string, DirectoryPlan>();
-  for (const { id, name, color, descendants, buckets } of orderPlans(sources)) {
-    const plan = { id, name, color };
+  for (const source of orderPlans(sources)) {
+    const { id, name, color, descendants, buckets } = source;
+    const plan = { id, name, color, changeable: canChangePlan(source) };
     plans.push(plan);
     for (const item of descendants) planOfItem.set(item.id, plan);
     for (const bucket of buckets) planOfBucket.set(bucket.id, plan);

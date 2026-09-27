@@ -16,8 +16,14 @@ const WEEKNIGHTS: DirectoryPlan = {
   id: "7",
   name: "Weeknights",
   color: "#F57F17",
+  changeable: true,
 };
-const PARTY: DirectoryPlan = { id: "9", name: "Party", color: "#1E88E5" };
+const PARTY: DirectoryPlan = {
+  id: "9",
+  name: "Party",
+  color: "#1E88E5",
+  changeable: true,
+};
 
 const SUGAR: PlanItemFragment = {
   __typename: "PlanItem",

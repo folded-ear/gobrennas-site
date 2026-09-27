@@ -1,3 +1,4 @@
+import { AccessLevel } from "@/__generated__/graphql";
 import { renderHook } from "@/test";
 import { PropsWithChildren } from "react";
 import { describe, expect, it } from "vitest";
@@ -16,6 +17,7 @@ const NEIGHBOR: DirectorySource = {
   name: "Neighborhood potluck",
   color: "#1E88E5",
   mine: false,
+  grants: [],
   descendants: [{ id: "31" }],
   buckets: [{ id: "b3" }],
 };
@@ -24,6 +26,7 @@ const WEEKNIGHTS: DirectorySource = {
   name: "Weeknights",
   color: "#F57F17",
   mine: true,
+  grants: [],
   descendants: [{ id: "11" }, { id: "12" }],
   buckets: [{ id: "b1" }],
 };
@@ -39,6 +42,24 @@ function within(plans: readonly DirectorySource[]) {
   };
 }
 
+describe("buildPlanDirectory", () => {
+  it("says which plans the viewer may change", () => {
+    const shared: DirectorySource = {
+      ...NEIGHBOR,
+      id: "4",
+      grants: [{ level: AccessLevel.CHANGE, user: { me: true } }],
+    };
+
+    const { plans } = buildPlanDirectory([NEIGHBOR, WEEKNIGHTS, shared]);
+
+    expect(plans.map((it) => [it.name, it.changeable])).toEqual([
+      ["Weeknights", true],
+      ["Neighborhood potluck", false],
+      ["Neighborhood potluck", true],
+    ]);
+  });
+});
+
 describe("useItemPlan", () => {
   it("gives the plan an item belongs to", () => {
     const { result } = renderHook(() => useItemPlan("12"), {
@@ -49,6 +70,7 @@ describe("useItemPlan", () => {
       id: "1",
       name: "Weeknights",
       color: "#F57F17",
+      changeable: true,
     });
   });
 
