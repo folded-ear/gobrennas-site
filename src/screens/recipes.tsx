@@ -36,6 +36,7 @@ export function Recipes() {
             selectionMode="single"
             selectedIds={planIds}
             onChange={setPlanIds}
+            hideSingleName
           />
           <Link
             href="/recipes/new"

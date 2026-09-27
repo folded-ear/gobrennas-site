@@ -16,6 +16,7 @@ type PlanPickerProps = {
   selectionMode: SelectionMode;
   selectedIds: readonly string[];
   onChange: (ids: string[]) => void;
+  hideSingleName?: boolean;
 };
 
 type AvatarGroupProps = {
@@ -88,6 +89,7 @@ export function PlanPicker({
   selectionMode,
   selectedIds,
   onChange,
+  hideSingleName,
 }: PlanPickerProps) {
   if (plans.length < 2) return null;
 
@@ -124,7 +126,14 @@ export function PlanPicker({
             ) : null}
             <AvatarGroup label="Shared Plans" plans={selectedShared} />
             {selected.length === 1 ? (
-              <span className="truncate">{selected[0].name}</span>
+              <span
+                className={clsx("truncate", {
+                  hidden: hideSingleName,
+                  "sm:block": hideSingleName,
+                })}
+              >
+                {selected[0].name}
+              </span>
             ) : null}
           </span>
         </Select.Value>
