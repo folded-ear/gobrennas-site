@@ -108,9 +108,9 @@
   --warning: oklch(78.19% 0.159 47.31);
   --warning-foreground: oklch(21.03% 0.0059 47.31);
 
-  --status-needed: var(--default);
-  --status-needed-foreground: var(--muted);
-  --status-acquired: oklch(86.03% 0.1541 114.06);
+  --status-needed: oklch(94% 0.0015 45.29);
+  --status-needed-foreground: oklch(0.761 0.006 17.282);
+  --status-acquired: oklch(0.856 0.189 114.999);
   --status-acquired-foreground: oklch(21.03% 0.0059 114.06);
   --status-completed: oklch(52% 0.17 145);
   --status-completed-foreground: oklch(99.11% 0 0);
@@ -160,8 +160,8 @@
   --warning: oklch(82.03% 0.1392 51.32);
   --warning-foreground: oklch(21.03% 0.0059 51.32);
 
-  --status-needed: var(--default);
-  --status-needed-foreground: var(--muted);
+  --status-needed: oklch(0.39 0.004 17.331);
+  --status-needed-foreground: oklch(70.5% 0.003 45.29);
   --status-acquired: oklch(90% 0.15 114.06);
   --status-acquired-foreground: oklch(21.03% 0.0059 114.06);
   --status-completed: oklch(62% 0.17 145);

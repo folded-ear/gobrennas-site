@@ -45,7 +45,7 @@ export function CancelPendingButton({
       onPress={() => queue.cancel(itemId)}
       size="sm"
     >
-      {look.undo}
+      Wait, no!
     </Button>
   );
 }
@@ -66,7 +66,10 @@ export function DeleteButton({ itemId, planId }: RemovalButtonProps) {
     <ControlTooltip label={look.action}>
       <Button
         aria-label={actionLabel(look.action, item.name)}
-        className={clsx(LINE_CONTROL_CLASS_NAME, "text-status-deleted")}
+        className={clsx(
+          LINE_CONTROL_CLASS_NAME,
+          "text-status-deleted hover:bg-status-deleted hover:text-status-deleted-foreground",
+        )}
         isDisabled={item.inert || item.pendingStatus !== null}
         isIconOnly
         onPress={() =>
