@@ -21,6 +21,14 @@
   --color-secondary: var(--default);
   --color-secondary-foreground: var(--default-foreground);
 
+  /* Plan item statuses. NEEDED is the theme's own `muted`. */
+  --color-status-acquired: var(--status-acquired);
+  --color-status-acquired-foreground: var(--status-acquired-foreground);
+  --color-status-completed: var(--status-completed);
+  --color-status-completed-foreground: var(--status-completed-foreground);
+  --color-status-deleted: var(--status-deleted);
+  --color-status-deleted-foreground: var(--status-deleted-foreground);
+
   --spacing-none: 0px;
   --spacing-xxs: 2px;
   --spacing-xs: 4px;
@@ -98,6 +106,13 @@
   --warning: oklch(78.19% 0.159 47.31);
   --warning-foreground: oklch(21.03% 0.0059 47.31);
 
+  --status-acquired: oklch(58% 0.11 115);
+  --status-acquired-foreground: oklch(99.11% 0 0);
+  --status-completed: oklch(52% 0.17 145);
+  --status-completed-foreground: oklch(99.11% 0 0);
+  --status-deleted: oklch(52% 0.2 27);
+  --status-deleted-foreground: oklch(99.11% 0 0);
+
   /* Border Radius */
   --radius: 0.5rem;
   --field-radius: 0.125rem;
@@ -140,6 +155,13 @@
   --surface-tertiary-foreground: oklch(99.11% 0.0015 45.29);
   --warning: oklch(82.03% 0.1392 51.32);
   --warning-foreground: oklch(21.03% 0.0059 51.32);
+
+  --status-acquired: oklch(72% 0.12 115);
+  --status-acquired-foreground: oklch(21.03% 0.0059 115);
+  --status-completed: oklch(62% 0.17 145);
+  --status-completed-foreground: oklch(99.11% 0 0);
+  --status-deleted: oklch(60% 0.2 27);
+  --status-deleted-foreground: oklch(99.11% 0 0);
 }
 
 @custom-variant dark (&:where(.dark, .dark *));

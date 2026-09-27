@@ -40,6 +40,14 @@ text/icons placed on top of that color, and most have a `-hover` and `-soft`
 variant generated automatically by HeroUI's theme layer via `color-mix()` —
 you don't need to define those yourself.
 
+### Plan item statuses
+
+`status-acquired`, `status-completed`, and `status-deleted` (each with a
+`-foreground` pair) are ours, not HeroUI's: `text-status-acquired`,
+`bg-status-deleted`, and so on. They color a plan item's status — olive
+for acquired, bold green for completed, bold red for deleted. A needed
+item has no token of its own; it uses the theme's `muted`.
+
 ### `primary` / `secondary` aliases
 
 HeroUI doesn't have `primary`/`secondary` tokens — it uses `accent` for the
