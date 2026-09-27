@@ -17,7 +17,9 @@ describe("DeleteButton", () => {
     );
 
     expect(
-      screen.getByRole("button", { name: "Undo delete: Pumpkin pie" }),
+      screen.getByRole("button", {
+        name: "Wait, no! Undo delete: Pumpkin pie",
+      }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Delete: Pumpkin pie" }),
@@ -33,7 +35,9 @@ describe("DeleteButton", () => {
     );
 
     await userEvent.click(
-      screen.getByRole("button", { name: "Undo delete: Pumpkin pie" }),
+      screen.getByRole("button", {
+        name: "Wait, no! Undo delete: Pumpkin pie",
+      }),
     );
 
     expect(
@@ -79,7 +83,9 @@ describe("CookedItButton", () => {
     );
     expect(onCooked).toHaveBeenCalledOnce();
     expect(
-      screen.getByRole("button", { name: "Undo cooked: Pumpkin pie" }),
+      screen.getByRole("button", {
+        name: "Wait, no! Undo cooked: Pumpkin pie",
+      }),
     ).toBeInTheDocument();
   });
 });

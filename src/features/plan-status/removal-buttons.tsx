@@ -19,6 +19,8 @@ type RemovalButtonProps = {
   readonly planId: string;
 };
 
+const CANCEL_TEXT = "Wait, no!";
+
 type CancelPendingButtonProps = {
   readonly itemId: string;
   readonly status: RemovalStatus;
@@ -39,13 +41,14 @@ export function CancelPendingButton({
   const look = REMOVAL_LOOKS[status];
   return (
     <Button
-      aria-label={actionLabel(look.undo, item.name)}
+      // What it says leads what it's called, so it can be asked for by sight.
+      aria-label={`${CANCEL_TEXT} ${actionLabel(look.undo, item.name)}`}
       className={clsx("h-xl shrink-0", look.pendingClassName)}
       isPending={item.savingStatus}
       onPress={() => queue.cancel(itemId)}
       size="sm"
     >
-      Wait, no!
+      {CANCEL_TEXT}
     </Button>
   );
 }

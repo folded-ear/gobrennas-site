@@ -275,10 +275,12 @@ describe("PlanItemDetail", () => {
     renderPieInDirectory([PIE.id, CRUST.id]);
 
     expect(
-      screen.getByRole("button", { name: "Undo cooked: Pumpkin pie" }),
+      screen.getByRole("button", {
+        name: "Wait, no! Undo cooked: Pumpkin pie",
+      }),
     ).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "Undo cooked: Pie crust" }),
+      screen.getByRole("button", { name: "Wait, no! Undo cooked: Pie crust" }),
     ).toBeVisible();
     expect(screen.queryByRole("link", { name: /^Cook / })).toBeNull();
   });

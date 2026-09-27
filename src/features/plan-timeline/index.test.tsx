@@ -280,7 +280,9 @@ describe("PlanTimeline, status", () => {
     renderWithStatus(true, "1");
 
     expect(
-      screen.getByRole("button", { name: "Undo cooked: Thanksgiving dinner" }),
+      screen.getByRole("button", {
+        name: "Wait, no! Undo cooked: Thanksgiving dinner",
+      }),
     ).toBeVisible();
     expect(
       screen.queryByRole("link", { name: "Cook Thanksgiving dinner" }),
