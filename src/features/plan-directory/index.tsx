@@ -1,7 +1,6 @@
 "use client";
 
-import { canChangePlan, PlanAccess } from "@/features/plan-dnd/moves";
-import { orderPlans } from "@/lib/plans";
+import { canChangePlan, orderPlans, PlanAccess } from "@/lib/plans";
 import { createContext, PropsWithChildren, useContext } from "react";
 
 /** A plan as its indicators show it. */

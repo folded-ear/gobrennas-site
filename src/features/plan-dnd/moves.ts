@@ -1,5 +1,3 @@
-import { AccessLevel } from "@/__generated__/graphql";
-
 /** Anything with an id and ordered child ids: a plan, or one of its items. */
 export type TreeSource = {
   readonly id: string;
@@ -31,19 +29,6 @@ export type BucketSummary = {
   readonly date: string | null;
   readonly name: string | null;
 };
-
-export type PlanAccess = {
-  readonly mine: boolean;
-  readonly grants: readonly {
-    readonly level: AccessLevel;
-    readonly user: { readonly me: boolean };
-  }[];
-};
-
-const CHANGING_LEVELS: ReadonlySet<AccessLevel> = new Set([
-  AccessLevel.CHANGE,
-  AccessLevel.ADMINISTER,
-]);
 
 /** I map plans and their items into who holds whom. */
 export function buildPlanTree(sources: readonly TreeSource[]): PlanTree {
@@ -276,12 +261,4 @@ export function bucketChangeFor(
     redundant:
       effective === null ? [] : redundantDescendants(tree, itemId, effective),
   };
-}
-
-/** I tell whether the viewer may change a plan's items. */
-export function canChangePlan(plan: PlanAccess): boolean {
-  return (
-    plan.mine ||
-    plan.grants.some((g) => g.user.me && CHANGING_LEVELS.has(g.level))
-  );
 }

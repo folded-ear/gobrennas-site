@@ -5,12 +5,11 @@ import {
   buildPlanDirectory,
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
-import { canChangePlan } from "@/features/plan-dnd/moves";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { ShoppingRegions } from "@/features/shopping-list";
 import { buildShoppingList } from "@/features/shopping-list/model";
-import { orderPlans } from "@/lib/plans";
+import { canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_SHOPPING_PLANS } from "@/lib/preferences";
 import { ShoppingDocument } from "@/screens/__generated__/shopping.generated";
 import { useSuspenseQuery } from "@apollo/client/react";

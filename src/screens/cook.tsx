@@ -1,7 +1,7 @@
 "use client";
 
-import { canChangePlan } from "@/features/plan-dnd/moves";
 import { CookedItButton, StatusButton } from "@/features/plan-status";
+import { canChangePlan } from "@/lib/plans";
 import { CookDocument } from "@/screens/__generated__/cook.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
