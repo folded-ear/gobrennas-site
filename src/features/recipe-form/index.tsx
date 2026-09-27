@@ -5,6 +5,7 @@ import { Alert, Button, Form, Spinner } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState, type FormEvent } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import type { RecognizeIngredient } from "./ingredient-recognition";
 import { IngredientRows } from "./ingredient-rows";
 import { recipeDraftSchema, type RecipeDraft } from "./recipe-draft";
 
@@ -12,16 +13,19 @@ type RecipeFormProps = {
   initialDraft: RecipeDraft;
   onSubmit: (draft: RecipeDraft) => Promise<void>;
   onCancel: () => void;
+  recognizeIngredient: RecognizeIngredient;
 };
 
 export function RecipeForm({
   initialDraft,
   onSubmit,
   onCancel,
+  recognizeIngredient,
 }: RecipeFormProps) {
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { isSubmitting },
   } = useForm<RecipeDraft>({
     defaultValues: initialDraft,
@@ -132,9 +136,14 @@ export function RecipeForm({
         render={({ field }) => (
           <IngredientRows
             rows={field.value}
-            onChange={(rows) => {
-              field.onChange(rows);
-              clearSaveFailure();
+            recognize={recognizeIngredient}
+            onChange={(rows, source) => {
+              field.onChange(
+                typeof rows === "function"
+                  ? rows(getValues("ingredients"))
+                  : rows,
+              );
+              if (source !== "recognition") clearSaveFailure();
             }}
             isDisabled={isSubmitting}
           />

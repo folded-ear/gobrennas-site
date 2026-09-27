@@ -49,6 +49,11 @@ without leaving the Library behind.
   and creates one row per nonblank line. Focus moves to the last pasted row.
 - Blank ingredient rows are omitted when saving. Populated rows preserve their
   raw text and order; ingredient recognition is not required.
+- Editing or focusing an ingredient runs recognition after a brief pause and
+  shows a labeled preview. Saving includes current recognized details when
+  available and preserves raw text when recognition is pending or fails. See
+  [ingredient recognition](ingredient-recognition.md) for text conventions and
+  request behavior.
 - Canceling create returns to the Library without creating a recipe.
 
 ### Saving
@@ -78,3 +83,4 @@ without leaving the Library behind.
 ## Related documents
 
 - [Navigation](navigation.md)
+- [Ingredient recognition](ingredient-recognition.md)

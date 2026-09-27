@@ -22,6 +22,7 @@ function renderRecipeForm(
   render(
     <RecipeForm
       initialDraft={INITIAL_DRAFT}
+      recognizeIngredient={async (raw, cursor) => ({ raw, cursor, ranges: [] })}
       onCancel={onCancel}
       onSubmit={onSubmit}
     />,

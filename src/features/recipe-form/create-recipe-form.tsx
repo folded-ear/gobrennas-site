@@ -1,8 +1,14 @@
 "use client";
 
 import { useApolloClient, useMutation } from "@apollo/client/react";
+import { useCallback } from "react";
 import { CreateRecipeDocument } from "./__generated__/createRecipe.generated";
+import { RecognizeIngredientDocument } from "./__generated__/recognizeIngredient.generated";
 import { RecipeForm } from "./index";
+import {
+  ingredientRecognitionSchema,
+  type RecognizeIngredient,
+} from "./ingredient-recognition";
 import {
   newRecipeDraft,
   toIngredientInfo,
@@ -20,6 +26,21 @@ export function CreateRecipeForm({
 }: CreateRecipeFormProps) {
   const client = useApolloClient();
   const [createRecipe] = useMutation(CreateRecipeDocument);
+
+  const recognizeIngredient = useCallback<RecognizeIngredient>(
+    async (raw, cursor, signal) => {
+      const result = await client.query({
+        query: RecognizeIngredientDocument,
+        variables: { raw, cursor },
+        fetchPolicy: "no-cache",
+        context: { queryDeduplication: false, fetchOptions: { signal } },
+      });
+      return ingredientRecognitionSchema.parse(
+        result.data?.library.recognizeItem,
+      );
+    },
+    [client],
+  );
 
   async function submitRecipe(draft: RecipeDraft): Promise<void> {
     const result = await createRecipe({
@@ -39,6 +60,7 @@ export function CreateRecipeForm({
     <RecipeForm
       initialDraft={newRecipeDraft()}
       onSubmit={submitRecipe}
+      recognizeIngredient={recognizeIngredient}
       onCancel={onCancel}
     />
   );
