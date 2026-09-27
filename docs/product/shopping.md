@@ -48,6 +48,18 @@ The terms used here are defined in the [domain model](../domain/model.md).
   it in.
 - Shopping items in each region are in store order, then by name.
 
+### Checking items off
+
+- Each shopping item, and each plan item with no ingredient, shows its
+  status: a gray circle in Needed, an olive check in Acquired.
+- A user who can change the plans behind a shopping item can press its
+  status to mark every one of its plan items acquired, or, in Acquired,
+  needed again. Plan items with a zero quantity are changed too.
+- Each plan item listed under an expanded shopping item has a status of
+  its own, which switches just that plan item.
+- A change saves at once, and the status shows it is saving until it has.
+  There is no undo, and nothing can be deleted from the shopping list.
+
 ### Expanding a shopping item
 
 - Choosing a shopping item expands it in place, listing every plan item
@@ -73,7 +85,6 @@ and "2 Tbsp sugar" under the iced tea.
 
 ## Not included
 
-- Checking items off.
 - Collapsing the Acquired region.
 - Reordering ingredients to set their store order.
 - Adding items that aren't on a plan.

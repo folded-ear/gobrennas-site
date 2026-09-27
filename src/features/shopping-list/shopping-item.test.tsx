@@ -14,8 +14,14 @@ const WEEKNIGHTS: DirectoryPlan = {
   id: "7",
   name: "Weeknights",
   color: "#F57F17",
+  changeable: true,
 };
-const PARTY: DirectoryPlan = { id: "9", name: "Party", color: "#1E88E5" };
+const PARTY: DirectoryPlan = {
+  id: "9",
+  name: "Party",
+  color: "#1E88E5",
+  changeable: true,
+};
 
 function directoryOf(plans: readonly DirectoryPlan[]): PlanDirectory {
   return { plans, planOfItem: new Map(), planOfBucket: new Map() };
@@ -102,7 +108,7 @@ function renderRow(
 ) {
   render(
     <PlanDirectoryProvider directory={directoryOf(plans)}>
-      <ShoppingItemRow item={item} />
+      <ShoppingItemRow item={item} status={PlanItemStatus.NEEDED} />
     </PlanDirectoryProvider>,
     { cache },
   );
@@ -113,10 +119,19 @@ describe("ShoppingItemRow", () => {
     const cache = buildInMemoryCache();
     renderRow(cache, sugar(cache), [WEEKNIGHTS, PARTY]);
 
-    const trigger = screen.getByRole("button", { name: /sugar/ });
+    const trigger = screen.getByRole("button", { name: /^sugar/ });
     expect(within(trigger).getByText("sugar")).toBeVisible();
     expect(within(trigger).getByText("(1 tsp)")).toBeVisible();
     expect(within(trigger).queryByText(/Tbsp/)).toBeNull();
+  });
+
+  it("offers to acquire every plan item behind it at once", () => {
+    const cache = buildInMemoryCache();
+    renderRow(cache, sugar(cache), [WEEKNIGHTS, PARTY]);
+
+    expect(
+      screen.getByRole("button", { name: "Mark acquired: sugar" }),
+    ).toBeVisible();
   });
 
   it("reads as body text, not a heading", () => {
@@ -130,7 +145,7 @@ describe("ShoppingItemRow", () => {
     const cache = buildInMemoryCache();
     renderRow(cache, basil(cache), [WEEKNIGHTS]);
 
-    const trigger = screen.getByRole("button", { name: /basil/ });
+    const trigger = screen.getByRole("button", { name: /^basil/ });
     expect(trigger).toHaveTextContent(/^basil$/);
   });
 
@@ -140,7 +155,7 @@ describe("ShoppingItemRow", () => {
 
     expect(screen.queryByText("1 tsp sugar")).not.toBeVisible();
 
-    await userEvent.click(screen.getByRole("button", { name: /sugar/ }));
+    await userEvent.click(screen.getByRole("button", { name: /^sugar/ }));
 
     expect(screen.getByText("1 tsp sugar")).toBeVisible();
     expect(screen.getByText("2 T sugar")).toBeVisible();

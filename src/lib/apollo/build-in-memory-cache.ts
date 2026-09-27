@@ -1,5 +1,5 @@
 import { possibleTypes } from "@/lib/apollo/possible-types";
-import { defaultDataIdFromObject } from "@apollo/client";
+import { defaultDataIdFromObject, Reference } from "@apollo/client";
 import { InMemoryCache } from "@apollo/client-integration-nextjs";
 import { relayStylePagination } from "@apollo/client/utilities";
 
@@ -24,6 +24,29 @@ export function buildInMemoryCache() {
         fields: {
           recipes: relayStylePagination(["scope", "query"]),
           suggestRecipesToCook: relayStylePagination(false),
+        },
+      },
+      // Status state is local (schema-local.graphql); it reads as settled
+      // until the status queue writes otherwise.
+      PlanItem: {
+        fields: {
+          pendingStatus: {
+            read: (existing) => existing ?? null,
+          },
+          savingStatus: {
+            read: (existing) => existing ?? false,
+          },
+          inert: {
+            read(_, { readField }) {
+              let parent = readField<Reference>("parent");
+              // A plan has no parent, so the walk ends there.
+              while (parent) {
+                if (readField("pendingStatus", parent)) return true;
+                parent = readField<Reference>("parent", parent);
+              }
+              return false;
+            },
+          },
         },
       },
       UserPreference: {

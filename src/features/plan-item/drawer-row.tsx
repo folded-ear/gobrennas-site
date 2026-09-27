@@ -9,8 +9,14 @@ import { PlanTree, TreeMove } from "@/features/plan-dnd/moves";
 import { treeZones } from "@/features/plan-dnd/tree-zones";
 import { TREE_ZONES } from "@/features/plan-dnd/zones";
 import { PlanItem } from "@/features/plan-item";
+import {
+  DeleteButton,
+  StatusButton,
+  useItemStatusClassName,
+} from "@/features/plan-status";
 import { PlanContext } from "@/features/plan-timeline/context";
 import { PlanItemNode } from "@/features/plan-timeline/model";
+import clsx from "clsx";
 import { DateChip } from "./chips";
 import { CookLink } from "./cook-link";
 
@@ -63,6 +69,7 @@ export function DrawerRow({
     <DragHandle itemId={id} name={name} isFixed />
   ) : null;
 
+  const statusClassName = useItemStatusClassName(id);
   const own = context.get(id);
   // My own day is what the item screen cannot otherwise show: nothing here
   // stands under a date the way a timeline row does.
@@ -71,15 +78,26 @@ export function DrawerRow({
 
   return (
     <ItemRow itemId={id} name={name} zones={zones} lead={lead}>
-      <PlanItem item={node.item} />
+      {plan !== undefined ? (
+        <StatusButton
+          itemId={id}
+          planId={plan.id}
+          canChange={plan.changeable}
+        />
+      ) : null}
+      {/* Names and chips give way before a row runs off its edge. */}
+      <span className={clsx("min-w-0", statusClassName)}>
+        <PlanItem item={node.item} />
+      </span>
       {plan !== undefined && node.item.children.length > 0 ? (
         <CookLink planId={plan.id} itemId={id} name={name} />
       ) : null}
-      {apartOn !== null ? (
-        <span className="ms-auto">
+      <span className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-xs">
+        {apartOn !== null ? (
           <DateChip date={apartOn} separation={own?.separation} />
-        </span>
-      ) : null}
+        ) : null}
+      </span>
+      {plan?.changeable ? <DeleteButton itemId={id} planId={plan.id} /> : null}
     </ItemRow>
   );
 }

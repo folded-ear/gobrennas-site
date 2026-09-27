@@ -132,6 +132,10 @@ export default function Sandbox() {
           <Swatch name="danger" className="bg-danger" />
           <Swatch name="border" className="bg-border" />
           <Swatch name="muted" className="bg-muted" />
+          <Swatch name="status-needed" className="bg-status-needed" />
+          <Swatch name="status-acquired" className="bg-status-acquired" />
+          <Swatch name="status-completed" className="bg-status-completed" />
+          <Swatch name="status-deleted" className="bg-status-deleted" />
         </Demo>
 
         <Demo label="Typography scale (Figtree)">

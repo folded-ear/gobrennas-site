@@ -7,7 +7,7 @@ import {
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
-import { buildPlanTree, canChangePlan } from "@/features/plan-dnd/moves";
+import { buildPlanTree } from "@/features/plan-dnd/moves";
 import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
 import { PlanSectionHeader } from "@/features/plan-item/section-header";
@@ -22,7 +22,7 @@ import {
 import { sectionLabel } from "@/features/plan-timeline/section-label";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
 import { useHistoryState } from "@/hooks/use-history-state";
-import { orderPlans } from "@/lib/plans";
+import { canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
@@ -169,7 +169,7 @@ export function Planner() {
         ) : null}
       </Screen>
 
-      <div className="p-md">
+      <div className="p-md bg-surface">
         {shownPlans.length > 0 ? (
           <PlanTimeline
             plans={timelinePlans}

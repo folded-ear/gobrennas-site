@@ -24,3 +24,12 @@ extend type Query {
 extend type Mutation {
   deviceKey: String!
 }
+
+extend type PlanItem {
+  "A COMPLETED or DELETED status waiting to be sent, if any."
+  pendingStatus: PlanItemStatus
+  "Whether a status change is being saved."
+  savingStatus: Boolean!
+  "Whether an ancestor has a pending status, so nothing can be done to me."
+  inert: Boolean!
+}

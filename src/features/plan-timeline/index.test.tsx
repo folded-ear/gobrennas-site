@@ -15,6 +15,7 @@ import {
 } from "@/features/plan-dnd/test/dnd-harness";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
+import { markPending } from "@/features/plan-status/test/status-cache";
 import {
   buildInMemoryCache,
   render,
@@ -177,6 +178,7 @@ const HOLIDAYS_PLAN = {
   name: "Holidays",
   color: "#F57F17",
   mine: true,
+  grants: [],
   descendants: THANKSGIVING,
   buckets: [SEP_12],
 };
@@ -239,6 +241,61 @@ describe("PlanTimeline, cooking", () => {
 
     expect(screen.getByText("Thanksgiving dinner")).toBeVisible();
     expect(screen.queryByRole("link", { name: /^Cook / })).toBeNull();
+  });
+});
+
+describe("PlanTimeline, status", () => {
+  function renderWithStatus(mine: boolean, cookedId?: string) {
+    const cache = buildInMemoryCache();
+    seedItems(cache, THANKSGIVING, "7");
+    if (cookedId) markPending(cache, cookedId, PlanItemStatus.COMPLETED);
+    return render(
+      <PlanDirectoryProvider
+        directory={buildPlanDirectory([{ ...HOLIDAYS_PLAN, mine }])}
+      >
+        <PlanTimeline
+          plans={[
+            { rootIds: ROOT_IDS, items: THANKSGIVING, buckets: [SEP_12] },
+          ]}
+        />
+      </PlanDirectoryProvider>,
+      { cache },
+    );
+  }
+
+  it("offers to acquire or delete an item of a plan the viewer can change", () => {
+    renderWithStatus(true);
+
+    expect(
+      screen.getByRole("button", {
+        name: "Mark acquired: Thanksgiving dinner",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Delete: Thanksgiving dinner" }),
+    ).toBeVisible();
+  });
+
+  it("offers to undo a cooking in place of its cook link", () => {
+    renderWithStatus(true, "1");
+
+    expect(
+      screen.getByRole("button", {
+        name: "Wait, no! Undo cooked: Thanksgiving dinner",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: "Cook Thanksgiving dinner" }),
+    ).toBeNull();
+  });
+
+  it("only shows the status of an item of someone else's plan", () => {
+    renderWithStatus(false);
+
+    expect(
+      screen.getAllByRole("img", { name: "Needed" }).length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: /^Delete: / })).toBeNull();
   });
 });
 
@@ -328,6 +385,7 @@ describe("PlanTimeline, several plans", () => {
         name: "Weeknights",
         color: "#1E88E5",
         mine: true,
+        grants: [],
         descendants: WEEKNIGHTS_ITEMS,
         buckets: [WEEKNIGHTS_SEP_12],
       },
@@ -644,6 +702,7 @@ describe("PlanTimeline, plan indicators", () => {
     name: "Thanksgiving",
     color: "#F57F17",
     mine: true,
+    grants: [],
     descendants: apartItems(SEP_11.id),
     buckets: [SEP_11, SEP_12, SEP_13, PREP, SAUCES],
   };
@@ -652,6 +711,7 @@ describe("PlanTimeline, plan indicators", () => {
     name: "Weeknights",
     color: "#1E88E5",
     mine: true,
+    grants: [],
     descendants: [],
     buckets: [],
   };

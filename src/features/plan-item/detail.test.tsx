@@ -15,6 +15,7 @@ import {
   queryDropZone,
 } from "@/features/plan-dnd/test/dnd-harness";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
+import { markPending } from "@/features/plan-status/test/status-cache";
 import {
   buildPlanContext,
   PlanContext,
@@ -183,6 +184,48 @@ function renderCrustOpen(onSelect?: (id: string) => void) {
   );
 }
 
+function renderPieInDirectory(cookedIds: readonly string[] = []) {
+  const cache = buildInMemoryCache();
+  const pie = seedFragment(
+    cache,
+    PlanItemFragmentDoc,
+    "planItem",
+    fragment(PIE, null),
+  );
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(FILLING, null));
+  for (const id of cookedIds) {
+    markPending(cache, id, PlanItemStatus.COMPLETED);
+  }
+  render(
+    <PlanDirectoryProvider
+      directory={buildPlanDirectory([
+        {
+          id: "7",
+          name: "Holidays",
+          color: "#F57F17",
+          mine: true,
+          grants: [],
+          descendants: [PIE, CRUST, FILLING],
+          buckets: [],
+        },
+      ])}
+    >
+      <Detail
+        item={pie}
+        context={planContext()}
+        descendants={[
+          {
+            item: timelineItem(CRUST, [FILLING.id]),
+            children: [node(FILLING)],
+          },
+        ]}
+      />
+    </PlanDirectoryProvider>,
+    { cache },
+  );
+}
+
 describe("PlanItemDetail", () => {
   it("names the item it is showing", () => {
     renderDetail(null, []);
@@ -203,46 +246,7 @@ describe("PlanItemDetail", () => {
   });
 
   it("offers to cook the item, and whatever below it has something below it", () => {
-    const cache = buildInMemoryCache();
-    const pie = seedFragment(
-      cache,
-      PlanItemFragmentDoc,
-      "planItem",
-      fragment(PIE, null),
-    );
-    seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
-    seedFragment(
-      cache,
-      PlanItemFragmentDoc,
-      "planItem",
-      fragment(FILLING, null),
-    );
-    render(
-      <PlanDirectoryProvider
-        directory={buildPlanDirectory([
-          {
-            id: "7",
-            name: "Holidays",
-            color: "#F57F17",
-            mine: true,
-            descendants: [PIE, CRUST, FILLING],
-            buckets: [],
-          },
-        ])}
-      >
-        <Detail
-          item={pie}
-          context={planContext()}
-          descendants={[
-            {
-              item: timelineItem(CRUST, [FILLING.id]),
-              children: [node(FILLING)],
-            },
-          ]}
-        />
-      </PlanDirectoryProvider>,
-      { cache },
-    );
+    renderPieInDirectory();
 
     expect(
       screen.getByRole("link", { name: "Cook Pie crust" }),
@@ -251,6 +255,34 @@ describe("PlanItemDetail", () => {
       screen.getByRole("link", { name: "Cook Pumpkin pie" }),
     ).toHaveAttribute("href", "/plan/7/recipe/42");
     expect(screen.queryByRole("link", { name: "Cook Pie filling" })).toBeNull();
+  });
+
+  it("offers to acquire or delete what sits below the item, but not the item", () => {
+    renderPieInDirectory();
+
+    expect(
+      screen.getByRole("button", { name: "Mark acquired: Pie filling" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Delete: Pie crust" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Delete: Pumpkin pie" }),
+    ).toBeNull();
+  });
+
+  it("offers to undo a cooking in place of its cook link, open or below", () => {
+    renderPieInDirectory([PIE.id, CRUST.id]);
+
+    expect(
+      screen.getByRole("button", {
+        name: "Wait, no! Undo cooked: Pumpkin pie",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Wait, no! Undo cooked: Pie crust" }),
+    ).toBeVisible();
+    expect(screen.queryByRole("link", { name: /^Cook / })).toBeNull();
   });
 
   it("shows nothing below the item when nothing is there", () => {
@@ -468,6 +500,7 @@ describe("PlanItemDetail, a section's items", () => {
         name: "Holidays",
         color: "#F57F17",
         mine: true,
+        grants: [],
         descendants: [PIE, CRUST, FILLING],
         buckets: [],
       },
@@ -476,6 +509,7 @@ describe("PlanItemDetail, a section's items", () => {
         name: "Weeknights",
         color: "#1E88E5",
         mine: true,
+        grants: [],
         descendants: [TACOS, SALSA],
         buckets: [],
       },

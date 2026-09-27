@@ -93,6 +93,22 @@ A plan is the root of a tree of plan items. A plan item may also participate in
 a separate aggregate/component relationship. Buckets group items within one
 plan and may give that group a name and date.
 
+An item's status follows this lifecycle. Completed and deleted items
+leave the plan, taking everything below them.
+
+```mermaid
+stateDiagram-v2
+  [*] --> NEEDED
+  NEEDED --> ACQUIRED
+  ACQUIRED --> NEEDED
+  NEEDED --> COMPLETED
+  ACQUIRED --> COMPLETED
+  NEEDED --> DELETED
+  ACQUIRED --> DELETED
+  COMPLETED --> [*]
+  DELETED --> [*]
+```
+
 The plan owner may grant one access level to each other user. Recipe history
 records when a recipe was planned and finished, who owns that history entry,
 and its resulting status.

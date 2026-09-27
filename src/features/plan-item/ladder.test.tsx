@@ -144,6 +144,7 @@ const HOLIDAYS_DIRECTORY = buildPlanDirectory([
     name: "Holidays",
     color: "#F57F17",
     mine: true,
+    grants: [],
     descendants: [
       { id: "thanksgiving" },
       { id: "dinner" },
@@ -260,6 +261,7 @@ describe("Ladder, plan indicators", () => {
         name: "Holidays",
         color: "#F57F17",
         mine: true,
+        grants: [],
         descendants: [
           { id: "thanksgiving" },
           { id: "dinner" },
@@ -273,6 +275,7 @@ describe("Ladder, plan indicators", () => {
         name: "Weeknights",
         color: "#1E88E5",
         mine: true,
+        grants: [],
         descendants: [],
         buckets: [],
       },

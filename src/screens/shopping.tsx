@@ -9,7 +9,7 @@ import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { ShoppingRegions } from "@/features/shopping-list";
 import { buildShoppingList } from "@/features/shopping-list/model";
-import { orderPlans } from "@/lib/plans";
+import { canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_SHOPPING_PLANS } from "@/lib/preferences";
 import { ShoppingDocument } from "@/screens/__generated__/shopping.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
@@ -38,6 +38,7 @@ export function Shopping() {
           id: plan.id,
           name: plan.name,
           color: plan.color,
+          changeable: canChangePlan(plan),
           rootIds: plan.children.map((it) => it.id),
           items: plan.descendants,
           buckets: plan.buckets,
@@ -57,7 +58,7 @@ export function Shopping() {
           onChange={setPlanIds}
         />
       </SectionHeader>
-      <div className="p-md">
+      <div className="p-md bg-surface">
         <ShoppingRegions list={list} />
       </div>
     </PlanDirectoryProvider>

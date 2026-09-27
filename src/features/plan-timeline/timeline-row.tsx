@@ -10,6 +10,11 @@ import { REORDER_ZONES } from "@/features/plan-dnd/zones";
 import { PlanItem } from "@/features/plan-item";
 import { DateChip, ParentChip } from "@/features/plan-item/chips";
 import { CookLink } from "@/features/plan-item/cook-link";
+import {
+  DeleteButton,
+  StatusButton,
+  useItemStatusClassName,
+} from "@/features/plan-status";
 import clsx from "clsx";
 import { PlanContext } from "./context";
 import { PlanItemNode } from "./model";
@@ -72,6 +77,7 @@ export function TimelineRow({
 
   const plan = useItemPlan(id);
   const showsPlan = useShowsPlanIndicators();
+  const statusClassName = useItemStatusClassName(id);
 
   const own = context.get(id);
   const apart = sectionRoot && own !== undefined ? own : null;
@@ -88,7 +94,17 @@ export function TimelineRow({
         {sectionRoot && showsPlan && plan ? (
           <PlanDot plan={plan} className="me-xxs" />
         ) : null}
-        <PlanItem item={node.item} onSelect={onSelect} />
+        {plan !== undefined ? (
+          <StatusButton
+            itemId={id}
+            planId={plan.id}
+            canChange={plan.changeable}
+          />
+        ) : null}
+        {/* Names and chips give way before a row runs off its edge. */}
+        <span className={clsx("min-w-0", statusClassName)}>
+          <PlanItem item={node.item} onSelect={onSelect} />
+        </span>
         {openId === id ? (
           // The bars say this to everyone who can see them.
           <span className="sr-only">, open in its screen</span>
@@ -96,16 +112,21 @@ export function TimelineRow({
         {plan !== undefined && node.item.children.length > 0 ? (
           <CookLink planId={plan.id} itemId={id} name={name} />
         ) : null}
-        {apart?.parent ? (
-          <span className="ms-auto flex items-center gap-xs">
-            <ParentChip name={apart.parent.name} />
-            {apart.parent.date !== null && apart.separation !== null ? (
-              <DateChip
-                date={apart.parent.date}
-                separation={apart.separation}
-              />
-            ) : null}
-          </span>
+        <span className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-xs">
+          {apart?.parent ? (
+            <>
+              <ParentChip name={apart.parent.name} />
+              {apart.parent.date !== null && apart.separation !== null ? (
+                <DateChip
+                  date={apart.parent.date}
+                  separation={apart.separation}
+                />
+              ) : null}
+            </>
+          ) : null}
+        </span>
+        {plan?.changeable ? (
+          <DeleteButton itemId={id} planId={plan.id} />
         ) : null}
       </ItemRow>
     </div>

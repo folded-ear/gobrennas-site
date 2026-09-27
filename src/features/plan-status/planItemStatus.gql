@@ -1,0 +1,8 @@
+fragment planItemStatus on PlanItem {
+  id
+  name
+  status
+  pendingStatus @client
+  savingStatus @client
+  inert @client
+}
