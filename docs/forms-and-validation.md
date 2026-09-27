@@ -56,6 +56,8 @@ person edits any field.
 
 Ingredient rows keep raw text and stable client identities in the draft. Blank
 rows are omitted at serialization; populated rows retain their text and order.
+The [ingredient recognition behavior](product/ingredient-recognition.md)
+defines scheduling, stale-response protection, and updates to derived row data.
 
 Test the draft factory, schema, and serializer as plain TypeScript, including
 optional blank-to-`null` behavior, numeric boundaries, duration grammar, and
