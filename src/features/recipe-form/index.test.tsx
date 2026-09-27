@@ -10,6 +10,7 @@ const INITIAL_DRAFT: RecipeDraft = {
   totalTimeText: "",
   caloriesPerServing: "",
   directions: "",
+  ingredients: [{ clientId: "initial-ingredient", raw: "" }],
 };
 
 function renderRecipeForm(
@@ -45,6 +46,37 @@ function createDeferred(): {
 }
 
 describe("RecipeForm", () => {
+  it("retains ingredient identities and text after failure and clears the alert on a row action", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi
+      .fn<(draft: RecipeDraft) => Promise<void>>()
+      .mockRejectedValueOnce(new Error("Request failed"))
+      .mockResolvedValueOnce(undefined);
+    renderRecipeForm(onSubmit);
+    await user.type(screen.getByRole("textbox", { name: "Title" }), "Bread");
+    const first = screen.getByRole("textbox", { name: "Ingredient 1" });
+    await user.type(first, "2 cups flour{Enter}1 tsp salt");
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Couldn’t save recipe",
+    );
+    expect(first).toHaveValue("2 cups flour");
+    expect(screen.getByRole("textbox", { name: "Ingredient 2" })).toHaveValue(
+      "1 tsp salt",
+    );
+    const submittedRows = onSubmit.mock.calls[0][0].ingredients;
+
+    await user.click(
+      screen.getByRole("button", { name: "Move ingredient 2 up" }),
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(2));
+    expect(onSubmit.mock.calls[1][0].ingredients).toEqual(
+      [...submittedRows].reverse(),
+    );
+  });
+
   it("renders the recipe fields and actions without premature errors", () => {
     renderRecipeForm();
 
@@ -75,7 +107,7 @@ describe("RecipeForm", () => {
     expect(caloriesInput).toHaveAttribute("min", "0");
     expect(caloriesInput).toHaveAttribute("step", "1");
     expect(screen.getByRole("textbox", { name: "Directions" })).toHaveValue("");
-    expect(screen.getByRole("button", { name: "Save recipe" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Save recipe" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
     expect(
       screen.queryByText("A recipe title is required."),
@@ -94,7 +126,7 @@ describe("RecipeForm", () => {
   });
 
   it.each(["", "   ", "\t\n "])(
-    "shows an accessible required-title error and focuses Title for whitespace-only input (%j)",
+    "disables Save recipe for a blank title (%j)",
     async (title) => {
       const user = userEvent.setup();
       const onSubmit = vi.fn<(draft: RecipeDraft) => Promise<void>>();
@@ -104,29 +136,28 @@ describe("RecipeForm", () => {
       if (title.length > 0) {
         await user.type(titleInput, title);
       }
-      await user.click(screen.getByRole("button", { name: "Save recipe" }));
+      const saveButton = screen.getByRole("button", { name: "Save recipe" });
+      expect(saveButton).toBeDisabled();
+      await user.click(saveButton);
+      await user.click(titleInput);
+      await user.keyboard("{Enter}");
 
       expect(onSubmit).not.toHaveBeenCalled();
-      expect(titleInput).toHaveFocus();
-      expect(titleInput).toHaveAccessibleErrorMessage(
-        "A recipe title is required.",
-      );
     },
   );
 
-  it("clears the title error as the person corrects the title", async () => {
+  it("enables Save recipe for a title and disables it again when cleared", async () => {
     const user = userEvent.setup();
     renderRecipeForm();
-
     const titleInput = screen.getByRole("textbox", { name: "Title" });
-    await user.click(screen.getByRole("button", { name: "Save recipe" }));
-    expect(titleInput).toHaveAccessibleErrorMessage(
-      "A recipe title is required.",
-    );
+    const saveButton = screen.getByRole("button", { name: "Save recipe" });
 
-    await user.type(titleInput, "Tomato soup");
-
-    expect(titleInput).not.toHaveAccessibleErrorMessage();
+    await user.type(titleInput, "  Tomato soup  ");
+    expect(saveButton).toBeEnabled();
+    await user.clear(titleInput);
+    expect(saveButton).toBeDisabled();
+    await user.type(titleInput, "   ");
+    expect(saveButton).toBeDisabled();
   });
 
   it("submits the complete controlled raw-string draft from Save recipe", async () => {
@@ -164,6 +195,7 @@ describe("RecipeForm", () => {
         totalTimeText: "1 hr 20 min",
         caloriesPerServing: "320",
         directions: "Bake until golden.",
+        ingredients: INITIAL_DRAFT.ingredients,
       });
     });
   });
@@ -188,6 +220,7 @@ describe("RecipeForm", () => {
         totalTimeText: "",
         caloriesPerServing: "",
         directions: "",
+        ingredients: [{ clientId: "initial-ingredient", raw: "" }],
       });
     });
   });
@@ -227,13 +260,13 @@ describe("RecipeForm", () => {
 
     expect(onSubmit).not.toHaveBeenCalled();
     expect(yieldInput).toHaveFocus();
-    expect(yieldInput).toHaveAccessibleErrorMessage(
+    expect(yieldInput).toHaveAccessibleDescription(
       "Enter a whole number of servings greater than 0.",
     );
-    expect(totalTimeInput).toHaveAccessibleErrorMessage(
-      "Enter a time in minutes or hours and minutes, like 80 min or 1 hr 20 min.",
+    expect(totalTimeInput).toHaveAccessibleDescription(
+      "For example: 80 min or 1 hr 20 min. Enter a time in minutes or hours and minutes, like 80 min or 1 hr 20 min.",
     );
-    expect(caloriesInput).toHaveAccessibleErrorMessage(
+    expect(caloriesInput).toHaveAccessibleDescription(
       "Enter calories as a whole number of 0 or more.",
     );
   });
@@ -261,11 +294,11 @@ describe("RecipeForm", () => {
     await user.clear(yieldInput);
     await user.type(yieldInput, "4");
 
-    expect(yieldInput).not.toHaveAccessibleErrorMessage();
-    expect(totalTimeInput).toHaveAccessibleErrorMessage(
-      "Enter a time in minutes or hours and minutes, like 80 min or 1 hr 20 min.",
+    expect(yieldInput).not.toHaveAccessibleDescription();
+    expect(totalTimeInput).toHaveAccessibleDescription(
+      "For example: 80 min or 1 hr 20 min. Enter a time in minutes or hours and minutes, like 80 min or 1 hr 20 min.",
     );
-    expect(caloriesInput).toHaveAccessibleErrorMessage(
+    expect(caloriesInput).toHaveAccessibleDescription(
       "Enter calories as a whole number of 0 or more.",
     );
   });
@@ -304,6 +337,14 @@ describe("RecipeForm", () => {
     expect(totalTimeInput).toBeDisabled();
     expect(caloriesInput).toBeDisabled();
     expect(directions).toBeDisabled();
+    expect(
+      screen.getByRole("textbox", { name: "Ingredient 1" }),
+    ).toBeDisabled();
+    for (const button of screen.getAllByRole("button", {
+      name: /ingredient/i,
+    })) {
+      expect(button).toBeDisabled();
+    }
     expect(screen.getByRole("button", { name: /Saving…/ })).toBeDisabled();
     expect(cancelButton).toBeDisabled();
     expect(screen.getByRole("status", { name: "Saving recipe" })).toBeVisible();
@@ -392,6 +433,7 @@ describe("RecipeForm", () => {
     const cancelButton = screen.getByRole("button", { name: "Cancel" });
     await user.tab();
     expect(titleInput).toHaveFocus();
+    await user.type(titleInput, "Tomato soup");
     await user.tab();
     expect(sourceUrlInput).toHaveFocus();
     await user.tab();
@@ -400,6 +442,16 @@ describe("RecipeForm", () => {
     expect(totalTimeInput).toHaveFocus();
     await user.tab();
     expect(caloriesInput).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("textbox", { name: "Ingredient 1" })).toHaveFocus();
+    await user.tab();
+    expect(
+      screen.getByRole("button", { name: "Remove ingredient 1" }),
+    ).toHaveFocus();
+    await user.tab();
+    expect(
+      screen.getByRole("button", { name: "Add ingredient" }),
+    ).toHaveFocus();
     await user.tab();
     expect(directions).toHaveFocus();
     await user.tab();

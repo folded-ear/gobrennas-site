@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import {
   newRecipeDraft,
+  recipeDraftSchema,
   toIngredientInfo,
-  validateRecipeDraft,
   type RecipeDraft,
 } from "./recipe-draft";
+
+function validationErrors(draft: RecipeDraft) {
+  const result = recipeDraftSchema.safeParse(draft);
+  return result.success ? {} : z.flattenError(result.error).fieldErrors;
+}
 
 function recipeDraft(overrides: Partial<RecipeDraft> = {}): RecipeDraft {
   return {
@@ -14,12 +20,13 @@ function recipeDraft(overrides: Partial<RecipeDraft> = {}): RecipeDraft {
     totalTimeText: "",
     caloriesPerServing: "",
     directions: "Brown the chicken first.",
+    ingredients: [],
     ...overrides,
   };
 }
 
 describe("newRecipeDraft", () => {
-  it("starts each distinct draft with six blank editable fields", () => {
+  it("starts each distinct draft with blank fields and its own ingredient placeholder", () => {
     const firstDraft = newRecipeDraft();
     const secondDraft = newRecipeDraft();
 
@@ -30,6 +37,7 @@ describe("newRecipeDraft", () => {
       totalTimeText: "",
       caloriesPerServing: "",
       directions: "",
+      ingredients: [{ clientId: expect.any(String), raw: "" }],
     });
     expect(secondDraft).toStrictEqual({
       title: "",
@@ -38,28 +46,60 @@ describe("newRecipeDraft", () => {
       totalTimeText: "",
       caloriesPerServing: "",
       directions: "",
+      ingredients: [{ clientId: expect.any(String), raw: "" }],
     });
     expect(firstDraft).not.toBe(secondDraft);
+    expect(firstDraft.ingredients[0].clientId).not.toBe(
+      secondDraft.ingredients[0].clientId,
+    );
   });
 });
 
-describe("validateRecipeDraft", () => {
+describe("recipeDraftSchema", () => {
+  it("parses metadata without mutating the raw draft or changing row identities", () => {
+    const draft = recipeDraft({
+      title: " Bread ",
+      yieldServings: " 04 ",
+      totalTimeText: "1h 20m",
+      ingredients: [{ clientId: "draft-flour", raw: " 2 cups flour " }],
+    });
+    expect(recipeDraftSchema.parse(draft)).toEqual({
+      ...draft,
+      yieldServings: 4,
+      totalTimeText: 80,
+      caloriesPerServing: null,
+    });
+    expect(draft.yieldServings).toBe(" 04 ");
+    expect(draft.totalTimeText).toBe("1h 20m");
+    expect(draft.caloriesPerServing).toBe("");
+  });
+
+  it.each([
+    null,
+    undefined,
+    {},
+    { ...recipeDraft(), yieldServings: 4 },
+    { ...recipeDraft(), ingredients: [{ raw: "flour" }] },
+  ])("rejects malformed draft data (%j)", (input) => {
+    expect(recipeDraftSchema.safeParse(input).success).toBe(false);
+  });
+
   it.each(["", "   ", "\t\n "])(
     "requires a title when it contains only whitespace (%j)",
     (title) => {
-      expect(validateRecipeDraft(recipeDraft({ title }))).toStrictEqual({
-        title: "A recipe title is required.",
+      expect(validationErrors(recipeDraft({ title }))).toStrictEqual({
+        title: ["A recipe title is required."],
       });
     },
   );
 
   it("accepts a title with visible text and blank optional metadata", () => {
-    expect(validateRecipeDraft(recipeDraft())).toStrictEqual({});
+    expect(validationErrors(recipeDraft())).toStrictEqual({});
   });
 
   it("collects every invalid field error in one pass", () => {
     expect(
-      validateRecipeDraft(
+      validationErrors(
         recipeDraft({
           title: " ",
           yieldServings: "0",
@@ -68,11 +108,12 @@ describe("validateRecipeDraft", () => {
         }),
       ),
     ).toStrictEqual({
-      title: "A recipe title is required.",
-      yieldServings: "Enter a whole number of servings greater than 0.",
-      totalTimeText:
+      title: ["A recipe title is required."],
+      yieldServings: ["Enter a whole number of servings greater than 0."],
+      totalTimeText: [
         "Enter a time in minutes or hours and minutes, like 80 min or 1 hr 20 min.",
-      caloriesPerServing: "Enter calories as a whole number of 0 or more.",
+      ],
+      caloriesPerServing: ["Enter calories as a whole number of 0 or more."],
     });
   });
 
@@ -83,7 +124,7 @@ describe("validateRecipeDraft", () => {
       { input: "2147483647", description: "the GraphQL Int maximum" },
     ])("accepts $description ($input)", ({ input }) => {
       expect(
-        validateRecipeDraft(recipeDraft({ yieldServings: input })),
+        validationErrors(recipeDraft({ yieldServings: input })),
       ).toStrictEqual({});
     });
 
@@ -96,9 +137,9 @@ describe("validateRecipeDraft", () => {
       { input: "2147483648", description: "a value above GraphQL Int" },
     ])("rejects $description ($input)", ({ input }) => {
       expect(
-        validateRecipeDraft(recipeDraft({ yieldServings: input })),
+        validationErrors(recipeDraft({ yieldServings: input })),
       ).toStrictEqual({
-        yieldServings: "Enter a whole number of servings greater than 0.",
+        yieldServings: ["Enter a whole number of servings greater than 0."],
       });
     });
   });
@@ -110,7 +151,7 @@ describe("validateRecipeDraft", () => {
       { input: "2147483647", description: "the GraphQL Int maximum" },
     ])("accepts $description ($input)", ({ input }) => {
       expect(
-        validateRecipeDraft(recipeDraft({ caloriesPerServing: input })),
+        validationErrors(recipeDraft({ caloriesPerServing: input })),
       ).toStrictEqual({});
     });
 
@@ -122,9 +163,9 @@ describe("validateRecipeDraft", () => {
       { input: "2147483648", description: "a value above GraphQL Int" },
     ])("rejects $description ($input)", ({ input }) => {
       expect(
-        validateRecipeDraft(recipeDraft({ caloriesPerServing: input })),
+        validationErrors(recipeDraft({ caloriesPerServing: input })),
       ).toStrictEqual({
-        caloriesPerServing: "Enter calories as a whole number of 0 or more.",
+        caloriesPerServing: ["Enter calories as a whole number of 0 or more."],
       });
     });
   });
@@ -167,7 +208,7 @@ describe("validateRecipeDraft", () => {
     ])("accepts $description ($input)", ({ input, minutes }) => {
       const draft = recipeDraft({ totalTimeText: input });
 
-      expect(validateRecipeDraft(draft)).toStrictEqual({});
+      expect(validationErrors(draft)).toStrictEqual({});
       expect(toIngredientInfo(draft).totalTime).toBe(minutes * 60_000);
     });
 
@@ -184,22 +225,32 @@ describe("validateRecipeDraft", () => {
       },
     ])("rejects $description ($input)", ({ input }) => {
       expect(
-        validateRecipeDraft(recipeDraft({ totalTimeText: input })),
+        validationErrors(recipeDraft({ totalTimeText: input })),
       ).toStrictEqual({
-        totalTimeText:
+        totalTimeText: [
           "Enter a time in minutes or hours and minutes, like 80 min or 1 hr 20 min.",
+        ],
       });
     });
   });
 
   it("does not validate malformed source URL text", () => {
     expect(
-      validateRecipeDraft(recipeDraft({ sourceUrl: "not a URL" })),
+      validationErrors(recipeDraft({ sourceUrl: "not a URL" })),
     ).toStrictEqual({});
   });
 });
 
 describe("toIngredientInfo", () => {
+  it.each([
+    { title: " " },
+    { yieldServings: "0" },
+    { totalTimeText: "soon" },
+    { caloriesPerServing: "-1" },
+  ])("rejects invalid drafts at serialization (%j)", (overrides) => {
+    expect(() => toIngredientInfo(recipeDraft(overrides))).toThrow(z.ZodError);
+  });
+
   it("serializes populated metadata under the API keys and preserves directions exactly", () => {
     expect(
       toIngredientInfo(
@@ -220,6 +271,7 @@ describe("toIngredientInfo", () => {
       totalTime: 4_800_000,
       calories: 460,
       directions: "Brown the chicken.\n\nFinish with cider.  ",
+      ingredients: [],
     });
   });
 
@@ -232,6 +284,7 @@ describe("toIngredientInfo", () => {
       totalTime: null,
       calories: null,
       directions: "Brown the chicken first.",
+      ingredients: [],
     });
   });
 
@@ -253,6 +306,7 @@ describe("toIngredientInfo", () => {
       totalTime: null,
       calories: null,
       directions: "Brown the chicken first.",
+      ingredients: [],
     });
   });
 
@@ -267,6 +321,7 @@ describe("toIngredientInfo", () => {
       totalTime: null,
       calories: 0,
       directions: "Brown the chicken first.",
+      ingredients: [],
     });
   });
 
@@ -281,6 +336,7 @@ describe("toIngredientInfo", () => {
       totalTime: null,
       calories: null,
       directions: "Brown the chicken first.",
+      ingredients: [],
     });
   });
 });

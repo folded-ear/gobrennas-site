@@ -43,6 +43,7 @@ next-env.d.ts
 *.iml
 .idea
 .working
+.codex
 openspec/*
 
 *storybook.log
