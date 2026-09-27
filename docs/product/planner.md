@@ -110,6 +110,29 @@ The terms used here are defined in the [domain model](../domain/model.md).
   in the item screen's walk down to the open item, and below it.
 - The cook view is a page of its own, in the Planner section. Back returns
   to where it was opened from, with the item screen still open if it was.
+- The cook view shows its item's status, and a user who can change the
+  plan can mark it cooked. Marking it cooked goes back, and the item waits
+  out its undo window there.
+
+### Status
+
+- Every item is needed until it is acquired, completed, or deleted.
+- Each item on the timeline and below the open item or section in its
+  screen shows its status as a check: gray when needed, olive when
+  acquired. The open item itself, in the item screen's walk, shows none.
+- A user who can change the plan can press the check to switch the item
+  between needed and acquired. The change saves at once, and the check
+  shows it is saving until it has.
+- A user who can change the plan can delete any item from the timeline or
+  the item screen, whatever its status. Deleting an item removes
+  everything below it too.
+- Deleting or cooking an item waits a few seconds before it's saved. Until
+  then the item is struck through, in red when deleted and green when
+  cooked, and a button to undo it takes the place of the one that asked
+  for it. Everything below it fades and can't be changed.
+- Leaving or hiding the page saves any change still waiting.
+- Anyone who can't change the plan sees each item's status, but can't
+  change it.
 
 ### Moving items
 
