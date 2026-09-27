@@ -21,8 +21,9 @@ rows remain planned; a pasted row is recognized when focused or edited.
 - Recipe creation has no per-row recognition opt-out or checkbox. A leading
   `!` does not disable recipe ingredient recognition; that convention belongs
   to planner entries such as tentative meal ideas.
-- The editable input is followed by a separate preview labeled Quantity, Unit,
-  Ingredient, and Preparation. New units and ingredients are labeled as new.
+- The recognition preview sits to the right of the editable input, stacking
+  underneath on small screens. It labels Quantity, Unit, Ingredient, and
+  Preparation. New units and ingredients are labeled as new.
   Missing ingredient recognition is informational and does not prevent saving.
 - Pasted rows appear immediately and are recognized in the background. Work
   on the actively edited row takes priority over waiting pasted rows.

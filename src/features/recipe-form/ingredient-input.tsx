@@ -92,8 +92,9 @@ export function IngredientInput({
       : [];
 
   return (
-    <div className="min-w-0 flex-1">
+    <div className="grid min-w-0 flex-1 grid-cols-1 items-start gap-sm sm:grid-cols-2">
       <TextField
+        className="min-w-0"
         isDisabled={isDisabled}
         value={row.raw}
         onChange={(raw) => {
@@ -143,7 +144,7 @@ export function IngredientInput({
       </TextField>
       <div
         id={feedbackId}
-        className="mt-xs text-sm"
+        className="min-w-0 text-sm"
         aria-live="polite"
         aria-atomic="true"
       >
