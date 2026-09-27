@@ -1,8 +1,14 @@
 "use client";
 
-import { Button, Input, Label, TextField } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
-import { useId, useLayoutEffect, useRef } from "react";
+import {
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type SetStateAction,
+} from "react";
 import {
   insertIngredient,
   moveIngredient,
@@ -13,9 +19,17 @@ import {
   type IngredientDraft,
 } from "./ingredient-draft";
 
+import { IngredientInput } from "./ingredient-input";
+import type { RecognizeIngredient } from "./ingredient-recognition";
+import { createRecognitionQueue } from "./recognition-queue";
+
 type IngredientRowsProps = {
   rows: IngredientDraft[];
-  onChange: (rows: IngredientDraft[]) => void;
+  onChange: (
+    rows: SetStateAction<IngredientDraft[]>,
+    source?: "edit" | "recognition",
+  ) => void;
+  recognize: RecognizeIngredient;
   isDisabled: boolean;
 };
 
@@ -23,8 +37,10 @@ export function IngredientRows({
   rows,
   onChange,
   isDisabled,
+  recognize,
 }: IngredientRowsProps) {
   const helpId = useId();
+  const [queue] = useState(createRecognitionQueue);
   const inputs = useRef(new Map<string, HTMLInputElement>());
   const pendingFocus = useRef<string | undefined>(undefined);
 
@@ -69,74 +85,84 @@ export function IngredientRows({
       </p>
       <ol className="flex flex-col gap-sm">
         {rows.map((row, index) => (
-          <li className="flex items-end gap-xs" key={row.clientId}>
-            <TextField
-              className="min-w-0 flex-1"
+          <li className="flex items-start gap-xs" key={row.clientId}>
+            <IngredientInput
+              row={row}
+              number={index + 1}
+              helpId={helpId}
               isDisabled={isDisabled}
+              recognize={recognize}
+              queue={queue}
               onChange={(raw) =>
-                onChange(updateIngredient(rows, row.clientId, raw))
+                onChange((current) =>
+                  updateIngredient(current, row.clientId, raw),
+                )
               }
-              value={row.raw}
-            >
-              <Label className="sr-only">Ingredient {index + 1}</Label>
-              <Input
-                aria-describedby={helpId}
-                placeholder="e.g. 2 cups flour"
-                ref={(input) => {
-                  if (input) {
-                    inputs.current.set(row.clientId, input);
-                  } else {
-                    inputs.current.delete(row.clientId);
-                  }
-                }}
-                onKeyDown={(event) => {
-                  if (
-                    event.nativeEvent.isComposing ||
-                    event.nativeEvent.keyCode === 229
-                  ) {
-                    return;
-                  }
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    addRow(index + 1);
-                  } else if (
-                    (event.key === "Backspace" || event.key === "Delete") &&
-                    row.raw.trim().length === 0
-                  ) {
-                    event.preventDefault();
-                    removeRow(index);
-                  }
-                }}
-                onPaste={(event) => {
-                  const text = event.clipboardData.getData("text/plain");
-                  if (!/[\r\n]/.test(text)) {
-                    return;
-                  }
+              onRecognized={(recognition) =>
+                onChange(
+                  (current) =>
+                    current.map((item) =>
+                      item.clientId === row.clientId &&
+                      item.raw === recognition.raw
+                        ? { ...item, recognition }
+                        : item,
+                    ),
+                  "recognition",
+                )
+              }
+              inputRef={(input) => {
+                if (input) inputs.current.set(row.clientId, input);
+                else inputs.current.delete(row.clientId);
+              }}
+              onKeyDown={(event) => {
+                if (
+                  event.nativeEvent.isComposing ||
+                  event.nativeEvent.keyCode === 229
+                ) {
+                  return;
+                }
+                if (event.key === "Enter") {
                   event.preventDefault();
-                  const input = event.currentTarget;
-                  const lines = pasteIngredientLines(
-                    row.raw,
-                    text,
-                    input.selectionStart ?? row.raw.length,
-                    input.selectionEnd ?? row.raw.length,
-                  );
-                  if (lines.length === 0) {
-                    return;
-                  }
-                  const pastedRows = lines.map((raw, lineIndex) =>
-                    lineIndex === 0 ? { ...row, raw } : newIngredientDraft(raw),
-                  );
-                  changeAndFocus(
-                    [
-                      ...rows.slice(0, index),
-                      ...pastedRows,
-                      ...rows.slice(index + 1),
-                    ],
-                    pastedRows[pastedRows.length - 1].clientId,
-                  );
-                }}
-              />
-            </TextField>
+                  addRow(index + 1);
+                } else if (
+                  (event.key === "Backspace" || event.key === "Delete") &&
+                  row.raw.trim().length === 0
+                ) {
+                  event.preventDefault();
+                  removeRow(index);
+                }
+              }}
+              onPaste={(event) => {
+                const text = event.clipboardData.getData("text/plain");
+                if (!/[\r\n]/.test(text)) {
+                  return;
+                }
+                event.preventDefault();
+                const input = event.currentTarget;
+                const lines = pasteIngredientLines(
+                  row.raw,
+                  text,
+                  input.selectionStart ?? row.raw.length,
+                  input.selectionEnd ?? row.raw.length,
+                );
+                if (lines.length === 0) {
+                  return;
+                }
+                const pastedRows = lines.map((raw, lineIndex) =>
+                  lineIndex === 0
+                    ? { clientId: row.clientId, raw }
+                    : newIngredientDraft(raw),
+                );
+                changeAndFocus(
+                  [
+                    ...rows.slice(0, index),
+                    ...pastedRows,
+                    ...rows.slice(index + 1),
+                  ],
+                  pastedRows[pastedRows.length - 1].clientId,
+                );
+              }}
+            />
             <Button
               aria-label={`Move ingredient ${index + 1} up`}
               isIconOnly

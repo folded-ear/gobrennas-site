@@ -4,9 +4,22 @@ import { describe, expect, it, vi } from "vitest";
 import { newIngredientDraft } from "./ingredient-draft";
 import { IngredientRows } from "./ingredient-rows";
 
+const recognize = async (raw: string, cursor: number) => ({
+  raw,
+  cursor,
+  ranges: [],
+});
+
 function Editor({ lines = [""] }: { lines?: string[] }) {
   const [rows, setRows] = useState(() => lines.map(newIngredientDraft));
-  return <IngredientRows rows={rows} onChange={setRows} isDisabled={false} />;
+  return (
+    <IngredientRows
+      rows={rows}
+      onChange={setRows}
+      isDisabled={false}
+      recognize={recognize}
+    />
+  );
 }
 
 function ingredient(number: number) {

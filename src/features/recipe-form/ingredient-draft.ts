@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { ingredientRecognitionSchema } from "./ingredient-recognition";
 
 export const ingredientDraftSchema = z.object({
   clientId: z.string().min(1),
   raw: z.string(),
+  recognition: ingredientRecognitionSchema.optional(),
 });
 
 export type IngredientDraft = z.infer<typeof ingredientDraftSchema>;
@@ -16,7 +18,9 @@ export function updateIngredient(
   clientId: string,
   raw: string,
 ): IngredientDraft[] {
-  return rows.map((row) => (row.clientId === clientId ? { ...row, raw } : row));
+  return rows.map((row) =>
+    row.clientId === clientId && row.raw !== raw ? { clientId, raw } : row,
+  );
 }
 
 export function insertIngredient(

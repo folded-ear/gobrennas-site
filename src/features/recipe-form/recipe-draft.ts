@@ -1,6 +1,7 @@
 import type { IngredientInfo } from "@/__generated__/graphql";
 import { z } from "zod";
 import { ingredientDraftSchema, newIngredientDraft } from "./ingredient-draft";
+import { toIngredientRefInfo } from "./ingredient-recognition";
 
 const GRAPHQL_INT_MAX = 2_147_483_647;
 const MAX_TOTAL_TIME_MINUTES = 35_791;
@@ -59,7 +60,7 @@ export function toIngredientInfo(draft: RecipeDraft): IngredientInfo {
     directions: values.directions,
     ingredients: values.ingredients
       .filter((row) => row.raw.trim().length > 0)
-      .map((row) => ({ raw: row.raw })),
+      .map(toIngredientRefInfo),
   };
 }
 

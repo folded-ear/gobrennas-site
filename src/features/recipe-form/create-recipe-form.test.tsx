@@ -1,7 +1,15 @@
+import {
+  RecognizedRangeType,
+  type IngredientRefInfo,
+} from "@/__generated__/graphql";
 import { buildInMemoryCache, render, screen, userEvent, waitFor } from "@/test";
 import { MockLink } from "@apollo/client/testing";
 import { describe, expect, it, vi } from "vitest";
 import { CreateRecipeDocument } from "./__generated__/createRecipe.generated";
+import {
+  RecognizeIngredientDocument,
+  type RecognizeIngredientQuery,
+} from "./__generated__/recognizeIngredient.generated";
 import { CreateRecipeForm } from "./create-recipe-form";
 
 const CREATED_RECIPE_ID = "recipe-cider-chicken";
@@ -33,7 +41,7 @@ function successfulCreateMock(
     calories: number | null;
     name: string;
     directions: string;
-    ingredients?: { raw: string }[];
+    ingredients?: IngredientRefInfo[];
   },
   id = CREATED_RECIPE_ID,
 ): MockLink.MockedResponse {
@@ -63,6 +71,84 @@ function successfulCreateMock(
 }
 
 describe("CreateRecipeForm", () => {
+  it("recognizes a row through Apollo and sends parsed ids and values when creating the recipe", async () => {
+    const user = userEvent.setup();
+    const onCreated = vi.fn();
+    const raw = "2 cups flour";
+    const recognition: MockLink.MockedResponse<RecognizeIngredientQuery> = {
+      request: {
+        query: RecognizeIngredientDocument,
+        variables: { raw, cursor: raw.length },
+      },
+      result: {
+        data: {
+          library: {
+            __typename: "LibraryQuery",
+            recognizeItem: {
+              __typename: "RecognizedItem",
+              raw,
+              cursor: raw.length,
+              ranges: [
+                {
+                  __typename: "RecognizedRange",
+                  start: 0,
+                  end: 1,
+                  type: RecognizedRangeType.QUANTITY,
+                  quantity: 2,
+                  id: null,
+                },
+                {
+                  __typename: "RecognizedRange",
+                  start: 2,
+                  end: 6,
+                  type: RecognizedRangeType.UNIT,
+                  quantity: null,
+                  id: "unit-cup",
+                },
+                {
+                  __typename: "RecognizedRange",
+                  start: 7,
+                  end: 12,
+                  type: RecognizedRangeType.ITEM,
+                  quantity: null,
+                  id: "pantry-flour",
+                },
+              ],
+            },
+          },
+        },
+      },
+    };
+    render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
+      mocks: [
+        recognition,
+        successfulCreateMock({
+          name: "Bread",
+          externalUrl: null,
+          yield: null,
+          totalTime: null,
+          calories: null,
+          directions: "",
+          ingredients: [
+            {
+              raw,
+              quantity: 2,
+              uomId: "unit-cup",
+              ingredientId: "pantry-flour",
+            },
+          ],
+        }),
+      ],
+    });
+    await user.type(screen.getByRole("textbox", { name: "Title" }), "Bread");
+    await user.type(screen.getByRole("textbox", { name: "Ingredient 1" }), raw);
+    expect(await screen.findByText("Quantity")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    await waitFor(() =>
+      expect(onCreated).toHaveBeenCalledWith(CREATED_RECIPE_ID),
+    );
+  });
+
   it("saves reordered raw ingredients without sending placeholder rows or client IDs", async () => {
     const user = userEvent.setup();
     const onCreated = vi.fn();

@@ -1,0 +1,15 @@
+query recognizeIngredient($raw: String!, $cursor: NonNegativeInt!) {
+  library {
+    recognizeItem(raw: $raw, cursor: $cursor) {
+      raw
+      cursor
+      ranges {
+        start
+        end
+        type
+        quantity
+        id
+      }
+    }
+  }
+}
