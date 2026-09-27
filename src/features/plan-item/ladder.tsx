@@ -1,5 +1,11 @@
 import { PlanDot } from "@/components/plan-dot";
-import { useItemPlan, useShowsPlanIndicators } from "@/features/plan-directory";
+import {
+  DirectoryPlan,
+  useItemPlan,
+  useShowsPlanIndicators,
+} from "@/features/plan-directory";
+import { EditableName } from "@/features/plan-edit";
+import { useItemStatus } from "@/features/plan-status";
 import {
   ancestorsOf,
   PlanContext,
@@ -29,12 +35,20 @@ type LadderProps = {
   readonly onSelect?: (id: string) => void;
   /** Whether anything sits below the open item, so it can be cooked. */
   readonly openHasChildren?: boolean;
+  /** Called when an edit deletes the open item. */
+  readonly onRemoved?: () => void;
 };
 
 type LadderNameProps = {
   readonly line: LadderLine;
-  readonly isOpen: boolean;
   readonly onSelect?: (id: string) => void;
+};
+
+type OpenNameProps = {
+  readonly line: LadderLine;
+  readonly plan: DirectoryPlan | undefined;
+  readonly hasChildren: boolean;
+  readonly onRemoved?: () => void;
 };
 
 /** Each step sits one of these in from the one above it. */
@@ -69,15 +83,37 @@ export function ladderLines(
   return lines;
 }
 
-/** I name one step: the open item heads its screen, its ancestry opens. */
-function LadderName({ line, isOpen, onSelect }: LadderNameProps) {
-  if (isOpen) {
-    return (
-      <h2 className="text-xl font-semibold text-foreground">
+/** I head the item screen with the open item, its name edited in place. */
+function OpenName({ line, plan, hasChildren, onRemoved }: OpenNameProps) {
+  const status = useItemStatus(line.id);
+  return (
+    <h2 className="flex min-w-0 flex-1 text-xl font-semibold text-foreground">
+      {plan !== undefined ? (
+        <EditableName
+          itemId={line.id}
+          planId={plan.id}
+          name={line.name}
+          hasChildren={hasChildren}
+          canEdit={
+            plan.changeable &&
+            status !== null &&
+            !status.inert &&
+            status.pendingStatus === null
+          }
+          keys="heading"
+          onRemoved={onRemoved}
+        >
+          <NameText name={line.name} />
+        </EditableName>
+      ) : (
         <NameText name={line.name} />
-      </h2>
-    );
-  }
+      )}
+    </h2>
+  );
+}
+
+/** I name one step above the open item, opening it when chosen. */
+function LadderName({ line, onSelect }: LadderNameProps) {
   if (onSelect) {
     return (
       <button
@@ -105,6 +141,7 @@ export function Ladder({
   id,
   onSelect,
   openHasChildren = false,
+  onRemoved,
 }: LadderProps) {
   const plan = useItemPlan(id);
   const showsPlan = useShowsPlanIndicators();
@@ -122,16 +159,24 @@ export function Ladder({
         >
           {index === lastIndex && showsPlan && plan ? (
             // Sized to the heading it sits beside, not the line around it.
-            <span className="flex items-start text-xl">
+            <span className="flex min-w-0 flex-1 items-start text-xl">
               <PlanDot plan={plan} className="me-xs" />
-              <LadderName line={line} isOpen onSelect={onSelect} />
+              <OpenName
+                line={line}
+                plan={plan}
+                hasChildren={openHasChildren}
+                onRemoved={onRemoved}
+              />
             </span>
-          ) : (
-            <LadderName
+          ) : index === lastIndex ? (
+            <OpenName
               line={line}
-              isOpen={index === lastIndex}
-              onSelect={onSelect}
+              plan={plan}
+              hasChildren={openHasChildren}
+              onRemoved={onRemoved}
             />
+          ) : (
+            <LadderName line={line} onSelect={onSelect} />
           )}
           {/* every step above the open item holds the step below it */}
           {plan !== undefined && (index < lastIndex || openHasChildren) ? (

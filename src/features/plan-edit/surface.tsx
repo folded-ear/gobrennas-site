@@ -312,6 +312,13 @@ export function EditSurfaceProvider({
   return <EditSurfaceContext value={surface}>{children}</EditSurfaceContext>;
 }
 
+const NO_DRAFTS: readonly Draft[] = [];
+
+/** I give the new items on the surface I'm inside, if any. */
+export function useEditDrafts(): readonly Draft[] {
+  return useContext(EditSurfaceContext)?.drafts ?? NO_DRAFTS;
+}
+
 /** I give the surface I'm inside, or null outside any. */
 export function useEditSurface(): EditSurface | null {
   return useContext(EditSurfaceContext);

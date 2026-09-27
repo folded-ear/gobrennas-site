@@ -1,4 +1,9 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import {
+  changeApiClient,
+  ChangeRequest,
+  FIRST_CREATED_ID,
+} from "@/features/plan-changes/test/change-api";
 import { markPending } from "@/features/plan-changes/test/status-cache";
 import {
   buildPlanDirectory,
@@ -17,6 +22,12 @@ import {
 } from "@/features/plan-dnd/test/dnd-harness";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import {
+  buildEntries,
+  EditSurfaceProvider,
+  treeOrder,
+  useEditState,
+} from "@/features/plan-edit";
+import {
   buildPlanContext,
   PlanContext,
 } from "@/features/plan-timeline/context";
@@ -27,8 +38,10 @@ import {
   screen,
   seedFragment,
   userEvent,
+  waitFor,
 } from "@/test";
 import { FragmentType } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client/react";
 import { describe, expect, it, vi } from "vitest";
 import {
   PlanItemFragment,
@@ -572,5 +585,179 @@ describe("PlanItemDetail, a section's items", () => {
     expect(getDropZone("Nest under Pie crust")).toBeInTheDocument();
 
     await keyboardCancel();
+  });
+});
+
+describe("PlanItemDetail, editing", () => {
+  const HOLIDAYS = {
+    id: "7",
+    name: "Holidays",
+    color: "#F57F17",
+    mine: true,
+    grants: [],
+    descendants: [PIE, CRUST, FILLING],
+    buckets: [],
+  };
+  const pieNode: PlanItemNode = {
+    item: timelineItem(PIE, [CRUST.id, FILLING.id], "sat"),
+    children: [node(CRUST), node(FILLING)],
+  };
+
+  type EditableProps = {
+    readonly open: PlanItemNode | null;
+    readonly roots: readonly PlanItemNode[];
+    readonly onRemoved: () => void;
+  };
+
+  /** I edit an item's or a section's screen the way the planner does. */
+  function Editable({ open, roots, onRemoved }: EditableProps) {
+    const state = useEditState();
+    const openId = open?.item.id ?? null;
+    const entries = buildEntries(roots, state.drafts, openId);
+    const tree = pieTree();
+    return (
+      <EditSurfaceProvider
+        state={state}
+        order={treeOrder(entries, openId === null ? null : { id: openId })}
+        tree={tree}
+        createdStayPut
+      >
+        {open ? (
+          <PlanItemHeader
+            item={`PlanItem:${open.item.id}` as never}
+            context={planContext()}
+            hasDescendants={roots.length > 0}
+            onRemoved={onRemoved}
+          />
+        ) : null}
+        <PlanItemDetail
+          context={planContext()}
+          descendants={roots}
+          parentId={openId ?? undefined}
+          holdsSection={open === null}
+        />
+        <button type="button">Elsewhere</button>
+      </EditSurfaceProvider>
+    );
+  }
+
+  function renderEditable(
+    open: PlanItemNode | null,
+    roots: readonly PlanItemNode[],
+    { pendingIds = [] as readonly string[] } = {},
+  ) {
+    const cache = buildInMemoryCache();
+    for (const spec of [PIE, CRUST, FILLING]) {
+      seedFragment(
+        cache,
+        PlanItemFragmentDoc,
+        "planItem",
+        fragment(spec, null),
+      );
+    }
+    for (const id of pendingIds) {
+      markPending(cache, id, PlanItemStatus.DELETED);
+    }
+    const requests: ChangeRequest[] = [];
+    const onRemoved = vi.fn();
+    render(
+      <ApolloProvider client={changeApiClient(cache, requests)}>
+        <PlanDirectoryProvider directory={buildPlanDirectory([HOLIDAYS])}>
+          <Editable open={open} roots={roots} onRemoved={onRemoved} />
+        </PlanDirectoryProvider>
+      </ApolloProvider>,
+      { cache },
+    );
+    return { requests, onRemoved };
+  }
+
+  function sent(requests: readonly ChangeRequest[]) {
+    return requests.map((it) => it.variables);
+  }
+
+  async function leave() {
+    await userEvent.click(screen.getByRole("button", { name: "Elsewhere" }));
+  }
+
+  it("renames what sits below the item once focus leaves", async () => {
+    const { requests } = renderEditable(pieNode, pieNode.children);
+    await userEvent.click(screen.getByRole("button", { name: "Pie crust" }));
+
+    await userEvent.clear(screen.getByRole("textbox"));
+    await userEvent.type(screen.getByRole("textbox"), "Tart crust");
+    await leave();
+
+    await waitFor(() =>
+      expect(sent(requests)).toEqual([{ id0: CRUST.id, name0: "Tart crust" }]),
+    );
+  });
+
+  it("adds a first child on Enter in the heading", async () => {
+    const { requests } = renderEditable(pieNode, pieNode.children);
+    await userEvent.click(screen.getByRole("button", { name: "Pumpkin pie" }));
+
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("textbox", { name: "New item" })).toHaveFocus();
+    await userEvent.keyboard("Apples");
+    await leave();
+
+    await waitFor(() =>
+      expect(sent(requests)).toEqual([
+        { parentId0: PIE.id, afterId0: null, name0: "Apples" },
+      ]),
+    );
+  });
+
+  it("goes up to the heading on Backspace in the first row", async () => {
+    const { requests } = renderEditable(pieNode, pieNode.children);
+    await userEvent.click(screen.getByRole("button", { name: "Pie crust" }));
+    await userEvent.clear(screen.getByRole("textbox"));
+
+    await userEvent.keyboard("{Backspace}");
+
+    expect(screen.getByRole("textbox")).toHaveValue("Pumpkin pie");
+    await waitFor(() =>
+      expect(sent(requests)).toEqual([
+        { id0: CRUST.id, status0: PlanItemStatus.DELETED },
+      ]),
+    );
+  });
+
+  it("deletes an emptied open item with nothing below it, closing its screen", async () => {
+    const { requests, onRemoved } = renderEditable(node(CRUST), []);
+    await userEvent.click(screen.getByRole("button", { name: "Pie crust" }));
+    await userEvent.clear(screen.getByRole("textbox"));
+
+    await userEvent.keyboard("{Backspace}");
+
+    expect(onRemoved).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(sent(requests)).toEqual([
+        { id0: CRUST.id, status0: PlanItemStatus.DELETED },
+      ]),
+    );
+  });
+
+  it("gives a new item beside a section's own item that item's bucket", async () => {
+    const { requests } = renderEditable(null, [pieNode]);
+    await userEvent.click(screen.getByRole("button", { name: "Pumpkin pie" }));
+
+    await userEvent.keyboard("{Enter}");
+    await userEvent.keyboard("Apple pie");
+    await leave();
+
+    await waitFor(() =>
+      expect(sent(requests)).toEqual([
+        { parentId0: "7", afterId0: PIE.id, name0: "Apple pie" },
+        { id0: String(FIRST_CREATED_ID), bucketId0: "sat" },
+      ]),
+    );
+  });
+
+  it("offers nothing to edit on an item waiting to be deleted", () => {
+    renderEditable(pieNode, pieNode.children, { pendingIds: [CRUST.id] });
+
+    expect(screen.queryByRole("button", { name: "Pie crust" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Pie filling" })).toBeVisible();
   });
 });
