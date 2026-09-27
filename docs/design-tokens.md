@@ -46,10 +46,9 @@ you don't need to define those yourself.
 `status-deleted`, each with a `-foreground` pair, are ours, not HeroUI's:
 `text-status-acquired`, `bg-status-deleted`, and so on. They color a plan
 item's status — gray for needed, olive for acquired, bold green for
-completed, bold red for deleted. Like HeroUI's `default`, needed is a
-light gray with a darker `-foreground`, which draws a needed item's
-circle. The needed pair copies the theme's `default` and `muted`, but has
-its own names so it can change without touching code.
+completed, bold red for deleted. A needed item's circle and an acquired
+item's check are drawn in their own status's color, and fill with the
+other's while hovered or focused.
 
 ### `primary` / `secondary` aliases
 
