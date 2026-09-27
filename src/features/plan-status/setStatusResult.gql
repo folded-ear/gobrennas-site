@@ -1,0 +1,5 @@
+# What each aliased setStatus in a status send selects.
+fragment setStatusResult on PlanItem {
+  id
+  status
+}

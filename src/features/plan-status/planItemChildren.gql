@@ -1,0 +1,6 @@
+fragment planItemChildren on PlanItem {
+  id
+  children {
+    id
+  }
+}

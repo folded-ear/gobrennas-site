@@ -1,3 +1,4 @@
+import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
 import { PlanItemStatusFragmentDoc } from "@/features/plan-status/__generated__/planItemStatus.generated";
 import { PlanItemStatusStateFragmentDoc } from "@/features/plan-status/__generated__/planItemStatusState.generated";
@@ -191,7 +192,7 @@ describe("plan item status state", () => {
       id: "PlanItem:1",
       data: {
         __typename: "PlanItem",
-        pendingStatus: "DELETED",
+        pendingStatus: PlanItemStatus.DELETED,
         savingStatus: false,
       },
     });
