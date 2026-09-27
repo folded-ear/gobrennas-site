@@ -119,10 +119,10 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 - Every item is needed until it is acquired, completed, or deleted.
 - Each item on the timeline and below the open item or section in its
-  screen shows its status as a check: gray when needed, olive when
+  screen shows its status: a gray circle when needed, an olive check when
   acquired. The open item itself, in the item screen's walk, shows none.
-- A user who can change the plan can press the check to switch the item
-  between needed and acquired. The change saves at once, and the check
+- A user who can change the plan can press the status to switch the item
+  between needed and acquired. The change saves at once, and the status
   shows it is saving until it has.
 - A user who can change the plan can delete any item from the timeline or
   the item screen, whatever its status. Deleting an item removes

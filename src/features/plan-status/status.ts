@@ -1,5 +1,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { AcquiredIcon, IconProps, NeededIcon } from "@/components/icons";
 import { useFragment } from "@apollo/client/react";
+import { ComponentType } from "react";
 import { PlanItemStatusFragmentDoc } from "./__generated__/planItemStatus.generated";
 
 /** A status an item can be switched to and from. */
@@ -14,6 +16,8 @@ type ToggleLook = {
   /** What switching away from it is called. */
   readonly action: string;
   readonly next: ToggleStatus;
+  /** What the status looks like, whatever pressing it would do. */
+  readonly Icon: ComponentType<IconProps>;
   readonly className: string;
   /** How a button switching away from it looks: filled with where it goes. */
   readonly buttonClassName: string;
@@ -24,6 +28,7 @@ export const TOGGLE_LOOKS: Record<ToggleStatus, ToggleLook> = {
     name: "Needed",
     action: "Mark acquired",
     next: PlanItemStatus.ACQUIRED,
+    Icon: NeededIcon,
     className: "text-status-needed",
     buttonClassName:
       "data-hovered:bg-status-acquired data-hovered:text-status-acquired-foreground data-focus-visible:bg-status-acquired data-focus-visible:text-status-acquired-foreground",
@@ -32,6 +37,7 @@ export const TOGGLE_LOOKS: Record<ToggleStatus, ToggleLook> = {
     name: "Acquired",
     action: "Mark needed",
     next: PlanItemStatus.NEEDED,
+    Icon: AcquiredIcon,
     className: "text-status-acquired",
     buttonClassName:
       "data-hovered:bg-status-needed-fill data-hovered:text-status-needed-fill-foreground data-focus-visible:bg-status-needed-fill data-focus-visible:text-status-needed-fill-foreground",

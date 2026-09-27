@@ -50,14 +50,14 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Checking items off
 
-- Each shopping item, and each plan item with no ingredient, shows a
-  check: gray in Needed, olive in Acquired.
+- Each shopping item, and each plan item with no ingredient, shows its
+  status: a gray circle in Needed, an olive check in Acquired.
 - A user who can change the plans behind a shopping item can press its
-  check to mark every one of its plan items acquired, or, in Acquired,
+  status to mark every one of its plan items acquired, or, in Acquired,
   needed again. Plan items with a zero quantity are changed too.
-- Each plan item listed under an expanded shopping item has a check of
+- Each plan item listed under an expanded shopping item has a status of
   its own, which switches just that plan item.
-- A change saves at once, and the check shows it is saving until it has.
+- A change saves at once, and the status shows it is saving until it has.
   There is no undo, and nothing can be deleted from the shopping list.
 
 ### Expanding a shopping item

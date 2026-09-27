@@ -4,6 +4,7 @@ import {
   ChefHat,
   ChevronDown,
   ChevronUp,
+  Circle,
   CircleCheckBig,
   EyeIcon,
   GripVertical,
@@ -42,6 +43,7 @@ const createIcon = (Icon: LucideIcon, defaults?: Partial<LucideProps>) =>
     );
   };
 
+export const AcquiredIcon = createIcon(CircleCheckBig);
 export const AddIcon = createIcon(Plus);
 export const BuyingIcon = createIcon(ShoppingCart);
 export const CookIcon = createIcon(ChefHat);
@@ -53,6 +55,7 @@ export const ExpandUpIcon = createIcon(ChevronUp);
 export const LibraryIcon = createIcon(BookOpen);
 export const LogoutIcon = createIcon(LogOut);
 export const MenuOpenIcon = createIcon(ChevronDown);
+export const NeededIcon = createIcon(Circle);
 export const PantryIcon = createIcon(ShelvingUnit);
 export const PlanScheduleIcon = createIcon(NotebookTabs);
 export const PlanCalendarIcon = createIcon(Calendar);
@@ -61,4 +64,3 @@ export const RecipeViewIcon = createIcon(EyeIcon);
 export const SearchIcon = createIcon(Search);
 export const SendToPlanIcon = createIcon(SquareArrowRightEnter);
 export const ShoppingCartIcon = createIcon(ShoppingCart);
-export const StatusIcon = createIcon(CircleCheckBig);

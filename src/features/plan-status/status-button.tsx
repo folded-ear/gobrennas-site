@@ -1,7 +1,6 @@
 "use client";
 
 import { ControlTooltip } from "@/components/control-tooltip";
-import { StatusIcon } from "@/components/icons";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
 import {
@@ -79,7 +78,7 @@ export function ToggleButton({
           look.className,
         )}
       >
-        <StatusIcon size="small" aria-hidden="true" />
+        <look.Icon size="small" aria-hidden="true" />
       </span>
     );
   }
@@ -99,7 +98,7 @@ export function ToggleButton({
         size="sm"
         variant="ghost"
       >
-        <StatusIcon size="small" aria-hidden="true" />
+        <look.Icon size="small" aria-hidden="true" />
       </Button>
     </ControlTooltip>
   );
