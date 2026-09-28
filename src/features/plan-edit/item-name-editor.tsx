@@ -71,7 +71,7 @@ export function ItemNameEditor({
       aria-label={label}
       data-edit-key={editKey}
       defaultValue={initialText}
-      className="h-auto min-w-0 flex-1 rounded-none border-0 bg-transparent p-0 text-inherit shadow-none"
+      className="h-auto min-w-0 flex-1 rounded-xs border-0 bg-transparent p-0 text-inherit shadow-none"
       onChange={(event) => onChange(event.currentTarget.value)}
       onKeyDown={handleKeyDown}
       onBlur={(event) => {

@@ -317,6 +317,15 @@ describe("ShoppingRegions, editing", () => {
     );
   });
 
+  it("leaves a plan item's ancestry out of what starts editing", async () => {
+    renderEditable();
+    await expandSugar();
+
+    await userEvent.click(screen.getByText("Spag sauce"));
+
+    expect(screen.queryByRole("textbox")).toBeNull();
+  });
+
   it("never edits a shopping item itself", async () => {
     renderEditable();
 

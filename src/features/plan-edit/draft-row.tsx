@@ -37,12 +37,7 @@ export function DraftRow({ draft, className }: DraftRowProps) {
 
   if (draft.state === "editing" && surface.isEditing(key)) {
     return (
-      <span
-        className={clsx(
-          "flex min-w-0 flex-1 rounded-xs bg-editing text-editing-foreground",
-          className,
-        )}
-      >
+      <span className={clsx("flex min-w-0 flex-1", className)}>
         <ItemNameEditor
           initialText={surface.resumeText() ?? draft.text}
           caret={surface.caret}

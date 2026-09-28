@@ -40,14 +40,6 @@ describe("EditableName", () => {
     expect(editor()).toHaveValue("Whipped cream");
   });
 
-  it("tints the text area while editing", async () => {
-    renderEditHost();
-
-    const field = await edit("Whipped cream");
-
-    expect(field.closest(".bg-editing")).not.toBeNull();
-  });
-
   it("offers nothing to edit to a viewer who can't change the plan", async () => {
     renderEditHost({ canEdit: false });
 

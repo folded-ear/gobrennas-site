@@ -27,14 +27,15 @@ type EditableNameProps = {
   readonly className?: string;
   /** How the name shows out of edit mode. */
   readonly children: ReactNode;
-  /** Shown under the name, edited or not, and pressed to edit it too. */
+  /** Shown under the name, edited or not. */
   readonly below?: ReactNode;
 };
 
 /**
  * I am the part of an item's row its name takes, or could: pressing
- * anywhere in me edits the name, tinted while it's edited. The name
- * itself is the button that does so for assistive tech and keyboards.
+ * anywhere in it edits the name. The name itself is the button that does
+ * so for assistive tech and keyboards. Whatever's below the name shows
+ * under it, and pressing it does nothing.
  * Outside an edit surface, or when the item can't be edited, I only show
  * the name.
  */
@@ -104,13 +105,7 @@ export function EditableName({
       hasChildren,
     };
     return (
-      <span
-        className={clsx(
-          "flex min-w-0 flex-1 rounded-xs bg-editing text-editing-foreground",
-          stacked,
-          className,
-        )}
-      >
+      <span className={clsx("flex min-w-0 flex-1", stacked, className)}>
         <ItemNameEditor
           initialText={surface.resumeText() ?? name}
           caret={surface.caret}
@@ -127,10 +122,13 @@ export function EditableName({
     );
   }
 
-  return (
+  const area = (
     // A convenience for pointers; the name's own button serves everyone.
     <span
-      className={clsx("flex min-w-0 flex-1 cursor-text", stacked, className)}
+      className={clsx(
+        "flex min-w-0 flex-1 cursor-text",
+        below === undefined && className,
+      )}
       onClick={() => surface.start(key)}
     >
       <button
@@ -140,6 +138,13 @@ export function EditableName({
       >
         {children}
       </button>
+    </span>
+  );
+  if (below === undefined) return area;
+  // What's below stays out of the area, as it stays out of the editor.
+  return (
+    <span className={clsx("flex min-w-0 flex-1 flex-col", className)}>
+      {area}
       {below}
     </span>
   );
