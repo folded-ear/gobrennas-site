@@ -52,6 +52,7 @@ export function ShoppingItemRow({ item, status }: ShoppingItemRowProps) {
                   item={source.item}
                   ancestors={source.ancestors}
                   plan={source.plan}
+                  countsAs={source.countsAs}
                 />
               </li>
             ))}

@@ -59,6 +59,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   needed again. Plan items with a zero quantity are changed too.
 - Each plan item listed under an expanded shopping item has a status of
   its own, which switches just that plan item.
+- A plan item that counts as acquired while marked needed shows the needed
+  circle in olive, and its status names it as counting as acquired.
 - A change saves at once, and the status shows it is saving until it has.
   There is no undo, and nothing can be deleted from the shopping list.
 
@@ -68,6 +70,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
   behind it, whatever their status. Expanding one collapses any other.
 - Each plan item shows its text first, with where it sits beneath: its
   ancestors, nearest first.
+- An ancestor that is acquired, or has a zero quantity, is named in olive.
 - A plan item with a zero quantity is marked "NO".
 - Plan items with no ingredient appear the same way.
 

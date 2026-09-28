@@ -5,6 +5,7 @@ import { Button } from "@heroui/react";
 import clsx from "clsx";
 import {
   actionLabel,
+  countedLabel,
   isToggleStatus,
   LINE_CONTROL_CLASS_NAME,
   TOGGLE_LOOKS,
@@ -18,13 +19,20 @@ type StatusButtonProps = {
   readonly planId: string;
   /** Whether the viewer may change the item's plan. */
   readonly canChange: boolean;
+  /** The status the item counts as, if not its own. */
+  readonly countsAs?: ToggleStatus;
 };
 
 /**
  * I show whether an item is needed or acquired, and switch it between
  * the two when the viewer may change it.
  */
-export function StatusButton({ itemId, planId, canChange }: StatusButtonProps) {
+export function StatusButton({
+  itemId,
+  planId,
+  canChange,
+  countsAs,
+}: StatusButtonProps) {
   const queue = usePlanStatus();
   const item = useItemStatus(itemId);
   if (item === null || !isToggleStatus(item.status)) return null;
@@ -33,6 +41,7 @@ export function StatusButton({ itemId, planId, canChange }: StatusButtonProps) {
   return (
     <ToggleButton
       status={item.status}
+      countsAs={countsAs}
       label={actionLabel(look.action, item.name)}
       canChange={canChange}
       isDisabled={item.inert || item.pendingStatus !== null}
@@ -46,6 +55,8 @@ export function StatusButton({ itemId, planId, canChange }: StatusButtonProps) {
 
 type ToggleButtonProps = {
   readonly status: ToggleStatus;
+  /** The status whose color I take, if not my own. */
+  readonly countsAs?: ToggleStatus;
   /** What pressing me does, and to what. */
   readonly label: string;
   readonly canChange: boolean;
@@ -60,6 +71,7 @@ type ToggleButtonProps = {
  */
 export function ToggleButton({
   status,
+  countsAs = status,
   label,
   canChange,
   isDisabled,
@@ -67,15 +79,16 @@ export function ToggleButton({
   onPress,
 }: ToggleButtonProps) {
   const look = TOGGLE_LOOKS[status];
+  const color = TOGGLE_LOOKS[countsAs].className;
   if (!canChange) {
     return (
       <span
         role="img"
-        aria-label={look.name}
+        aria-label={countedLabel(look.name, status, countsAs)}
         className={clsx(
           "flex items-center justify-center",
           LINE_CONTROL_CLASS_NAME,
-          look.className,
+          color,
         )}
       >
         <look.Icon size="small" aria-hidden="true" />
@@ -85,12 +98,8 @@ export function ToggleButton({
   return (
     <ControlTooltip label={look.action}>
       <Button
-        aria-label={label}
-        className={clsx(
-          LINE_CONTROL_CLASS_NAME,
-          look.className,
-          look.buttonClassName,
-        )}
+        aria-label={countedLabel(label, status, countsAs)}
+        className={clsx(LINE_CONTROL_CLASS_NAME, color, look.buttonClassName)}
         isDisabled={isDisabled}
         isIconOnly
         isPending={isPending}

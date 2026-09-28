@@ -301,6 +301,7 @@ describe("buildShoppingList", () => {
     const salt = only(list.acquired.items);
     expect(salt.amounts).toEqual([]);
     expect(salt.implicit).toBe(false);
+    expect(salt.sources[0].countsAs).toBe(PlanItemStatus.ACQUIRED);
   });
 
   it("counts everything under an acquired item as acquired, whatever its status", () => {
@@ -328,6 +329,38 @@ describe("buildShoppingList", () => {
     expect(ids(sugar.sources)).toEqual(["s1", "t1"]);
     expect(list.needed.unresolved).toEqual([]);
     expect(ids(list.acquired.unresolved)).toEqual(["t2"]);
+  });
+
+  it("tells what each plan item counts as, and which ancestors are acquired", () => {
+    const list = buildShoppingList([
+      plan(
+        "1",
+        ["sauce", "tea"],
+        [
+          item({ id: "sauce", children: ["s1"] }),
+          item({ id: "s1", pantry: SUGAR }),
+          item({
+            id: "tea",
+            children: ["syrup"],
+            status: PlanItemStatus.ACQUIRED,
+          }),
+          item({ id: "syrup", children: ["t1", "t2"], quantity: 0 }),
+          item({ id: "t1", pantry: SUGAR }),
+          item({ id: "t2", pantry: SALT, status: PlanItemStatus.ACQUIRED }),
+        ],
+      ),
+    ]);
+
+    const [s1, t1] = only(list.needed.items).sources;
+    expect(s1.countsAs).toBe(PlanItemStatus.NEEDED);
+    expect(s1.ancestors).toMatchObject([{ id: "sauce", acquired: false }]);
+    expect(t1.countsAs).toBe(PlanItemStatus.ACQUIRED);
+    expect(t1.ancestors).toMatchObject([
+      { id: "syrup", acquired: true },
+      { id: "tea", acquired: true },
+    ]);
+    const [t2] = only(list.acquired.items).sources;
+    expect(t2.countsAs).toBe(PlanItemStatus.ACQUIRED);
   });
 
   it("counts everything under a zero quantity as acquired, whatever its status", () => {
