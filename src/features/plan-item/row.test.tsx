@@ -4,6 +4,7 @@ import {
   PlanDirectory,
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
+import { TOGGLE_LOOKS, ToggleStatus } from "@/features/plan-status";
 import { buildInMemoryCache, render, screen, seedFragment } from "@/test";
 import { describe, expect, it } from "vitest";
 import {
@@ -45,8 +46,8 @@ const SUGAR: PlanItemFragment = {
 };
 
 const ANCESTORS: readonly RowAncestor[] = [
-  { id: "41", name: "Spag sauce" },
-  { id: "40", name: "Dinner" },
+  { id: "41", name: "Spag sauce", acquired: false },
+  { id: "40", name: "Dinner", acquired: false },
 ];
 
 function directoryOf(plans: readonly DirectoryPlan[]): PlanDirectory {
@@ -57,12 +58,18 @@ function renderRow(
   data: PlanItemFragment,
   plans: readonly DirectoryPlan[] = [WEEKNIGHTS],
   ancestors: readonly RowAncestor[] = ANCESTORS,
+  countsAs: ToggleStatus = PlanItemStatus.NEEDED,
 ) {
   const cache = buildInMemoryCache();
   const item = seedFragment(cache, PlanItemFragmentDoc, "planItem", data);
   render(
     <PlanDirectoryProvider directory={directoryOf(plans)}>
-      <PlanItemRow item={item} ancestors={ancestors} plan={WEEKNIGHTS} />
+      <PlanItemRow
+        item={item}
+        ancestors={ancestors}
+        plan={WEEKNIGHTS}
+        countsAs={countsAs}
+      />
     </PlanDirectoryProvider>,
     { cache },
   );
@@ -80,7 +87,7 @@ describe("PlanItemRow", () => {
     renderRow(
       SUGAR,
       [WEEKNIGHTS],
-      [{ id: "41", name: "" }, ...ANCESTORS.slice(1)],
+      [{ id: "41", name: "", acquired: false }, ...ANCESTORS.slice(1)],
     );
 
     expect(screen.getByText("Unnamed").parentElement).toHaveTextContent(
@@ -110,6 +117,29 @@ describe("PlanItemRow", () => {
     // the plan's dot, and nothing for its ancestors
     expect(screen.getAllByRole("img")).toHaveLength(1);
     expect(screen.getByRole("img", { name: "Weeknights" })).toBeVisible();
+  });
+
+  it("shows an item counted as acquired in acquired's color, and why", () => {
+    renderRow(
+      SUGAR,
+      [WEEKNIGHTS],
+      [
+        { id: "41", name: "Spag sauce", acquired: true },
+        { id: "40", name: "Dinner", acquired: false },
+      ],
+      PlanItemStatus.ACQUIRED,
+    );
+
+    const acquired = TOGGLE_LOOKS[PlanItemStatus.ACQUIRED].className;
+    expect(
+      screen.getByRole("button", {
+        name: "Mark acquired: 1 tsp sugar (counts as acquired)",
+      }),
+    ).toHaveClass(acquired);
+    expect(screen.getByText("Spag sauce")).toHaveClass(acquired);
+    expect(screen.getByText("/ Dinner", { exact: false })).not.toHaveClass(
+      acquired,
+    );
   });
 
   it("marks an item calling for none of something", () => {

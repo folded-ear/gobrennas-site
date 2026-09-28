@@ -41,11 +41,13 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - The list has two regions: Needed on top, Acquired below. Only Acquired
   is headed. A region with nothing in it doesn't appear.
 - A plan item with a zero quantity counts as acquired, whatever its status.
+- A plan item under an acquired item, or under one with a zero quantity,
+  counts as acquired too, whatever its own status. Its status isn't changed.
 - A shopping item is in Needed when any of its plan items is still needed,
   and its amounts sum only those. Once all are acquired, it moves to
   Acquired and sums them all.
-- A plan item with no ingredient appears in the region its own status puts
-  it in.
+- A plan item with no ingredient appears in the region it counts as being
+  in, on its own.
 - Shopping items in each region are in store order, then by name.
 
 ### Checking items off
@@ -57,6 +59,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   needed again. Plan items with a zero quantity are changed too.
 - Each plan item listed under an expanded shopping item has a status of
   its own, which switches just that plan item.
+- A plan item that counts as acquired while marked needed shows the needed
+  circle in olive, and its status names it as counting as acquired.
 - A change saves at once, and the status shows it is saving until it has.
   There is no undo, and no status control deletes anything.
 
@@ -80,6 +84,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
   behind it, whatever their status. Expanding one collapses any other.
 - Each plan item shows its text first, with where it sits beneath: its
   ancestors, nearest first.
+- An ancestor that is acquired, or has a zero quantity, is named in olive.
 - A plan item with a zero quantity is marked "NO".
 - Plan items with no ingredient appear the same way.
 

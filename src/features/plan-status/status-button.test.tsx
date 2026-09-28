@@ -8,6 +8,7 @@ import {
 import { savedStatuses } from "@/features/plan-changes/test/status-mocks";
 import { render, screen, userEvent } from "@/test";
 import { describe, expect, it } from "vitest";
+import { TOGGLE_LOOKS } from "./status";
 import { StatusButton } from "./status-button";
 
 // Whipped cream (3), and the pumpkin (2) beneath the pie (1).
@@ -57,6 +58,40 @@ describe("StatusButton", () => {
 
     expect(screen.getByRole("img", { name: "Needed" })).toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("keeps its own status, in the color of the one it counts as", () => {
+    render(
+      <StatusButton
+        itemId={CREAM}
+        planId={THANKSGIVING}
+        canChange
+        countsAs={PlanItemStatus.ACQUIRED}
+      />,
+      { cache: seededCache() },
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: "Mark acquired: Whipped cream (counts as acquired)",
+      }),
+    ).toHaveClass(TOGGLE_LOOKS[PlanItemStatus.ACQUIRED].className);
+  });
+
+  it("names the status it counts as to a viewer who can't change it", () => {
+    render(
+      <StatusButton
+        itemId={CREAM}
+        planId={THANKSGIVING}
+        canChange={false}
+        countsAs={PlanItemStatus.ACQUIRED}
+      />,
+      { cache: seededCache() },
+    );
+
+    expect(
+      screen.getByRole("img", { name: "Needed (counts as acquired)" }),
+    ).toHaveClass(TOGGLE_LOOKS[PlanItemStatus.ACQUIRED].className);
   });
 
   it("can't be used while an ancestor is going away", () => {

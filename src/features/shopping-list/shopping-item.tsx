@@ -48,6 +48,7 @@ export function ShoppingRowLine({ row, group }: ShoppingRowLineProps) {
         item={row.source.item}
         ancestors={row.source.ancestors}
         plan={row.source.plan}
+        countsAs={row.source.countsAs}
         group={group}
       />
     </li>

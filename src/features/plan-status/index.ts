@@ -7,6 +7,7 @@ export {
 } from "./removal-buttons";
 export {
   LINE_CONTROL_CLASS_NAME,
+  TOGGLE_LOOKS,
   useItemStatus,
   useItemStatusClassName,
 } from "./status";
