@@ -1,5 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { DirectoryPlan } from "@/features/plan-directory";
+import { ToggleStatus } from "@/features/plan-status";
 import {
   ancestorsOf,
   buildPlanContext,
@@ -30,12 +31,20 @@ export type Amount = {
   readonly unit: Unit | null;
 };
 
+/** An ancestor of a plan item behind the shopping list. */
+export type SourceAncestor = ItemRef & {
+  /** Whether I count as acquired, and so everything under me does. */
+  readonly acquired: boolean;
+};
+
 /** One plan item behind the shopping list, and where it sits. */
 export type Source = {
   readonly item: ShoppingPlanItem;
   readonly plan: DirectoryPlan;
   /** Nearest first, the plan itself left out. */
-  readonly ancestors: readonly ItemRef[];
+  readonly ancestors: readonly SourceAncestor[];
+  /** The status I count as, whatever my item's own. */
+  readonly countsAs: ToggleStatus;
 };
 
 export type ShoppingIngredient = {
@@ -87,8 +96,6 @@ export function buildShoppingList(
   const byId = new Map(
     plans.flatMap((plan) => plan.items).map((it) => [it.id, it]),
   );
-  const neededIds = new Set<string>();
-  const isNeeded = (item: ShoppingPlanItem) => neededIds.has(item.id);
 
   for (const plan of plans) {
     const directoryPlan = {
@@ -103,18 +110,23 @@ export function buildShoppingList(
       if (item.children.length > 0 || ingredient?.__typename === "Recipe") {
         continue;
       }
-      const ancestors = ancestorsOf(context, item.id);
-      const lineage = [item, ...ancestors.map((it) => byId.get(it.id))];
-      if (lineage.every((it) => it === undefined || isWanted(it))) {
-        neededIds.add(item.id);
-      }
+      const ancestors = ancestorsOf(context, item.id)
+        .map((it) => {
+          const found = byId.get(it.id);
+          return { ...it, acquired: found !== undefined && !isWanted(found) };
+        })
+        .reverse();
       const source: Source = {
         item,
         plan: directoryPlan,
-        ancestors: [...ancestors].reverse(),
+        ancestors,
+        countsAs:
+          isWanted(item) && ancestors.every((it) => !it.acquired)
+            ? PlanItemStatus.NEEDED
+            : PlanItemStatus.ACQUIRED,
       };
       if (ingredient === null) {
-        (isNeeded(item) ? needed : acquired).unresolved.push(source);
+        (isNeeded(source) ? needed : acquired).unresolved.push(source);
         continue;
       }
       const group = byIngredient.get(ingredient.id);
@@ -131,12 +143,10 @@ export function buildShoppingList(
   }
 
   for (const { ingredient, sources } of byIngredient.values()) {
-    const anyNeeded = sources.some((it) => isNeeded(it.item));
+    const anyNeeded = sources.some(isNeeded);
     (anyNeeded ? needed : acquired).items.push({
       ingredient,
-      amounts: sumByUnit(
-        anyNeeded ? sources.filter((it) => isNeeded(it.item)) : sources,
-      ),
+      amounts: sumByUnit(anyNeeded ? sources.filter(isNeeded) : sources),
       implicit: sources.length === 1 && sources[0].item.quantity === null,
       plans: [...new Map(sources.map((it) => [it.plan.id, it.plan])).values()],
       sources,
@@ -157,6 +167,10 @@ type MutableRegion = {
   readonly items: ShoppingItem[];
   readonly unresolved: Source[];
 };
+
+function isNeeded(source: Source): boolean {
+  return source.countsAs === PlanItemStatus.NEEDED;
+}
 
 /**
  * I tell whether an item is still wanted on its own account. A plan item of

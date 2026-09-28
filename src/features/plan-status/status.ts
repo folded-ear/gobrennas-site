@@ -72,6 +72,19 @@ export const REMOVAL_LOOKS: Record<RemovalStatus, RemovalLook> = {
  */
 export const LINE_CONTROL_CLASS_NAME = "size-xl min-w-0 shrink-0 p-0";
 
+/**
+ * I add the status something counts as to its name, for anyone who can't
+ * see its color, unless it's the status it has.
+ */
+export function countedLabel(
+  label: string,
+  status: ToggleStatus,
+  countsAs: ToggleStatus,
+): string {
+  if (status === countsAs) return label;
+  return `${label} (counts as ${TOGGLE_LOOKS[countsAs].name.toLowerCase()})`;
+}
+
 /** I name an action on one item, for anyone who can't see its row. */
 export function actionLabel(action: string, itemName: string) {
   return `${action}: ${itemName}`;
