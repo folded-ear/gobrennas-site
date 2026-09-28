@@ -5,6 +5,7 @@ import {
   buildPlanDirectory,
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
+import { buildPlanTree } from "@/features/plan-dnd/moves";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { ShoppingRegions } from "@/features/shopping-list";
@@ -47,6 +48,12 @@ export function Shopping() {
     [shownPlans],
   );
 
+  const tree = useMemo(
+    () =>
+      buildPlanTree(shownPlans.flatMap((plan) => [plan, ...plan.descendants])),
+    [shownPlans],
+  );
+
   return (
     <PlanDirectoryProvider directory={directory}>
       <SectionHeader title="Shopping">
@@ -59,7 +66,7 @@ export function Shopping() {
         />
       </SectionHeader>
       <div className="p-md bg-surface">
-        <ShoppingRegions list={list} />
+        <ShoppingRegions list={list} tree={tree} />
       </div>
     </PlanDirectoryProvider>
   );

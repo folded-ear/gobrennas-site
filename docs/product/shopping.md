@@ -62,7 +62,21 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - A plan item that counts as acquired while marked needed shows the needed
   circle in olive, and its status names it as counting as acquired.
 - A change saves at once, and the status shows it is saving until it has.
-  There is no undo, and nothing can be deleted from the shopping list.
+  There is no undo, and no status control deletes anything.
+
+### Editing plan items
+
+- Plan items, loose or under an expanded shopping item, are edited in
+  place as on the [planner](planner.md#editing-items), adding and removing
+  items included. A plan item's ancestry beneath it isn't part of what
+  starts editing. The keys are the [planner's](planner.md#keyboard-shortcuts).
+- A new item shows beside the one it came from until it's created. Then
+  it's listed wherever its ingredient puts it. A new item made from one
+  still being created stays where it shows.
+- A new item whose shopping item disappears moves to the end of the
+  needed loose items, still being edited.
+- Collapsing a shopping item ends editing of its plan items. Expanding it
+  again doesn't resume it.
 
 ### Expanding a shopping item
 

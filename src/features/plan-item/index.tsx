@@ -4,6 +4,7 @@ import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
+import { ItemName } from "./item-name";
 
 type PlanItemProps = {
   item: FragmentType<PlanItemFragment>;
@@ -20,7 +21,13 @@ export function PlanItem({ item, onSelect }: PlanItemProps) {
   if (!complete) return null;
 
   // A click that does nothing shouldn't offer itself as one.
-  if (!onSelect) return <span>{data.name}</span>;
+  if (!onSelect) {
+    return (
+      <span>
+        <ItemName itemId={data.id} />
+      </span>
+    );
+  }
 
   return (
     <button
@@ -28,7 +35,7 @@ export function PlanItem({ item, onSelect }: PlanItemProps) {
       className="cursor-pointer text-left hover:text-accent"
       onClick={() => onSelect(data.id)}
     >
-      {data.name}
+      <ItemName itemId={data.id} />
     </button>
   );
 }

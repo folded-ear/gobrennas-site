@@ -1,6 +1,7 @@
 "use client";
 
 import { ControlTooltip } from "@/components/control-tooltip";
+import { usePlanChanges } from "@/features/plan-changes/use-plan-changes";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
 import {
@@ -12,7 +13,6 @@ import {
   ToggleStatus,
   useItemStatus,
 } from "./status";
-import { usePlanStatus } from "./use-plan-status";
 
 type StatusButtonProps = {
   readonly itemId: string;
@@ -33,7 +33,7 @@ export function StatusButton({
   canChange,
   countsAs,
 }: StatusButtonProps) {
-  const queue = usePlanStatus();
+  const queue = usePlanChanges();
   const item = useItemStatus(itemId);
   if (item === null || !isToggleStatus(item.status)) return null;
 
@@ -47,7 +47,15 @@ export function StatusButton({
       isDisabled={item.inert || item.pendingStatus !== null}
       isPending={item.savingStatus}
       onPress={() =>
-        queue.set([{ id: itemId, planId, name: item.name, status: look.next }])
+        queue.set([
+          {
+            kind: "status",
+            id: itemId,
+            planId,
+            name: item.name,
+            status: look.next,
+          },
+        ])
       }
     />
   );

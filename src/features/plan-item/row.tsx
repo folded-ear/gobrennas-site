@@ -4,19 +4,22 @@ import {
   DirectoryPlan,
   useShowsPlanIndicators,
 } from "@/features/plan-directory";
+import { EditableName } from "@/features/plan-edit";
 import {
   StatusButton,
   TOGGLE_LOOKS,
   ToggleStatus,
+  useItemStatus,
 } from "@/features/plan-status";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
-import { Fragment } from "react";
+import { Fragment, ReactNode } from "react";
 import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
 import { NoChip } from "./chips";
+import { ItemName, NameText } from "./item-name";
 
 /** One step of the ancestry beneath a plan item. */
 export type RowAncestor = {
@@ -31,6 +34,8 @@ type PlanItemRowProps = {
   /** Nearest first, the plan itself left out. */
   readonly ancestors: readonly RowAncestor[];
   readonly plan: DirectoryPlan;
+  /** The list I'm shown in, which a new item made from me joins. */
+  readonly group?: string;
   /** The status my item counts as, whatever its own. */
   readonly countsAs: ToggleStatus;
 };
@@ -47,6 +52,7 @@ export function PlanItemRow({
   item,
   ancestors,
   plan,
+  group,
   countsAs,
 }: PlanItemRowProps) {
   const showsPlan = useShowsPlanIndicators();
@@ -62,13 +68,14 @@ export function PlanItemRow({
     <Fragment key={it.id}>
       {i > 0 ? STEP_SEPARATOR : null}
       {it.acquired ? (
-        <span className={ACQUIRED_CLASS_NAME}>{it.name}</span>
+        <span className={ACQUIRED_CLASS_NAME}>
+          <NameText name={it.name} />
+        </span>
       ) : (
-        it.name
+        <NameText name={it.name} />
       )}
     </Fragment>
   ));
-  const hasAncestry = ancestors.length > 0;
   return (
     <div className="flex items-start gap-xs">
       <StatusButton
@@ -77,24 +84,64 @@ export function PlanItemRow({
         canChange={plan.changeable}
         countsAs={countsAs}
       />
-      <div className="flex flex-col">
-        <span className="flex items-start gap-xs">
-          {data.quantity?.quantity === 0 ? <NoChip /> : null}
-          <span>{data.name}</span>
+      <RowName
+        itemId={data.id}
+        name={data.name}
+        plan={plan}
+        group={group}
+        below={
+          ancestors.length > 0 || showsPlan ? (
+            <small>
+              {ancestry}
+              {ancestors.length > 0 && showsPlan ? STEP_SEPARATOR : null}
+              {showsPlan ? (
+                <>
+                  <PlanDot plan={plan} className="me-xxs" />
+                  {plan.name}
+                </>
+              ) : null}
+            </small>
+          ) : null
+        }
+      >
+        {data.quantity?.quantity === 0 ? <NoChip /> : null}
+        <span>
+          <ItemName itemId={data.id} />
         </span>
-        {hasAncestry || showsPlan ? (
-          <small>
-            {ancestry}
-            {hasAncestry && showsPlan ? STEP_SEPARATOR : null}
-            {showsPlan ? (
-              <>
-                <PlanDot plan={plan} className="me-xxs" />
-                {plan.name}
-              </>
-            ) : null}
-          </small>
-        ) : null}
-      </div>
+      </RowName>
     </div>
+  );
+}
+
+type RowNameProps = {
+  readonly itemId: string;
+  readonly name: string;
+  readonly plan: DirectoryPlan;
+  readonly group?: string;
+  readonly below: ReactNode;
+  readonly children: ReactNode;
+};
+
+/** I am a row's name and where it sits, edited in place when it can be. */
+function RowName({ itemId, name, plan, group, below, children }: RowNameProps) {
+  const status = useItemStatus(itemId);
+  return (
+    <EditableName
+      itemId={itemId}
+      planId={plan.id}
+      name={name}
+      // The shopping list is made of leaves.
+      hasChildren={false}
+      canEdit={
+        plan.changeable &&
+        status !== null &&
+        !status.inert &&
+        status.pendingStatus === null
+      }
+      group={group}
+      below={below}
+    >
+      {children}
+    </EditableName>
   );
 }

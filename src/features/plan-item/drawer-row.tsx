@@ -8,10 +8,12 @@ import { ItemRow } from "@/features/plan-dnd/item-row";
 import { PlanTree, TreeMove } from "@/features/plan-dnd/moves";
 import { treeZones } from "@/features/plan-dnd/tree-zones";
 import { TREE_ZONES } from "@/features/plan-dnd/zones";
+import { EditableName } from "@/features/plan-edit";
 import { PlanItem } from "@/features/plan-item";
 import {
   DeleteButton,
   StatusButton,
+  useItemStatus,
   useItemStatusClassName,
 } from "@/features/plan-status";
 import { PlanContext } from "@/features/plan-timeline/context";
@@ -70,6 +72,16 @@ export function DrawerRow({
   ) : null;
 
   const statusClassName = useItemStatusClassName(id);
+  const status = useItemStatus(id);
+  const canEdit =
+    plan?.changeable === true &&
+    status !== null &&
+    !status.inert &&
+    status.pendingStatus === null;
+  // A section's own item is there by its own bucket, so a new item beside
+  // it takes that bucket to stay in the section.
+  const bucketId =
+    sectionRoot && node.item.bucket !== null ? node.item.bucket.id : undefined;
   const own = context.get(id);
   // My own day is what the item screen cannot otherwise show: nothing here
   // stands under a date the way a timeline row does.
@@ -86,9 +98,23 @@ export function DrawerRow({
         />
       ) : null}
       {/* Names and chips give way before a row runs off its edge. */}
-      <span className={clsx("min-w-0", statusClassName)}>
-        <PlanItem item={node.item} />
-      </span>
+      {plan !== undefined ? (
+        <EditableName
+          itemId={id}
+          planId={plan.id}
+          name={name}
+          hasChildren={node.item.children.length > 0}
+          canEdit={canEdit}
+          bucketId={bucketId}
+          className={statusClassName}
+        >
+          <PlanItem item={node.item} />
+        </EditableName>
+      ) : (
+        <span className={clsx("min-w-0", statusClassName)}>
+          <PlanItem item={node.item} />
+        </span>
+      )}
       {plan !== undefined && node.item.children.length > 0 ? (
         <CookLink planId={plan.id} itemId={id} name={name} />
       ) : null}

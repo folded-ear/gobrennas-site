@@ -1,0 +1,8 @@
+# What a created or renamed item selects: everything the planner and
+# shopping queries read of an item, so neither is left incomplete.
+fragment planItemResult on PlanItem {
+  id
+  ...timelineItem @unmask
+  ...planItem
+  ...shoppingPlanItem @unmask
+}

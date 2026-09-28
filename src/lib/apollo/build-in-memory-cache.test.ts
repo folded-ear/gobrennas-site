@@ -1,7 +1,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { PlanItemChangeStateFragmentDoc } from "@/features/plan-changes/__generated__/planItemChangeState.generated";
 import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
 import { PlanItemStatusFragmentDoc } from "@/features/plan-status/__generated__/planItemStatus.generated";
-import { PlanItemStatusStateFragmentDoc } from "@/features/plan-status/__generated__/planItemStatusState.generated";
 import { RecipesDocument } from "@/screens/__generated__/recipes.generated";
 import { gql } from "@apollo/client";
 import { describe, expect, it } from "vitest";
@@ -188,12 +188,13 @@ describe("plan item status state", () => {
     const cache = seededWithPie();
 
     cache.writeFragment({
-      fragment: PlanItemStatusStateFragmentDoc,
+      fragment: PlanItemChangeStateFragmentDoc,
       id: "PlanItem:1",
       data: {
         __typename: "PlanItem",
         pendingStatus: PlanItemStatus.DELETED,
         savingStatus: false,
+        pendingName: null,
       },
     });
 

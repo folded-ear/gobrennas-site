@@ -1,0 +1,5 @@
+fragment planItemName on PlanItem {
+  id
+  name
+  pendingName @client
+}

@@ -1,8 +1,12 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import {
+  readStatus,
+  seededCache,
+  THANKSGIVING,
+} from "@/features/plan-changes/test/status-cache";
 import { render, screen, userEvent } from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import { CookedItButton, DeleteButton } from "./removal-buttons";
-import { readStatus, seededCache, THANKSGIVING } from "./test/status-cache";
 
 // The pie (1), with the pumpkin (2) beneath it.
 const PIE = "1";

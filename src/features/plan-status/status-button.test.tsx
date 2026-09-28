@@ -1,11 +1,15 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { PlanItemChangeStateFragmentDoc } from "@/features/plan-changes/__generated__/planItemChangeState.generated";
+import {
+  readStatus,
+  seededCache,
+  THANKSGIVING,
+} from "@/features/plan-changes/test/status-cache";
+import { savedStatuses } from "@/features/plan-changes/test/status-mocks";
 import { render, screen, userEvent } from "@/test";
 import { describe, expect, it } from "vitest";
-import { PlanItemStatusStateFragmentDoc } from "./__generated__/planItemStatusState.generated";
 import { TOGGLE_LOOKS } from "./status";
 import { StatusButton } from "./status-button";
-import { readStatus, seededCache, THANKSGIVING } from "./test/status-cache";
-import { savedStatuses } from "./test/status-mocks";
 
 // Whipped cream (3), and the pumpkin (2) beneath the pie (1).
 const CREAM = "3";
@@ -93,12 +97,13 @@ describe("StatusButton", () => {
   it("can't be used while an ancestor is going away", () => {
     const cache = seededCache();
     cache.writeFragment({
-      fragment: PlanItemStatusStateFragmentDoc,
+      fragment: PlanItemChangeStateFragmentDoc,
       id: "PlanItem:1",
       data: {
         __typename: "PlanItem",
         pendingStatus: PlanItemStatus.DELETED,
         savingStatus: false,
+        pendingName: null,
       },
     });
 

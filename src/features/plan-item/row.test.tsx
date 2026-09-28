@@ -83,6 +83,18 @@ describe("PlanItemRow", () => {
     expect(screen.getByText("Spag sauce / Dinner")).toBeVisible();
   });
 
+  it("shows a blank ancestor as Unnamed", () => {
+    renderRow(
+      SUGAR,
+      [WEEKNIGHTS],
+      [{ id: "41", name: "", acquired: false }, ...ANCESTORS.slice(1)],
+    );
+
+    expect(screen.getByText("Unnamed").parentElement).toHaveTextContent(
+      "Unnamed / Dinner",
+    );
+  });
+
   it("offers to acquire its item", () => {
     renderRow(SUGAR);
 

@@ -26,8 +26,8 @@ export function buildInMemoryCache() {
           suggestRecipesToCook: relayStylePagination(false),
         },
       },
-      // Status state is local (schema-local.graphql); it reads as settled
-      // until the status queue writes otherwise.
+      // Change state is local (schema-local.graphql); it reads as settled
+      // until the change queue writes otherwise.
       PlanItem: {
         fields: {
           pendingStatus: {
@@ -35,6 +35,9 @@ export function buildInMemoryCache() {
           },
           savingStatus: {
             read: (existing) => existing ?? false,
+          },
+          pendingName: {
+            read: (existing) => existing ?? null,
           },
           inert: {
             read(_, { readField }) {

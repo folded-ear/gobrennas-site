@@ -5,6 +5,7 @@ import {
   LINE_CONTROL_CLASS_NAME,
   useItemStatus,
 } from "@/features/plan-status";
+import { displayName } from "@/lib/plan-item-name";
 import clsx from "clsx";
 import Link from "next/link";
 
@@ -40,7 +41,7 @@ export function CookLink({ planId, itemId, name }: CookLinkProps) {
       )}
     >
       <CookIcon size="small" aria-hidden="true" />
-      <span className="sr-only">Cook {name}</span>
+      <span className="sr-only">Cook {displayName(name)}</span>
     </Link>
   );
 }

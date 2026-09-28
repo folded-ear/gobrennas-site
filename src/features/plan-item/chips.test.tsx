@@ -39,6 +39,12 @@ describe("ParentChip", () => {
 
     expect(screen.getByText("Salad")).toBeVisible();
   });
+
+  it("calls a blank-named item Unnamed", () => {
+    render(<ParentChip name="" />);
+
+    expect(screen.getByText("Unnamed")).toBeVisible();
+  });
 });
 
 describe("NoChip", () => {

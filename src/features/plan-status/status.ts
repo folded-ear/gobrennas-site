@@ -1,5 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { AcquiredIcon, IconProps, NeededIcon } from "@/components/icons";
+import { displayName } from "@/lib/plan-item-name";
 import { useFragment } from "@apollo/client/react";
 import { ComponentType } from "react";
 import { PlanItemStatusFragmentDoc } from "./__generated__/planItemStatus.generated";
@@ -87,7 +88,7 @@ export function countedLabel(
 
 /** I name an action on one item, for anyone who can't see its row. */
 export function actionLabel(action: string, itemName: string) {
-  return `${action}: ${itemName}`;
+  return `${action}: ${displayName(itemName)}`;
 }
 
 /** I give an item's status and what's being done to it, as it changes. */

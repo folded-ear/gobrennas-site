@@ -3,6 +3,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ControlTooltip } from "@/components/control-tooltip";
 import { CookedItIcon, DeleteIcon } from "@/components/icons";
+import { usePlanChanges } from "@/features/plan-changes/use-plan-changes";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
 import {
@@ -12,7 +13,6 @@ import {
   RemovalStatus,
   useItemStatus,
 } from "./status";
-import { usePlanStatus } from "./use-plan-status";
 
 type RemovalButtonProps = {
   readonly itemId: string;
@@ -34,7 +34,7 @@ export function CancelPendingButton({
   itemId,
   status,
 }: CancelPendingButtonProps) {
-  const queue = usePlanStatus();
+  const queue = usePlanChanges();
   const item = useItemStatus(itemId);
   if (item?.pendingStatus !== status) return null;
 
@@ -55,7 +55,7 @@ export function CancelPendingButton({
 
 /** I delete an item, after a window in which it can be undone. */
 export function DeleteButton({ itemId, planId }: RemovalButtonProps) {
-  const queue = usePlanStatus();
+  const queue = usePlanChanges();
   const item = useItemStatus(itemId);
   if (item === null) return null;
   if (item.pendingStatus === PlanItemStatus.DELETED) {
@@ -77,6 +77,7 @@ export function DeleteButton({ itemId, planId }: RemovalButtonProps) {
         isIconOnly
         onPress={() =>
           queue.hold({
+            kind: "status",
             id: itemId,
             planId,
             name: item.name,
@@ -103,7 +104,7 @@ export function CookedItButton({
   planId,
   onCooked,
 }: CookedItButtonProps) {
-  const queue = usePlanStatus();
+  const queue = usePlanChanges();
   const item = useItemStatus(itemId);
   if (item === null) return null;
   if (item.pendingStatus === PlanItemStatus.COMPLETED) {
@@ -120,6 +121,7 @@ export function CookedItButton({
       isDisabled={item.inert || item.pendingStatus !== null}
       onPress={() => {
         queue.hold({
+          kind: "status",
           id: itemId,
           planId,
           name: item.name,

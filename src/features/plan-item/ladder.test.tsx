@@ -164,6 +164,25 @@ describe("Ladder", () => {
     expect(screen.getByText("Salad")).toBeVisible();
   });
 
+  it("shows a blank-named step as Unnamed", () => {
+    const context = buildPlanContext({
+      plans: [
+        {
+          rootIds: ["dinner"],
+          items: [
+            item({ id: "dinner", name: " ", children: ["salad"] }),
+            item({ id: "salad", name: "Salad" }),
+          ],
+          buckets: [],
+        },
+      ],
+    });
+
+    render(<Ladder context={context} id="salad" />);
+
+    expect(screen.getByText("Unnamed")).toBeVisible();
+  });
+
   it("heads the item screen with the open item", () => {
     render(<Ladder context={thanksgiving("wed")} id="dressing" />);
 

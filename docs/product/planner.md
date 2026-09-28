@@ -127,7 +127,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - A user who can change the plan can delete any item from the timeline or
   the item screen, whatever its status. Deleting an item removes
   everything below it too.
-- Deleting or cooking an item waits a few seconds before it's saved. Until
+- Deleting an item with its delete button, or cooking it, waits a few
+  seconds before it's saved. Until
   then the item is struck through, in red when deleted and green when
   cooked, and a button to undo it takes the place of the one that asked
   for it. Everything below it fades and can't be changed.
@@ -174,9 +175,59 @@ The terms used here are defined in the [domain model](../domain/model.md).
   Moving it in either one updates both.
 - A move shows immediately. If it fails, the item goes back where it was
   and a message says so.
-- Items can be moved by keyboard: Space or Enter on a handle picks the item
-  up, the arrow keys move it, Space, Enter, or Tab drops it, and Escape
-  cancels.
+- Items can be moved by keyboard; see [Keyboard shortcuts](#keyboard-shortcuts).
+
+### Editing items
+
+- A user who can change a plan edits an item's name in place wherever it
+  shows as text: below the open item or in a section screen, and the open
+  item itself at the head of the item screen. Names on the timeline open
+  the item instead.
+- Pressing anywhere in the space a name takes, or could take, starts
+  editing it. The name itself can be reached by keyboard.
+- One item is edited at a time. Leaving it, however that happens, saves
+  its new name and shows it as usual again. Escape cancels, saving
+  nothing, and leaves the screen open.
+- An item waiting to be deleted or cooked, or below one that is, can't be
+  edited.
+- Enter adds a new, empty item beside the one being edited: above it with
+  the cursor at the start of its name, below it otherwise. In the item
+  screen's heading, Enter adds a new first child of the open item instead.
+  Enter does nothing in a blank item.
+- A new item is edited at once. Leaving it creates it, unless it's still
+  blank, in which case it's thrown away.
+- Backspace or Delete in an empty item with nothing below it deletes the
+  item at once, with no undo, and moves on to the item before or after it,
+  or to the other one when there's none that way. With neither, nothing is
+  left being edited. In an item with something below it, the keys do
+  nothing.
+- An item left blank is deleted the same way when nothing is below it.
+  With something below it, it's saved blank and shows as a lighter, italic
+  "Unnamed" wherever its name appears.
+- Deleting the open item from the item screen's heading closes the screen.
+- A new item made beside one of a section's own items joins that section.
+- A name shows as saving until the change is saved.
+
+### Keyboard shortcuts
+
+While editing an item's name:
+
+| Key | Does |
+| --- | --- |
+| Enter | Adds a new item below, or above with the cursor at the start. In the item screen's heading, adds a first child. |
+| Backspace | In an empty item with nothing below it, deletes it and moves to the item before. |
+| Delete | In an empty item with nothing below it, deletes it and moves to the item after. |
+| Escape | Cancels the edit. |
+| Tab | Leaves the item, saving it. |
+
+On an item's handle:
+
+| Key | Does |
+| --- | --- |
+| Space or Enter | Picks the item up. |
+| Arrow keys | Move it. |
+| Space, Enter, or Tab | Drops it. |
+| Escape | Cancels the move. |
 
 ## Example
 

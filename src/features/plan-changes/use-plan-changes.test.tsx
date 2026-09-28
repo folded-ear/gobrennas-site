@@ -5,28 +5,30 @@ import { Toast } from "@heroui/react";
 import { PropsWithChildren } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { StatusChange } from "./queue";
-import { statusApiClient, StatusRequest } from "./test/status-api";
+import { changeApiClient, ChangeRequest } from "./test/change-api";
 import { seededCache, THANKSGIVING } from "./test/status-cache";
-import { usePlanStatus } from "./use-plan-status";
+import { usePlanChanges } from "./use-plan-changes";
 
 const PIE: StatusChange = {
+  kind: "status",
   id: "1",
   planId: THANKSGIVING,
   name: "Pumpkin pie",
   status: PlanItemStatus.DELETED,
 };
 const CREAM: StatusChange = {
+  kind: "status",
   id: "3",
   planId: THANKSGIVING,
   name: "Whipped cream",
   status: PlanItemStatus.ACQUIRED,
 };
 
-let requests: StatusRequest[];
+let requests: ChangeRequest[];
 
 function renderStatus({ refuse = false } = {}) {
-  const client = statusApiClient(seededCache(), requests, { refuse });
-  return renderHook(() => usePlanStatus(), {
+  const client = changeApiClient(seededCache(), requests, { refuse });
+  return renderHook(() => usePlanChanges(), {
     wrapper: ({ children }: PropsWithChildren) => (
       <ApolloProvider client={client}>
         {children}
@@ -49,7 +51,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("usePlanStatus", () => {
+describe("usePlanChanges", () => {
   it("sends held removals the moment the page is hidden", () => {
     const { result } = renderStatus();
     act(() => result.current.hold(PIE));

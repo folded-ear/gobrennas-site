@@ -9,6 +9,12 @@ import {
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree } from "@/features/plan-dnd/moves";
 import { usePlanMoves } from "@/features/plan-dnd/use-plan-moves";
+import {
+  buildEntries,
+  EditSurfaceProvider,
+  treeOrder,
+  useEditState,
+} from "@/features/plan-edit";
 import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
 import { PlanSectionHeader } from "@/features/plan-item/section-header";
 import { PlanPicker } from "@/features/plan-picker";
@@ -22,11 +28,13 @@ import {
 import { sectionLabel } from "@/features/plan-timeline/section-label";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
 import { useHistoryState } from "@/hooks/use-history-state";
+import { displayName } from "@/lib/plan-item-name";
 import { canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 // Only the viewer's browser knows the viewer's date, so the timeline never
@@ -53,6 +61,8 @@ function openSectionKey(open: PlannerOpen | undefined): string | undefined {
 export function Planner() {
   const { data } = useSuspenseQuery(PlannerDocument);
   const open = useHistoryState<PlannerOpen>(OPEN_KEY);
+  const router = useRouter();
+  const edit = useEditState();
 
   const plans = data.planner.plans;
   const directory = useMemo(() => buildPlanDirectory(plans), [plans]);
@@ -123,6 +133,14 @@ export function Planner() {
   const changeable = new Set(
     shownPlans.filter(canChangePlan).map((plan) => plan.id),
   );
+  const openId = shown?.id ?? null;
+  // The screen's editable rows, as it shows them, heading first.
+  const editOrder = isOpen
+    ? treeOrder(
+        buildEntries(descendants, edit.drafts, openId),
+        openId === null ? null : { id: openId },
+      )
+    : [];
   const dnd: PlanDnd = {
     tree,
     canMove: (itemId) => {
@@ -143,31 +161,50 @@ export function Planner() {
           onChange={setPlanIds}
         />
       </SectionHeader>
-      <Screen
-        label={shown?.name ?? (shownSection ? sectionLabel(shownSection) : "")}
-        isOpen={isOpen}
-        header={
-          shown ? (
-            <PlanItemHeader
-              item={shown}
-              context={context}
-              hasDescendants={descendants.length > 0}
-              onSelect={(id) => open.replace({ item: id })}
-            />
-          ) : shownSection ? (
-            <PlanSectionHeader section={shownSection} />
-          ) : null
-        }
+      <EditSurfaceProvider
+        state={edit}
+        order={editOrder}
+        tree={tree}
+        createdStayPut
       >
-        {shown || shownSection ? (
-          <PlanItemDetail
-            context={context}
-            descendants={descendants}
-            dnd={dnd}
-            holdsSection={!shown}
-          />
-        ) : null}
-      </Screen>
+        <Screen
+          label={
+            shown
+              ? displayName(shown.name)
+              : shownSection
+                ? sectionLabel(shownSection)
+                : ""
+          }
+          isOpen={isOpen}
+          header={
+            shown ? (
+              <PlanItemHeader
+                item={shown}
+                context={context}
+                hasDescendants={descendants.length > 0}
+                onSelect={(id) => open.replace({ item: id })}
+                onRemoved={() => {
+                  // Only while it's still open: an edit ended by the screen
+                  // closing mustn't go back again.
+                  if (openItemId(open.value) === shown.id) router.back();
+                }}
+              />
+            ) : shownSection ? (
+              <PlanSectionHeader section={shownSection} />
+            ) : null
+          }
+        >
+          {shown || shownSection ? (
+            <PlanItemDetail
+              context={context}
+              descendants={descendants}
+              parentId={shown?.id}
+              dnd={dnd}
+              holdsSection={!shown}
+            />
+          ) : null}
+        </Screen>
+      </EditSurfaceProvider>
 
       <div className="p-md bg-surface">
         {shownPlans.length > 0 ? (

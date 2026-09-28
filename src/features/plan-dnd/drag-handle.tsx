@@ -1,6 +1,7 @@
 "use client";
 
 import { DragHandleIcon } from "@/components/icons";
+import { displayName } from "@/lib/plan-item-name";
 import { useDraggable } from "@dnd-kit/core";
 import { useDragSession } from "./drag-session";
 
@@ -30,7 +31,7 @@ export function DragHandle({ itemId, name, isFixed = false }: DragHandleProps) {
       type="button"
       {...attributes}
       {...listeners}
-      aria-label={`Move ${name}`}
+      aria-label={`Move ${displayName(name)}`}
       aria-disabled={disabled || undefined}
       className="flex size-xl shrink-0 cursor-grab touch-none items-center justify-center rounded-xs text-muted hover:text-foreground aria-disabled:cursor-default aria-disabled:opacity-40"
     >
