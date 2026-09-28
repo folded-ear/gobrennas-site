@@ -5,12 +5,14 @@ import {
   useShowsPlanIndicators,
 } from "@/features/plan-directory";
 import { EditableName } from "@/features/plan-edit";
-import { useItemStatus } from "@/features/plan-status";
+import { StatusButton, useItemStatus } from "@/features/plan-status";
 import {
   ancestorsOf,
   PlanContext,
   Separation,
 } from "@/features/plan-timeline/context";
+import clsx from "clsx";
+import { ReactNode } from "react";
 import { DateChip } from "./chips";
 import { CookLink } from "./cook-link";
 import { NameText } from "./item-name";
@@ -118,7 +120,7 @@ function LadderName({ line, onSelect }: LadderNameProps) {
     return (
       <button
         type="button"
-        className="text-left text-sm text-muted hover:text-accent"
+        className="text-left text-muted hover:text-accent"
         onClick={() => onSelect(line.id)}
       >
         <NameText name={line.name} />
@@ -126,8 +128,22 @@ function LadderName({ line, onSelect }: LadderNameProps) {
     );
   }
   return (
-    <span className="text-sm text-muted">
+    <span className="text-muted">
       <NameText name={line.name} />
+    </span>
+  );
+}
+
+type OnLineProps = {
+  readonly className?: string;
+  readonly children: ReactNode;
+};
+
+/** I hold something one of my line's text lines tall, centered on it. */
+function OnLine({ className, children }: OnLineProps) {
+  return (
+    <span className={clsx("flex h-[1lh] shrink-0 items-center", className)}>
+      {children}
     </span>
   );
 }
@@ -154,13 +170,27 @@ export function Ladder({
       {lines.map((line, index) => (
         <li
           key={line.id}
-          className="flex items-start gap-sm"
+          className={clsx(
+            "flex items-start gap-sm",
+            // Each line of text is at least a control tall, for one to center on.
+            index === lastIndex ? "text-xl" : "text-sm leading-(--spacing-xl)",
+          )}
           style={{ paddingInlineStart: `calc(${STEP_INDENT} * ${line.depth})` }}
         >
-          {index === lastIndex && showsPlan && plan ? (
-            // Sized to the heading it sits beside, not the line around it.
-            <span className="flex min-w-0 flex-1 items-start text-xl">
-              <PlanDot plan={plan} className="me-xs" />
+          {index === lastIndex ? (
+            <span className="flex min-w-0 flex-1 items-start gap-xxs">
+              {showsPlan && plan ? (
+                <PlanDot plan={plan} className="me-xxs" />
+              ) : null}
+              {plan !== undefined ? (
+                <OnLine>
+                  <StatusButton
+                    itemId={line.id}
+                    planId={plan.id}
+                    canChange={plan.changeable}
+                  />
+                </OnLine>
+              ) : null}
               <OpenName
                 line={line}
                 plan={plan}
@@ -168,24 +198,19 @@ export function Ladder({
                 onRemoved={onRemoved}
               />
             </span>
-          ) : index === lastIndex ? (
-            <OpenName
-              line={line}
-              plan={plan}
-              hasChildren={openHasChildren}
-              onRemoved={onRemoved}
-            />
           ) : (
             <LadderName line={line} onSelect={onSelect} />
           )}
           {/* every step above the open item holds the step below it */}
           {plan !== undefined && (index < lastIndex || openHasChildren) ? (
-            <CookLink planId={plan.id} itemId={line.id} name={line.name} />
+            <OnLine>
+              <CookLink planId={plan.id} itemId={line.id} name={line.name} />
+            </OnLine>
           ) : null}
           {line.chip && line.date !== null ? (
-            <span className="ms-auto">
+            <OnLine className="ms-auto">
               <DateChip date={line.date} separation={line.separation} />
-            </span>
+            </OnLine>
           ) : null}
         </li>
       ))}
