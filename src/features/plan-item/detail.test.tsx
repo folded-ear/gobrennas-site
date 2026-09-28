@@ -270,7 +270,15 @@ describe("PlanItemDetail", () => {
     expect(screen.queryByRole("link", { name: "Cook Pie filling" })).toBeNull();
   });
 
-  it("offers to acquire or delete what sits below the item, but not the item", () => {
+  it("offers to acquire the item, as the timeline does", () => {
+    renderPieInDirectory();
+
+    expect(
+      screen.getByRole("button", { name: "Mark acquired: Pumpkin pie" }),
+    ).toBeVisible();
+  });
+
+  it("offers to acquire or delete what sits below the item, but not to delete the item", () => {
     renderPieInDirectory();
 
     expect(
