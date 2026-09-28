@@ -4,7 +4,12 @@ import { configDefaults, defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "jsdom",
-    exclude: [...configDefaults.exclude],
+    exclude: [
+      ...configDefaults.exclude,
+      ".claude/**",
+      "docs/**",
+      "no-claude/**",
+    ],
     globals: true,
     include: ["./**/*.test.{ts,tsx}"],
     setupFiles: "./src/test/setup.ts",
