@@ -149,8 +149,3 @@ export function EditableName({
     </span>
   );
 }
-
-/** I tell whether an item is being edited on the surface I'm inside. */
-export function useIsEditing(itemId: string): boolean {
-  return useEditSurface()?.isEditing({ id: itemId }) ?? false;
-}

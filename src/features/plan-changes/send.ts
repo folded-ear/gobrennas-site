@@ -1,4 +1,5 @@
 import { ApolloClient, DocumentNode, gql } from "@apollo/client";
+import { print } from "@apollo/client/utilities";
 import { AssignBucketResultFragmentDoc } from "./__generated__/assignBucketResult.generated";
 import { PlanItemResultFragmentDoc } from "./__generated__/planItemResult.generated";
 import { SetStatusResultFragmentDoc } from "./__generated__/setStatusResult.generated";
@@ -63,14 +64,16 @@ function fieldFor(change: SentChange, i: number): Field {
   }
 }
 
-/** I give each named definition once, the first of any repeats. */
-function uniqueDefinitions(documents: readonly DocumentNode[]) {
-  const byName = new Map<string, DocumentNode["definitions"][number]>();
+/** I print each named definition once, the first of any repeats. */
+function uniqueDefinitions(documents: readonly DocumentNode[]): string {
+  const byName = new Map<string, string>();
   for (const definition of documents.flatMap((it) => it.definitions)) {
     const name = "name" in definition ? definition.name?.value : undefined;
-    if (name !== undefined && !byName.has(name)) byName.set(name, definition);
+    if (name !== undefined && !byName.has(name)) {
+      byName.set(name, print(definition));
+    }
   }
-  return [...byName.values()];
+  return [...byName.values()].join("\n");
 }
 
 /**
@@ -85,16 +88,10 @@ export function changeMutation(changes: readonly SentChange[]) {
     .map(([name, type]) => `$${name}: ${type}`)
     .join(", ");
   const selections = fields.map((it, i) => `s${i}: ${it.selection}`).join("\n");
-  const mutation = gql(
-    `mutation doChanges(${variables}) { planner { ${selections} } }`,
+  return gql(
+    `mutation doChanges(${variables}) { planner { ${selections} } }\n` +
+      uniqueDefinitions(fields.map((it) => it.fragment)),
   );
-  return {
-    ...mutation,
-    definitions: [
-      ...mutation.definitions,
-      ...uniqueDefinitions(fields.map((it) => it.fragment)),
-    ],
-  };
 }
 
 function variablesFor(changes: readonly SentChange[]) {
