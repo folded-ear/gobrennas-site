@@ -12,8 +12,10 @@ BFS-82 adds contextual suggestions and recognition of multiline-pasted rows.
 and draft-update behavior below. Raw row editing and single-row recognition
 are implemented using the shared `Morsel` component. Multiline paste queues
 all affected rows for recognition. Grouped suggestions use the recognition API
-in recipe creation. The
-`/sandbox/food-entry` playground exercises the same editor with fixture data.
+in recipe creation. The fixture-based `/sandbox/food-entry` playground is preserved
+on the [`morsel-prototype` branch](https://github.com/folded-ear/gobrennas-site/tree/morsel-prototype)
+(commit `6b760b3`) for future interaction experiments; it is not included in the
+recognition UI branch.
 
 ## Behavior
 
@@ -45,8 +47,8 @@ in recipe creation. The
 ## Morsel interaction
 
 `Morsel` is the reusable food editor. Recipe creation is its first consumer;
-planner and shopping adoption are later work. The prototype remains a playground
-for the same component, with its fake parser and catalog kept out of app behavior.
+planner and shopping adoption are later work. The archived prototype keeps its
+fake parser and catalog on the separate branch linked above.
 
 - Suggest ingredients only, not units. Group candidates by **Pantry item**,
   **Recipe**, and **Section**, omitting empty groups. Keep distinct identities
