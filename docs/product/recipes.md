@@ -22,6 +22,8 @@ without leaving the Library behind.
 ### Create editor
 
 - The create editor lets a person save a new recipe or cancel.
+- Save recipe and Cancel sit beside Add Recipe in the sticky header and remain
+  visible while the form scrolls, in both the drawer and the full-page editor.
 - Title is required; whitespace alone does not count. Save recipe stays disabled
   until the title contains non-whitespace text. Directions are optional.
 - It also offers optional Source URL, Yield, Total cook time, and Calories per
@@ -41,7 +43,10 @@ without leaving the Library behind.
   editing a field rechecks its error; the error clears when the value is valid.
 - Ingredients are optional raw text rows before Directions. Rows can be added,
   removed, or reordered with the up/down controls.
-- Enter in an ingredient inserts and focuses a new row immediately after it.
+- In wider editors, directions sit to the right of ingredients, both for the
+  recipe and each owned section. Narrow editors stack them vertically.
+- Enter in an ingredient or its row's plus button inserts and focuses a new row
+  immediately after it.
   Backspace or Delete on a blank row removes it and focuses the previous row,
   or the next row when the first is removed. Removing the last row leaves a
   fresh blank input ready to use.
@@ -55,6 +60,34 @@ without leaving the Library behind.
   [ingredient recognition](ingredient-recognition.md) for text conventions and
   request behavior.
 - Canceling create returns to the Library without creating a recipe.
+
+### Owned sections
+
+State: Agreed — frontend scope of BFS-24.
+
+- Add section appends an expanded section below the main recipe fields and
+  focuses its title. A recipe may contain multiple owned sections.
+- Each section has a required title, optional directions, and the same ingredient
+  editor as the recipe. Paste, recognition, suggestions, and row controls work
+  within that section; all rows share the editor's recognition request limit.
+- Section ingredient inputs, row actions, and recognition feedback include the
+  section number in their accessible names so they can be distinguished from
+  the recipe's main ingredients and other sections.
+- Blank section titles prevent saving. Errors appear beside the fields and
+  focus moves to the first invalid field on submission. The recipe's Save button
+  remains available once its own title is entered so section errors can be shown.
+- Removing a section with a blank title, blank directions, and only blank
+  ingredient rows removes it immediately. Whitespace alone counts as blank.
+  Sections with content open “Remove this section?” with Cancel and Remove
+  section actions. Cancel keeps the section intact. Removal changes only the
+  draft and focuses Add section; saving applies the change.
+- New sections are saved as owned sections through the existing recipe creation
+  API. Their titles, directions, ingredient order, and recognized details are
+  preserved; blank ingredient rows are omitted. Client identity is independent
+  of server identity, including after earlier sections are removed.
+- Referenced structural sections and editing saved recipes remain separate
+  work. BFS-24's backend suggestion exclusions and save-time reference checks
+  are explicitly deferred, alongside the update-ordering concern in BFS-96.
 
 ### Saving
 

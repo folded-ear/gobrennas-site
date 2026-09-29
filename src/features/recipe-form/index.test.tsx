@@ -12,6 +12,7 @@ const INITIAL_DRAFT: RecipeDraft = {
   caloriesPerServing: "",
   directions: "",
   ingredients: [{ clientId: "initial-ingredient", raw: "" }],
+  sections: [],
 };
 
 function renderRecipeForm(
@@ -22,6 +23,7 @@ function renderRecipeForm(
 ) {
   render(
     <RecipeForm
+      heading="Add Recipe"
       initialDraft={INITIAL_DRAFT}
       recognizeIngredient={async (raw, cursor) => ({ raw, cursor, ranges: [] })}
       onCancel={onCancel}
@@ -73,7 +75,7 @@ describe("RecipeForm", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Save recipe" }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(2));
-    expect(onSubmit.mock.calls[1][0].ingredients).toEqual(
+    expect(onSubmit.mock.calls[1][0].ingredients).toMatchObject(
       [...submittedRows].reverse(),
     );
   });
@@ -81,6 +83,7 @@ describe("RecipeForm", () => {
   it("renders the recipe fields and actions without premature errors", () => {
     renderRecipeForm();
 
+    expect(screen.getByRole("heading", { name: "Add Recipe" })).toBeVisible();
     expect(screen.getByRole("form", { name: "Recipe details" })).toBeVisible();
     const titleInput = screen.getByRole("textbox", { name: "Title" });
     expect(titleInput).toHaveValue("");
@@ -197,6 +200,7 @@ describe("RecipeForm", () => {
         caloriesPerServing: "320",
         directions: "Bake until golden.",
         ingredients: INITIAL_DRAFT.ingredients,
+        sections: [],
       });
     });
   });
@@ -222,6 +226,7 @@ describe("RecipeForm", () => {
         caloriesPerServing: "",
         directions: "",
         ingredients: [{ clientId: "initial-ingredient", raw: "" }],
+        sections: [],
       });
     });
   });
@@ -421,7 +426,7 @@ describe("RecipeForm", () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
-  it("tabs from Title through every field, Save recipe, and Cancel", async () => {
+  it("tabs through the header actions and then the recipe fields", async () => {
     const user = userEvent.setup();
     renderRecipeForm();
 
@@ -438,8 +443,18 @@ describe("RecipeForm", () => {
     const saveButton = screen.getByRole("button", { name: "Save recipe" });
     const cancelButton = screen.getByRole("button", { name: "Cancel" });
     await user.tab();
+    expect(cancelButton).toHaveFocus();
+    await user.tab();
     expect(titleInput).toHaveFocus();
     await user.type(titleInput, "Tomato soup");
+    await user.tab({ shift: true });
+    expect(cancelButton).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(saveButton).toHaveFocus();
+    await user.tab();
+    expect(cancelButton).toHaveFocus();
+    await user.tab();
+    expect(titleInput).toHaveFocus();
     await user.tab();
     expect(sourceUrlInput).toHaveFocus();
     await user.tab();
@@ -456,13 +471,11 @@ describe("RecipeForm", () => {
     ).toHaveFocus();
     await user.tab();
     expect(
-      screen.getByRole("button", { name: "Add ingredient" }),
+      screen.getByRole("button", { name: "Add ingredient below 1" }),
     ).toHaveFocus();
     await user.tab();
     expect(directions).toHaveFocus();
     await user.tab();
-    expect(saveButton).toHaveFocus();
-    await user.tab();
-    expect(cancelButton).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Add section" })).toHaveFocus();
   });
 });

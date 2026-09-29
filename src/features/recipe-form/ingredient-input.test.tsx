@@ -86,6 +86,7 @@ function editor(recognize: RecognizeIngredient, lines = [""]) {
     .mockResolvedValue(undefined);
   const view = render(
     <RecipeForm
+      heading="Add Recipe"
       initialDraft={{
         ...newRecipeDraft(),
         title: "Bread",

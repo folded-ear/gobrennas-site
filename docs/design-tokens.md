@@ -108,6 +108,11 @@ don't change the base rule.
 through `--radius-xl`) tied to the spacing scale for components that want a
 spacing-matched radius directly.
 
+Form fields use `--field-radius` (0.125rem), a 1px `--field-border` tied to
+`--border`, and no field shadow in either theme. Morsel uses the same
+`rounded-field`, `border-field-border`, and `bg-field` utilities as the form
+field theme. Keep focus and validation indicators visible when styling fields.
+
 ## Seeing it live
 
 [`/sandbox`](../app/sandbox/page.tsx) has a "Foundations" section at the top

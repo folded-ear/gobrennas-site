@@ -21,6 +21,7 @@ function recipeDraft(overrides: Partial<RecipeDraft> = {}): RecipeDraft {
     caloriesPerServing: "",
     directions: "Brown the chicken first.",
     ingredients: [],
+    sections: [],
     ...overrides,
   };
 }
@@ -38,6 +39,7 @@ describe("newRecipeDraft", () => {
       caloriesPerServing: "",
       directions: "",
       ingredients: [{ clientId: expect.any(String), raw: "" }],
+      sections: [],
     });
     expect(secondDraft).toStrictEqual({
       title: "",
@@ -47,6 +49,7 @@ describe("newRecipeDraft", () => {
       caloriesPerServing: "",
       directions: "",
       ingredients: [{ clientId: expect.any(String), raw: "" }],
+      sections: [],
     });
     expect(firstDraft).not.toBe(secondDraft);
     expect(firstDraft.ingredients[0].clientId).not.toBe(
@@ -272,6 +275,7 @@ describe("toIngredientInfo", () => {
       calories: 460,
       directions: "Brown the chicken.\n\nFinish with cider.  ",
       ingredients: [],
+      sections: [],
     });
   });
 
@@ -285,6 +289,7 @@ describe("toIngredientInfo", () => {
       calories: null,
       directions: "Brown the chicken first.",
       ingredients: [],
+      sections: [],
     });
   });
 
@@ -307,6 +312,7 @@ describe("toIngredientInfo", () => {
       calories: null,
       directions: "Brown the chicken first.",
       ingredients: [],
+      sections: [],
     });
   });
 
@@ -322,6 +328,7 @@ describe("toIngredientInfo", () => {
       calories: 0,
       directions: "Brown the chicken first.",
       ingredients: [],
+      sections: [],
     });
   });
 
@@ -337,6 +344,7 @@ describe("toIngredientInfo", () => {
       calories: null,
       directions: "Brown the chicken first.",
       ingredients: [],
+      sections: [],
     });
   });
 });
