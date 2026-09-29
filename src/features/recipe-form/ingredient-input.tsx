@@ -30,7 +30,7 @@ import { useIngredientRecognition } from "./use-ingredient-recognition";
 
 export function IngredientInput({
   row,
-  number,
+  label,
   helpId,
   isDisabled,
   pastedRow,
@@ -45,7 +45,7 @@ export function IngredientInput({
   queue,
 }: {
   row: IngredientDraft;
-  number: number;
+  label: string;
   helpId: string;
   isDisabled: boolean;
   pastedRow?: { raw: string };
@@ -100,7 +100,7 @@ export function IngredientInput({
     <div className="min-w-0 flex-1">
       <Morsel
         value={row.raw}
-        label={`Ingredient ${number}`}
+        label={label}
         descriptionId={`${helpId} ${feedbackId}`}
         isDisabled={isDisabled}
         isPending={recognition.status === "pending"}
@@ -156,7 +156,7 @@ export function IngredientInput({
               variant="tertiary"
               type="button"
               isDisabled={isDisabled}
-              aria-label={`Retry recognition for ingredient ${number}`}
+              aria-label={`Retry recognition for ${label.toLowerCase()}`}
               onPress={() =>
                 recognition.schedule(
                   row.raw,
@@ -173,7 +173,7 @@ export function IngredientInput({
         )}
         {result && parts && (
           <dl
-            aria-label={`Recognition for ingredient ${number}`}
+            aria-label={`Recognition for ${label.toLowerCase()}`}
             className="sr-only"
           >
             {parts.quantity && (

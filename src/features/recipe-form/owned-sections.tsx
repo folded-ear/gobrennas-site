@@ -3,7 +3,7 @@
 import { FormTextField } from "@/components/form-text-field";
 import { AlertDialog, Button } from "@heroui/react";
 import { Plus } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Controller,
   useFieldArray,
@@ -37,6 +37,13 @@ export function OwnedSections({
     keyName: "formId",
   });
   const addButton = useRef<HTMLButtonElement>(null);
+  const [removingSection, setRemovingSection] = useState<string>();
+
+  function removeSection(index: number) {
+    remove(index);
+    onEdit();
+    requestAnimationFrame(() => addButton.current?.focus());
+  }
 
   return (
     <div className="flex flex-col gap-md">
@@ -60,6 +67,7 @@ export function OwnedSections({
               name={`sections.${index}.ingredients`}
               render={({ field }) => (
                 <IngredientRows
+                  labelPrefix={`Section ${index + 1} ingredient`}
                   rows={field.value}
                   queue={queue}
                   recognize={recognize}
@@ -84,7 +92,25 @@ export function OwnedSections({
               onValueChange={onEdit}
             />
           </div>
-          <AlertDialog>
+          <AlertDialog
+            isOpen={removingSection === section.clientId}
+            onOpenChange={(open) => {
+              if (!open) {
+                setRemovingSection(undefined);
+                return;
+              }
+              const current = getValues(`sections.${index}`);
+              if (
+                !current.title.trim() &&
+                !current.directions.trim() &&
+                current.ingredients.every((row) => !row.raw.trim())
+              ) {
+                removeSection(index);
+              } else {
+                setRemovingSection(section.clientId);
+              }
+            }}
+          >
             <Button
               aria-label={`Remove section ${index + 1}`}
               className="self-start"
@@ -124,11 +150,7 @@ export function OwnedSections({
                           isDisabled={isDisabled}
                           onPress={() => {
                             close();
-                            remove(index);
-                            onEdit();
-                            requestAnimationFrame(() =>
-                              addButton.current?.focus(),
-                            );
+                            removeSection(index);
                           }}
                         >
                           Remove section

@@ -70,13 +70,17 @@ State: Agreed — frontend scope of BFS-24.
 - Each section has a required title, optional directions, and the same ingredient
   editor as the recipe. Paste, recognition, suggestions, and row controls work
   within that section; all rows share the editor's recognition request limit.
+- Section ingredient inputs, row actions, and recognition feedback include the
+  section number in their accessible names so they can be distinguished from
+  the recipe's main ingredients and other sections.
 - Blank section titles prevent saving. Errors appear beside the fields and
   focus moves to the first invalid field on submission. The recipe's Save button
   remains available once its own title is entered so section errors can be shown.
-- Removing any section opens “Remove this section?” with Cancel and Remove
-  section actions, including empty new sections. Cancel keeps the section intact.
-  Confirming removes it only from the draft and focuses Add section; saving
-  applies the change.
+- Removing a section with a blank title, blank directions, and only blank
+  ingredient rows removes it immediately. Whitespace alone counts as blank.
+  Sections with content open “Remove this section?” with Cancel and Remove
+  section actions. Cancel keeps the section intact. Removal changes only the
+  draft and focuses Add section; saving applies the change.
 - New sections are saved as owned sections through the existing recipe creation
   API. Their titles, directions, ingredient order, and recognized details are
   preserved; blank ingredient rows are omitted. Client identity is independent
