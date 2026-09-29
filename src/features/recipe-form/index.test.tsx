@@ -1,3 +1,4 @@
+import { editableMorsel } from "@/features/morsel/test-helpers";
 import { render, screen, userEvent, waitFor } from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeForm } from "./index";
@@ -55,16 +56,15 @@ describe("RecipeForm", () => {
       .mockResolvedValueOnce(undefined);
     renderRecipeForm(onSubmit);
     await user.type(screen.getByRole("textbox", { name: "Title" }), "Bread");
-    const first = screen.getByRole("textbox", { name: "Ingredient 1" });
-    await user.type(first, "2 cups flour{Enter}1 tsp salt");
+    const first = editableMorsel("Ingredient 1");
+    await user.type(first, "2 cups flour{Enter}");
+    await user.type(editableMorsel("Ingredient 2"), "1 tsp salt");
     await user.click(screen.getByRole("button", { name: "Save recipe" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Couldn’t save recipe",
     );
-    expect(first).toHaveValue("2 cups flour");
-    expect(screen.getByRole("textbox", { name: "Ingredient 2" })).toHaveValue(
-      "1 tsp salt",
-    );
+    expect(first).toHaveTextContent("2 cups flour");
+    expect(editableMorsel("Ingredient 2")).toHaveTextContent("1 tsp salt");
     const submittedRows = onSubmit.mock.calls[0][0].ingredients;
 
     await user.click(
@@ -338,9 +338,14 @@ describe("RecipeForm", () => {
     expect(totalTimeInput).toBeDisabled();
     expect(caloriesInput).toBeDisabled();
     expect(directions).toBeDisabled();
-    expect(
-      screen.getByRole("textbox", { name: "Ingredient 1" }),
-    ).toBeDisabled();
+    expect(editableMorsel("Ingredient 1")).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    expect(editableMorsel("Ingredient 1")).toHaveAttribute(
+      "contenteditable",
+      "false",
+    );
     for (const button of screen.getAllByRole("button", {
       name: /ingredient/i,
     })) {
@@ -444,7 +449,7 @@ describe("RecipeForm", () => {
     await user.tab();
     expect(caloriesInput).toHaveFocus();
     await user.tab();
-    expect(screen.getByRole("textbox", { name: "Ingredient 1" })).toHaveFocus();
+    expect(editableMorsel("Ingredient 1")).toHaveFocus();
     await user.tab();
     expect(
       screen.getByRole("button", { name: "Remove ingredient 1" }),

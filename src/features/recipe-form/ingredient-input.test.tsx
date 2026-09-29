@@ -1,4 +1,12 @@
-import { RecognizedRangeType as Type } from "@/__generated__/graphql";
+import {
+  RecognitionKind,
+  RecognizedRangeType as Type,
+} from "@/__generated__/graphql";
+import { readSelection } from "@/features/morsel/editor-dom";
+import {
+  editableMorsel,
+  withTextInsertion,
+} from "@/features/morsel/test-helpers";
 import {
   act,
   cleanup,
@@ -68,8 +76,9 @@ function editor(recognize: RecognizeIngredient, lines = [""]) {
 }
 
 const tick = (ms = 300) => act(() => vi.advanceTimersByTimeAsync(ms));
-const input = (number = 1) =>
-  screen.getByRole("textbox", { name: `Ingredient ${number}` });
+const input = (number = 1) => editableMorsel(`Ingredient ${number}`);
+
+withTextInsertion();
 
 const originalAsyncWrapper = getConfig().asyncWrapper;
 beforeEach(() => {
@@ -92,6 +101,156 @@ afterEach(() => {
 });
 
 describe("ingredient recognition input", () => {
+  it.each([RecognitionKind.RECIPE, RecognitionKind.SECTION])(
+    "selects %s without adding a row and immediately saves the chosen identity and parsed quantity",
+    async (kind) => {
+      const raw = "2 cups sto, chilled";
+      const recognize = vi.fn<RecognizeIngredient>().mockResolvedValue({
+        raw,
+        cursor: 10,
+        ranges: [
+          { start: 0, end: 1, type: Type.QUANTITY, quantity: 2, id: null },
+          { start: 2, end: 6, type: Type.UNIT, quantity: null, id: "cup" },
+        ],
+        suggestions: [
+          {
+            name: "stock",
+            kind,
+            detail: null,
+            target: {
+              start: 7,
+              end: 10,
+              type: Type.ITEM,
+              id: "selected-stock",
+            },
+          },
+        ],
+      });
+      const { user, submit } = editor(recognize, [raw]);
+      await user.click(input());
+      await user.keyboard("{Home}{ArrowRight>10/}");
+      await tick();
+      await user.keyboard("{ArrowDown}{Enter}");
+      expect(screen.getAllByRole("combobox")).toHaveLength(1);
+      expect(input().textContent).toBe("2 cups stock, chilled");
+      await user.click(screen.getByRole("button", { name: "Save recipe" }));
+      expect(toIngredientInfo(submit.mock.calls[0][0]).ingredients).toEqual([
+        {
+          raw: "2 cups stock, chilled",
+          quantity: 2,
+          uomId: "cup",
+          ingredientId: "selected-stock",
+          preparation: "chilled",
+          ...(kind === RecognitionKind.SECTION ? { section: true } : {}),
+        },
+      ]);
+    },
+  );
+
+  it("sends the remapped explicit choice after composing a quantity and releases it after a name edit", async () => {
+    const raw = "2 stock";
+    const recognize = vi
+      .fn<RecognizeIngredient>()
+      .mockImplementation(async (text, cursor) => ({
+        raw: text,
+        cursor,
+        ranges: [],
+        suggestions: [
+          {
+            name: "stock",
+            kind: RecognitionKind.RECIPE,
+            detail: null,
+            target: {
+              start: 2,
+              end: text.length,
+              type: Type.ITEM,
+              id: "recipe-stock",
+            },
+          },
+        ],
+      }));
+    const { user } = editor(recognize, [raw]);
+    await user.click(input());
+    await user.keyboard("{End}");
+    await tick();
+    await user.keyboard("{ArrowDown}{Enter}");
+    await user.keyboard("{Home}");
+    act(() =>
+      input().dispatchEvent(
+        new CompositionEvent("compositionstart", { bubbles: true }),
+      ),
+    );
+    await user.keyboard("1");
+    await tick();
+    expect(recognize).toHaveBeenCalledTimes(1);
+    act(() =>
+      input().dispatchEvent(
+        new CompositionEvent("compositionend", { bubbles: true, data: "1" }),
+      ),
+    );
+    await tick();
+    expect(recognize).toHaveBeenLastCalledWith(
+      "12 stock",
+      1,
+      expect.any(AbortSignal),
+      {
+        suggest: true,
+        choice: {
+          food: { id: "recipe-stock", name: "stock", kind: "Recipe" },
+          range: { start: 3, end: 8 },
+        },
+      },
+    );
+    await user.keyboard("{End}s");
+    await tick();
+    expect(recognize).toHaveBeenLastCalledWith(
+      "12 stocks",
+      9,
+      expect.any(AbortSignal),
+      { suggest: true, choice: undefined },
+    );
+  });
+
+  it("recognizes every pasted row immediately through the shared queue and keeps failures local", async () => {
+    const first = deferred();
+    const second = deferred();
+    const third = deferred();
+    const fourth = deferred();
+    const pending = [first, second, third, fourth];
+    const recognize = vi
+      .fn<RecognizeIngredient>()
+      .mockImplementation(() => pending.shift()!.promise);
+    const { user, submit } = editor(recognize, ["untouched", ""]);
+    await user.click(input(2));
+    await user.paste("flour\r\nsalt\neggs\nwater");
+    await tick(0);
+    expect(recognize).toHaveBeenCalledTimes(3);
+    expect(recognize.mock.calls.map(([raw]) => raw)).not.toContain("untouched");
+    expect(input(5)).toHaveFocus();
+    await act(async () => first.reject(new Error("offline")));
+    await tick(0);
+    expect(recognize).toHaveBeenCalledTimes(4);
+    const [, b, c, d] = recognize.mock.calls;
+    await act(async () => {
+      second.resolve(recognized(b[0], b[1]));
+      third.resolve(recognized(c[0], c[1]));
+      fourth.resolve(recognized(d[0], d[1]));
+    });
+    await tick(300);
+    expect(recognize).toHaveBeenCalledTimes(4);
+    expect(screen.getByText(/Couldn’t recognize/)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    const refs = toIngredientInfo(submit.mock.calls[0][0]).ingredients;
+    expect(refs?.map((ref) => ref.raw)).toEqual([
+      "untouched",
+      "flour",
+      "salt",
+      "eggs",
+      "water",
+    ]);
+    expect(refs?.filter((ref) => ref.ingredientId)).toHaveLength(3);
+  });
+
   it("keeps a failed-save alert visible when background recognition completes", async () => {
     const pending = deferred();
     const recognize = vi
@@ -150,6 +309,7 @@ describe("ingredient recognition input", () => {
       "2 _cups_ “flour”, sifted",
       24,
       expect.any(AbortSignal),
+      { choice: undefined, suggest: true },
     );
     expect(screen.getByText("Quantity")).toBeVisible();
     expect(screen.getByText("New unit")).toBeVisible();
@@ -157,7 +317,7 @@ describe("ingredient recognition input", () => {
     expect(screen.getByText("Preparation")).toBeVisible();
     expect(screen.getByText("sifted")).toBeVisible();
     expect(input()).toHaveFocus();
-    expect(input()).toHaveValue("2 _cups_ “flour”, sifted");
+    expect(input()).toHaveTextContent("2 _cups_ “flour”, sifted");
     await user.click(screen.getByRole("button", { name: "Save recipe" }));
     expect(toIngredientInfo(submit.mock.calls[0][0]).ingredients).toEqual([
       {
@@ -227,10 +387,11 @@ describe("ingredient recognition input", () => {
       "flour",
       0,
       expect.any(AbortSignal),
+      { choice: undefined, suggest: true },
     );
     await act(async () => latest.resolve(recognized("flour", 0)));
     expect(screen.getByText("Ingredient", { exact: true })).toBeVisible();
-    expect(input()).toHaveProperty("selectionStart", 0);
+    expect(readSelection(input()).start).toBe(0);
     expect(input()).toHaveFocus();
   });
 
@@ -243,7 +404,7 @@ describe("ingredient recognition input", () => {
     await user.type(input(), "salt");
     await tick();
     expect(input()).toBeEnabled();
-    expect(input()).toHaveValue("salt");
+    expect(input()).toHaveTextContent("salt");
     expect(screen.getByRole("button", { name: "Save recipe" })).toBeEnabled();
     await user.click(
       screen.getByRole("button", {
@@ -283,16 +444,20 @@ describe("ingredient recognition input", () => {
     const salt = deferred();
     const recognize = vi
       .fn<RecognizeIngredient>()
-      .mockReturnValueOnce(flour.promise)
-      .mockReturnValueOnce(salt.promise);
+      .mockImplementation((raw) =>
+        raw === "flour" ? flour.promise : salt.promise,
+      );
     const { user, submit } = editor(recognize, ["flour", "salt"]);
     await user.click(input(1));
+    await user.keyboard("{End}");
     await tick();
     await user.click(input(2));
+    await user.keyboard("{End}");
     await tick();
     await user.click(
       screen.getByRole("button", { name: "Move ingredient 2 up" }),
     );
+    await tick();
     await act(async () => {
       flour.resolve(recognized("flour"));
       salt.resolve(recognized("salt"));
@@ -318,7 +483,7 @@ describe("ingredient recognition input", () => {
     expect(recognize.mock.calls[0][2].aborted).toBe(true);
     await act(async () => pending.reject(new Error("offline")));
     expect(screen.queryByText(/Couldn’t recognize/)).not.toBeInTheDocument();
-    expect(input()).toHaveValue("");
+    expect(input()).toBeEmptyDOMElement();
     await user.type(input(), "salt");
     await tick();
     unmount();
@@ -353,6 +518,7 @@ describe("ingredient recognition input", () => {
       "小麦粉",
       3,
       expect.any(AbortSignal),
+      { choice: undefined, suggest: true },
     );
   });
 });

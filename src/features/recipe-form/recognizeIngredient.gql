@@ -1,6 +1,11 @@
-query recognizeIngredient($raw: String!, $cursor: NonNegativeInt!) {
+query recognizeIngredient(
+  $raw: String!
+  $cursor: NonNegativeInt!
+  $choice: RecognitionChoice
+  $suggest: Boolean! = false
+) {
   library {
-    recognizeItem(raw: $raw, cursor: $cursor) {
+    recognizeItem(raw: $raw, cursor: $cursor, choice: $choice) {
       raw
       cursor
       ranges {
@@ -9,6 +14,17 @@ query recognizeIngredient($raw: String!, $cursor: NonNegativeInt!) {
         type
         quantity
         id
+      }
+      suggestions(grouped: true) @include(if: $suggest) {
+        name
+        kind
+        detail
+        target {
+          start
+          end
+          type
+          id
+        }
       }
     }
   }

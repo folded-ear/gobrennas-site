@@ -1,3 +1,7 @@
+import {
+  editableMorsel,
+  withTextInsertion,
+} from "@/features/morsel/test-helpers";
 import { act, render, screen, userEvent } from "@/test";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -23,15 +27,35 @@ function Editor({ lines = [""] }: { lines?: string[] }) {
 }
 
 function ingredient(number: number) {
-  return screen.getByRole("textbox", { name: `Ingredient ${number}` });
+  return editableMorsel(`Ingredient ${number}`);
 }
 
+withTextInsertion();
+
 describe("IngredientRows", () => {
+  it("adds a row for a mobile line-break intent without inserting a newline", async () => {
+    const user = userEvent.setup();
+    render(<Editor lines={["flour"]} />);
+    await user.click(ingredient(1));
+    const event = new InputEvent("beforeinput", {
+      bubbles: true,
+      cancelable: true,
+      inputType: "insertParagraph",
+    });
+    act(() => {
+      ingredient(1).dispatchEvent(event);
+    });
+    expect(event.defaultPrevented).toBe(true);
+    expect(screen.getAllByRole("combobox")).toHaveLength(2);
+    expect(ingredient(1).textContent).toBe("flour");
+    expect(ingredient(2)).toHaveFocus();
+  });
+
   it("renders raw lines and accessible editing controls", () => {
     render(<Editor lines={["2 cups flour", "1 tsp salt"]} />);
     expect(screen.getByRole("group", { name: "Ingredients" })).toBeVisible();
-    expect(ingredient(1)).toHaveValue("2 cups flour");
-    expect(ingredient(2)).toHaveValue("1 tsp salt");
+    expect(ingredient(1)).toHaveTextContent("2 cups flour");
+    expect(ingredient(2)).toHaveTextContent("1 tsp salt");
     expect(
       screen.getByRole("button", { name: "Move ingredient 1 up" }),
     ).toBeDisabled();
@@ -56,13 +80,13 @@ describe("IngredientRows", () => {
     await user.click(ingredient(1));
     await user.keyboard("{Enter}");
 
-    expect(screen.getAllByRole("textbox")).toHaveLength(3);
-    expect(ingredient(2)).toHaveValue("");
+    expect(screen.getAllByRole("combobox")).toHaveLength(3);
+    expect(ingredient(2)).toBeEmptyDOMElement();
     expect(ingredient(2)).toHaveFocus();
-    expect(ingredient(3)).toHaveValue("salt");
+    expect(ingredient(3)).toHaveTextContent("salt");
     expect(onSubmit).not.toHaveBeenCalled();
     await user.type(ingredient(2), "1 cup water");
-    expect(ingredient(2)).toHaveValue("1 cup water");
+    expect(ingredient(2)).toHaveTextContent("1 cup water");
   });
 
   it("adds a row from the button and reorders it with focus following the same input", async () => {
@@ -76,7 +100,7 @@ describe("IngredientRows", () => {
       screen.getByRole("button", { name: "Move ingredient 2 up" }),
     );
     expect(ingredient(1)).toBe(added);
-    expect(added).toHaveValue("salt");
+    expect(added).toHaveTextContent("salt");
     expect(added).toHaveFocus();
     await user.click(
       screen.getByRole("button", { name: "Move ingredient 1 down" }),
@@ -92,18 +116,18 @@ describe("IngredientRows", () => {
       render(<Editor lines={["flour", "  ", "salt"]} />);
       await user.click(ingredient(2));
       await user.keyboard(`{${key}}`);
-      expect(screen.getAllByRole("textbox")).toHaveLength(2);
+      expect(screen.getAllByRole("combobox")).toHaveLength(2);
       expect(ingredient(1)).toHaveFocus();
-      expect(ingredient(2)).toHaveValue("salt");
+      expect(ingredient(2)).toHaveTextContent("salt");
 
       await user.clear(ingredient(1));
       await user.keyboard(`{${key}}`);
-      expect(ingredient(1)).toHaveValue("salt");
+      expect(ingredient(1)).toHaveTextContent("salt");
       expect(ingredient(1)).toHaveFocus();
       await user.clear(ingredient(1));
       await user.keyboard(`{${key}}`);
-      expect(screen.getAllByRole("textbox")).toHaveLength(1);
-      expect(ingredient(1)).toHaveValue("");
+      expect(screen.getAllByRole("combobox")).toHaveLength(1);
+      expect(ingredient(1)).toBeEmptyDOMElement();
       expect(ingredient(1)).toHaveFocus();
     },
   );
@@ -113,12 +137,12 @@ describe("IngredientRows", () => {
     render(<Editor lines={["flour", "salt"]} />);
     await user.click(ingredient(1));
     await user.keyboard("{End}{Backspace}{Home}{Delete}");
-    expect(ingredient(1)).toHaveValue("lou");
-    expect(screen.getAllByRole("textbox")).toHaveLength(2);
+    expect(ingredient(1)).toHaveTextContent("lou");
+    expect(screen.getAllByRole("combobox")).toHaveLength(2);
     await user.click(
       screen.getByRole("button", { name: "Remove ingredient 1" }),
     );
-    expect(ingredient(1)).toHaveValue("salt");
+    expect(ingredient(1)).toHaveTextContent("salt");
     expect(ingredient(1)).toHaveFocus();
   });
 
@@ -128,13 +152,13 @@ describe("IngredientRows", () => {
     const original = ingredient(2);
     await user.click(original);
     await user.paste("2 eggs\r\n \r\n 1 cup milk \n");
-    expect(screen.getAllByRole("textbox")).toHaveLength(4);
-    expect(ingredient(1)).toHaveValue("flour");
+    expect(screen.getAllByRole("combobox")).toHaveLength(4);
+    expect(ingredient(1)).toHaveTextContent("flour");
     expect(ingredient(2)).toBe(original);
-    expect(ingredient(2)).toHaveValue("2 eggs");
-    expect(ingredient(3)).toHaveValue(" 1 cup milk ");
+    expect(ingredient(2)).toHaveTextContent("2 eggs");
+    expect(ingredient(3).textContent).toBe(" 1 cup milk ");
     expect(ingredient(3)).toHaveFocus();
-    expect(ingredient(4)).toHaveValue("salt");
+    expect(ingredient(4)).toHaveTextContent("salt");
   });
 
   it("replaces the selected text on paste and preserves text outside the selection", async () => {
@@ -147,8 +171,8 @@ describe("IngredientRows", () => {
       { keys: "[/MouseLeft]" },
     ]);
     await user.paste("flour\n1 cup lentils");
-    expect(ingredient(1)).toHaveValue("2 cups flour");
-    expect(ingredient(2)).toHaveValue("1 cup lentils, rinsed");
+    expect(ingredient(1)).toHaveTextContent("2 cups flour");
+    expect(ingredient(2)).toHaveTextContent("1 cup lentils, rinsed");
     expect(ingredient(2)).toHaveFocus();
   });
 
@@ -157,10 +181,10 @@ describe("IngredientRows", () => {
     render(<Editor />);
     await user.click(ingredient(1));
     await user.paste("\n \r\n");
-    expect(screen.getAllByRole("textbox")).toHaveLength(1);
-    expect(ingredient(1)).toHaveValue("");
+    expect(screen.getAllByRole("combobox")).toHaveLength(1);
+    expect(ingredient(1)).toBeEmptyDOMElement();
     await user.paste("2 cups flour");
-    expect(ingredient(1)).toHaveValue("2 cups flour");
+    expect(ingredient(1)).toHaveTextContent("2 cups flour");
   });
 
   it("does not treat an IME confirmation as an instruction to add a row", async () => {
@@ -177,7 +201,7 @@ describe("IngredientRows", () => {
         }),
       );
     });
-    expect(screen.getAllByRole("textbox")).toHaveLength(1);
-    expect(ingredient(1)).toHaveValue("小麦粉");
+    expect(screen.getAllByRole("combobox")).toHaveLength(1);
+    expect(ingredient(1)).toHaveTextContent("小麦粉");
   });
 });

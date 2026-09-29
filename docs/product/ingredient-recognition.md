@@ -1,7 +1,7 @@
 # Ingredient recognition
 
 State: Agreed  
-Delivery: Partly built
+Delivery: Built; authenticated browser verification pending
 
 ## Purpose
 
@@ -10,8 +10,10 @@ while keeping their original text editable. BFS-22 adds single-row recognition;
 BFS-82 adds contextual suggestions and recognition of multiline-pasted rows.
 [BFS-23](https://linear.app/go-brennas/issue/BFS-23) defines the shared request
 and draft-update behavior below. Raw row editing and single-row recognition
-are implemented. Suggestions and automatic recognition of all multiline-pasted
-rows remain planned; a pasted row is recognized when focused or edited.
+are implemented using the shared `Morsel` component. Multiline paste queues
+all affected rows for recognition. Grouped suggestions use the recognition API
+in recipe creation. The
+`/sandbox/food-entry` playground exercises the same editor with fixture data.
 
 ## Behavior
 
@@ -21,10 +23,12 @@ rows remain planned; a pasted row is recognized when focused or edited.
 - Recipe creation has no per-row recognition opt-out or checkbox. A leading
   `!` does not disable recipe ingredient recognition; that convention belongs
   to planner entries such as tentative meal ideas.
-- The recognition preview sits to the right of the editable input, stacking
-  underneath on small screens. It labels Quantity, Unit, Ingredient, and
-  Preparation. New units and ingredients are labeled as new.
-  Missing ingredient recognition is informational and does not prevent saving.
+- Recognition appears inline: quantity has a light gray background, unit has a
+  muted dotted underline, and ingredient is black with subtle visual bolding
+  (white in dark mode). Ordinary text stays dark gray. Keep it readable as
+  normal text even across a full planner. Accessible summaries identify Quantity,
+  Unit, Ingredient, and Preparation, including new units and ingredients. Missing
+  ingredient recognition is informational and does not prevent saving.
 - Pasted rows appear immediately and are recognized in the background. Work
   on the actively edited row takes priority over waiting pasted rows.
 - Suggestions belong to the active cursor position. Choosing one replaces
@@ -37,6 +41,63 @@ rows remain planned; a pasted row is recognized when focused or edited.
 - Saving does not wait for recognition. It preserves populated raw rows and
   includes recognized details when they match the current text. Blank rows
   are omitted. Results arriving after submission do not change that save.
+
+## Morsel interaction
+
+`Morsel` is the reusable food editor. Recipe creation is its first consumer;
+planner and shopping adoption are later work. The prototype remains a playground
+for the same component, with its fake parser and catalog kept out of app behavior.
+
+- Suggest ingredients only, not units. Group candidates by **Pantry item**,
+  **Recipe**, and **Section**, omitting empty groups. Keep distinct identities
+  even when names match. Selecting a section references it as one ingredient;
+  it does not expand the section into rows. The backend represents that with
+  `IngredientRef.section`, exposing flagged references in `recipe.sections`.
+- Keep the dropdown compact: 4px vertical padding per option, 2px per heading,
+  readable text, and subtle group separators. Optional secondary information can
+  help distinguish choices. The prototype's durations and descriptions are fake;
+  real suggestions must use available source data.
+- No option is automatically active. Arrow keys browse; Enter selects an active
+  option, otherwise it adds a recipe row. Tab leaves without selecting. Escape
+  dismisses, including when a response is still pending. New input or cursor
+  movement can reopen; ArrowDown can explicitly reopen matching suggestions.
+- Pointer selection keeps focus in the editor and places the caret immediately
+  after the inserted name. Replace exactly the server's range, preserving the
+  prefix and suffix. Never auto-add double quotes to names.
+- Browser-owned `contenteditable="plaintext-only"` keeps text freely editable.
+  CSS Custom Highlights decorate ranges without wrapping text in spans or
+  rewriting the DOM. This preserves selection and native editing history.
+  `::highlight` cannot change font weight: the ingredient's subtle bold look
+  uses two opposite quarter-pixel, zero-blur text shadows.
+- Explicit identity follows native undo/redo snapshots, including browser-coalesced
+  text edits. Manually retyping a previously chosen name does not restore the old
+  choice. A multiline row replacement resets that row's choice history.
+- The input wraps naturally and is about 42px high for one line. A browser without
+  Custom Highlights still gets editable plain text. Programmatic insertion uses
+  an isolated `execCommand("insertText")` helper to preserve native undo; unsupported
+  insertion shows a recoverable error instead of silently losing the text.
+
+### API integration
+
+The API supplies authoritative candidate kinds, IDs, names, and target ranges.
+Morsel opts into suggestions that include owned sections and retain different
+identities with the same name. The legacy client runs alongside Morsel until
+cut-over: its unchanged queries exclude owned sections and deduplicate suggestions
+by name. Omitting an explicit choice keeps the existing pantry-first recognition
+behavior. Explicit selection binds that identity and
+its current UTF-16 name range; the server verifies both before recognizing the
+surrounding quantity, unit, and preparation. Changed or missing names produce a
+recoverable recognition error rather than silently switching identities.
+
+Section suggestions include their parent recipe name as secondary information.
+Recipe times and pantry descriptions remain fixture-only experiments. The API's
+existing total count limit (ten by default) still applies, with pantry matches
+first and owned recipe/section matches following. The UI groups the returned set.
+
+Both repos must run this version for real suggestions: the site selects the new
+schema fields. Section selection saves the existing reference flag and ID and
+round-trips through `recipe.sections`, without copying children. No database
+migration is required.
 
 ## Text conventions and saving
 
@@ -61,8 +122,9 @@ rows remain planned; a pasted row is recognized when focused or edited.
 Reuse the existing single-row recognition operation in
 [the schema](../../schema.graphql). Each eligible row makes its own request
 through the existing Apollo transport. Do not introduce aliased bulk queries,
-transport batching, or a bulk API operation now. No prerequisite
-`gobrennas-api` change or separate API issue is required.
+transport batching, or a bulk API operation now. Bulk scheduling needs no API
+change. The approved Morsel suggestion behavior does need a richer recognition
+contract, implemented alongside the site in `gobrennas-api` (described above).
 
 ### Input and scheduling
 
@@ -76,20 +138,19 @@ transport batching, or a bulk API operation now. No prerequisite
 - A multiline paste first updates the draft using the existing paste behavior.
   Queue eligible affected rows immediately, without a per-row debounce. Do not
   recognize unaffected rows again or generate suggestions for background rows.
-- For active-row requests, capture `selectionStart`, clamped to the raw text's
-  length. A selection uses its start. Cursor positions and range offsets use
-  the input's UTF-16 indices. Pasted background rows use the end of their text.
+- For active-row requests, capture the start of the text selection, clamped to
+  the raw text's length. A selection uses its start. Cursor positions and range offsets use
+  the editor's UTF-16 indices. Pasted background rows use the end of their text.
   The focused pasted row can request suggestions using its actual cursor.
-- BFS-22 requests recognition only. BFS-82 also requests suggestions for the
-  active row; moving the cursor or focusing a row schedules fresh contextual
-  suggestions. Background requests omit suggestions, whose server resolver
+- Request suggestions for the active row only; moving the cursor or focusing
+  a row schedules fresh contextual suggestions. Background requests omit suggestions, whose server resolver
   performs separate work. Use uncached recognition requests.
 
 ### Results and draft updates
 
-- Associate work with the row's stable `clientId`, a monotonically increasing
-  revision, and a snapshot of raw text, cursor, and whether suggestions were
-  requested. Increment the revision whenever that request context changes.
+- Associate work with the row's stable `clientId`, a unique
+  revision token, and a snapshot of raw text, cursor, and whether suggestions were
+  requested. Replace the revision token whenever that request context changes.
   Reordering does not change identity or revision. Never match by row index.
 - Apply a result only if the editor and row still exist and the revision and
   request snapshot are current. Also verify the returned raw text and cursor
@@ -105,8 +166,10 @@ transport batching, or a bulk API operation now. No prerequisite
   parsed data for unchanged raw text. Suggestions are shown or accepted only
   for the active row's current request context. Blur hides suggestions.
 - Selecting a suggestion replaces its returned target range in the current
-  raw text, then follows the ordinary edit/invalidation/debounce path. A stale
-  suggestion cannot be applied.
+  raw text, records the explicit identity, then follows the ordinary debounce
+  path. A stale suggestion cannot be applied. Edits outside the ingredient name
+  preserve the choice; edits to its name release it. Re-recognition and immediate
+  save must preserve a selected recipe or section over a same-name pantry item.
 
 ### Cancellation, failures, and save
 
@@ -121,7 +184,9 @@ transport batching, or a bulk API operation now. No prerequisite
   fresh work. An empty set of recognized ranges is a successful result.
 - Saving snapshots the current draft without waiting for recognition. Include
   parsed data only when it belongs to the current raw text; otherwise send
-  raw text alone. Omit blank rows as before. Recognition completing afterward
+  raw text alone, plus any still-valid explicit ingredient choice. Choosing a
+  suggestion also retains recognized quantity/unit ranges outside its replacement,
+  so an immediate save includes those values. Omit blank rows as before. Recognition completing afterward
   cannot change the submitted payload or trigger another save.
 
 ## Why this approach

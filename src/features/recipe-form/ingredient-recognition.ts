@@ -1,13 +1,30 @@
 import {
+  RecognitionKind,
   RecognizedRangeType,
   type IngredientRefInfo,
 } from "@/__generated__/graphql";
+import type { MorselChoice, MorselSuggestion } from "@/features/morsel/types";
 import { z } from "zod";
 
 export const ingredientRecognitionSchema = z
   .object({
     raw: z.string(),
     cursor: z.number().int().nonnegative(),
+    suggestions: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          kind: z.enum(RecognitionKind),
+          detail: z.string().nullable(),
+          target: z.object({
+            start: z.number().int().nonnegative(),
+            end: z.number().int().nonnegative(),
+            type: z.literal(RecognizedRangeType.ITEM),
+            id: z.string().min(1),
+          }),
+        }),
+      )
+      .optional(),
     ranges: z.array(
       z.object({
         start: z.number().int().nonnegative(),
@@ -21,6 +38,10 @@ export const ingredientRecognitionSchema = z
   .superRefine((result, context) => {
     if (
       result.cursor > result.raw.length ||
+      result.suggestions?.some(
+        ({ target }) =>
+          target.start > target.end || target.end > result.raw.length,
+      ) ||
       result.ranges.some(
         (range) =>
           range.start >= range.end ||
@@ -44,7 +65,28 @@ export type RecognizeIngredient = (
   raw: string,
   cursor: number,
   signal: AbortSignal,
+  options?: { choice?: MorselChoice; suggest: boolean },
 ) => Promise<IngredientRecognition>;
+
+export function toMorselSuggestions(
+  result: IngredientRecognition,
+): MorselSuggestion[] {
+  return (result.suggestions ?? []).map(({ name, kind, detail, target }) => ({
+    food: {
+      id: target.id,
+      name,
+      kind:
+        kind === RecognitionKind.PANTRY_ITEM
+          ? "Pantry item"
+          : kind === RecognitionKind.RECIPE
+            ? "Recipe"
+            : "Section",
+      ...(detail ? { detail } : {}),
+    },
+    replacement: name,
+    target: { start: target.start, end: target.end },
+  }));
+}
 
 /** Keep the source text intact; strip paired markers only from parsed names. */
 function stripMarkers(text: string): string {
@@ -87,9 +129,19 @@ export function recognizedParts(result: IngredientRecognition) {
 export function toIngredientRefInfo(row: {
   raw: string;
   recognition?: IngredientRecognition;
+  choice?: MorselChoice;
 }): IngredientRefInfo {
   const result = row.recognition;
-  if (!result || result.raw !== row.raw) return { raw: row.raw };
+  const choice = row.choice;
+  const selected =
+    choice &&
+    row.raw.slice(choice.range.start, choice.range.end) === choice.food.name
+      ? {
+          ingredientId: choice.food.id,
+          ...(choice.food.kind === "Section" ? { section: true } : {}),
+        }
+      : undefined;
+  if (!result || result.raw !== row.raw) return { raw: row.raw, ...selected };
   const { quantity, unit, ingredient, preparation } = recognizedParts(result);
   const unitInfo = !unit
     ? {}
@@ -110,7 +162,7 @@ export function toIngredientRefInfo(row: {
     // The API stores units on a quantity; its own auto-recognition defaults to one.
     ...(quantity || unit ? { quantity: quantity?.quantity ?? 1 } : {}),
     ...unitInfo,
-    ...ingredientInfo,
+    ...(selected ?? ingredientInfo),
     ...(preparation ? { preparation } : {}),
   };
 }

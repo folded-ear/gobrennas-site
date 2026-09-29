@@ -1,5 +1,6 @@
 "use client";
 
+import { focusAtEnd } from "@/features/morsel/editor-dom";
 import { Button } from "@heroui/react";
 import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
 import {
@@ -10,6 +11,7 @@ import {
   type SetStateAction,
 } from "react";
 import {
+  chooseIngredient,
   insertIngredient,
   moveIngredient,
   newIngredientDraft,
@@ -41,7 +43,8 @@ export function IngredientRows({
 }: IngredientRowsProps) {
   const helpId = useId();
   const [queue] = useState(createRecognitionQueue);
-  const inputs = useRef(new Map<string, HTMLInputElement>());
+  const [pasted, setPasted] = useState(new Map<string, string>());
+  const inputs = useRef(new Map<string, HTMLDivElement>());
   const pendingFocus = useRef<string | undefined>(undefined);
 
   useLayoutEffect(() => {
@@ -50,8 +53,7 @@ export function IngredientRows({
       return;
     }
     const input = inputs.current.get(clientId);
-    input?.focus();
-    input?.setSelectionRange(input.value.length, input.value.length);
+    if (input) focusAtEnd(input);
     pendingFocus.current = undefined;
   }, [rows]);
 
@@ -91,11 +93,17 @@ export function IngredientRows({
               number={index + 1}
               helpId={helpId}
               isDisabled={isDisabled}
+              pastedRaw={pasted.get(row.clientId)}
               recognize={recognize}
               queue={queue}
-              onChange={(raw) =>
+              onChange={(raw, choice) =>
                 onChange((current) =>
-                  updateIngredient(current, row.clientId, raw),
+                  updateIngredient(current, row.clientId, raw, choice),
+                )
+              }
+              onChoose={(raw, choice) =>
+                onChange((current) =>
+                  chooseIngredient(current, row.clientId, raw, choice),
                 )
               }
               onRecognized={(recognition) =>
@@ -114,6 +122,7 @@ export function IngredientRows({
                 if (input) inputs.current.set(row.clientId, input);
                 else inputs.current.delete(row.clientId);
               }}
+              onEnter={() => addRow(index + 1)}
               onKeyDown={(event) => {
                 if (
                   event.nativeEvent.isComposing ||
@@ -121,10 +130,7 @@ export function IngredientRows({
                 ) {
                   return;
                 }
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  addRow(index + 1);
-                } else if (
+                if (
                   (event.key === "Backspace" || event.key === "Delete") &&
                   row.raw.trim().length === 0
                 ) {
@@ -132,26 +138,26 @@ export function IngredientRows({
                   removeRow(index);
                 }
               }}
-              onPaste={(event) => {
-                const text = event.clipboardData.getData("text/plain");
+              onPasteLines={(text, selection) => {
                 if (!/[\r\n]/.test(text)) {
-                  return;
+                  return false;
                 }
-                event.preventDefault();
-                const input = event.currentTarget;
                 const lines = pasteIngredientLines(
                   row.raw,
                   text,
-                  input.selectionStart ?? row.raw.length,
-                  input.selectionEnd ?? row.raw.length,
+                  selection.start,
+                  selection.end,
                 );
                 if (lines.length === 0) {
-                  return;
+                  return true;
                 }
                 const pastedRows = lines.map((raw, lineIndex) =>
                   lineIndex === 0
                     ? { clientId: row.clientId, raw }
                     : newIngredientDraft(raw),
+                );
+                setPasted(
+                  new Map(pastedRows.map((item) => [item.clientId, item.raw])),
                 );
                 changeAndFocus(
                   [
@@ -161,6 +167,7 @@ export function IngredientRows({
                   ],
                   pastedRows[pastedRows.length - 1].clientId,
                 );
+                return true;
               }}
             />
             <Button
