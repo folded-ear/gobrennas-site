@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "@heroui/react";
 import {
   useEffect,
   useEffectEvent,
@@ -27,6 +28,7 @@ export type MorselProps = {
   descriptionId?: string;
   placeholder?: string;
   isDisabled?: boolean;
+  isPending?: boolean;
   recognition?: MorselRecognition;
   suggestions?: MorselSuggestions;
   inputRef?: RefCallback<HTMLDivElement>;
@@ -42,6 +44,35 @@ export type MorselProps = {
   onPasteLines?: (text: string, selection: TextRange) => boolean;
 };
 
+type SettledIngredient = { raw: string; range: TextRange };
+
+/** Keep a settled name through edits to the text before or after it. */
+function retainSettledIngredient(
+  settled: SettledIngredient | undefined,
+  raw: string,
+): SettledIngredient | undefined {
+  if (!settled || settled.raw === raw) return settled;
+  const { start, end } = settled.range;
+  if (
+    raw.startsWith(settled.raw.slice(0, end)) &&
+    /^(?:[\s,]|$)/.test(raw.slice(end))
+  )
+    return { raw, range: settled.range };
+  const shiftedStart = start + raw.length - settled.raw.length;
+  if (
+    raw.endsWith(settled.raw.slice(start)) &&
+    (shiftedStart === 0 || /[\s,]/.test(raw[shiftedStart - 1] ?? ""))
+  )
+    return {
+      raw,
+      range: {
+        start: shiftedStart,
+        end: end + raw.length - settled.raw.length,
+      },
+    };
+  return undefined;
+}
+
 /** Plain text and range decoration. Consumers own requests, row actions, and saving. */
 export function Morsel({
   value,
@@ -49,6 +80,7 @@ export function Morsel({
   descriptionId,
   placeholder = "e.g. 2 cups flour",
   isDisabled = false,
+  isPending = false,
   recognition,
   suggestions,
   inputRef,
@@ -75,6 +107,8 @@ export function Morsel({
     composing: false,
   });
   const [dismissed, setDismissed] = useState(false);
+  const [settledIngredient, setSettledIngredient] =
+    useState<SettledIngredient>();
   const [active, setActive] = useState(-1);
   const [error, setError] = useState("");
 
@@ -117,6 +151,18 @@ export function Morsel({
 
   const matching =
     recognition?.raw === value && !context.composing ? recognition : undefined;
+  const settled = settledIngredient?.raw === value;
+
+  function settleIngredient(raw: string) {
+    const range =
+      recognition?.raw === raw
+        ? recognition.ranges.find((range) => range.type === "ingredient")
+        : undefined;
+    setSettledIngredient((current) =>
+      range ? { raw, range } : retainSettledIngredient(current, raw),
+    );
+  }
+
   useEffect(() => {
     const element = editor.current;
     if (
@@ -154,6 +200,7 @@ export function Morsel({
     context.focused &&
     !context.composing &&
     !isDisabled &&
+    !settled &&
     !dismissed &&
     options.length > 0;
 
@@ -162,6 +209,7 @@ export function Morsel({
     if (!element || inserting.current || isDisabled) return;
     const raw = element.textContent ?? "";
     const cursor = readSelection(element).start;
+    setSettledIngredient((current) => retainSettledIngredient(current, raw));
     lastCursor.current = cursor;
     setContext({
       raw,
@@ -206,6 +254,7 @@ export function Morsel({
       return;
     }
     lastCursor.current = next.cursor;
+    setSettledIngredient({ raw: next.raw, range: next.choice.range });
     setContext({
       raw: next.raw,
       cursor: next.cursor,
@@ -263,6 +312,7 @@ export function Morsel({
         tabIndex={isDisabled ? -1 : 0}
         aria-label={label}
         aria-disabled={isDisabled}
+        aria-busy={isPending}
         aria-describedby={[
           descriptionId,
           `${id}-help`,
@@ -280,8 +330,9 @@ export function Morsel({
         }
         data-placeholder={placeholder}
         spellCheck={false}
-        className="min-h-10 w-full whitespace-pre-wrap break-words rounded-lg border border-border bg-surface px-md py-sm text-base leading-6 text-(--morsel-text) outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 aria-disabled:opacity-50"
+        className="min-h-10 w-full whitespace-pre-wrap break-words rounded-lg border border-border bg-surface py-sm pr-xxl pl-md text-base leading-6 text-(--morsel-text) outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 aria-disabled:opacity-50"
         onFocus={(event) => {
+          settleIngredient(event.currentTarget.textContent ?? "");
           const cursor = readSelection(event.currentTarget).start;
           lastCursor.current = cursor;
           setContext({
@@ -294,7 +345,8 @@ export function Morsel({
           setActive(-1);
           onFocus?.(cursor);
         }}
-        onBlur={() => {
+        onBlur={(event) => {
+          settleIngredient(event.currentTarget.textContent ?? "");
           setContext((current) => ({ ...current, focused: false }));
           setDismissed(true);
           setActive(-1);
@@ -339,16 +391,19 @@ export function Morsel({
             return;
           if (
             (event.key === "ArrowDown" || event.key === "ArrowUp") &&
-            options.length
+            (options.length || (event.key === "ArrowDown" && settled))
           ) {
             event.preventDefault();
+            setSettledIngredient(undefined);
             setDismissed(false);
             setActive((index) =>
-              event.key === "ArrowDown"
-                ? (index + 1) % options.length
-                : index <= 0
-                  ? options.length - 1
-                  : index - 1,
+              !options.length
+                ? -1
+                : event.key === "ArrowDown"
+                  ? (index + 1) % options.length
+                  : index <= 0
+                    ? options.length - 1
+                    : index - 1,
             );
           } else if (event.key === "Escape") {
             event.preventDefault();
@@ -372,6 +427,14 @@ export function Morsel({
           }
         }}
       />
+      {isPending && (
+        <Spinner
+          aria-label={`${label}: recognizing`}
+          color="current"
+          size="sm"
+          className="pointer-events-none absolute top-md right-md text-muted"
+        />
+      )}
       <span id={`${id}-help`} className="sr-only">
         Use arrow keys to browse suggestions, Enter to choose, Escape to
         dismiss, and Tab to move on.

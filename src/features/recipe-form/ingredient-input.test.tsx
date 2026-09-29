@@ -55,6 +55,31 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
+async function recognizeFlour(
+  raw: string,
+  cursor: number,
+): Promise<IngredientRecognition> {
+  const name = /\bfl\w*/.exec(raw);
+  const start = name?.index ?? 0;
+  const end = start + (name?.[0].length ?? 0);
+  return {
+    raw,
+    cursor,
+    ranges:
+      name?.[0] === "flour"
+        ? [{ start, end, type: Type.ITEM, quantity: null, id: "pantry-flour" }]
+        : [],
+    suggestions: [
+      {
+        name: "flour",
+        kind: RecognitionKind.PANTRY_ITEM,
+        detail: null,
+        target: { start, end, type: Type.ITEM, id: "pantry-flour" },
+      },
+    ],
+  };
+}
+
 function editor(recognize: RecognizeIngredient, lines = [""]) {
   const submit = vi
     .fn<(draft: RecipeDraft) => Promise<void>>()
@@ -101,6 +126,62 @@ afterEach(() => {
 });
 
 describe("ingredient recognition input", () => {
+  it("keeps a recognized row quiet on return and through quantity, unit, and preparation edits until the name changes", async () => {
+    const { user } = editor(recognizeFlour, ["1 cup flour, sifted"]);
+    await user.click(input());
+    await tick();
+    // Recognition arriving during an active editing session must not close suggestions.
+    expect(screen.getByRole("listbox")).toBeVisible();
+    await user.click(screen.getByRole("textbox", { name: /title/i }));
+    await user.click(input());
+    await tick();
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+
+    await user.keyboard("{Home}2");
+    await tick();
+    expect(input()).toHaveTextContent("21 cup flour, sifted");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    await user.pointer([
+      { keys: "[MouseLeft>]", target: input(), offset: 3 },
+      { offset: 6 },
+      { keys: "[/MouseLeft]" },
+    ]);
+    await user.paste("tablespoon");
+    await tick();
+    expect(input()).toHaveTextContent("21 tablespoon flour, sifted");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    await user.keyboard("{End}{Backspace>8/}");
+    await tick();
+    expect(input()).toHaveTextContent("21 tablespoon flour");
+    expect(
+      screen.getByLabelText("Recognition for ingredient 1"),
+    ).toHaveTextContent("flour");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+
+    await user.keyboard("{Backspace}");
+    await tick();
+    expect(input()).toHaveTextContent("21 tablespoon flou");
+    expect(screen.getByRole("listbox")).toBeVisible();
+  });
+
+  it("settles an explicit choice but lets ArrowDown request alternatives before its response arrives", async () => {
+    const { user } = editor(recognizeFlour, ["1 cup fl"]);
+    await user.click(input());
+    await user.keyboard("{End}");
+    await tick();
+    await user.keyboard("{ArrowDown}{Enter}");
+    expect(input()).toHaveTextContent("1 cup flour");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    await user.keyboard("{ArrowLeft}{ArrowRight}");
+    await tick();
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("textbox", { name: /title/i }));
+    await user.click(input());
+    await user.keyboard("{End}{ArrowDown}");
+    await tick();
+    expect(screen.getByRole("listbox")).toBeVisible();
+  });
+
   it.each([RecognitionKind.RECIPE, RecognitionKind.SECTION])(
     "selects %s without adding a row and immediately saves the chosen identity and parsed quantity",
     async (kind) => {
@@ -337,7 +418,15 @@ describe("ingredient recognition input", () => {
     await user.type(input(), " _cups_ “flour”, sifted");
     await tick(299);
     expect(recognize).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("status", { name: "Ingredient 1: recognizing" }),
+    ).toBeVisible();
+    expect(input()).toHaveAttribute("aria-busy", "true");
     await tick(1);
+    expect(
+      screen.queryByRole("status", { name: "Ingredient 1: recognizing" }),
+    ).not.toBeInTheDocument();
+    expect(input()).toHaveAttribute("aria-busy", "false");
     expect(recognize).toHaveBeenCalledWith(
       "2 _cups_ “flour”, sifted",
       24,

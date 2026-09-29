@@ -13,6 +13,7 @@ import { Button } from "@heroui/react";
 import {
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   type KeyboardEventHandler,
   type RefCallback,
@@ -74,20 +75,25 @@ export function IngredientInput({
   });
   const result = row.recognition?.raw === row.raw ? row.recognition : undefined;
   const parts = result ? recognizedParts(result) : undefined;
-  const ranges: MorselRecognition["ranges"] | undefined =
-    result?.ranges.flatMap((range) => {
-      const type =
-        range.type === RecognizedRangeType.QUANTITY
-          ? "quantity"
-          : range.type === RecognizedRangeType.UNIT ||
-              range.type === RecognizedRangeType.NEW_UNIT
-            ? "unit"
-            : range.type === RecognizedRangeType.ITEM ||
-                range.type === RecognizedRangeType.NEW_ITEM
-              ? "ingredient"
-              : undefined;
-      return type ? [{ start: range.start, end: range.end, type }] : [];
-    });
+  const morselRecognition = useMemo<MorselRecognition | undefined>(() => {
+    if (!result) return undefined;
+    const ranges: MorselRecognition["ranges"] = result.ranges.flatMap(
+      (range) => {
+        const type =
+          range.type === RecognizedRangeType.QUANTITY
+            ? "quantity"
+            : range.type === RecognizedRangeType.UNIT ||
+                range.type === RecognizedRangeType.NEW_UNIT
+              ? "unit"
+              : range.type === RecognizedRangeType.ITEM ||
+                  range.type === RecognizedRangeType.NEW_ITEM
+                ? "ingredient"
+                : undefined;
+        return type ? [{ start: range.start, end: range.end, type }] : [];
+      },
+    );
+    return { raw: result.raw, ranges };
+  }, [result]);
 
   return (
     <div className="min-w-0 flex-1">
@@ -96,7 +102,8 @@ export function IngredientInput({
         label={`Ingredient ${number}`}
         descriptionId={`${helpId} ${feedbackId}`}
         isDisabled={isDisabled}
-        recognition={result && ranges ? { raw: result.raw, ranges } : undefined}
+        isPending={recognition.status === "pending"}
+        recognition={morselRecognition}
         suggestions={recognition.suggestions}
         inputRef={(element) => {
           input.current = element;
@@ -138,9 +145,6 @@ export function IngredientInput({
         aria-live="polite"
         aria-atomic="true"
       >
-        {recognition.status === "pending" && (
-          <span className="text-muted">Recognizing…</span>
-        )}
         {recognition.status === "error" && (
           <div className="flex items-center gap-sm text-warning">
             <span>

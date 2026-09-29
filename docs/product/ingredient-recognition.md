@@ -36,10 +36,18 @@ recognition UI branch.
 - Suggestions belong to the active cursor position. Choosing one replaces
   only its indicated text range. Editing or moving the cursor makes old
   suggestions unavailable; leaving a row hides its suggestions.
+- Choosing an ingredient or leaving a recognized row settles its name. Returning
+  to that row, moving the cursor, or editing its quantity, units, or preparation
+  keeps the dropdown closed. Editing the ingredient name enables suggestions
+  again; Arrow Down explicitly opens available alternatives. Recognition still
+  updates in the background, and a recognition response arriving while someone
+  is actively typing does not close their suggestions.
 - Editing text clears recognition derived from the previous text. A late
   response cannot restore outdated ingredient details or suggestions.
-- Loading and failures do not block editing. A failed row shows non-blocking
-  feedback and offers retry; successful recognition in other rows is retained.
+- A small spinner inside the input indicates recognition is pending without
+  shifting the text or surrounding rows. Loading and failures do not block
+  editing. A failed row shows non-blocking feedback and offers retry; successful
+  recognition in other rows is retained.
 - Saving does not wait for recognition. It preserves populated raw rows and
   includes recognized details when they match the current text. Blank rows
   are omitted. Results arriving after submission do not change that save.
@@ -64,7 +72,8 @@ fake parser and catalog on the separate branch linked above.
 - No option is automatically active. Arrow keys browse; Enter selects an active
   option, otherwise it adds a recipe row. Tab leaves without selecting. Escape
   dismisses, including when a response is still pending. New input or cursor
-  movement can reopen; ArrowDown can explicitly reopen matching suggestions.
+  movement can reopen suggestions for an unsettled name; ArrowDown can explicitly
+  reopen matching suggestions for a settled name too.
 - Pointer selection keeps focus in the editor and places the caret immediately
   after the inserted name. Replace exactly the server's range, preserving the
   prefix and suffix. Never auto-add double quotes to names.
