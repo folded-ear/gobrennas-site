@@ -15,6 +15,7 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
   type KeyboardEventHandler,
   type RefCallback,
 } from "react";
@@ -60,10 +61,10 @@ export function IngredientInput({
 }) {
   const input = useRef<HTMLDivElement>(null);
   const feedbackId = useId();
-  const history = useRef(createChoiceHistory(row));
+  const [history] = useState(() => createChoiceHistory(row));
   useLayoutEffect(
-    () => history.current.sync({ raw: row.raw, choice: row.choice }),
-    [row.raw, row.choice],
+    () => history.sync({ raw: row.raw, choice: row.choice }),
+    [history, row.raw, row.choice],
   );
   const recognition = useIngredientRecognition({
     ...row,
@@ -110,12 +111,12 @@ export function IngredientInput({
           inputRef(element);
         }}
         onChange={(raw, cursor, inputType) => {
-          const choice = history.current.edit(raw, inputType);
+          const choice = history.edit(raw, inputType);
           recognition.schedule(raw, cursor, { choice });
           onChange(raw, choice);
         }}
         onChoose={(raw, cursor, choice) => {
-          history.current.choose(raw, choice);
+          history.choose(raw, choice);
           recognition.schedule(raw, cursor, { choice, retry: true });
           onChoose(raw, choice);
         }}
@@ -130,7 +131,7 @@ export function IngredientInput({
         onCursorChange={(cursor) => recognition.schedule(row.raw, cursor)}
         onCompositionStart={recognition.startComposition}
         onCompositionEnd={(raw, cursor) =>
-          recognition.endComposition(raw, cursor, history.current.edit(raw))
+          recognition.endComposition(raw, cursor, history.edit(raw))
         }
         onKeyDown={onKeyDown}
         onEnter={onEnter}

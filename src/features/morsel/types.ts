@@ -1,6 +1,6 @@
 export type TextRange = { start: number; end: number };
-export type MorselKind = "Pantry item" | "Recipe" | "Section";
-export const MORSEL_GROUPS: MorselKind[] = ["Pantry item", "Recipe", "Section"];
+export const MORSEL_GROUPS = ["Pantry item", "Recipe", "Section"] as const;
+export type MorselKind = (typeof MORSEL_GROUPS)[number];
 
 export type MorselFood = {
   id: string;

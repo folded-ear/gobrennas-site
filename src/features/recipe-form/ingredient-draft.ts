@@ -1,5 +1,5 @@
 import { RecognizedRangeType } from "@/__generated__/graphql";
-import type { MorselChoice } from "@/features/morsel/types";
+import { MORSEL_GROUPS, type MorselChoice } from "@/features/morsel/types";
 import { z } from "zod";
 import { ingredientRecognitionSchema } from "./ingredient-recognition";
 
@@ -12,7 +12,7 @@ export const ingredientDraftSchema = z.object({
       food: z.object({
         id: z.string().min(1),
         name: z.string().min(1),
-        kind: z.enum(["Pantry item", "Recipe", "Section"]),
+        kind: z.enum(MORSEL_GROUPS),
         detail: z.string().optional(),
       }),
       range: z.object({
