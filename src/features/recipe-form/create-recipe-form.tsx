@@ -65,6 +65,7 @@ export function CreateRecipeForm({
 
   return (
     <RecipeForm
+      heading="Add Recipe"
       initialDraft={newRecipeDraft()}
       onSubmit={submitRecipe}
       recognizeIngredient={recognizeIngredient}

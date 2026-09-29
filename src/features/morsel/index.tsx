@@ -330,7 +330,7 @@ export function Morsel({
         }
         data-placeholder={placeholder}
         spellCheck={false}
-        className="min-h-10 w-full whitespace-pre-wrap break-words rounded-lg border border-border bg-surface py-sm pr-xxl pl-md text-base leading-6 text-(--morsel-text) outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 aria-disabled:opacity-50"
+        className="min-h-10 w-full whitespace-pre-wrap break-words rounded-field border border-field-border bg-field py-sm pr-xxl pl-md text-base leading-6 text-(--morsel-text) outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 aria-disabled:opacity-50"
         onFocus={(event) => {
           settleIngredient(event.currentTarget.textContent ?? "");
           const cursor = readSelection(event.currentTarget).start;

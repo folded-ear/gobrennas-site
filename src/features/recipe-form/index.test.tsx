@@ -23,6 +23,7 @@ function renderRecipeForm(
 ) {
   render(
     <RecipeForm
+      heading="Add Recipe"
       initialDraft={INITIAL_DRAFT}
       recognizeIngredient={async (raw, cursor) => ({ raw, cursor, ranges: [] })}
       onCancel={onCancel}
@@ -82,6 +83,7 @@ describe("RecipeForm", () => {
   it("renders the recipe fields and actions without premature errors", () => {
     renderRecipeForm();
 
+    expect(screen.getByRole("heading", { name: "Add Recipe" })).toBeVisible();
     expect(screen.getByRole("form", { name: "Recipe details" })).toBeVisible();
     const titleInput = screen.getByRole("textbox", { name: "Title" });
     expect(titleInput).toHaveValue("");
@@ -424,7 +426,7 @@ describe("RecipeForm", () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
-  it("tabs from Title through every field, Save recipe, and Cancel", async () => {
+  it("tabs through the header actions and then the recipe fields", async () => {
     const user = userEvent.setup();
     renderRecipeForm();
 
@@ -441,8 +443,18 @@ describe("RecipeForm", () => {
     const saveButton = screen.getByRole("button", { name: "Save recipe" });
     const cancelButton = screen.getByRole("button", { name: "Cancel" });
     await user.tab();
+    expect(cancelButton).toHaveFocus();
+    await user.tab();
     expect(titleInput).toHaveFocus();
     await user.type(titleInput, "Tomato soup");
+    await user.tab({ shift: true });
+    expect(cancelButton).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(saveButton).toHaveFocus();
+    await user.tab();
+    expect(cancelButton).toHaveFocus();
+    await user.tab();
+    expect(titleInput).toHaveFocus();
     await user.tab();
     expect(sourceUrlInput).toHaveFocus();
     await user.tab();
@@ -465,9 +477,5 @@ describe("RecipeForm", () => {
     expect(directions).toHaveFocus();
     await user.tab();
     expect(screen.getByRole("button", { name: "Add section" })).toHaveFocus();
-    await user.tab();
-    expect(saveButton).toHaveFocus();
-    await user.tab();
-    expect(cancelButton).toHaveFocus();
   });
 });

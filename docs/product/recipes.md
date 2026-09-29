@@ -22,6 +22,8 @@ without leaving the Library behind.
 ### Create editor
 
 - The create editor lets a person save a new recipe or cancel.
+- Save recipe and Cancel sit beside Add Recipe in the sticky header and remain
+  visible while the form scrolls, in both the drawer and the full-page editor.
 - Title is required; whitespace alone does not count. Save recipe stays disabled
   until the title contains non-whitespace text. Directions are optional.
 - It also offers optional Source URL, Yield, Total cook time, and Calories per

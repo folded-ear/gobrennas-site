@@ -26,6 +26,7 @@ function editor(
     .mockResolvedValue(undefined);
   render(
     <RecipeForm
+      heading="Add Recipe"
       initialDraft={{ ...newRecipeDraft(), title: "Pie", sections }}
       onSubmit={submit}
       onCancel={vi.fn()}
