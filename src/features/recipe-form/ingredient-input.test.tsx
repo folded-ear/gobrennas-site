@@ -141,7 +141,6 @@ describe("ingredient recognition input", () => {
           uomId: "cup",
           ingredientId: "selected-stock",
           preparation: "chilled",
-          ...(kind === RecognitionKind.SECTION ? { section: true } : {}),
         },
       ]);
     },

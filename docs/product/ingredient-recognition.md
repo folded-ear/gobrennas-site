@@ -53,8 +53,10 @@ fake parser and catalog on the separate branch linked above.
 - Suggest ingredients only, not units. Group candidates by **Pantry item**,
   **Recipe**, and **Section**, omitting empty groups. Keep distinct identities
   even when names match. Selecting a section references it as one ingredient;
-  it does not expand the section into rows. The backend represents that with
-  `IngredientRef.section`, exposing flagged references in `recipe.sections`.
+  it remains an ordinary ingredient row pointing to that section’s recipe ID.
+  Its position is preserved, and its children are not copied into rows. The
+  suggestion group describes the selected item, not the containing recipe’s
+  structure. Adding and editing structural sections is separate work.
 - Keep the dropdown compact: 4px vertical padding per option, 2px per heading,
   readable text, and subtle group separators. Optional secondary information can
   help distinguish choices. The prototype's durations and descriptions are fake;
@@ -97,9 +99,10 @@ existing total count limit (ten by default) still applies, with pantry matches
 first and owned recipe/section matches following. The UI groups the returned set.
 
 Both repos must run this version for real suggestions: the site selects the new
-schema fields. Section selection saves the existing reference flag and ID and
-round-trips through `recipe.sections`, without copying children. No database
-migration is required.
+schema fields. Section selection saves an ordinary ingredient reference and
+round-trips through `recipe.ingredients`, retaining its position. Structural
+sections continue to use the existing `sections` input. No database migration
+is required.
 
 ## Text conventions and saving
 

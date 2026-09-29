@@ -138,7 +138,6 @@ export function toIngredientRefInfo(row: {
     row.raw.slice(choice.range.start, choice.range.end) === choice.food.name
       ? {
           ingredientId: choice.food.id,
-          ...(choice.food.kind === "Section" ? { section: true } : {}),
         }
       : undefined;
   if (!result || result.raw !== row.raw) return { raw: row.raw, ...selected };
