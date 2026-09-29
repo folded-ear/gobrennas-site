@@ -43,7 +43,7 @@ export function IngredientRows({
 }: IngredientRowsProps) {
   const helpId = useId();
   const [queue] = useState(createRecognitionQueue);
-  const [pasted, setPasted] = useState(new Map<string, string>());
+  const [pasted, setPasted] = useState(new Map<string, { raw: string }>());
   const inputs = useRef(new Map<string, HTMLDivElement>());
   const pendingFocus = useRef<string | undefined>(undefined);
 
@@ -93,7 +93,7 @@ export function IngredientRows({
               number={index + 1}
               helpId={helpId}
               isDisabled={isDisabled}
-              pastedRaw={pasted.get(row.clientId)}
+              pastedRow={pasted.get(row.clientId)}
               recognize={recognize}
               queue={queue}
               onChange={(raw, choice) =>
@@ -157,7 +157,7 @@ export function IngredientRows({
                     : newIngredientDraft(raw),
                 );
                 setPasted(
-                  new Map(pastedRows.map((item) => [item.clientId, item.raw])),
+                  new Map(pastedRows.map((item) => [item.clientId, item])),
                 );
                 changeAndFocus(
                   [

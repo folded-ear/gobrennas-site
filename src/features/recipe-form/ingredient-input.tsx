@@ -31,7 +31,7 @@ export function IngredientInput({
   number,
   helpId,
   isDisabled,
-  pastedRaw,
+  pastedRow,
   inputRef,
   onChange,
   onChoose,
@@ -46,7 +46,7 @@ export function IngredientInput({
   number: number;
   helpId: string;
   isDisabled: boolean;
-  pastedRaw?: string;
+  pastedRow?: { raw: string };
   inputRef: RefCallback<HTMLDivElement>;
   onChange: (raw: string, choice?: MorselChoice) => void;
   onChoose: (raw: string, choice: MorselChoice) => void;
@@ -67,7 +67,7 @@ export function IngredientInput({
   const recognition = useIngredientRecognition({
     ...row,
     isDisabled,
-    pastedRaw,
+    pastedRow,
     recognize,
     queue,
     onRecognized,

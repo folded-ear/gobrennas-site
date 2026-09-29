@@ -250,6 +250,40 @@ describe("ingredient recognition input", () => {
     expect(refs?.filter((ref) => ref.ingredientId)).toHaveLength(3);
   });
 
+  it("recognizes the first row again when another multiline paste starts with the same text", async () => {
+    const recognize = vi
+      .fn<RecognizeIngredient>()
+      .mockImplementation(async (raw, cursor) => recognized(raw, cursor));
+    const { user, submit } = editor(recognize);
+    await user.click(input());
+    await user.paste("flour\nsalt");
+    await tick();
+    expect(
+      screen.getByLabelText("Recognition for ingredient 1"),
+    ).toHaveTextContent("flour");
+
+    await user.click(input());
+    await user.pointer([
+      { keys: "[MouseLeft>]", target: input(), offset: 0 },
+      { offset: 5 },
+      { keys: "[/MouseLeft]" },
+    ]);
+    await user.paste("flour\neggs");
+    await tick();
+
+    expect(input(2)).toHaveFocus();
+    expect(
+      screen.getByLabelText("Recognition for ingredient 1"),
+    ).toHaveTextContent("flour");
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    expect(
+      toIngredientInfo(submit.mock.calls[0][0]).ingredients?.[0],
+    ).toMatchObject({
+      raw: "flour",
+      ingredientId: "pantry-flour",
+    });
+  });
+
   it("keeps a failed-save alert visible when background recognition completes", async () => {
     const pending = deferred();
     const recognize = vi

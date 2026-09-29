@@ -25,7 +25,7 @@ export function useIngredientRecognition({
   raw,
   choice,
   isDisabled,
-  pastedRaw,
+  pastedRow,
   recognize,
   queue,
   onRecognized,
@@ -34,7 +34,7 @@ export function useIngredientRecognition({
   raw: string;
   choice?: MorselChoice;
   isDisabled: boolean;
-  pastedRaw?: string;
+  pastedRow?: { raw: string };
   recognize: RecognizeIngredient;
   queue: RecognitionQueue;
   onRecognized: (result: IngredientRecognition) => void;
@@ -95,8 +95,9 @@ export function useIngredientRecognition({
     if (text === raw) schedule(text, text.length, { immediate: true });
   });
   useEffect(() => {
-    if (pastedRaw !== undefined) pasted(pastedRaw);
-  }, [pastedRaw]);
+    // Each paste has its own identity, even when its text repeats.
+    if (pastedRow !== undefined) pasted(pastedRow.raw);
+  }, [pastedRow]);
 
   useEffect(() => {
     if (!context || context.raw !== raw || raw.trim().length < 2 || isDisabled)
