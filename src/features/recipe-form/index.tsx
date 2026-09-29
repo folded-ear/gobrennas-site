@@ -7,7 +7,9 @@ import { useRef, useState, type FormEvent } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import type { RecognizeIngredient } from "./ingredient-recognition";
 import { IngredientRows } from "./ingredient-rows";
+import { OwnedSections } from "./owned-sections";
 import { recipeDraftSchema, type RecipeDraft } from "./recipe-draft";
+import { createRecognitionQueue } from "./recognition-queue";
 
 type RecipeFormProps = {
   initialDraft: RecipeDraft;
@@ -34,6 +36,7 @@ export function RecipeForm({
     reValidateMode: "onChange",
   });
   const title = useWatch({ control, name: "title" });
+  const [recognitionQueue] = useState(createRecognitionQueue);
   const [hasSaveFailure, setHasSaveFailure] = useState(false);
   const isSubmittingRef = useRef(false);
 
@@ -70,7 +73,7 @@ export function RecipeForm({
     <Form
       aria-busy={isSubmitting}
       aria-label="Recipe details"
-      className="flex w-full max-w-lg flex-col gap-lg"
+      className="@container flex w-full flex-col gap-md"
       onSubmit={handleFormSubmit}
       validationBehavior="aria"
     >
@@ -86,23 +89,25 @@ export function RecipeForm({
         </Alert>
       ) : null}
 
-      <FormTextField
-        control={control}
-        name="title"
-        label="Title"
-        isRequired
-        onValueChange={clearSaveFailure}
-      />
-      <FormTextField
-        control={control}
-        name="sourceUrl"
-        label="Source URL"
-        type="url"
-        autoComplete="url"
-        onValueChange={clearSaveFailure}
-      />
+      <div className="grid gap-md @2xl:grid-cols-2">
+        <FormTextField
+          control={control}
+          name="title"
+          label="Title"
+          isRequired
+          onValueChange={clearSaveFailure}
+        />
+        <FormTextField
+          control={control}
+          name="sourceUrl"
+          label="Source URL"
+          type="url"
+          autoComplete="url"
+          onValueChange={clearSaveFailure}
+        />
+      </div>
 
-      <div className="grid grid-cols-1 gap-lg sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-md @lg:grid-cols-3">
         <FormTextField
           control={control}
           name="yieldServings"
@@ -130,33 +135,45 @@ export function RecipeForm({
         />
       </div>
 
-      <Controller
-        control={control}
-        name="ingredients"
-        render={({ field }) => (
-          <IngredientRows
-            rows={field.value}
-            recognize={recognizeIngredient}
-            onChange={(rows, source) => {
-              field.onChange(
-                typeof rows === "function"
-                  ? rows(getValues("ingredients"))
-                  : rows,
-              );
-              if (source !== "recognition") clearSaveFailure();
-            }}
-            isDisabled={isSubmitting}
-          />
-        )}
-      />
+      <div className="grid items-start gap-md @3xl:grid-cols-2">
+        <Controller
+          control={control}
+          name="ingredients"
+          render={({ field }) => (
+            <IngredientRows
+              rows={field.value}
+              queue={recognitionQueue}
+              recognize={recognizeIngredient}
+              onChange={(rows, source) => {
+                field.onChange(
+                  typeof rows === "function"
+                    ? rows(getValues("ingredients"))
+                    : rows,
+                );
+                if (source !== "recognition") clearSaveFailure();
+              }}
+              isDisabled={isSubmitting}
+            />
+          )}
+        />
 
-      <FormTextField
+        <FormTextField
+          control={control}
+          name="directions"
+          label="Directions"
+          multiline
+          rows={4}
+          onValueChange={clearSaveFailure}
+        />
+      </div>
+
+      <OwnedSections
         control={control}
-        name="directions"
-        label="Directions"
-        multiline
-        rows={6}
-        onValueChange={clearSaveFailure}
+        getValues={getValues}
+        recognize={recognizeIngredient}
+        queue={recognitionQueue}
+        isDisabled={isSubmitting}
+        onEdit={clearSaveFailure}
       />
 
       <div className="flex gap-sm">

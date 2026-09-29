@@ -10,7 +10,7 @@ export function RecipeCreate() {
   return (
     <>
       <SectionHeader title="Add Recipe" />
-      <div className="w-full max-w-xl p-md">
+      <div className="w-full max-w-5xl p-md">
         <CreateRecipeForm
           onCreated={(id) => router.replace(`/recipes/${id}`)}
           onCancel={() => router.replace("/recipes")}

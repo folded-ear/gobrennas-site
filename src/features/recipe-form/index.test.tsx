@@ -12,6 +12,7 @@ const INITIAL_DRAFT: RecipeDraft = {
   caloriesPerServing: "",
   directions: "",
   ingredients: [{ clientId: "initial-ingredient", raw: "" }],
+  sections: [],
 };
 
 function renderRecipeForm(
@@ -73,7 +74,7 @@ describe("RecipeForm", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Save recipe" }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(2));
-    expect(onSubmit.mock.calls[1][0].ingredients).toEqual(
+    expect(onSubmit.mock.calls[1][0].ingredients).toMatchObject(
       [...submittedRows].reverse(),
     );
   });
@@ -197,6 +198,7 @@ describe("RecipeForm", () => {
         caloriesPerServing: "320",
         directions: "Bake until golden.",
         ingredients: INITIAL_DRAFT.ingredients,
+        sections: [],
       });
     });
   });
@@ -222,6 +224,7 @@ describe("RecipeForm", () => {
         caloriesPerServing: "",
         directions: "",
         ingredients: [{ clientId: "initial-ingredient", raw: "" }],
+        sections: [],
       });
     });
   });
@@ -456,10 +459,12 @@ describe("RecipeForm", () => {
     ).toHaveFocus();
     await user.tab();
     expect(
-      screen.getByRole("button", { name: "Add ingredient" }),
+      screen.getByRole("button", { name: "Add ingredient below 1" }),
     ).toHaveFocus();
     await user.tab();
     expect(directions).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Add section" })).toHaveFocus();
     await user.tab();
     expect(saveButton).toHaveFocus();
     await user.tab();

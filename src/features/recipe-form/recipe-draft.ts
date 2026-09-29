@@ -2,6 +2,7 @@ import type { IngredientInfo } from "@/__generated__/graphql";
 import { z } from "zod";
 import { ingredientDraftSchema, newIngredientDraft } from "./ingredient-draft";
 import { toIngredientRefInfo } from "./ingredient-recognition";
+import { sectionDraftSchema } from "./section-draft";
 
 const GRAPHQL_INT_MAX = 2_147_483_647;
 const MAX_TOTAL_TIME_MINUTES = 35_791;
@@ -31,6 +32,7 @@ export const recipeDraftSchema = z.object({
   ),
   directions: z.string(),
   ingredients: z.array(ingredientDraftSchema),
+  sections: z.array(sectionDraftSchema),
 });
 
 export type RecipeDraft = z.input<typeof recipeDraftSchema>;
@@ -44,6 +46,7 @@ export function newRecipeDraft(): RecipeDraft {
     caloriesPerServing: "",
     directions: "",
     ingredients: [newIngredientDraft()],
+    sections: [],
   };
 }
 
@@ -61,6 +64,14 @@ export function toIngredientInfo(draft: RecipeDraft): IngredientInfo {
     ingredients: values.ingredients
       .filter((row) => row.raw.trim().length > 0)
       .map(toIngredientRefInfo),
+    sections: values.sections.map((section) => ({
+      id: section.id ?? null,
+      name: section.title.trim(),
+      directions: section.directions,
+      ingredients: section.ingredients
+        .filter((row) => row.raw.trim().length > 0)
+        .map(toIngredientRefInfo),
+    })),
   };
 }
 

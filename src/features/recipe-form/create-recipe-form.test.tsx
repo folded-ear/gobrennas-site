@@ -1,6 +1,7 @@
 import {
   RecognizedRangeType,
   type IngredientRefInfo,
+  type SectionInfo,
 } from "@/__generated__/graphql";
 import { editableMorsel } from "@/features/morsel/test-helpers";
 import { buildInMemoryCache, render, screen, userEvent, waitFor } from "@/test";
@@ -43,6 +44,7 @@ function successfulCreateMock(
     name: string;
     directions: string;
     ingredients?: IngredientRefInfo[];
+    sections?: SectionInfo[];
   },
   id = CREATED_RECIPE_ID,
 ): MockLink.MockedResponse {
@@ -53,6 +55,7 @@ function successfulCreateMock(
         info: {
           type: "Recipe",
           ingredients: [],
+          sections: [],
           ...info,
         },
       },
@@ -72,6 +75,51 @@ function successfulCreateMock(
 }
 
 describe("CreateRecipeForm", () => {
+  it("creates multiple owned sections through the existing mutation with null ids", async () => {
+    const user = userEvent.setup();
+    const onCreated = vi.fn();
+    render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
+      mocks: [
+        successfulCreateMock({
+          name: "Pie",
+          externalUrl: null,
+          yield: null,
+          totalTime: null,
+          calories: null,
+          directions: "",
+          sections: [
+            {
+              id: null,
+              name: "Crust",
+              directions: "Chill the dough.",
+              ingredients: [],
+            },
+            { id: null, name: "Filling", directions: "", ingredients: [] },
+          ],
+        }),
+      ],
+    });
+    await user.type(screen.getByRole("textbox", { name: "Title" }), "Pie");
+    await user.click(screen.getByRole("button", { name: "Add section" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Section 1 title" }),
+      "Crust",
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: "Section 1 directions" }),
+      "Chill the dough.",
+    );
+    await user.click(screen.getByRole("button", { name: "Add section" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Section 2 title" }),
+      "Filling",
+    );
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    await waitFor(() =>
+      expect(onCreated).toHaveBeenCalledWith(CREATED_RECIPE_ID),
+    );
+  });
+
   it("recognizes a row through Apollo and sends parsed ids and values when creating the recipe", async () => {
     const user = userEvent.setup();
     const onCreated = vi.fn();
@@ -199,7 +247,9 @@ describe("CreateRecipeForm", () => {
     await user.click(
       screen.getByRole("button", { name: "Move ingredient 2 up" }),
     );
-    await user.click(screen.getByRole("button", { name: "Add ingredient" }));
+    await user.click(
+      screen.getByRole("button", { name: "Add ingredient below 1" }),
+    );
     await user.click(screen.getByRole("button", { name: "Save recipe" }));
     await waitFor(() =>
       expect(onCreated).toHaveBeenCalledWith(CREATED_RECIPE_ID),
@@ -317,6 +367,7 @@ describe("CreateRecipeForm", () => {
               info: {
                 type: "Recipe",
                 ingredients: [],
+                sections: [],
                 name: "Cider-braised chicken",
                 externalUrl: null,
                 yield: null,
@@ -368,6 +419,7 @@ describe("CreateRecipeForm", () => {
               info: {
                 type: "Recipe",
                 ingredients: [],
+                sections: [],
                 name: "Cider-braised chicken",
                 externalUrl: null,
                 yield: null,

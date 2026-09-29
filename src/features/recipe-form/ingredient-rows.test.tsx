@@ -7,6 +7,7 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { newIngredientDraft } from "./ingredient-draft";
 import { IngredientRows } from "./ingredient-rows";
+import { createRecognitionQueue } from "./recognition-queue";
 
 const recognize = async (raw: string, cursor: number) => ({
   raw,
@@ -15,10 +16,12 @@ const recognize = async (raw: string, cursor: number) => ({
 });
 
 function Editor({ lines = [""] }: { lines?: string[] }) {
+  const [queue] = useState(createRecognitionQueue);
   const [rows, setRows] = useState(() => lines.map(newIngredientDraft));
   return (
     <IngredientRows
       rows={rows}
+      queue={queue}
       onChange={setRows}
       isDisabled={false}
       recognize={recognize}
@@ -63,36 +66,49 @@ describe("IngredientRows", () => {
       screen.getByRole("button", { name: "Move ingredient 2 down" }),
     ).toBeDisabled();
     expect(
-      screen.getByRole("button", { name: "Add ingredient" }),
+      screen.getByRole("button", { name: "Add ingredient below 1" }),
     ).toBeEnabled();
   });
 
-  it("inserts and focuses a row after the current row without submitting its form", async () => {
-    const user = userEvent.setup();
-    const onSubmit = vi.fn((event: React.FormEvent) => event.preventDefault());
-    render(
-      <form onSubmit={onSubmit}>
-        <Editor lines={["flour", "salt"]} />
-        <button type="submit">Save</button>
-      </form>,
-    );
+  it.each(["Enter", "plus button"])(
+    "inserts and focuses a row below the current row using %s without submitting",
+    async (action) => {
+      const user = userEvent.setup();
+      const onSubmit = vi.fn((event: React.FormEvent) =>
+        event.preventDefault(),
+      );
+      render(
+        <form onSubmit={onSubmit}>
+          <Editor lines={["flour", "salt"]} />
+          <button type="submit">Save</button>
+        </form>,
+      );
 
-    await user.click(ingredient(1));
-    await user.keyboard("{Enter}");
+      if (action === "Enter") {
+        await user.click(ingredient(1));
+        await user.keyboard("{Enter}");
+      } else {
+        await user.click(
+          screen.getByRole("button", { name: "Add ingredient below 1" }),
+        );
+      }
 
-    expect(screen.getAllByRole("combobox")).toHaveLength(3);
-    expect(ingredient(2)).toBeEmptyDOMElement();
-    expect(ingredient(2)).toHaveFocus();
-    expect(ingredient(3)).toHaveTextContent("salt");
-    expect(onSubmit).not.toHaveBeenCalled();
-    await user.type(ingredient(2), "1 cup water");
-    expect(ingredient(2)).toHaveTextContent("1 cup water");
-  });
+      expect(screen.getAllByRole("combobox")).toHaveLength(3);
+      expect(ingredient(2)).toBeEmptyDOMElement();
+      expect(ingredient(2)).toHaveFocus();
+      expect(ingredient(3)).toHaveTextContent("salt");
+      expect(onSubmit).not.toHaveBeenCalled();
+      await user.type(ingredient(2), "1 cup water");
+      expect(ingredient(2)).toHaveTextContent("1 cup water");
+    },
+  );
 
   it("adds a row from the button and reorders it with focus following the same input", async () => {
     const user = userEvent.setup();
     render(<Editor lines={["flour"]} />);
-    await user.click(screen.getByRole("button", { name: "Add ingredient" }));
+    await user.click(
+      screen.getByRole("button", { name: "Add ingredient below 1" }),
+    );
     const added = ingredient(2);
     expect(added).toHaveFocus();
     await user.type(added, "salt");

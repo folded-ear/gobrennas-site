@@ -23,7 +23,7 @@ import {
 
 import { IngredientInput } from "./ingredient-input";
 import type { RecognizeIngredient } from "./ingredient-recognition";
-import { createRecognitionQueue } from "./recognition-queue";
+import type { RecognitionQueue } from "./recognition-queue";
 
 type IngredientRowsProps = {
   rows: IngredientDraft[];
@@ -33,6 +33,7 @@ type IngredientRowsProps = {
   ) => void;
   recognize: RecognizeIngredient;
   isDisabled: boolean;
+  queue: RecognitionQueue;
 };
 
 export function IngredientRows({
@@ -40,9 +41,9 @@ export function IngredientRows({
   onChange,
   isDisabled,
   recognize,
+  queue,
 }: IngredientRowsProps) {
   const helpId = useId();
-  const [queue] = useState(createRecognitionQueue);
   const [pasted, setPasted] = useState(new Map<string, { raw: string }>());
   const inputs = useRef(new Map<string, HTMLDivElement>());
   const pendingFocus = useRef<string | undefined>(undefined);
@@ -210,18 +211,19 @@ export function IngredientRows({
             >
               <X aria-hidden="true" size={16} />
             </Button>
+            <Button
+              aria-label={`Add ingredient below ${index + 1}`}
+              isIconOnly
+              isDisabled={isDisabled}
+              onPress={() => addRow(index + 1)}
+              type="button"
+              variant="tertiary"
+            >
+              <Plus aria-hidden="true" size={16} />
+            </Button>
           </li>
         ))}
       </ol>
-      <Button
-        className="self-start"
-        isDisabled={isDisabled}
-        onPress={() => addRow(rows.length)}
-        type="button"
-        variant="secondary"
-      >
-        <Plus aria-hidden="true" size={16} /> Add ingredient
-      </Button>
     </fieldset>
   );
 }
