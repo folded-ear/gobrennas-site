@@ -2,6 +2,7 @@ import {
   RecognizedRangeType,
   type IngredientRefInfo,
 } from "@/__generated__/graphql";
+import { editableMorsel } from "@/features/morsel/test-helpers";
 import { buildInMemoryCache, render, screen, userEvent, waitFor } from "@/test";
 import { MockLink } from "@apollo/client/testing";
 import { describe, expect, it, vi } from "vitest";
@@ -78,7 +79,7 @@ describe("CreateRecipeForm", () => {
     const recognition: MockLink.MockedResponse<RecognizeIngredientQuery> = {
       request: {
         query: RecognizeIngredientDocument,
-        variables: { raw, cursor: raw.length },
+        variables: { raw, cursor: raw.length, choice: null, suggest: true },
       },
       result: {
         data: {
@@ -88,6 +89,7 @@ describe("CreateRecipeForm", () => {
               __typename: "RecognizedItem",
               raw,
               cursor: raw.length,
+              suggestions: [],
               ranges: [
                 {
                   __typename: "RecognizedRange",
@@ -141,7 +143,7 @@ describe("CreateRecipeForm", () => {
       ],
     });
     await user.type(screen.getByRole("textbox", { name: "Title" }), "Bread");
-    await user.type(screen.getByRole("textbox", { name: "Ingredient 1" }), raw);
+    await user.type(editableMorsel("Ingredient 1"), raw);
     expect(await screen.findByText("Quantity")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Save recipe" }));
     await waitFor(() =>
@@ -154,6 +156,32 @@ describe("CreateRecipeForm", () => {
     const onCreated = vi.fn();
     render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
       mocks: [
+        ...[" 2 cups flour ", "1 tsp salt"].map((raw, index) => ({
+          request: {
+            query: RecognizeIngredientDocument,
+            variables: {
+              raw,
+              cursor: raw.length,
+              choice: null,
+              suggest: index === 1,
+            },
+          },
+          delay: 1000,
+          result: {
+            data: {
+              library: {
+                __typename: "LibraryQuery" as const,
+                recognizeItem: {
+                  __typename: "RecognizedItem" as const,
+                  raw,
+                  cursor: raw.length,
+                  ranges: [],
+                  suggestions: [],
+                },
+              },
+            },
+          },
+        })),
         successfulCreateMock({
           name: "Bread",
           externalUrl: null,
@@ -166,7 +194,7 @@ describe("CreateRecipeForm", () => {
       ],
     });
     await user.type(screen.getByRole("textbox", { name: "Title" }), "Bread");
-    await user.click(screen.getByRole("textbox", { name: "Ingredient 1" }));
+    await user.click(editableMorsel("Ingredient 1"));
     await user.paste(" 2 cups flour \n1 tsp salt\n");
     await user.click(
       screen.getByRole("button", { name: "Move ingredient 2 up" }),

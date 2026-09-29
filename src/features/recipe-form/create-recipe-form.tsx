@@ -28,10 +28,17 @@ export function CreateRecipeForm({
   const [createRecipe] = useMutation(CreateRecipeDocument);
 
   const recognizeIngredient = useCallback<RecognizeIngredient>(
-    async (raw, cursor, signal) => {
+    async (raw, cursor, signal, options) => {
       const result = await client.query({
         query: RecognizeIngredientDocument,
-        variables: { raw, cursor },
+        variables: {
+          raw,
+          cursor,
+          suggest: options?.suggest ?? false,
+          choice: options?.choice
+            ? { id: options.choice.food.id, ...options.choice.range }
+            : null,
+        },
         fetchPolicy: "no-cache",
         context: { queryDeduplication: false, fetchOptions: { signal } },
       });

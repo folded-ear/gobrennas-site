@@ -1,11 +1,21 @@
 "use client";
 
 import { RecognizedRangeType } from "@/__generated__/graphql";
-import { Button, Input, Label, TextField } from "@heroui/react";
+import { Morsel } from "@/features/morsel";
+import { createChoiceHistory } from "@/features/morsel/choice-history";
+import { readSelection } from "@/features/morsel/editor-dom";
+import type {
+  MorselChoice,
+  MorselRecognition,
+  TextRange,
+} from "@/features/morsel/types";
+import { Button } from "@heroui/react";
 import {
   useId,
+  useLayoutEffect,
+  useMemo,
   useRef,
-  type ClipboardEventHandler,
+  useState,
   type KeyboardEventHandler,
   type RefCallback,
 } from "react";
@@ -23,11 +33,14 @@ export function IngredientInput({
   number,
   helpId,
   isDisabled,
+  pastedRow,
   inputRef,
   onChange,
+  onChoose,
   onRecognized,
   onKeyDown,
-  onPaste,
+  onEnter,
+  onPasteLines,
   recognize,
   queue,
 }: {
@@ -35,123 +48,105 @@ export function IngredientInput({
   number: number;
   helpId: string;
   isDisabled: boolean;
-  inputRef: RefCallback<HTMLInputElement>;
-  onChange: (raw: string) => void;
+  pastedRow?: { raw: string };
+  inputRef: RefCallback<HTMLDivElement>;
+  onChange: (raw: string, choice?: MorselChoice) => void;
+  onChoose: (raw: string, choice: MorselChoice) => void;
   onRecognized: (result: IngredientRecognition) => void;
-  onKeyDown: KeyboardEventHandler<HTMLInputElement>;
-  onPaste: ClipboardEventHandler<HTMLInputElement>;
+  onKeyDown: KeyboardEventHandler<HTMLDivElement>;
+  onEnter: () => void;
+  onPasteLines: (text: string, selection: TextRange) => boolean;
   recognize: RecognizeIngredient;
   queue: RecognitionQueue;
 }) {
-  const input = useRef<HTMLInputElement | null>(null);
+  const input = useRef<HTMLDivElement>(null);
   const feedbackId = useId();
+  const [history] = useState(() => createChoiceHistory(row));
+  useLayoutEffect(
+    () => history.sync({ raw: row.raw, choice: row.choice }),
+    [history, row.raw, row.choice],
+  );
   const recognition = useIngredientRecognition({
     ...row,
     isDisabled,
+    pastedRow,
     recognize,
     queue,
     onRecognized,
   });
   const result = row.recognition?.raw === row.raw ? row.recognition : undefined;
   const parts = result ? recognizedParts(result) : undefined;
-  const preview =
-    result && parts
-      ? [
-          {
-            label: "Quantity",
-            range: parts.quantity,
-            className: "bg-accent-soft text-accent-soft-foreground",
-          },
-          {
-            label:
-              parts.unit?.type === RecognizedRangeType.NEW_UNIT
-                ? "New unit"
-                : "Unit",
-            range: parts.unit,
-            className: "bg-success-soft text-success-soft-foreground",
-          },
-          {
-            label:
-              parts.ingredient?.type === RecognizedRangeType.NEW_ITEM
-                ? "New ingredient"
-                : "Ingredient",
-            range: parts.ingredient,
-            className: "bg-default text-default-foreground",
-          },
-        ].flatMap(({ label, range, className }) =>
-          range
-            ? [
-                {
-                  label,
-                  text: result.raw.slice(range.start, range.end),
-                  className,
-                },
-              ]
-            : [],
-        )
-      : [];
+  const morselRecognition = useMemo<MorselRecognition | undefined>(() => {
+    if (!result) return undefined;
+    const ranges: MorselRecognition["ranges"] = result.ranges.flatMap(
+      (range) => {
+        const type =
+          range.type === RecognizedRangeType.QUANTITY
+            ? "quantity"
+            : range.type === RecognizedRangeType.UNIT ||
+                range.type === RecognizedRangeType.NEW_UNIT
+              ? "unit"
+              : range.type === RecognizedRangeType.ITEM ||
+                  range.type === RecognizedRangeType.NEW_ITEM
+                ? "ingredient"
+                : undefined;
+        return type ? [{ start: range.start, end: range.end, type }] : [];
+      },
+    );
+    return { raw: result.raw, ranges };
+  }, [result]);
 
   return (
-    <div className="grid min-w-0 flex-1 grid-cols-1 items-start gap-sm sm:grid-cols-2">
-      <TextField
-        className="min-w-0"
-        isDisabled={isDisabled}
+    <div className="min-w-0 flex-1">
+      <Morsel
         value={row.raw}
-        onChange={(raw) => {
-          recognition.schedule(
-            raw,
-            input.current?.selectionStart ?? raw.length,
-          );
-          onChange(raw);
+        label={`Ingredient ${number}`}
+        descriptionId={`${helpId} ${feedbackId}`}
+        isDisabled={isDisabled}
+        isPending={recognition.status === "pending"}
+        recognition={morselRecognition}
+        suggestions={recognition.suggestions}
+        inputRef={(element) => {
+          input.current = element;
+          inputRef(element);
         }}
-      >
-        <Label className="sr-only">Ingredient {number}</Label>
-        <Input
-          aria-describedby={`${helpId} ${feedbackId}`}
-          placeholder="e.g. 2 cups flour"
-          ref={(element) => {
-            input.current = element;
-            inputRef(element);
-          }}
-          onFocus={(event) => {
-            queue.focus(row.clientId);
-            recognition.schedule(
-              event.currentTarget.value,
-              event.currentTarget.selectionStart ?? row.raw.length,
-            );
-          }}
-          onBlur={() => queue.focus(undefined)}
-          onSelect={(event) =>
-            recognition.schedule(
-              event.currentTarget.value,
-              event.currentTarget.selectionStart ?? row.raw.length,
-            )
-          }
-          onCompositionStart={recognition.startComposition}
-          onCompositionEnd={(event) =>
-            recognition.endComposition(
-              event.currentTarget.value,
-              event.currentTarget.selectionStart ?? row.raw.length,
-            )
-          }
-          onKeyDown={onKeyDown}
-          onPaste={(event) => {
-            if (/[\r\n]/.test(event.clipboardData.getData("text/plain")))
-              recognition.cancel();
-            onPaste(event);
-          }}
-        />
-      </TextField>
+        onChange={(raw, cursor, inputType) => {
+          const choice = history.edit(raw, inputType);
+          recognition.schedule(raw, cursor, { choice });
+          onChange(raw, choice);
+        }}
+        onChoose={(raw, cursor, choice) => {
+          history.choose(raw, choice);
+          recognition.schedule(raw, cursor, { choice, retry: true });
+          onChoose(raw, choice);
+        }}
+        onFocus={(cursor) => {
+          queue.focus(row.clientId);
+          recognition.focus(cursor);
+        }}
+        onBlur={() => {
+          queue.focus(undefined);
+          recognition.blur();
+        }}
+        onCursorChange={(cursor) => recognition.schedule(row.raw, cursor)}
+        onCompositionStart={recognition.startComposition}
+        onCompositionEnd={(raw, cursor) =>
+          recognition.endComposition(raw, cursor, history.edit(raw))
+        }
+        onKeyDown={onKeyDown}
+        onEnter={onEnter}
+        onPasteLines={(text, selection) => {
+          if (/[\r\n]/.test(text)) recognition.cancel();
+          return onPasteLines(text, selection);
+        }}
+      />
       <div
         id={feedbackId}
-        className="min-w-0 text-sm"
+        className="text-xs"
         aria-live="polite"
         aria-atomic="true"
       >
-        {recognition.status === "pending" ? (
-          <span className="text-muted">Recognizing…</span>
-        ) : null}
-        {recognition.status === "error" ? (
+        {recognition.status === "error" && (
           <div className="flex items-center gap-sm text-warning">
             <span>
               Couldn’t recognize this ingredient. Your text will still be saved.
@@ -165,45 +160,68 @@ export function IngredientInput({
               onPress={() =>
                 recognition.schedule(
                   row.raw,
-                  input.current?.selectionStart ?? row.raw.length,
-                  true,
+                  input.current
+                    ? readSelection(input.current).start
+                    : row.raw.length,
+                  { retry: true },
                 )
               }
             >
               Retry
             </Button>
           </div>
-        ) : null}
-        {result && parts ? (
+        )}
+        {result && parts && (
           <dl
             aria-label={`Recognition for ingredient ${number}`}
-            className="flex flex-wrap gap-xs"
+            className="sr-only"
           >
-            {preview.map((part) => (
-              <div
-                key={part.label}
-                className={`rounded-sm px-xs py-xxs ${part.className}`}
-              >
-                <dt className="text-xs font-medium">{part.label}</dt>
-                <dd className="whitespace-pre-wrap break-words">{part.text}</dd>
+            {parts.quantity && (
+              <div>
+                <dt>Quantity</dt>
+                <dd>
+                  {row.raw.slice(parts.quantity.start, parts.quantity.end)}
+                </dd>
               </div>
-            ))}
-            {parts.preparation ? (
-              <div className="px-xs py-xxs text-muted">
-                <dt className="text-xs font-medium">Preparation</dt>
-                <dd className="break-words">{parts.preparation}</dd>
+            )}
+            {parts.unit && (
+              <div>
+                <dt>
+                  {parts.unit.type === RecognizedRangeType.NEW_UNIT
+                    ? "New unit"
+                    : "Unit"}
+                </dt>
+                <dd>{row.raw.slice(parts.unit.start, parts.unit.end)}</dd>
               </div>
-            ) : null}
-            {!parts.ingredient ? (
-              <div className="w-full text-muted">
-                <dt className="sr-only">Recognition status</dt>
+            )}
+            {parts.ingredient && (
+              <div>
+                <dt>
+                  {parts.ingredient.type === RecognizedRangeType.NEW_ITEM
+                    ? "New ingredient"
+                    : "Ingredient"}
+                </dt>
+                <dd>
+                  {row.raw.slice(parts.ingredient.start, parts.ingredient.end)}
+                </dd>
+              </div>
+            )}
+            {parts.preparation && (
+              <div>
+                <dt>Preparation</dt>
+                <dd>{parts.preparation}</dd>
+              </div>
+            )}
+            {!parts.ingredient && (
+              <div>
+                <dt>Recognition status</dt>
                 <dd>
                   No ingredient recognized. Your text will still be saved.
                 </dd>
               </div>
-            ) : null}
+            )}
           </dl>
-        ) : null}
+        )}
       </div>
     </div>
   );

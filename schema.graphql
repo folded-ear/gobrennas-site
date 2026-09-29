@@ -241,21 +241,24 @@ type LibraryQuery {
     search: LibrarySearch
   ): RecipeConnection!
   """
-
-  Recognize quantity, unit, and/or ingredient in a raw ingredient ref (aka
-  item) string, and describe that structure. By default, also provide
-  suggestions based on partial matches.
+Recognize quantity, unit, and/or ingredient in a raw ingredient ref (aka
+item) string, and describe that structure. By default, also provide
+suggestions based on partial matches.
+"""
+recognizeItem(
+  """The raw string to recognize."""
+  raw: String!
   """
-  recognizeItem(
-    """
-
-    The position of the cursor in the raw string, used to make contextual
-    suggestions. If not specified, the end of the raw string is assumed.
-    """
-    cursor: NonNegativeInt,
-    "The raw string to recognize."
-    raw: String!
-  ): RecognizedItem!
+  The position of the cursor in the raw string, used to make contextual
+  suggestions. If not specified, the end of the raw string is assumed.
+  """
+  cursor: NonNegativeInt
+  """
+  Keep an explicitly selected ingredient while recognizing the surrounding text.
+  The range uses UTF-16 offsets and must contain that ingredient's name.
+  """
+  choice: RecognitionChoice
+): RecognizedItem!
   "Search for sections of recipes."
   sections(search: LibrarySearch!): SectionConnection!
   suggestRecipesToCook(
@@ -695,13 +698,17 @@ type RecipeHistoryMutation {
 }
 
 """
-
 A suggestion for what might come next at the cursor position, along with the
 target range of the raw string it would replace.
 """
 type RecognitionSuggestion {
   name: String!
   target: RecognizedRange!
+  kind: RecognitionKind!
+  """
+  Optional disambiguating context; sections return their parent recipe name.
+  """
+  detail: String
 }
 
 "The result of recognizing a raw ingredient ref item."
@@ -713,12 +720,19 @@ type RecognizedItem {
   "The raw string which was recognized."
   raw: String!
   """
-
   Suggestions of what the user might wish to insert at the current cursor
   position. If more than 'count' suggestions are available, the returned
   subset is unspecified, other than pantry items are preferred to recipes.
   """
-  suggestions(count: PositiveInt! = 10): [RecognitionSuggestion!]!
+  suggestions(
+    count: PositiveInt! = 10
+    """
+    Opt in to candidates for a grouped picker: include owned sections and
+    keep distinct ingredient IDs even when names match. By default, exclude
+    owned sections and deduplicate by name for existing text-only clients.
+    """
+    grouped: Boolean! = false
+  ): [RecognitionSuggestion!]!
 }
 
 """
@@ -989,13 +1003,13 @@ input IngredientInfo {
 }
 
 input IngredientRefInfo {
+  raw: String!
+  quantity: Float
+  units: String
+  uomId: ID
   ingredient: String
   ingredientId: ID
   preparation: String
-  quantity: Float
-  raw: String!
-  units: String
-  uomId: ID
 }
 
 input LibrarySearch {
@@ -1087,4 +1101,16 @@ input SuggestionSearch {
 input UnsavedBucket {
   date: Date
   name: String
+}
+
+enum RecognitionKind {
+  PANTRY_ITEM
+  RECIPE
+  SECTION
+}
+
+input RecognitionChoice {
+  id: ID!
+  start: NonNegativeInt!
+  end: NonNegativeInt!
 }
