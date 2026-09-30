@@ -83,7 +83,7 @@ export function IngredientRows({
 
   return (
     <fieldset className="flex min-w-0 flex-col gap-sm" disabled={isDisabled}>
-      <legend className="mb-sm font-medium">Ingredients</legend>
+      <legend className="mb-sm text-xs font-medium">Ingredients</legend>
       <p className="text-sm text-muted" id={helpId}>
         Enter one ingredient per row. Press Enter to add another, or paste a
         list.

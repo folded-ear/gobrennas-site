@@ -101,8 +101,12 @@ export function LabelEditor({
         setInput("");
       }}
     >
-      <Label>Recipe labels</Label>
-      <Autocomplete.Trigger ref={triggerRef} tabIndex={-1}>
+      <Label className="text-xs">Recipe labels</Label>
+      <Autocomplete.Trigger
+        ref={triggerRef}
+        tabIndex={-1}
+        className="min-h-0 py-xs ps-sm"
+      >
         <Autocomplete.Value>
           {({ defaultChildren }) =>
             value.length === 0 ? (

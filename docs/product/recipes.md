@@ -28,6 +28,9 @@ without leaving the Library behind.
   until the title contains non-whitespace text. Directions are optional.
 - It also offers optional Source URL, Yield, Total cook time, and Calories per
   serving fields, in that order between Title and Directions.
+- Title, Source URL, Yield, Total cook time, Calories per serving, and recipe
+  labels share two equal-width columns above ingredients and directions.
+  Narrow editors stack these fields in a single column.
 - Yield is a positive whole number. Calories per serving is a non-negative
   whole number. A blank value means it is unknown; zero remains valid for
   Calories per serving.
@@ -64,6 +67,8 @@ without leaving the Library behind.
 ### Recipe labels
 
 - The create editor offers optional recipe-level labels in a multi-select field.
+  Labels sit with the recipe metadata above ingredients and directions,
+  keeping them easy to reach when the recipe text is long.
   Selected labels appear as removable tags inside the field. Open the field to
   search existing labels, then select with the pointer or arrow keys and Enter.
   The menu stays open to choose several labels; selected options have checkmarks

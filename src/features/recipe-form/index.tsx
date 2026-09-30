@@ -123,7 +123,7 @@ export function RecipeForm({
           </Alert>
         ) : null}
 
-        <div className="grid gap-md @2xl:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-md @lg:grid-cols-2">
           <FormTextField
             control={control}
             name="title"
@@ -139,9 +139,6 @@ export function RecipeForm({
             autoComplete="url"
             onValueChange={clearSaveFailure}
           />
-        </div>
-
-        <div className="grid grid-cols-1 gap-md @lg:grid-cols-3">
           <FormTextField
             control={control}
             name="yieldServings"
@@ -166,6 +163,19 @@ export function RecipeForm({
             min={0}
             step={1}
             onValueChange={clearSaveFailure}
+          />
+          <Controller
+            control={control}
+            name="labels"
+            render={({ field }) => (
+              <LabelEditor
+                value={field.value}
+                onChange={field.onChange}
+                onEdit={clearSaveFailure}
+                isDisabled={isSubmitting}
+                suggestions={labelSuggestions}
+              />
+            )}
           />
         </div>
 
@@ -200,20 +210,6 @@ export function RecipeForm({
             onValueChange={clearSaveFailure}
           />
         </div>
-
-        <Controller
-          control={control}
-          name="labels"
-          render={({ field }) => (
-            <LabelEditor
-              value={field.value}
-              onChange={field.onChange}
-              onEdit={clearSaveFailure}
-              isDisabled={isSubmitting}
-              suggestions={labelSuggestions}
-            />
-          )}
-        />
 
         <OwnedSections
           control={control}

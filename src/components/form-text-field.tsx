@@ -57,11 +57,12 @@ export function FormTextField<Values extends FieldValues>(
       isDisabled={isSubmitting}
       validationBehavior="aria"
     >
-      <Label>{label}</Label>
+      <Label className="text-xs">{label}</Label>
       {props.multiline ? (
-        <TextArea ref={inputRef} rows={props.rows} />
+        <TextArea ref={inputRef} rows={props.rows} className="px-sm py-xs" />
       ) : (
         <Input
+          className="px-sm py-xs"
           ref={inputRef}
           type={props.type}
           min={props.min}
