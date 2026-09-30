@@ -7,6 +7,16 @@ export const ingredientDraftSchema = z.object({
   clientId: z.string().min(1),
   raw: z.string(),
   recognition: ingredientRecognitionSchema.optional(),
+  // Saved interpretation stays authoritative until the row is edited.
+  persisted: z
+    .object({
+      raw: z.string(),
+      quantity: z.number().nullable(),
+      uomId: z.string().nullable(),
+      ingredientId: z.string().nullable(),
+      preparation: z.string().nullable(),
+    })
+    .optional(),
   choice: z
     .object({
       food: z.object({

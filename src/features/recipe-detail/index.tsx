@@ -8,6 +8,7 @@ import { OtherUserAvatar } from "@/features/user-avatar";
 import { usePreference } from "@/hooks/use-preference";
 import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { useSuspenseQuery } from "@apollo/client/react";
+import Link from "next/link";
 import { GetRecipeDetailDocument } from "./__generated__/getRecipeDetail.generated";
 
 type RecipeDetailProps = {
@@ -29,7 +30,17 @@ export function RecipeDetail({ id }: RecipeDetailProps) {
           <OtherUserAvatar user={recipe.ownedBy} />
           <h2 className="text-xl">{recipe.name}</h2>
         </div>
-        <SendToPlan recipeId={recipe.id} activePlanId={activePlanId} />
+        <div className="flex items-center gap-sm">
+          {recipe.mine ? (
+            <Link
+              className="text-sm text-accent underline"
+              href={`/recipes/${encodeURIComponent(recipe.id)}/edit`}
+            >
+              Edit recipe
+            </Link>
+          ) : null}
+          <SendToPlan recipeId={recipe.id} activePlanId={activePlanId} />
+        </div>
       </div>
       {recipe.photo && (
         <div className="relative min-h-80">

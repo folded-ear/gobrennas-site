@@ -71,7 +71,8 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
             }}
           />
           <span className="text-sm text-muted">Or drop an image here.</span>
-          {state.status !== "empty" || photo.isPreparing ? (
+          {(state.status !== "empty" && state.status !== "saved") ||
+          photo.isPreparing ? (
             <Button
               type="button"
               variant="ghost"
@@ -82,7 +83,7 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
                 photo.clear();
               }}
             >
-              Discard photo
+              {photo.hasSavedPhoto ? "Discard replacement" : "Discard photo"}
             </Button>
           ) : null}
         </div>

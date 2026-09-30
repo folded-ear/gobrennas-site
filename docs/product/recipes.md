@@ -130,8 +130,35 @@ without leaving the Library behind.
 - Canceling/unmounting aborts active work and releases local preview resources.
   Discarding a selection does not request deletion of an already-uploaded scratch
   object. Storage cleanup is outside this frontend change.
-- This iteration covers creation only. Editing/replacing saved recipe photos is
-  deferred to BFS-84; removing saved photos requires the separate BFS-79 work.
+- Editing uses the same photo controls with the saved photo as the starting point.
+  Focus changes alone do not upload a file. A replacement uses the scratch-upload
+  flow; Discard replacement restores the saved photo and focus. Removing the saved
+  photo remains deferred to BFS-79.
+
+### Editing saved recipes
+
+- The owner can open Edit recipe from the detail view or use the library edit
+  action. Direct edit links show a read-only notice for other users, with a way
+  back to the recipe. The API continues to enforce ownership on update.
+- Editing loads a complete fresh recipe and uses the same form as creation.
+  Loading and load failures have dedicated feedback and retry. Background data
+  changes do not replace the draft while the person is editing.
+- Save updates the existing recipe, refreshes cached detail/library data, and
+  returns to its detail view. Cancel returns without saving. Failed saves keep
+  the draft available for correction or retry.
+- Untouched ingredient text retains its saved quantity, unit, food reference,
+  and preparation, even if recognition runs when the row receives focus. Editing
+  the row releases those saved values and uses normal recognition behavior.
+- Owned sections retain their identity and are editable. Borrowed sections are
+  shown as links, remain references on save, and may be removed from this recipe
+  without modifying their source. Duplicate occurrences of an owned section are
+  handled like the current client: edit its content only at the first occurrence.
+- Existing section labels are preserved without showing label-editing controls.
+  Section label management remains an undecided separate feature.
+- Changing one field preserves unrelated fields, including zero values, nullable
+  fields, and stored cook-time precision. A section still used by an ordinary
+  ingredient cannot be removed until that reference is removed; this avoids the
+  API update-ordering concern tracked in BFS-96.
 
 ### Owned sections
 

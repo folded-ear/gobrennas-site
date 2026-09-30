@@ -83,3 +83,26 @@ minutes-to-milliseconds conversion. Test the form with user interactions and
 accessible roles, labels, all field errors, scoped error clearing, focus, and
 pending state. Test Apollo adapters with the real in-memory cache and mock link
 to cover their payload, success-only eviction, and malformed or failed replies.
+
+## Existing recipe drafts
+
+The edit adapter fetches a complete, uncached snapshot, checks ownership, and
+initializes the shared form once per recipe ID. Its snapshot remains the baseline
+for serialization; cache updates must not reset user input or repeating-row IDs.
+
+Hydrated ingredient rows carry their persisted interpretation. Serialization uses
+that interpretation while the raw text is unchanged, independent of recognition
+suggestions. Actual row edits discard it. Sections retain server IDs and labels;
+reference sections serialize only their ID. Hidden section labels are never
+inferred from recipe-level labels.
+
+The edit serializer preserves untouched metadata from the baseline, including
+nullable directions and exact cook-time milliseconds. It checks the known unsafe
+case of removing an owned section still referenced by an incoming ingredient before
+calling the mutation. Successful updates evict the recipe and its owned sections
+using Apollo's configured identity policy, plus library and label queries. Failures
+do not invalidate cached data.
+
+Photo state distinguishes a saved photo from a new scratch upload. Keeping the
+saved photo omits photo fields; changing only its focus sends no filename. Clearing
+a replacement restores the saved image; upload retries apply only to new files.

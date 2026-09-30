@@ -2,6 +2,7 @@ query getRecipeDetail($id: ID!, $activePlanId: ID!) {
   library {
     getRecipeById(id: $id) {
       id
+      mine
       name
       ownedBy {
         id

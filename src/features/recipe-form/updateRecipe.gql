@@ -1,0 +1,7 @@
+mutation updateRecipe($id: ID!, $info: IngredientInfo!) {
+  library {
+    updateRecipe(id: $id, info: $info) {
+      id
+    }
+  }
+}

@@ -1,0 +1,54 @@
+query getRecipeForEdit($id: ID!) {
+  library {
+    getRecipeById(id: $id) {
+      id
+      mine
+      name
+      externalUrl
+      yield
+      totalTime(unit: MILLIS)
+      calories
+      directions
+      labels
+      photo {
+        url
+        focus
+      }
+      ingredients {
+        raw
+        preparation
+        quantity {
+          quantity
+          units {
+            id
+          }
+        }
+        ingredient {
+          id
+        }
+      }
+      sections {
+        id
+        name
+        directions
+        labels
+        sectionOf {
+          id
+        }
+        ingredients {
+          raw
+          preparation
+          quantity {
+            quantity
+            units {
+              id
+            }
+          }
+          ingredient {
+            id
+          }
+        }
+      }
+    }
+  }
+}

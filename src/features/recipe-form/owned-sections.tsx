@@ -3,6 +3,7 @@
 import { FormTextField } from "@/components/form-text-field";
 import { AlertDialog, Button } from "@heroui/react";
 import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useRef, useState } from "react";
 import {
   Controller,
@@ -54,44 +55,58 @@ export function OwnedSections({
           className="flex min-w-0 flex-col gap-md rounded-lg border border-border p-md"
         >
           <legend className="px-xs font-medium">Section {index + 1}</legend>
-          <FormTextField
-            control={control}
-            name={`sections.${index}.title`}
-            label={`Section ${index + 1} title`}
-            isRequired
-            onValueChange={onEdit}
-          />
-          <div className="grid items-start gap-md @3xl:grid-cols-2">
-            <Controller
-              control={control}
-              name={`sections.${index}.ingredients`}
-              render={({ field }) => (
-                <IngredientRows
-                  labelPrefix={`Section ${index + 1} ingredient`}
-                  rows={field.value}
-                  queue={queue}
-                  recognize={recognize}
-                  isDisabled={isDisabled}
-                  onChange={(rows, source) => {
-                    field.onChange(
-                      typeof rows === "function"
-                        ? rows(getValues(`sections.${index}.ingredients`))
-                        : rows,
-                    );
-                    if (source !== "recognition") onEdit();
-                  }}
+          {section.referenceRecipeId ? (
+            <p className="text-sm">
+              <Link
+                className="text-accent underline"
+                href={`/recipes/${encodeURIComponent(section.referenceRecipeId)}`}
+              >
+                {section.title}
+              </Link>{" "}
+              — linked section
+            </p>
+          ) : (
+            <>
+              <FormTextField
+                control={control}
+                name={`sections.${index}.title`}
+                label={`Section ${index + 1} title`}
+                isRequired
+                onValueChange={onEdit}
+              />
+              <div className="grid items-start gap-md @3xl:grid-cols-2">
+                <Controller
+                  control={control}
+                  name={`sections.${index}.ingredients`}
+                  render={({ field }) => (
+                    <IngredientRows
+                      labelPrefix={`Section ${index + 1} ingredient`}
+                      rows={field.value}
+                      queue={queue}
+                      recognize={recognize}
+                      isDisabled={isDisabled}
+                      onChange={(rows, source) => {
+                        field.onChange(
+                          typeof rows === "function"
+                            ? rows(getValues(`sections.${index}.ingredients`))
+                            : rows,
+                        );
+                        if (source !== "recognition") onEdit();
+                      }}
+                    />
+                  )}
                 />
-              )}
-            />
-            <FormTextField
-              control={control}
-              name={`sections.${index}.directions`}
-              label={`Section ${index + 1} directions`}
-              multiline
-              rows={4}
-              onValueChange={onEdit}
-            />
-          </div>
+                <FormTextField
+                  control={control}
+                  name={`sections.${index}.directions`}
+                  label={`Section ${index + 1} directions`}
+                  multiline
+                  rows={4}
+                  onValueChange={onEdit}
+                />
+              </div>
+            </>
+          )}
           <AlertDialog
             isOpen={removingSection === section.clientId}
             onOpenChange={(open) => {
