@@ -3,6 +3,9 @@
 import { FormTextField } from "@/components/form-text-field";
 import { SectionHeader } from "@/components/section-header";
 import { LabelEditor, type LabelSuggestions } from "@/features/label-editor";
+import { PhotoEditor } from "@/features/recipe-photo-editor";
+import type { UploadPhoto } from "@/features/recipe-photo-editor/types";
+import { usePhotoUpload } from "@/features/recipe-photo-editor/use-photo-upload";
 import { Alert, Button, Form, Spinner } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState, type FormEvent } from "react";
@@ -20,6 +23,7 @@ type RecipeFormProps = {
   onCancel: () => void;
   recognizeIngredient: RecognizeIngredient;
   labelSuggestions?: LabelSuggestions;
+  uploadPhoto?: UploadPhoto;
 };
 
 export function RecipeForm({
@@ -29,6 +33,7 @@ export function RecipeForm({
   onCancel,
   recognizeIngredient,
   labelSuggestions,
+  uploadPhoto,
 }: RecipeFormProps) {
   const {
     control,
@@ -45,6 +50,7 @@ export function RecipeForm({
   const [recognitionQueue] = useState(createRecognitionQueue);
   const [hasSaveFailure, setHasSaveFailure] = useState(false);
   const isSubmittingRef = useRef(false);
+  const photoUpload = usePhotoUpload(uploadPhoto);
 
   function clearSaveFailure(): void {
     setHasSaveFailure(false);
@@ -53,9 +59,11 @@ export function RecipeForm({
   async function submitRecipe(draft: RecipeDraft): Promise<void> {
     clearSaveFailure();
     try {
-      await onSubmit(draft);
+      const photo = photoUpload.savedPhoto();
+      await onSubmit(photo ? { ...draft, photo } : draft);
     } catch {
       setHasSaveFailure(true);
+      photoUpload.invalidateAfterSaveFailure();
     }
   }
 
@@ -63,7 +71,7 @@ export function RecipeForm({
     event: FormEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
-    if (isSubmittingRef.current) {
+    if (isSubmittingRef.current || !photoUpload.canSave()) {
       return;
     }
     // Acquire before async validation, so two submissions cannot race.
@@ -86,7 +94,11 @@ export function RecipeForm({
       <SectionHeader title={heading}>
         <div className="flex shrink-0 gap-sm">
           <Button
-            isDisabled={isSubmitting || title.trim().length === 0}
+            isDisabled={
+              isSubmitting ||
+              title.trim().length === 0 ||
+              !photoUpload.canSave()
+            }
             isPending={isSubmitting}
             type="submit"
             variant="primary"
@@ -178,6 +190,14 @@ export function RecipeForm({
             )}
           />
         </div>
+
+        {uploadPhoto ? (
+          <PhotoEditor
+            photo={photoUpload}
+            isDisabled={isSubmitting}
+            onEdit={clearSaveFailure}
+          />
+        ) : null}
 
         <div className="grid items-start gap-md @3xl:grid-cols-2">
           <Controller

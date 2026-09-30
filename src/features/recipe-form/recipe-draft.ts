@@ -33,6 +33,12 @@ export const recipeDraftSchema = z.object({
   ),
   directions: z.string(),
   labels: z.array(z.string()).transform(normalizeLabels),
+  photo: z
+    .object({
+      filename: z.string().min(1),
+      focus: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]),
+    })
+    .optional(),
   ingredients: z.array(ingredientDraftSchema),
   sections: z.array(sectionDraftSchema),
 });
@@ -65,6 +71,9 @@ export function toIngredientInfo(draft: RecipeDraft): IngredientInfo {
     calories: values.caloriesPerServing,
     directions: values.directions,
     labels: values.labels,
+    ...(values.photo
+      ? { photo: values.photo.filename, photoFocus: values.photo.focus }
+      : {}),
     ingredients: values.ingredients
       .filter((row) => row.raw.trim().length > 0)
       .map(toIngredientRefInfo),

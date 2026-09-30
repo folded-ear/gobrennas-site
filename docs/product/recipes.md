@@ -93,6 +93,39 @@ without leaving the Library behind.
   the cached label suggestions so subsequent editors can discover new labels.
 - Section labels (BFS-80) and library search/filter changes are separate work.
 
+### Photos in recipe creation
+
+- The Photo field sits below metadata and above ingredients and directions.
+  Choose photo opens a file picker; dropping a file selects it as well.
+- Selection immediately shows a local preview and starts a direct browser upload
+  through the existing scratch-upload API. JPEG, PNG, WebP, GIF, and AVIF files
+  are supported if the browser can decode them. Invalid or unreadable images
+  produce a field error.
+- Images at least 1 MiB are resized in the browser toward a size below 1 MiB,
+  matching the legacy upload target. Resized images become JPEGs; transparency
+  is flattened onto white and animation is not preserved. Resizing attempts are
+  bounded and report an error if the target cannot be reached.
+- Preparation has indeterminate progress; upload progress reflects bytes sent.
+  Sending all bytes does not mean success until storage confirms the upload.
+- The rest of the draft remains editable during upload. Saving is blocked while
+  a selected photo is uploading or has an error. Retry requests a fresh upload
+  URL without requiring the person to select their file again.
+- Clicking or dragging on the image sets its focus. Arrow keys adjust focus by
+  one percentage point, Shift-arrow by ten, and Enter/Space resets it to center.
+  A narrow crop preview updates as focus changes. Cards and detail pages use the
+  same saved focus; exact cropping varies with the image container and screen.
+- Choosing another photo cancels the previous attempt and resets focus to center.
+  Late results from a canceled attempt cannot replace the current selection.
+  Discard photo clears this unsaved selection and allows saving without a photo.
+- Saving includes the completed upload's scratch filename and focus. If recipe
+  saving fails, the selected file and focus remain available, but uploading must
+  be retried because the API may already have consumed the scratch file.
+- Canceling/unmounting aborts active work and releases local preview resources.
+  Discarding a selection does not request deletion of an already-uploaded scratch
+  object. Storage cleanup is outside this frontend change.
+- This iteration covers creation only. Editing/replacing saved recipe photos is
+  deferred to BFS-84; removing saved photos requires the separate BFS-79 work.
+
 ### Owned sections
 
 State: Agreed — frontend scope of BFS-24.

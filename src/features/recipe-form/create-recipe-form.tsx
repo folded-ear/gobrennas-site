@@ -1,9 +1,12 @@
 "use client";
 
+import type { UploadPhoto } from "@/features/recipe-photo-editor/types";
+import { uploadPhoto as uploadRecipePhoto } from "@/features/recipe-photo-editor/upload-photo";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import { useCallback } from "react";
 import { CreateRecipeDocument } from "./__generated__/createRecipe.generated";
 import { RecipeLabelSuggestionsDocument } from "./__generated__/recipeLabelSuggestions.generated";
+import { RecipePhotoUploadDocument } from "./__generated__/recipePhotoUpload.generated";
 import { RecognizeIngredientDocument } from "./__generated__/recognizeIngredient.generated";
 import { RecipeForm } from "./index";
 import {
@@ -28,6 +31,26 @@ export function CreateRecipeForm({
   const client = useApolloClient();
   const [createRecipe] = useMutation(CreateRecipeDocument);
   const labelSuggestions = useQuery(RecipeLabelSuggestionsDocument);
+  const uploadPhoto = useCallback<UploadPhoto>(
+    (file, options) =>
+      uploadRecipePhoto(
+        file,
+        async (prepared, signal) => {
+          const result = await client.query({
+            query: RecipePhotoUploadDocument,
+            variables: {
+              contentType: prepared.type,
+              originalFilename: prepared.name,
+            },
+            fetchPolicy: "no-cache",
+            context: { queryDeduplication: false, fetchOptions: { signal } },
+          });
+          return result.data?.profile.scratchFile;
+        },
+        options,
+      ),
+    [client],
+  );
 
   const recognizeIngredient = useCallback<RecognizeIngredient>(
     async (raw, cursor, signal, options) => {
@@ -72,6 +95,7 @@ export function CreateRecipeForm({
       initialDraft={newRecipeDraft()}
       onSubmit={submitRecipe}
       recognizeIngredient={recognizeIngredient}
+      uploadPhoto={uploadPhoto}
       labelSuggestions={{
         labels:
           labelSuggestions.data?.labels.all.map((label) => label.name) ?? [],

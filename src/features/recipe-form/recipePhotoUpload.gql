@@ -1,0 +1,13 @@
+query recipePhotoUpload($contentType: String!, $originalFilename: String!) {
+  profile {
+    scratchFile(
+      contentType: $contentType
+      originalFilename: $originalFilename
+    ) {
+      url
+      filename
+      contentType
+      cacheControl
+    }
+  }
+}
