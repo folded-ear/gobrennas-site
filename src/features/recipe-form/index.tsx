@@ -2,6 +2,7 @@
 
 import { FormTextField } from "@/components/form-text-field";
 import { SectionHeader } from "@/components/section-header";
+import { LabelEditor, type LabelSuggestions } from "@/features/label-editor";
 import { Alert, Button, Form, Spinner } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState, type FormEvent } from "react";
@@ -18,6 +19,7 @@ type RecipeFormProps = {
   onSubmit: (draft: RecipeDraft) => Promise<void>;
   onCancel: () => void;
   recognizeIngredient: RecognizeIngredient;
+  labelSuggestions?: LabelSuggestions;
 };
 
 export function RecipeForm({
@@ -26,6 +28,7 @@ export function RecipeForm({
   onSubmit,
   onCancel,
   recognizeIngredient,
+  labelSuggestions,
 }: RecipeFormProps) {
   const {
     control,
@@ -197,6 +200,20 @@ export function RecipeForm({
             onValueChange={clearSaveFailure}
           />
         </div>
+
+        <Controller
+          control={control}
+          name="labels"
+          render={({ field }) => (
+            <LabelEditor
+              value={field.value}
+              onChange={field.onChange}
+              onEdit={clearSaveFailure}
+              isDisabled={isSubmitting}
+              suggestions={labelSuggestions}
+            />
+          )}
+        />
 
         <OwnedSections
           control={control}

@@ -13,6 +13,7 @@ const INITIAL_DRAFT: RecipeDraft = {
   directions: "",
   ingredients: [{ clientId: "initial-ingredient", raw: "" }],
   sections: [],
+  labels: [],
 };
 
 function renderRecipeForm(
@@ -201,6 +202,7 @@ describe("RecipeForm", () => {
         directions: "Bake until golden.",
         ingredients: INITIAL_DRAFT.ingredients,
         sections: [],
+        labels: [],
       });
     });
   });
@@ -227,6 +229,7 @@ describe("RecipeForm", () => {
         directions: "",
         ingredients: [{ clientId: "initial-ingredient", raw: "" }],
         sections: [],
+        labels: [],
       });
     });
   });
@@ -476,6 +479,59 @@ describe("RecipeForm", () => {
     await user.tab();
     expect(directions).toHaveFocus();
     await user.tab();
+    expect(screen.getByRole("button", { name: /Recipe labels/ })).toHaveFocus();
+    await user.tab();
     expect(screen.getByRole("button", { name: "Add section" })).toHaveFocus();
+  });
+});
+
+describe("recipe label save lifecycle", () => {
+  it("retains labels after a failed save, clears the failure on label editing, and disables label controls during retry", async () => {
+    const user = userEvent.setup();
+    const pending = createDeferred();
+    const onSubmit = vi
+      .fn<(draft: RecipeDraft) => Promise<void>>()
+      .mockRejectedValueOnce(new Error("Offline"))
+      .mockImplementationOnce(() => pending.promise);
+    renderRecipeForm(onSubmit);
+    await user.type(
+      screen.getByRole("textbox", { name: "Title" }),
+      "Lentil soup",
+    );
+    await user.click(screen.getByRole("button", { name: /Recipe labels/ }));
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search recipe labels" }),
+      "Weeknight{ArrowDown}{Enter}{Escape}",
+    );
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Couldn’t save recipe",
+    );
+    expect(screen.getByRole("row", { name: "Weeknight" })).toBeVisible();
+    await user.click(
+      screen.getByRole("button", { name: "Remove tag Weeknight" }),
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Recipe labels/ }));
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search recipe labels" }),
+      "Vegetarian{ArrowDown}{Enter}{Escape}",
+    );
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /Recipe labels/ }),
+      ).toBeDisabled(),
+    );
+    expect(
+      screen.getByRole("button", { name: "Remove tag Vegetarian" }),
+    ).toBeDisabled();
+    expect(onSubmit.mock.calls[1][0].labels).toEqual(["Vegetarian"]);
+    pending.resolve();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /Recipe labels/ }),
+      ).toBeEnabled(),
+    );
   });
 });

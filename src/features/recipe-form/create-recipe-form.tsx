@@ -1,8 +1,9 @@
 "use client";
 
-import { useApolloClient, useMutation } from "@apollo/client/react";
+import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import { useCallback } from "react";
 import { CreateRecipeDocument } from "./__generated__/createRecipe.generated";
+import { RecipeLabelSuggestionsDocument } from "./__generated__/recipeLabelSuggestions.generated";
 import { RecognizeIngredientDocument } from "./__generated__/recognizeIngredient.generated";
 import { RecipeForm } from "./index";
 import {
@@ -26,6 +27,7 @@ export function CreateRecipeForm({
 }: CreateRecipeFormProps) {
   const client = useApolloClient();
   const [createRecipe] = useMutation(CreateRecipeDocument);
+  const labelSuggestions = useQuery(RecipeLabelSuggestionsDocument);
 
   const recognizeIngredient = useCallback<RecognizeIngredient>(
     async (raw, cursor, signal, options) => {
@@ -60,6 +62,7 @@ export function CreateRecipeForm({
     }
 
     client.cache.evict({ id: "ROOT_QUERY", fieldName: "library" });
+    client.cache.evict({ id: "ROOT_QUERY", fieldName: "labels" });
     await onCreated(recipeId);
   }
 
@@ -69,6 +72,17 @@ export function CreateRecipeForm({
       initialDraft={newRecipeDraft()}
       onSubmit={submitRecipe}
       recognizeIngredient={recognizeIngredient}
+      labelSuggestions={{
+        labels:
+          labelSuggestions.data?.labels.all.map((label) => label.name) ?? [],
+        isLoading: labelSuggestions.loading,
+        hasError: !!labelSuggestions.error,
+        onRetry: () => {
+          void labelSuggestions.refetch().catch(() => {
+            /* The query renders the retryable error state. */
+          });
+        },
+      }}
       onCancel={onCancel}
     />
   );

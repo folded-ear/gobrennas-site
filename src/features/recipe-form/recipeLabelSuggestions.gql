@@ -1,0 +1,8 @@
+query recipeLabelSuggestions {
+  labels {
+    all {
+      id
+      name
+    }
+  }
+}

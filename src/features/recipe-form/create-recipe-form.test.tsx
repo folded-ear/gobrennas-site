@@ -8,6 +8,7 @@ import { buildInMemoryCache, render, screen, userEvent, waitFor } from "@/test";
 import { MockLink } from "@apollo/client/testing";
 import { describe, expect, it, vi } from "vitest";
 import { CreateRecipeDocument } from "./__generated__/createRecipe.generated";
+import { RecipeLabelSuggestionsDocument } from "./__generated__/recipeLabelSuggestions.generated";
 import {
   RecognizeIngredientDocument,
   type RecognizeIngredientQuery,
@@ -45,6 +46,7 @@ function successfulCreateMock(
     directions: string;
     ingredients?: IngredientRefInfo[];
     sections?: SectionInfo[];
+    labels?: string[];
   },
   id = CREATED_RECIPE_ID,
 ): MockLink.MockedResponse {
@@ -56,6 +58,7 @@ function successfulCreateMock(
           type: "Recipe",
           ingredients: [],
           sections: [],
+          labels: [],
           ...info,
         },
       },
@@ -80,6 +83,11 @@ describe("CreateRecipeForm", () => {
     const onCreated = vi.fn();
     render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
       mocks: [
+        {
+          request: { query: RecipeLabelSuggestionsDocument },
+          maxUsageCount: 2,
+          result: { data: { labels: { __typename: "LabelsQuery", all: [] } } },
+        },
         successfulCreateMock({
           name: "Pie",
           externalUrl: null,
@@ -171,6 +179,11 @@ describe("CreateRecipeForm", () => {
     };
     render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
       mocks: [
+        {
+          request: { query: RecipeLabelSuggestionsDocument },
+          maxUsageCount: 2,
+          result: { data: { labels: { __typename: "LabelsQuery", all: [] } } },
+        },
         recognition,
         successfulCreateMock({
           name: "Bread",
@@ -204,6 +217,11 @@ describe("CreateRecipeForm", () => {
     const onCreated = vi.fn();
     render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
       mocks: [
+        {
+          request: { query: RecipeLabelSuggestionsDocument },
+          maxUsageCount: 2,
+          result: { data: { labels: { __typename: "LabelsQuery", all: [] } } },
+        },
         ...[" 2 cups flour ", "1 tsp salt"].map((raw, index) => ({
           request: {
             query: RecognizeIngredientDocument,
@@ -267,6 +285,11 @@ describe("CreateRecipeForm", () => {
     render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
       cache,
       mocks: [
+        {
+          request: { query: RecipeLabelSuggestionsDocument },
+          maxUsageCount: 2,
+          result: { data: { labels: { __typename: "LabelsQuery", all: [] } } },
+        },
         successfulCreateMock({
           externalUrl: "https://recipes.example.test/cider-chicken",
           yield: 6,
@@ -321,6 +344,11 @@ describe("CreateRecipeForm", () => {
     render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
       cache,
       mocks: [
+        {
+          request: { query: RecipeLabelSuggestionsDocument },
+          maxUsageCount: 2,
+          result: { data: { labels: { __typename: "LabelsQuery", all: [] } } },
+        },
         successfulCreateMock(
           {
             externalUrl: null,
@@ -361,6 +389,11 @@ describe("CreateRecipeForm", () => {
       cache,
       mocks: [
         {
+          request: { query: RecipeLabelSuggestionsDocument },
+          maxUsageCount: 2,
+          result: { data: { labels: { __typename: "LabelsQuery", all: [] } } },
+        },
+        {
           request: {
             query: CreateRecipeDocument,
             variables: {
@@ -368,6 +401,7 @@ describe("CreateRecipeForm", () => {
                 type: "Recipe",
                 ingredients: [],
                 sections: [],
+                labels: [],
                 name: "Cider-braised chicken",
                 externalUrl: null,
                 yield: null,
@@ -413,6 +447,11 @@ describe("CreateRecipeForm", () => {
       cache,
       mocks: [
         {
+          request: { query: RecipeLabelSuggestionsDocument },
+          maxUsageCount: 2,
+          result: { data: { labels: { __typename: "LabelsQuery", all: [] } } },
+        },
+        {
           request: {
             query: CreateRecipeDocument,
             variables: {
@@ -420,6 +459,7 @@ describe("CreateRecipeForm", () => {
                 type: "Recipe",
                 ingredients: [],
                 sections: [],
+                labels: [],
                 name: "Cider-braised chicken",
                 externalUrl: null,
                 yield: null,
@@ -456,5 +496,95 @@ describe("CreateRecipeForm", () => {
     );
     expect(libraryIn(cache)).toEqual(INITIAL_LIBRARY);
     expect(onCreated).not.toHaveBeenCalled();
+  });
+});
+
+describe("recipe labels in the create flow", () => {
+  it("loads existing labels and saves selected and new labels, then invalidates suggestions", async () => {
+    const user = userEvent.setup();
+    const cache = buildInMemoryCache();
+    const onCreated = vi.fn(() => {
+      expect(cache.extract().ROOT_QUERY?.labels).toBeUndefined();
+    });
+    render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
+      cache,
+      mocks: [
+        {
+          request: { query: RecipeLabelSuggestionsDocument },
+          maxUsageCount: 2,
+          result: {
+            data: {
+              labels: {
+                __typename: "LabelsQuery",
+                all: [
+                  { __typename: "Label", id: "vegetarian", name: "Vegetarian" },
+                ],
+              },
+            },
+          },
+        },
+        successfulCreateMock({
+          name: "Lentil soup",
+          externalUrl: null,
+          yield: null,
+          totalTime: null,
+          calories: null,
+          directions: "",
+          labels: ["Vegetarian", "Lunch-Dinner"],
+        }),
+      ],
+    });
+    await user.type(
+      screen.getByRole("textbox", { name: "Title" }),
+      "Lentil soup",
+    );
+    await user.click(screen.getByRole("button", { name: /Recipe labels/ }));
+    const labelInput = screen.getByRole("searchbox", {
+      name: "Search recipe labels",
+    });
+    await user.type(labelInput, "veg");
+    await user.click(await screen.findByRole("option", { name: "Vegetarian" }));
+    await user.type(labelInput, "Lunch//Dinner{ArrowDown}{Enter}{Escape}");
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    await waitFor(() =>
+      expect(onCreated).toHaveBeenCalledWith(CREATED_RECIPE_ID),
+    );
+  });
+
+  it("retries a failed suggestion query and makes the returned labels selectable", async () => {
+    const user = userEvent.setup();
+    render(<CreateRecipeForm onCreated={vi.fn()} onCancel={vi.fn()} />, {
+      mocks: [
+        {
+          request: { query: RecipeLabelSuggestionsDocument },
+          error: new Error("Offline"),
+        },
+        {
+          request: { query: RecipeLabelSuggestionsDocument },
+          maxUsageCount: 2,
+          result: {
+            data: {
+              labels: {
+                __typename: "LabelsQuery",
+                all: [
+                  { __typename: "Label", id: "weeknight", name: "Weeknight" },
+                ],
+              },
+            },
+          },
+        },
+      ],
+    });
+    await user.click(
+      await screen.findByRole("button", { name: "Retry label suggestions" }),
+    );
+    await user.click(screen.getByRole("button", { name: /Recipe labels/ }));
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search recipe labels" }),
+      "week",
+    );
+    await user.click(await screen.findByRole("option", { name: "Weeknight" }));
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("row", { name: "Weeknight" })).toBeVisible();
   });
 });

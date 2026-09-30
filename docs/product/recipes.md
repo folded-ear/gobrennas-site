@@ -61,6 +61,33 @@ without leaving the Library behind.
   request behavior.
 - Canceling create returns to the Library without creating a recipe.
 
+### Recipe labels
+
+- The create editor offers optional recipe-level labels in a multi-select field.
+  Selected labels appear as removable tags inside the field. Open the field to
+  search existing labels, then select with the pointer or arrow keys and Enter.
+  The menu stays open to choose several labels; selected options have checkmarks
+  and can be selected again to remove them. Escape closes the menu.
+- For a new name, select the Create suggestion with the pointer or arrow keys and
+  Enter. Typing alone does not add a label. Clear recipe labels removes all
+  selected labels.
+- Label names are trimmed. Runs of `/` become a single `-`, matching the API's
+  existing `LabelService.ensureLabel` behavior; changing that rule requires a
+  separate API change. The Create suggestion previews the resulting name.
+- Blank labels are ignored. Names are compared without regard to case after
+  normalization, so the same label cannot be added twice. Selecting an existing
+  label preserves its spelling.
+- Added labels can be removed with their remove button or by focusing a label
+  and pressing Delete or Backspace. Removing the last label returns focus to
+  the label field.
+- The editor explains loading, empty, no-match, and duplicate states. If
+  suggestions cannot load, retry is available and free-form labels can still
+  be added. Labels are retained after a failed recipe save, and their controls
+  are disabled while saving.
+- Added labels persist through recipe creation. Successful creation invalidates
+  the cached label suggestions so subsequent editors can discover new labels.
+- Section labels (BFS-80) and library search/filter changes are separate work.
+
 ### Owned sections
 
 State: Agreed — frontend scope of BFS-24.
