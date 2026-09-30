@@ -28,9 +28,10 @@ without leaving the Library behind.
   until the title contains non-whitespace text. Directions are optional.
 - It also offers optional Source URL, Yield, Total cook time, and Calories per
   serving fields, in that order between Title and Directions.
-- Title, Source URL, Yield, Total cook time, Calories per serving, and recipe
-  labels share two equal-width columns above ingredients and directions.
-  Narrow editors stack these fields in a single column.
+- Title is the first field and spans the full editor width. Below it, two equal
+  columns place Photo, Labels, and Ingredients on the left, and Source URL,
+  Yield, Total cook time, Calories per serving, and Directions on the right.
+  Narrow editors stack the left column before the right column.
 - Yield is a positive whole number. Calories per serving is a non-negative
   whole number. A blank value means it is unknown; zero remains valid for
   Calories per serving.
@@ -92,6 +93,45 @@ without leaving the Library behind.
 - Added labels persist through recipe creation. Successful creation invalidates
   the cached label suggestions so subsequent editors can discover new labels.
 - Section labels (BFS-80) and library search/filter changes are separate work.
+
+### Photos in recipe creation
+
+- The Photo field sits below Title, above Labels and Ingredients in the left column.
+  Choose photo opens a file picker; dropping a file selects it as well.
+- Selection first decodes and, if needed, resizes the image, then shows a local
+  preview and starts a direct browser upload through the existing scratch-upload
+  API. JPEG, PNG, WebP, GIF, and AVIF files
+  are supported if the browser can decode them. Invalid or unreadable images
+  produce a field error. Any failure during preparation preserves the current
+  photo, upload, preview, and focus, without offering Retry for the rejected file.
+  Saving pauses while a replacement is being prepared; after rejection, the
+  previous photo’s save readiness is restored. A newer selection or Discard
+  cancels pending preparation.
+- Images at least 1 MiB are resized in the browser toward a size below 1 MiB,
+  matching the legacy upload target. Resized images become JPEGs; transparency
+  is flattened onto white and animation is not preserved. Resizing attempts are
+  bounded and report an error if the target cannot be reached.
+- Preparation shows a pending status; upload progress reflects bytes sent.
+  Sending all bytes does not mean success until storage confirms the upload.
+- The rest of the draft remains editable during upload. Saving is blocked while
+  a selected photo is uploading or has an error. Retry requests a fresh upload
+  URL without requiring the person to select their file again. Retry reuses the
+  prepared image and clears any stale selection error.
+- Clicking or dragging on the image sets its focus. Arrow keys adjust focus by
+  one percentage point, Shift-arrow by ten, and Enter/Space resets it to center.
+  A narrow crop preview updates as focus changes. Cards and detail pages use the
+  same saved focus; exact cropping varies with the image container and screen.
+- Once a replacement is prepared, it cancels the previous upload and resets focus
+  to center. Late results from a canceled attempt cannot replace the current selection.
+  Discard photo clears this unsaved selection and allows saving without a photo.
+- Saving includes the completed upload's scratch filename and focus. If recipe
+  saving fails, the selected file and focus remain available, but uploading must
+  be retried because the API may already have consumed the scratch file.
+- Canceling/unmounting aborts active work and releases local preview resources.
+  Discarding a selection does not request deletion of an already-uploaded scratch
+  object. Storage cleanup is outside this frontend change.
+- This iteration covers creation only. Editing/replacing saved recipe photos is
+  deferred to BFS-84; removing saved photos requires the separate BFS-79 work.
 
 ### Owned sections
 

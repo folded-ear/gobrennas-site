@@ -3,6 +3,9 @@
 import { FormTextField } from "@/components/form-text-field";
 import { SectionHeader } from "@/components/section-header";
 import { LabelEditor, type LabelSuggestions } from "@/features/label-editor";
+import { PhotoEditor } from "@/features/recipe-photo-editor";
+import type { UploadPhoto } from "@/features/recipe-photo-editor/types";
+import { usePhotoUpload } from "@/features/recipe-photo-editor/use-photo-upload";
 import { Alert, Button, Form, Spinner } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState, type FormEvent } from "react";
@@ -20,6 +23,7 @@ type RecipeFormProps = {
   onCancel: () => void;
   recognizeIngredient: RecognizeIngredient;
   labelSuggestions?: LabelSuggestions;
+  uploadPhoto?: UploadPhoto;
 };
 
 export function RecipeForm({
@@ -29,6 +33,7 @@ export function RecipeForm({
   onCancel,
   recognizeIngredient,
   labelSuggestions,
+  uploadPhoto,
 }: RecipeFormProps) {
   const {
     control,
@@ -45,6 +50,7 @@ export function RecipeForm({
   const [recognitionQueue] = useState(createRecognitionQueue);
   const [hasSaveFailure, setHasSaveFailure] = useState(false);
   const isSubmittingRef = useRef(false);
+  const photoUpload = usePhotoUpload(uploadPhoto);
 
   function clearSaveFailure(): void {
     setHasSaveFailure(false);
@@ -53,9 +59,11 @@ export function RecipeForm({
   async function submitRecipe(draft: RecipeDraft): Promise<void> {
     clearSaveFailure();
     try {
-      await onSubmit(draft);
+      const photo = photoUpload.savedPhoto();
+      await onSubmit(photo ? { ...draft, photo } : draft);
     } catch {
       setHasSaveFailure(true);
+      photoUpload.invalidateAfterSaveFailure();
     }
   }
 
@@ -63,7 +71,7 @@ export function RecipeForm({
     event: FormEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
-    if (isSubmittingRef.current) {
+    if (isSubmittingRef.current || !photoUpload.canSave()) {
       return;
     }
     // Acquire before async validation, so two submissions cannot race.
@@ -86,7 +94,11 @@ export function RecipeForm({
       <SectionHeader title={heading}>
         <div className="flex shrink-0 gap-sm">
           <Button
-            isDisabled={isSubmitting || title.trim().length === 0}
+            isDisabled={
+              isSubmitting ||
+              title.trim().length === 0 ||
+              !photoUpload.canSave()
+            }
             isPending={isSubmitting}
             type="submit"
             variant="primary"
@@ -123,92 +135,100 @@ export function RecipeForm({
           </Alert>
         ) : null}
 
-        <div className="grid grid-cols-1 items-start gap-md @lg:grid-cols-2">
-          <FormTextField
-            control={control}
-            name="title"
-            label="Title"
-            isRequired
-            onValueChange={clearSaveFailure}
-          />
-          <FormTextField
-            control={control}
-            name="sourceUrl"
-            label="Source URL"
-            type="url"
-            autoComplete="url"
-            onValueChange={clearSaveFailure}
-          />
-          <FormTextField
-            control={control}
-            name="yieldServings"
-            label="Yield"
-            type="number"
-            min={1}
-            step={1}
-            onValueChange={clearSaveFailure}
-          />
-          <FormTextField
-            control={control}
-            name="totalTimeText"
-            label="Total cook time"
-            description="For example: 80 min or 1 hr 20 min."
-            onValueChange={clearSaveFailure}
-          />
-          <FormTextField
-            control={control}
-            name="caloriesPerServing"
-            label="Calories per serving"
-            type="number"
-            min={0}
-            step={1}
-            onValueChange={clearSaveFailure}
-          />
-          <Controller
-            control={control}
-            name="labels"
-            render={({ field }) => (
-              <LabelEditor
-                value={field.value}
-                onChange={field.onChange}
-                onEdit={clearSaveFailure}
-                isDisabled={isSubmitting}
-                suggestions={labelSuggestions}
-              />
-            )}
-          />
-        </div>
-
+        <FormTextField
+          control={control}
+          name="title"
+          label="Title"
+          isRequired
+          onValueChange={clearSaveFailure}
+        />
         <div className="grid items-start gap-md @3xl:grid-cols-2">
-          <Controller
-            control={control}
-            name="ingredients"
-            render={({ field }) => (
-              <IngredientRows
-                rows={field.value}
-                queue={recognitionQueue}
-                recognize={recognizeIngredient}
-                onChange={(rows, source) => {
-                  field.onChange(
-                    typeof rows === "function"
-                      ? rows(getValues("ingredients"))
-                      : rows,
-                  );
-                  if (source !== "recognition") clearSaveFailure();
-                }}
+          <div className="@container flex min-w-0 flex-col gap-md">
+            {uploadPhoto ? (
+              <PhotoEditor
+                photo={photoUpload}
                 isDisabled={isSubmitting}
+                onEdit={clearSaveFailure}
               />
-            )}
-          />
+            ) : null}
 
-          <FormTextField
-            control={control}
-            name="directions"
-            label="Directions"
-            multiline
-            rows={4}
-            onValueChange={clearSaveFailure}
-          />
+            <Controller
+              control={control}
+              name="labels"
+              render={({ field }) => (
+                <LabelEditor
+                  value={field.value}
+                  onChange={field.onChange}
+                  onEdit={clearSaveFailure}
+                  isDisabled={isSubmitting}
+                  suggestions={labelSuggestions}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="ingredients"
+              render={({ field }) => (
+                <IngredientRows
+                  rows={field.value}
+                  queue={recognitionQueue}
+                  recognize={recognizeIngredient}
+                  onChange={(rows, source) => {
+                    field.onChange(
+                      typeof rows === "function"
+                        ? rows(getValues("ingredients"))
+                        : rows,
+                    );
+                    if (source !== "recognition") clearSaveFailure();
+                  }}
+                  isDisabled={isSubmitting}
+                />
+              )}
+            />
+          </div>
+          <div className="flex min-w-0 flex-col gap-md">
+            <FormTextField
+              control={control}
+              name="sourceUrl"
+              label="Source URL"
+              type="url"
+              autoComplete="url"
+              onValueChange={clearSaveFailure}
+            />
+            <FormTextField
+              control={control}
+              name="yieldServings"
+              label="Yield"
+              type="number"
+              min={1}
+              step={1}
+              onValueChange={clearSaveFailure}
+            />
+            <FormTextField
+              control={control}
+              name="totalTimeText"
+              label="Total cook time"
+              description="For example: 80 min or 1 hr 20 min."
+              onValueChange={clearSaveFailure}
+            />
+            <FormTextField
+              control={control}
+              name="caloriesPerServing"
+              label="Calories per serving"
+              type="number"
+              min={0}
+              step={1}
+              onValueChange={clearSaveFailure}
+            />
+            <FormTextField
+              control={control}
+              name="directions"
+              label="Directions"
+              multiline
+              rows={4}
+              onValueChange={clearSaveFailure}
+            />
+          </div>
         </div>
 
         <OwnedSections

@@ -388,3 +388,35 @@ describe("recipe label serialization", () => {
     ).toBe(false);
   });
 });
+
+describe("recipe photo serialization", () => {
+  it("sends the uploaded filename and focus without a browser file or preview URL", () => {
+    expect(
+      toIngredientInfo(
+        recipeDraft({
+          photo: { filename: "scratch/soup.jpg", focus: [0.2, 0.8] },
+        }),
+      ),
+    ).toMatchObject({ photo: "scratch/soup.jpg", photoFocus: [0.2, 0.8] });
+  });
+
+  it("omits photo fields when no photo was selected", () => {
+    const info = toIngredientInfo(recipeDraft());
+    expect(info).not.toHaveProperty("photo");
+    expect(info).not.toHaveProperty("photoFocus");
+  });
+
+  it.each([
+    { focus: [1.1, 0.5] },
+    { focus: [-0.1, 0.5] },
+    { focus: [0.5] },
+    { focus: [0.5, NaN] },
+  ])("rejects invalid focus coordinates $focus", ({ focus }) => {
+    expect(
+      recipeDraftSchema.safeParse({
+        ...recipeDraft(),
+        photo: { filename: "scratch/soup.jpg", focus },
+      }).success,
+    ).toBe(false);
+  });
+});
