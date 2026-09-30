@@ -43,7 +43,11 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
         <Bookmark
           className={`absolute right-2 bottom-2 bg-gray-900/80 rounded-full p-xs size-6 text-white ${data.favorite ? "fill-white" : "transparent"}`}
         />
-        <RecipePhoto recipe={data} />
+        {/* A quarter of each card, accounting for the library padding and grid gaps. */}
+        <RecipePhoto
+          recipe={data}
+          sizes="(min-width: 64rem) calc((100vw - 56px) / 12), (min-width: 48rem) calc((100vw - 40px) / 8), calc((100vw - 24px) / 4)"
+        />
       </div>
       <div className="flex-1 flex flex-col gap-sm p-sm">
         <Card.Header>
