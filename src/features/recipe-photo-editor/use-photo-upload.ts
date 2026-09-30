@@ -14,6 +14,7 @@ type UploadState =
 
 export function usePhotoUpload(upload: UploadPhoto | undefined) {
   const [state, setState] = useState<UploadState>({ status: "empty" });
+  const [selectionError, setSelectionError] = useState<string>();
   const [previewUrl, setPreviewUrl] = useState<string>();
   const [focus, setFocus] = useState<PhotoFocus>([0.5, 0.5]);
   const file = useRef<File | undefined>(undefined);
@@ -68,26 +69,28 @@ export function usePhotoUpload(upload: UploadPhoto | undefined) {
   }
 
   function select(selected: File) {
+    let nextPreview: string;
+    try {
+      validatePhoto(selected);
+      nextPreview = URL.createObjectURL(selected);
+    } catch (error) {
+      setSelectionError(
+        error instanceof PhotoUploadError
+          ? error.message
+          : "Choose another photo.",
+      );
+      return;
+    }
+    setSelectionError(undefined);
     active.current?.abort();
     file.current = selected;
     setFocus([0.5, 0.5]);
-    try {
-      validatePhoto(selected);
-      changePreview(URL.createObjectURL(selected));
-      void start(selected);
-    } catch (error) {
-      changePreview(undefined);
-      update({
-        status: "error",
-        message:
-          error instanceof PhotoUploadError
-            ? error.message
-            : "Choose another photo.",
-      });
-    }
+    changePreview(nextPreview);
+    void start(selected);
   }
 
   function clear() {
+    setSelectionError(undefined);
     active.current?.abort();
     file.current = undefined;
     changePreview(undefined);
@@ -97,6 +100,7 @@ export function usePhotoUpload(upload: UploadPhoto | undefined) {
 
   return {
     state,
+    selectionError,
     previewUrl,
     focus,
     setFocus,

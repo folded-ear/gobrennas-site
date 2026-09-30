@@ -100,7 +100,9 @@ without leaving the Library behind.
 - Selection immediately shows a local preview and starts a direct browser upload
   through the existing scratch-upload API. JPEG, PNG, WebP, GIF, and AVIF files
   are supported if the browser can decode them. Invalid or unreadable images
-  produce a field error.
+  produce a field error. Unsupported file types and empty files are rejected
+  before changing the current selection: its upload, preview, focus, and save
+  readiness are preserved. These selection errors do not offer an upload retry.
 - Images at least 1 MiB are resized in the browser toward a size below 1 MiB,
   matching the legacy upload target. Resized images become JPEGs; transparency
   is flattened onto white and animation is not preserved. Resizing attempts are

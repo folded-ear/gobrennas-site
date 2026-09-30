@@ -198,6 +198,11 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
             </ProgressBar.Track>
           </ProgressBar>
         ) : null}
+        {photo.selectionError ? (
+          <p role="alert" className="text-sm text-danger">
+            {photo.selectionError}
+          </p>
+        ) : null}
         {state.status === "error" ? (
           <div className="flex flex-wrap items-center gap-sm">
             <p role="alert" className="text-sm text-danger">
