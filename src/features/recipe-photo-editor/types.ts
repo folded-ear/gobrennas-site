@@ -27,3 +27,5 @@ export function validatePhoto(file: File): void {
 export function clampFocus(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
+
+export type SavedPhoto = { url: string; focus?: number[] | null };

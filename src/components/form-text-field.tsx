@@ -59,7 +59,11 @@ export function FormTextField<Values extends FieldValues>(
     >
       <Label className="text-xs">{label}</Label>
       {props.multiline ? (
-        <TextArea ref={inputRef} rows={props.rows} className="px-sm py-xs" />
+        <TextArea
+          ref={inputRef}
+          rows={props.rows}
+          className="field-sizing-content min-h-24 max-h-[min(32rem,60vh)] w-full overflow-y-auto px-sm py-xs"
+        />
       ) : (
         <Input
           className="px-sm py-xs"

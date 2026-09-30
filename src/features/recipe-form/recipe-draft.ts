@@ -35,7 +35,7 @@ export const recipeDraftSchema = z.object({
   labels: z.array(z.string()).transform(normalizeLabels),
   photo: z
     .object({
-      filename: z.string().min(1),
+      filename: z.string().min(1).optional(),
       focus: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]),
     })
     .optional(),
@@ -75,16 +75,21 @@ export function toIngredientInfo(draft: RecipeDraft): IngredientInfo {
       ? { photo: values.photo.filename, photoFocus: values.photo.focus }
       : {}),
     ingredients: values.ingredients
-      .filter((row) => row.raw.trim().length > 0)
+      .filter((row) => row.persisted || row.raw.trim().length > 0)
       .map(toIngredientRefInfo),
-    sections: values.sections.map((section) => ({
-      id: section.id ?? null,
-      name: section.title.trim(),
-      directions: section.directions,
-      ingredients: section.ingredients
-        .filter((row) => row.raw.trim().length > 0)
-        .map(toIngredientRefInfo),
-    })),
+    sections: values.sections.map((section) =>
+      section.referenceRecipeId
+        ? { id: section.id }
+        : {
+            id: section.id ?? null,
+            name: section.title.trim(),
+            directions: section.directions,
+            ...(section.labels ? { labels: section.labels } : {}),
+            ingredients: section.ingredients
+              .filter((row) => row.persisted || row.raw.trim().length > 0)
+              .map(toIngredientRefInfo),
+          },
+    ),
   };
 }
 

@@ -4,12 +4,16 @@ import { FormTextField } from "@/components/form-text-field";
 import { SectionHeader } from "@/components/section-header";
 import { LabelEditor, type LabelSuggestions } from "@/features/label-editor";
 import { PhotoEditor } from "@/features/recipe-photo-editor";
-import type { UploadPhoto } from "@/features/recipe-photo-editor/types";
+import type {
+  SavedPhoto,
+  UploadPhoto,
+} from "@/features/recipe-photo-editor/types";
 import { usePhotoUpload } from "@/features/recipe-photo-editor/use-photo-upload";
 import { Alert, Button, Form, Spinner } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState, type FormEvent } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import { RecipeFormError } from "./edit-recipe-draft";
 import type { RecognizeIngredient } from "./ingredient-recognition";
 import { IngredientRows } from "./ingredient-rows";
 import { OwnedSections } from "./owned-sections";
@@ -24,6 +28,7 @@ type RecipeFormProps = {
   recognizeIngredient: RecognizeIngredient;
   labelSuggestions?: LabelSuggestions;
   uploadPhoto?: UploadPhoto;
+  existingPhoto?: SavedPhoto;
 };
 
 export function RecipeForm({
@@ -34,6 +39,7 @@ export function RecipeForm({
   recognizeIngredient,
   labelSuggestions,
   uploadPhoto,
+  existingPhoto,
 }: RecipeFormProps) {
   const {
     control,
@@ -49,8 +55,9 @@ export function RecipeForm({
   const title = useWatch({ control, name: "title" });
   const [recognitionQueue] = useState(createRecognitionQueue);
   const [hasSaveFailure, setHasSaveFailure] = useState(false);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string>();
   const isSubmittingRef = useRef(false);
-  const photoUpload = usePhotoUpload(uploadPhoto);
+  const photoUpload = usePhotoUpload(uploadPhoto, existingPhoto);
 
   function clearSaveFailure(): void {
     setHasSaveFailure(false);
@@ -61,9 +68,13 @@ export function RecipeForm({
     try {
       const photo = photoUpload.savedPhoto();
       await onSubmit(photo ? { ...draft, photo } : draft);
-    } catch {
+    } catch (error) {
+      setSaveErrorMessage(
+        error instanceof RecipeFormError ? error.message : undefined,
+      );
       setHasSaveFailure(true);
-      photoUpload.invalidateAfterSaveFailure();
+      if (!(error instanceof RecipeFormError))
+        photoUpload.invalidateAfterSaveFailure();
     }
   }
 
@@ -129,7 +140,8 @@ export function RecipeForm({
             <Alert.Content>
               <Alert.Title>Couldn’t save recipe</Alert.Title>
               <Alert.Description>
-                Your recipe is still here. Try saving again.
+                {saveErrorMessage ??
+                  "Your recipe is still here. Try saving again."}
               </Alert.Description>
             </Alert.Content>
           </Alert>

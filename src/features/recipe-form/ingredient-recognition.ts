@@ -128,9 +128,17 @@ export function recognizedParts(result: IngredientRecognition) {
 
 export function toIngredientRefInfo(row: {
   raw: string;
+  persisted?: {
+    raw: string;
+    quantity: number | null;
+    uomId: string | null;
+    ingredientId: string | null;
+    preparation: string | null;
+  };
   recognition?: IngredientRecognition;
   choice?: MorselChoice;
 }): IngredientRefInfo {
+  if (row.persisted?.raw === row.raw) return { ...row.persisted };
   const result = row.recognition;
   const choice = row.choice;
   const selected =

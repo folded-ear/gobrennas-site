@@ -4,22 +4,35 @@ import {
   PhotoUploadError,
   validatePhoto,
   type PhotoFocus,
+  type SavedPhoto,
   type UploadPhoto,
 } from "./types";
 
 type UploadState =
   | { status: "empty" }
+  | { status: "saved" }
   | { status: "uploading"; progress?: number }
   | { status: "ready"; filename: string }
   | { status: "error"; message: string };
 
-export function usePhotoUpload(upload: UploadPhoto | undefined) {
-  const [state, setState] = useState<UploadState>({ status: "empty" });
+export function usePhotoUpload(
+  upload: UploadPhoto | undefined,
+  existingPhoto?: SavedPhoto,
+) {
+  const initialFocus: PhotoFocus =
+    existingPhoto?.focus?.length === 2
+      ? [existingPhoto.focus[0], existingPhoto.focus[1]]
+      : [0.5, 0.5];
+  const [state, setState] = useState<UploadState>({
+    status: existingPhoto ? "saved" : "empty",
+  });
   const [isPreparing, setIsPreparing] = useState(false);
   const preparing = useRef<AbortController | undefined>(undefined);
   const [selectionError, setSelectionError] = useState<string>();
-  const [previewUrl, setPreviewUrl] = useState<string>();
-  const [focus, setFocus] = useState<PhotoFocus>([0.5, 0.5]);
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(
+    existingPhoto?.url,
+  );
+  const [focus, setFocus] = useState<PhotoFocus>(initialFocus);
   const file = useRef<File | undefined>(undefined);
   const active = useRef<AbortController | undefined>(undefined);
   const currentState = useRef(state);
@@ -117,12 +130,14 @@ export function usePhotoUpload(upload: UploadPhoto | undefined) {
     active.current?.abort();
     file.current = undefined;
     changePreview(undefined);
-    setFocus([0.5, 0.5]);
-    update({ status: "empty" });
+    setPreviewUrl(existingPhoto?.url);
+    setFocus(initialFocus);
+    update({ status: existingPhoto ? "saved" : "empty" });
   }
 
   return {
     state,
+    hasSavedPhoto: !!existingPhoto,
     isPreparing,
     selectionError,
     previewUrl,
@@ -136,11 +151,14 @@ export function usePhotoUpload(upload: UploadPhoto | undefined) {
     },
     canSave: () =>
       !preparing.current &&
-      ["empty", "ready"].includes(currentState.current.status),
+      ["empty", "saved", "ready"].includes(currentState.current.status),
     savedPhoto: () =>
       currentState.current.status === "ready"
         ? { filename: currentState.current.filename, focus }
-        : undefined,
+        : currentState.current.status === "saved" &&
+            (focus[0] !== initialFocus[0] || focus[1] !== initialFocus[1])
+          ? { focus }
+          : undefined,
     invalidateAfterSaveFailure: () => {
       if (file.current && currentState.current.status === "ready") {
         // The API may have consumed the scratch file before the save failed.

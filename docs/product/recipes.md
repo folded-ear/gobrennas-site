@@ -49,6 +49,8 @@ without leaving the Library behind.
   removed, or reordered with the up/down controls.
 - In wider editors, directions sit to the right of ingredients, both for the
   recipe and each owned section. Narrow editors stack them vertically.
+- Directions fields grow with their text, up to 32rem or 60% of the viewport
+  height, whichever is smaller. Longer text scrolls within the field.
 - Enter in an ingredient or its row's plus button inserts and focuses a new row
   immediately after it.
   Backspace or Delete on a blank row removes it and focuses the previous row,
@@ -56,8 +58,9 @@ without leaving the Library behind.
   fresh blank input ready to use.
 - Pasting multiple lines replaces the selection, preserves surrounding text,
   and creates one row per nonblank line. Focus moves to the last pasted row.
-- Blank ingredient rows are omitted when saving. Populated rows preserve their
-  raw text and order; ingredient recognition is not required.
+- New or edited blank ingredient rows are omitted when saving. Untouched saved
+  rows are preserved, even if their raw text is blank. Populated rows preserve
+  their raw text and order; ingredient recognition is not required.
 - Editing or focusing an ingredient runs recognition after a brief pause and
   shows a labeled preview. Saving includes current recognized details when
   available and preserves raw text when recognition is pending or fails. See
@@ -119,7 +122,8 @@ without leaving the Library behind.
   prepared image and clears any stale selection error.
 - Clicking or dragging on the image sets its focus. Arrow keys adjust focus by
   one percentage point, Shift-arrow by ten, and Enter/Space resets it to center.
-  A narrow crop preview updates as focus changes. Cards and detail pages use the
+  A compact narrow crop preview sits beside the focus image and updates as focus
+  changes. Cards and detail pages use the
   same saved focus; exact cropping varies with the image container and screen.
 - Once a replacement is prepared, it cancels the previous upload and resets focus
   to center. Late results from a canceled attempt cannot replace the current selection.
@@ -130,8 +134,35 @@ without leaving the Library behind.
 - Canceling/unmounting aborts active work and releases local preview resources.
   Discarding a selection does not request deletion of an already-uploaded scratch
   object. Storage cleanup is outside this frontend change.
-- This iteration covers creation only. Editing/replacing saved recipe photos is
-  deferred to BFS-84; removing saved photos requires the separate BFS-79 work.
+- Editing uses the same photo controls with the saved photo as the starting point.
+  Focus changes alone do not upload a file. A replacement uses the scratch-upload
+  flow; Discard replacement restores the saved photo and focus. Removing the saved
+  photo remains deferred to BFS-79.
+
+### Editing saved recipes
+
+- The owner can open Edit recipe from the detail view or use the library edit
+  action. Direct edit links show a read-only notice for other users, with a way
+  back to the recipe. The API continues to enforce ownership on update.
+- Editing loads a complete fresh recipe and uses the same form as creation.
+  Loading and load failures have dedicated feedback and retry. Background data
+  changes do not replace the draft while the person is editing.
+- Save updates the existing recipe, refreshes cached detail/library data, and
+  returns to its detail view. Cancel returns without saving. Failed saves keep
+  the draft available for correction or retry.
+- Untouched ingredient text retains its saved quantity, unit, food reference,
+  and preparation, even if recognition runs when the row receives focus. Editing
+  the row releases those saved values and uses normal recognition behavior.
+- Owned sections retain their identity and are editable. Borrowed sections are
+  shown as links, remain references on save, and may be removed from this recipe
+  without modifying their source. Duplicate occurrences of an owned section are
+  handled like the current client: edit its content only at the first occurrence.
+- Existing section labels are preserved without showing label-editing controls.
+  Section label management remains an undecided separate feature.
+- Changing one field preserves unrelated fields, including zero values, nullable
+  fields, and stored cook-time precision. A section still used by an ordinary
+  ingredient cannot be removed until that reference is removed; this avoids the
+  API update-ordering concern tracked in BFS-96.
 
 ### Owned sections
 

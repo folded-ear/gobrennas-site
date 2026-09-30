@@ -68,6 +68,7 @@ export function IngredientInput({
   );
   const recognition = useIngredientRecognition({
     ...row,
+    recognizeOnMount: !!row.persisted && row.recognition?.raw !== row.raw,
     isDisabled,
     pastedRow,
     recognize,
