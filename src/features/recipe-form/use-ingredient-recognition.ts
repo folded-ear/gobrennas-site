@@ -26,6 +26,7 @@ export function useIngredientRecognition({
   choice,
   isDisabled,
   pastedRow,
+  recognizeOnMount = false,
   recognize,
   queue,
   onRecognized,
@@ -35,13 +36,20 @@ export function useIngredientRecognition({
   choice?: MorselChoice;
   isDisabled: boolean;
   pastedRow?: { raw: string };
+  recognizeOnMount?: boolean;
   recognize: RecognizeIngredient;
   queue: RecognitionQueue;
   onRecognized: (result: IngredientRecognition) => void;
 }) {
-  const [context, setContext] = useState<Context>();
-  const [status, setStatus] = useState<"idle" | "pending" | "error">("idle");
-  const current = useRef<Context | undefined>(undefined);
+  const [context, setContext] = useState<Context | undefined>(() =>
+    recognizeOnMount && raw.trim().length >= 2
+      ? { raw, cursor: raw.length, immediate: true, suggest: false, choice }
+      : undefined,
+  );
+  const [status, setStatus] = useState<"idle" | "pending" | "error">(
+    context ? "pending" : "idle",
+  );
+  const current = useRef<Context | undefined>(context);
   const request = useRef<AbortController | undefined>(undefined);
   const composing = useRef(false);
   const focus = useRef(false);

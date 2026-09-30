@@ -17,6 +17,7 @@ import {
   userEvent,
 } from "@/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { recipeToDraft, toRecipeUpdate } from "./edit-recipe-draft";
 import { RecipeForm } from "./index";
 import { newIngredientDraft } from "./ingredient-draft";
 import type {
@@ -28,6 +29,7 @@ import {
   toIngredientInfo,
   type RecipeDraft,
 } from "./recipe-draft";
+import { storedInfo, storedRecipe } from "./test/edit-recipe";
 
 function recognized(raw: string, cursor = raw.length): IngredientRecognition {
   return {
@@ -127,6 +129,43 @@ afterEach(() => {
 });
 
 describe("ingredient recognition input", () => {
+  it("recognizes saved recipe and section rows without focus and preserves their saved interpretation", async () => {
+    const recognize = vi.fn<RecognizeIngredient>(async (raw, cursor) =>
+      recognized(raw, cursor),
+    );
+    const initial = recipeToDraft(storedRecipe);
+    const submit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <RecipeForm
+        heading="Edit Recipe"
+        initialDraft={initial}
+        onSubmit={async (draft) => {
+          await submit(toRecipeUpdate(draft, initial, storedRecipe));
+        }}
+        onCancel={vi.fn()}
+        recognizeIngredient={recognize}
+      />,
+    );
+    await tick(0);
+    expect(
+      screen.getByLabelText("Recognition for ingredient 1"),
+    ).toHaveTextContent(storedRecipe.ingredients[0].raw);
+    expect(
+      screen.getByLabelText("Recognition for ingredient 2"),
+    ).toHaveTextContent(storedRecipe.ingredients[1].raw);
+    expect(
+      screen.getByLabelText("Recognition for section 1 ingredient 1"),
+    ).toHaveTextContent(storedRecipe.sections[0].ingredients[0].raw);
+    expect(input()).not.toHaveFocus();
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    expect(recognize).toHaveBeenCalledTimes(3);
+    for (const call of recognize.mock.calls)
+      expect(call[3]?.suggest).toBe(false);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    expect(submit).toHaveBeenCalledWith(storedInfo);
+  });
+
   it("keeps a recognized row quiet on return and through quantity, unit, and preparation edits until the name changes", async () => {
     const { user } = editor(recognizeFlour, ["1 cup flour, sifted"]);
     await user.click(input());

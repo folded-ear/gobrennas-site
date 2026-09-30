@@ -49,6 +49,8 @@ without leaving the Library behind.
   removed, or reordered with the up/down controls.
 - In wider editors, directions sit to the right of ingredients, both for the
   recipe and each owned section. Narrow editors stack them vertically.
+- Directions fields grow with their text, up to 32rem or 60% of the viewport
+  height, whichever is smaller. Longer text scrolls within the field.
 - Enter in an ingredient or its row's plus button inserts and focuses a new row
   immediately after it.
   Backspace or Delete on a blank row removes it and focuses the previous row,

@@ -33,6 +33,10 @@ recognition UI branch.
   ingredient recognition is informational and does not prevent saving.
 - Pasted rows appear immediately and are recognized in the background. Work
   on the actively edited row takes priority over waiting pasted rows.
+- Opening a saved recipe also queues its ingredient rows, including owned
+  section rows, for background recognition without moving focus or opening
+  suggestions. These highlights do not replace saved ingredient data until
+  the person edits the row.
 - Suggestions belong to the active cursor position. Choosing one replaces
   only its indicated text range. Editing or moving the cursor makes old
   suggestions unavailable; leaving a row hides its suggestions.

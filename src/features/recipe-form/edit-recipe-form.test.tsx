@@ -15,6 +15,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { GetRecipeForEditDocument } from "./__generated__/getRecipeForEdit.generated";
 import { RecipeLabelSuggestionsDocument } from "./__generated__/recipeLabelSuggestions.generated";
 import { RecipePhotoUploadDocument } from "./__generated__/recipePhotoUpload.generated";
+import { RecognizeIngredientDocument } from "./__generated__/recognizeIngredient.generated";
 import { UpdateRecipeDocument } from "./__generated__/updateRecipe.generated";
 import { EditRecipeForm } from "./edit-recipe-form";
 import { storedInfo, storedRecipe } from "./test/edit-recipe";
@@ -29,9 +30,32 @@ const load = {
   },
 };
 const labels = {
+  maxUsageCount: Infinity,
   request: { query: RecipeLabelSuggestionsDocument },
   result: { data: { labels: { __typename: "LabelsQuery", all: [] } } },
 };
+const recognitionMocks = [
+  ...storedRecipe.ingredients,
+  ...storedRecipe.sections[0].ingredients,
+].map(({ raw }) => ({
+  maxUsageCount: Infinity,
+  request: {
+    query: RecognizeIngredientDocument,
+    variables: { raw, cursor: raw.length, choice: null, suggest: false },
+  },
+  result: {
+    data: {
+      library: {
+        __typename: "LibraryQuery",
+        recognizeItem: {
+          raw,
+          cursor: raw.length,
+          ranges: [],
+        },
+      },
+    },
+  },
+}));
 const success = {
   data: {
     library: {
@@ -57,6 +81,7 @@ describe("editing owned recipes", () => {
       mocks: [
         load,
         labels,
+        ...recognitionMocks,
         {
           request: {
             query: UpdateRecipeDocument,
@@ -114,6 +139,7 @@ describe("editing owned recipes", () => {
       mocks: [
         load,
         labels,
+        ...recognitionMocks,
         { request, error: new Error("Offline") },
         { request, result: success },
       ],
@@ -149,6 +175,7 @@ describe("editing owned recipes", () => {
           mocks: [
             load,
             labels,
+            ...recognitionMocks,
             {
               request: {
                 query: RecipePhotoUploadDocument,
@@ -246,7 +273,12 @@ describe("editing owned recipes", () => {
     const onCancel = vi.fn();
     const onSaved = vi.fn();
     render(<EditRecipeForm id="pie" onSaved={onSaved} onCancel={onCancel} />, {
-      mocks: [{ request: query, error: new Error("Offline") }, load, labels],
+      mocks: [
+        { request: query, error: new Error("Offline") },
+        load,
+        labels,
+        ...recognitionMocks,
+      ],
     });
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Couldn’t load recipe",
