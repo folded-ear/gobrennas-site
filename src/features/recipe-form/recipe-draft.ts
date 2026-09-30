@@ -1,4 +1,5 @@
 import type { IngredientInfo } from "@/__generated__/graphql";
+import { normalizeLabels } from "@/features/label-editor/labels";
 import { z } from "zod";
 import { ingredientDraftSchema, newIngredientDraft } from "./ingredient-draft";
 import { toIngredientRefInfo } from "./ingredient-recognition";
@@ -31,6 +32,7 @@ export const recipeDraftSchema = z.object({
     "Enter calories as a whole number of 0 or more.",
   ),
   directions: z.string(),
+  labels: z.array(z.string()).transform(normalizeLabels),
   ingredients: z.array(ingredientDraftSchema),
   sections: z.array(sectionDraftSchema),
 });
@@ -45,6 +47,7 @@ export function newRecipeDraft(): RecipeDraft {
     totalTimeText: "",
     caloriesPerServing: "",
     directions: "",
+    labels: [],
     ingredients: [newIngredientDraft()],
     sections: [],
   };
@@ -61,6 +64,7 @@ export function toIngredientInfo(draft: RecipeDraft): IngredientInfo {
       values.totalTimeText === null ? null : values.totalTimeText * 60_000,
     calories: values.caloriesPerServing,
     directions: values.directions,
+    labels: values.labels,
     ingredients: values.ingredients
       .filter((row) => row.raw.trim().length > 0)
       .map(toIngredientRefInfo),

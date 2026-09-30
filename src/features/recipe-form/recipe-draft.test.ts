@@ -22,6 +22,7 @@ function recipeDraft(overrides: Partial<RecipeDraft> = {}): RecipeDraft {
     directions: "Brown the chicken first.",
     ingredients: [],
     sections: [],
+    labels: [],
     ...overrides,
   };
 }
@@ -40,6 +41,7 @@ describe("newRecipeDraft", () => {
       directions: "",
       ingredients: [{ clientId: expect.any(String), raw: "" }],
       sections: [],
+      labels: [],
     });
     expect(secondDraft).toStrictEqual({
       title: "",
@@ -50,6 +52,7 @@ describe("newRecipeDraft", () => {
       directions: "",
       ingredients: [{ clientId: expect.any(String), raw: "" }],
       sections: [],
+      labels: [],
     });
     expect(firstDraft).not.toBe(secondDraft);
     expect(firstDraft.ingredients[0].clientId).not.toBe(
@@ -276,6 +279,7 @@ describe("toIngredientInfo", () => {
       directions: "Brown the chicken.\n\nFinish with cider.  ",
       ingredients: [],
       sections: [],
+      labels: [],
     });
   });
 
@@ -290,6 +294,7 @@ describe("toIngredientInfo", () => {
       directions: "Brown the chicken first.",
       ingredients: [],
       sections: [],
+      labels: [],
     });
   });
 
@@ -313,6 +318,7 @@ describe("toIngredientInfo", () => {
       directions: "Brown the chicken first.",
       ingredients: [],
       sections: [],
+      labels: [],
     });
   });
 
@@ -329,6 +335,7 @@ describe("toIngredientInfo", () => {
       directions: "Brown the chicken first.",
       ingredients: [],
       sections: [],
+      labels: [],
     });
   });
 
@@ -345,6 +352,39 @@ describe("toIngredientInfo", () => {
       directions: "Brown the chicken first.",
       ingredients: [],
       sections: [],
+      labels: [],
     });
+  });
+});
+
+describe("recipe label serialization", () => {
+  it("normalizes slash runs, trims names, removes blanks and case-insensitive duplicates without changing the draft", () => {
+    const labels = [
+      " Lunch//Dinner ",
+      "lunch-dinner",
+      "",
+      "   ",
+      "Vegetarian",
+      "VEGETARIAN",
+      "Family favorites",
+    ];
+    const draft = recipeDraft({ labels });
+    expect(toIngredientInfo(draft).labels).toEqual([
+      "Lunch-Dinner",
+      "Vegetarian",
+      "Family favorites",
+    ]);
+    expect(draft.labels).toEqual(labels);
+    expect(draft.labels[0]).toBe(" Lunch//Dinner ");
+  });
+
+  it("sends an empty label list when none were added", () => {
+    expect(toIngredientInfo(recipeDraft()).labels).toEqual([]);
+  });
+
+  it("rejects non-string label entries at the write boundary", () => {
+    expect(
+      recipeDraftSchema.safeParse({ ...recipeDraft(), labels: [42] }).success,
+    ).toBe(false);
   });
 });

@@ -54,6 +54,13 @@ pending, mark the form busy and disable every control. Put a safe, actionable
 failure alert above the fields; preserve the draft and clear that alert when the
 person edits any field.
 
+Recipe labels are a string array in the draft. The shared label editor handles
+suggestion selection, free-form creation, and removal; the create adapter owns
+loading and retrying suggestions. Serialization trims names, replaces slash
+runs with hyphens to match the API, drops blanks, and deduplicates names without
+regard to case. It sends an empty array when no labels are added. See
+[recipe labels](product/recipes.md#recipe-labels) for the interaction rules.
+
 Ingredient rows keep raw text and stable client identities in the draft. Blank
 rows are omitted at serialization; populated rows retain their text and order.
 The [ingredient recognition behavior](product/ingredient-recognition.md)

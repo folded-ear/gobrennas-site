@@ -2,6 +2,7 @@
 
 import { FormTextField } from "@/components/form-text-field";
 import { SectionHeader } from "@/components/section-header";
+import { LabelEditor, type LabelSuggestions } from "@/features/label-editor";
 import { Alert, Button, Form, Spinner } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState, type FormEvent } from "react";
@@ -18,6 +19,7 @@ type RecipeFormProps = {
   onSubmit: (draft: RecipeDraft) => Promise<void>;
   onCancel: () => void;
   recognizeIngredient: RecognizeIngredient;
+  labelSuggestions?: LabelSuggestions;
 };
 
 export function RecipeForm({
@@ -26,6 +28,7 @@ export function RecipeForm({
   onSubmit,
   onCancel,
   recognizeIngredient,
+  labelSuggestions,
 }: RecipeFormProps) {
   const {
     control,
@@ -120,7 +123,7 @@ export function RecipeForm({
           </Alert>
         ) : null}
 
-        <div className="grid gap-md @2xl:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-md @lg:grid-cols-2">
           <FormTextField
             control={control}
             name="title"
@@ -136,9 +139,6 @@ export function RecipeForm({
             autoComplete="url"
             onValueChange={clearSaveFailure}
           />
-        </div>
-
-        <div className="grid grid-cols-1 gap-md @lg:grid-cols-3">
           <FormTextField
             control={control}
             name="yieldServings"
@@ -163,6 +163,19 @@ export function RecipeForm({
             min={0}
             step={1}
             onValueChange={clearSaveFailure}
+          />
+          <Controller
+            control={control}
+            name="labels"
+            render={({ field }) => (
+              <LabelEditor
+                value={field.value}
+                onChange={field.onChange}
+                onEdit={clearSaveFailure}
+                isDisabled={isSubmitting}
+                suggestions={labelSuggestions}
+              />
+            )}
           />
         </div>
 

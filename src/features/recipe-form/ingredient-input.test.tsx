@@ -213,7 +213,9 @@ describe("ingredient recognition input", () => {
       await user.keyboard("{Home}{ArrowRight>10/}");
       await tick();
       await user.keyboard("{ArrowDown}{Enter}");
-      expect(screen.getAllByRole("combobox")).toHaveLength(1);
+      expect(
+        screen.getAllByRole("combobox", { name: /^Ingredient / }),
+      ).toHaveLength(1);
       expect(input().textContent).toBe("2 cups stock, chilled");
       await user.click(screen.getByRole("button", { name: "Save recipe" }));
       expect(toIngredientInfo(submit.mock.calls[0][0]).ingredients).toEqual([
