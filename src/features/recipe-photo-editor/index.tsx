@@ -18,7 +18,7 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
   function select(file: File | undefined) {
     if (isDisabled || !file) return;
     onEdit();
-    photo.select(file);
+    void photo.select(file);
   }
   function setFocus(next: PhotoFocus) {
     if (isDisabled) return;
@@ -71,7 +71,7 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
             }}
           />
           <span className="text-sm text-muted">Or drop an image here.</span>
-          {state.status !== "empty" ? (
+          {state.status !== "empty" || photo.isPreparing ? (
             <Button
               type="button"
               variant="ghost"
@@ -178,6 +178,11 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
             </div>
           </div>
         ) : null}
+        {photo.isPreparing ? (
+          <p role="status" className="text-sm text-muted">
+            Preparing photo…
+          </p>
+        ) : null}
         {state.status === "uploading" ? (
           <ProgressBar
             aria-label="Photo upload"
@@ -187,7 +192,7 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
           >
             <Label className="text-xs">
               {state.progress === undefined
-                ? "Preparing photo…"
+                ? "Starting upload…"
                 : state.progress === 100
                   ? "Finishing upload…"
                   : "Uploading photo…"}

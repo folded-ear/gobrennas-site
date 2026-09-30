@@ -5,6 +5,7 @@ export type UploadOptions = {
   onProgress: (percent: number) => void;
 };
 
+/** Upload an image already decoded and resized by preparePhoto. */
 export type UploadPhoto = (
   file: File,
   options: UploadOptions,

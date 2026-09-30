@@ -97,27 +97,31 @@ without leaving the Library behind.
 
 - The Photo field sits below metadata and above ingredients and directions.
   Choose photo opens a file picker; dropping a file selects it as well.
-- Selection immediately shows a local preview and starts a direct browser upload
-  through the existing scratch-upload API. JPEG, PNG, WebP, GIF, and AVIF files
+- Selection first decodes and, if needed, resizes the image, then shows a local
+  preview and starts a direct browser upload through the existing scratch-upload
+  API. JPEG, PNG, WebP, GIF, and AVIF files
   are supported if the browser can decode them. Invalid or unreadable images
-  produce a field error. Unsupported file types and empty files are rejected
-  before changing the current selection: its upload, preview, focus, and save
-  readiness are preserved. These selection errors do not offer an upload retry.
+  produce a field error. Any failure during preparation preserves the current
+  photo, upload, preview, and focus, without offering Retry for the rejected file.
+  Saving pauses while a replacement is being prepared; after rejection, the
+  previous photo’s save readiness is restored. A newer selection or Discard
+  cancels pending preparation.
 - Images at least 1 MiB are resized in the browser toward a size below 1 MiB,
   matching the legacy upload target. Resized images become JPEGs; transparency
   is flattened onto white and animation is not preserved. Resizing attempts are
   bounded and report an error if the target cannot be reached.
-- Preparation has indeterminate progress; upload progress reflects bytes sent.
+- Preparation shows a pending status; upload progress reflects bytes sent.
   Sending all bytes does not mean success until storage confirms the upload.
 - The rest of the draft remains editable during upload. Saving is blocked while
   a selected photo is uploading or has an error. Retry requests a fresh upload
-  URL without requiring the person to select their file again.
+  URL without requiring the person to select their file again. Retry reuses the
+  prepared image and clears any stale selection error.
 - Clicking or dragging on the image sets its focus. Arrow keys adjust focus by
   one percentage point, Shift-arrow by ten, and Enter/Space resets it to center.
   A narrow crop preview updates as focus changes. Cards and detail pages use the
   same saved focus; exact cropping varies with the image container and screen.
-- Choosing another photo cancels the previous attempt and resets focus to center.
-  Late results from a canceled attempt cannot replace the current selection.
+- Once a replacement is prepared, it cancels the previous upload and resets focus
+  to center. Late results from a canceled attempt cannot replace the current selection.
   Discard photo clears this unsaved selection and allows saving without a photo.
 - Saving includes the completed upload's scratch filename and focus. If recipe
   saving fails, the selected file and focus remain available, but uploading must

@@ -67,12 +67,14 @@ The [ingredient recognition behavior](product/ingredient-recognition.md)
 defines scheduling, stale-response protection, and updates to derived row data.
 
 Photo selection and upload state live in the form's photo hook; browser File
-objects and blob URLs are temporary and never enter GraphQL variables. The
-create adapter provides the upload function, requesting an uncached scratch
+objects and blob URLs are temporary and never enter GraphQL variables. The hook
+prepares a candidate before replacing the current photo, cancels superseded
+candidates, and retains the prepared file for upload retries. The create adapter
+provides the upload function, requesting an uncached scratch
 URL and uploading directly to storage with its required headers. The form
 adds only a ready filename and validated focus coordinates to its submitted
-draft. Both the Save button and submission handler reject pending/failed uploads.
-A failed recipe save invalidates the scratch filename while retaining the file
+draft. Both the Save button and submission handler reject pending preparation and
+pending/failed uploads. A failed recipe save invalidates the scratch filename while retaining the file
 and focus for a fresh upload. See [photo behavior](product/recipes.md#photos-in-recipe-creation).
 
 Test the draft factory, schema, and serializer as plain TypeScript, including

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { preparePhoto } from "./prepare-photo";
 import {
   PhotoUploadError,
   validatePhoto,
@@ -14,6 +15,8 @@ type UploadState =
 
 export function usePhotoUpload(upload: UploadPhoto | undefined) {
   const [state, setState] = useState<UploadState>({ status: "empty" });
+  const [isPreparing, setIsPreparing] = useState(false);
+  const preparing = useRef<AbortController | undefined>(undefined);
   const [selectionError, setSelectionError] = useState<string>();
   const [previewUrl, setPreviewUrl] = useState<string>();
   const [focus, setFocus] = useState<PhotoFocus>([0.5, 0.5]);
@@ -35,6 +38,8 @@ export function usePhotoUpload(upload: UploadPhoto | undefined) {
 
   useEffect(
     () => () => {
+      preparing.current?.abort();
+      preparing.current = undefined;
       active.current?.abort();
       if (preview.current) URL.revokeObjectURL(preview.current);
     },
@@ -43,6 +48,7 @@ export function usePhotoUpload(upload: UploadPhoto | undefined) {
 
   async function start(selected: File) {
     if (!upload) return;
+    setSelectionError(undefined);
     active.current?.abort();
     const controller = new AbortController();
     active.current = controller;
@@ -68,28 +74,45 @@ export function usePhotoUpload(upload: UploadPhoto | undefined) {
     }
   }
 
-  function select(selected: File) {
-    let nextPreview: string;
+  function cancelPreparation() {
+    preparing.current?.abort();
+    preparing.current = undefined;
+    setIsPreparing(false);
+  }
+
+  async function select(selected: File) {
+    cancelPreparation();
+    const controller = new AbortController();
     try {
       validatePhoto(selected);
-      nextPreview = URL.createObjectURL(selected);
+      preparing.current = controller;
+      setIsPreparing(true);
+      setSelectionError(undefined);
+      const prepared = await preparePhoto(selected, controller.signal);
+      if (controller.signal.aborted) return;
+      const nextPreview = URL.createObjectURL(prepared);
+      // Commit the replacement only after decoding and resizing succeed.
+      file.current = prepared;
+      setFocus([0.5, 0.5]);
+      changePreview(nextPreview);
+      void start(prepared);
     } catch (error) {
-      setSelectionError(
-        error instanceof PhotoUploadError
-          ? error.message
-          : "Choose another photo.",
-      );
-      return;
+      if (!controller.signal.aborted)
+        setSelectionError(
+          error instanceof PhotoUploadError
+            ? error.message
+            : "This photo couldn’t be prepared. Choose another photo.",
+        );
+    } finally {
+      if (preparing.current === controller) {
+        preparing.current = undefined;
+        setIsPreparing(false);
+      }
     }
-    setSelectionError(undefined);
-    active.current?.abort();
-    file.current = selected;
-    setFocus([0.5, 0.5]);
-    changePreview(nextPreview);
-    void start(selected);
   }
 
   function clear() {
+    cancelPreparation();
     setSelectionError(undefined);
     active.current?.abort();
     file.current = undefined;
@@ -100,6 +123,7 @@ export function usePhotoUpload(upload: UploadPhoto | undefined) {
 
   return {
     state,
+    isPreparing,
     selectionError,
     previewUrl,
     focus,
@@ -107,9 +131,12 @@ export function usePhotoUpload(upload: UploadPhoto | undefined) {
     select,
     clear,
     retry: () => {
+      cancelPreparation();
       if (file.current) void start(file.current);
     },
-    canSave: () => ["empty", "ready"].includes(currentState.current.status),
+    canSave: () =>
+      !preparing.current &&
+      ["empty", "ready"].includes(currentState.current.status),
     savedPhoto: () =>
       currentState.current.status === "ready"
         ? { filename: currentState.current.filename, focus }

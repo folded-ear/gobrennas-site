@@ -2,7 +2,7 @@ import { act, cleanup, render, screen, userEvent, waitFor } from "@/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PhotoEditor } from "./index";
 import { deferred, soupPhoto, stubPhotoBrowser } from "./test/browser";
-import type { UploadPhoto } from "./types";
+import { MAX_PHOTO_BYTES, type UploadPhoto } from "./types";
 import { usePhotoUpload } from "./use-photo-upload";
 
 function Editor({
@@ -31,10 +31,11 @@ describe("recipe photo editor", () => {
   });
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
-  it("previews selection immediately, reports real progress, and waits for upload confirmation", async () => {
+  it("previews a prepared selection, reports real progress, and waits for upload confirmation", async () => {
     const user = userEvent.setup();
     const pending = deferred<string>();
     const upload = vi.fn<UploadPhoto>(() => pending.promise);
@@ -42,7 +43,7 @@ describe("recipe photo editor", () => {
     await user.upload(screen.getByLabelText("Recipe photo"), soupPhoto());
     expect(
       screen.getByRole("img", { name: "Selected recipe photo" }),
-    ).toHaveAttribute("src", "blob:photo-1");
+    ).toHaveAttribute("src", "blob:photo-2");
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     act(() => upload.mock.calls[0][1].onProgress(65));
     expect(
@@ -81,8 +82,8 @@ describe("recipe photo editor", () => {
     });
   });
 
-  it("retries upload without losing the selected image or focus", async () => {
-    const user = userEvent.setup();
+  it("retries upload without losing the selected image or focus and clears stale selection errors", async () => {
+    const user = userEvent.setup({ applyAccept: false });
     const upload = vi
       .fn<UploadPhoto>()
       .mockRejectedValueOnce(new Error("Offline"))
@@ -95,6 +96,13 @@ describe("recipe photo editor", () => {
     );
     screen.getByRole("button", { name: "Photo focus" }).focus();
     await user.keyboard("{ArrowLeft}");
+    await user.upload(
+      screen.getByLabelText("Recipe photo"),
+      new File(["pdf"], "menu.pdf", { type: "application/pdf" }),
+    );
+    expect(
+      screen.getByText("Choose a JPEG, PNG, WebP, GIF, or AVIF image."),
+    ).toBeVisible();
     await user.click(
       screen.getByRole("button", { name: "Retry photo upload" }),
     );
@@ -102,6 +110,7 @@ describe("recipe photo editor", () => {
       expect(screen.getByRole("button", { name: "Save" })).toBeEnabled(),
     );
     expect(upload.mock.calls[1][0]).toBe(file);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(
       screen.getByRole("img", { name: "Narrow crop preview" }),
     ).toHaveStyle({
@@ -127,7 +136,7 @@ describe("recipe photo editor", () => {
     expect(screen.getByLabelText("Uploaded photo")).toHaveTextContent(
       "scratch/new.jpg",
     );
-    expect(browser.revokeObjectURL).toHaveBeenCalledWith("blob:photo-1");
+    expect(browser.revokeObjectURL).toHaveBeenCalledWith("blob:photo-2");
   });
 
   it("discards an unsaved upload and permits saving without a photo", async () => {
@@ -188,7 +197,7 @@ describe("recipe photo editor", () => {
       );
       expect(
         screen.getByRole("img", { name: "Selected recipe photo" }),
-      ).toHaveAttribute("src", "blob:photo-1");
+      ).toHaveAttribute("src", "blob:photo-2");
       expect(
         screen.getByRole("img", { name: "Narrow crop preview" }),
       ).toHaveStyle({ objectPosition: "49% 50%" });
@@ -200,7 +209,7 @@ describe("recipe photo editor", () => {
         screen.queryByRole("button", { name: "Retry photo upload" }),
       ).not.toBeInTheDocument();
       expect(upload).toHaveBeenCalledTimes(1);
-      expect(browser.revokeObjectURL).not.toHaveBeenCalled();
+      expect(browser.revokeObjectURL).not.toHaveBeenCalledWith("blob:photo-2");
       await user.click(screen.getByRole("button", { name: "Discard photo" }));
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     },
@@ -227,6 +236,169 @@ describe("recipe photo editor", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   });
 
+  it.each(["decode", "dimensions", "resize"] as const)(
+    "preserves the current photo when replacement preparation fails at %s",
+    async (failure) => {
+      const user = userEvent.setup();
+      const upload = vi.fn<UploadPhoto>().mockResolvedValue("scratch/soup.jpg");
+      render(<Editor upload={upload} />);
+      await user.upload(screen.getByLabelText("Recipe photo"), soupPhoto());
+      screen.getByRole("button", { name: "Photo focus" }).focus();
+      await user.keyboard("{ArrowLeft}");
+      const images = controlImageDecoding();
+      if (failure === "resize") {
+        vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+          fillStyle: "",
+          fillRect: vi.fn(),
+          drawImage: vi.fn(),
+        } as unknown as CanvasRenderingContext2D);
+        vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation(
+          (callback) => callback(new Blob([new Uint8Array(MAX_PHOTO_BYTES)])),
+        );
+      }
+      const replacement = new File(
+        [new Uint8Array(failure === "resize" ? MAX_PHOTO_BYTES : 8)],
+        "replacement.avif",
+        { type: "image/avif" },
+      );
+      await user.upload(screen.getByLabelText("Recipe photo"), replacement);
+      expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+      expect(screen.getByText("Preparing photo…")).toBeVisible();
+      await act(async () => {
+        if (failure === "decode") images[0].onerror?.();
+        else {
+          if (failure === "dimensions") images[0].naturalWidth = 0;
+          images[0].onload?.();
+        }
+      });
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        failure === "decode"
+          ? "couldn’t be opened"
+          : failure === "dimensions"
+            ? "no usable dimensions"
+            : "still too large",
+      );
+      expect(
+        screen.getByRole("img", { name: "Selected recipe photo" }),
+      ).toHaveAttribute("src", "blob:photo-2");
+      expect(
+        screen.getByRole("img", { name: "Narrow crop preview" }),
+      ).toHaveStyle({ objectPosition: "49% 50%" });
+      expect(screen.getByLabelText("Uploaded photo")).toHaveTextContent(
+        "scratch/soup.jpg",
+      );
+      expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+      expect(
+        screen.queryByRole("button", { name: "Retry photo upload" }),
+      ).not.toBeInTheDocument();
+      expect(upload).toHaveBeenCalledTimes(1);
+      expect(browser.revokeObjectURL).toHaveBeenCalledWith("blob:photo-3");
+      expect(browser.revokeObjectURL).not.toHaveBeenCalledWith("blob:photo-2");
+    },
+  );
+
+  it("only uploads the latest selection when decoding overlaps", async () => {
+    const user = userEvent.setup();
+    const images = controlImageDecoding();
+    const upload = vi.fn<UploadPhoto>().mockResolvedValue("scratch/latest.jpg");
+    render(<Editor upload={upload} />);
+    await user.upload(screen.getByLabelText("Recipe photo"), soupPhoto());
+    const lateLoad = images[0].onload;
+    const latest = new File(["pie"], "pie.jpg", { type: "image/jpeg" });
+    await user.upload(screen.getByLabelText("Recipe photo"), latest);
+    await act(async () => lateLoad?.());
+    expect(upload).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    await act(async () => images[1].onload?.());
+    expect(upload).toHaveBeenCalledTimes(1);
+    expect(upload.mock.calls[0][0]).toBe(latest);
+    expect(screen.getByLabelText("Uploaded photo")).toHaveTextContent(
+      "scratch/latest.jpg",
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it.each(["discard", "unmount"] as const)(
+    "cancels pending preparation on %s",
+    async (action) => {
+      const user = userEvent.setup();
+      const images = controlImageDecoding();
+      const upload = vi.fn<UploadPhoto>();
+      const { unmount } = render(<Editor upload={upload} />);
+      await user.upload(screen.getByLabelText("Recipe photo"), soupPhoto());
+      const lateLoad = images[0].onload;
+      if (action === "discard")
+        await user.click(screen.getByRole("button", { name: "Discard photo" }));
+      else unmount();
+      await act(async () => lateLoad?.());
+      expect(upload).not.toHaveBeenCalled();
+      expect(browser.revokeObjectURL).toHaveBeenCalledWith("blob:photo-1");
+      if (action === "discard") {
+        expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+        expect(screen.queryByRole("img")).not.toBeInTheDocument();
+        expect(screen.queryByText("Preparing photo…")).not.toBeInTheDocument();
+      }
+    },
+  );
+
+  it("reuses the resized file on upload retry", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+      fillStyle: "",
+      fillRect: vi.fn(),
+      drawImage: vi.fn(),
+    } as unknown as CanvasRenderingContext2D);
+    const encode = vi
+      .spyOn(HTMLCanvasElement.prototype, "toBlob")
+      .mockImplementation((callback) =>
+        callback(new Blob(["resized image"], { type: "image/jpeg" })),
+      );
+    const upload = vi
+      .fn<UploadPhoto>()
+      .mockRejectedValueOnce(new Error("Offline"))
+      .mockResolvedValueOnce("scratch/retry.jpg");
+    render(<Editor upload={upload} />);
+    await user.upload(
+      screen.getByLabelText("Recipe photo"),
+      new File([new Uint8Array(MAX_PHOTO_BYTES)], "large.png", {
+        type: "image/png",
+      }),
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Photo upload failed",
+    );
+    const prepared = upload.mock.calls[0][0];
+    expect(prepared.name).toBe("large.jpg");
+    expect(prepared.type).toBe("image/jpeg");
+    expect(prepared.size).toBeLessThan(MAX_PHOTO_BYTES);
+    await user.click(
+      screen.getByRole("button", { name: "Retry photo upload" }),
+    );
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    expect(upload.mock.calls[1][0]).toBe(prepared);
+    expect(encode).toHaveBeenCalledTimes(1);
+  });
+
+  it("cancels a pending candidate when the next pick is invalid", async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    const images = controlImageDecoding();
+    const upload = vi.fn<UploadPhoto>();
+    render(<Editor upload={upload} />);
+    await user.upload(screen.getByLabelText("Recipe photo"), soupPhoto());
+    const lateLoad = images[0].onload;
+    await user.upload(
+      screen.getByLabelText("Recipe photo"),
+      new File(["pdf"], "menu.pdf", { type: "application/pdf" }),
+    );
+    await act(async () => lateLoad?.());
+    expect(upload).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Choose a JPEG, PNG, WebP, GIF, or AVIF image",
+    );
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+
   it("disables selection and focus changes while saving", async () => {
     const user = userEvent.setup();
     const upload = async () => "scratch/soup.jpg";
@@ -249,6 +421,22 @@ describe("recipe photo editor", () => {
     await user.upload(screen.getByLabelText("Recipe photo"), soupPhoto());
     unmount();
     expect(upload.mock.calls[0][1].signal.aborted).toBe(true);
-    expect(browser.revokeObjectURL).toHaveBeenCalledWith("blob:photo-1");
+    expect(browser.revokeObjectURL).toHaveBeenCalledWith("blob:photo-2");
   });
 });
+
+function controlImageDecoding() {
+  const images: ControlledImage[] = [];
+  class ControlledImage {
+    naturalWidth = 1600;
+    naturalHeight = 1200;
+    src = "";
+    onload?: (() => void) | null;
+    onerror?: (() => void) | null;
+    constructor() {
+      images.push(this);
+    }
+  }
+  vi.stubGlobal("Image", ControlledImage);
+  return images;
+}

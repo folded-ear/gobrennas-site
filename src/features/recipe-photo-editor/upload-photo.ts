@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { preparePhoto } from "./prepare-photo";
 import { PhotoUploadError, type UploadOptions } from "./types";
 
 const scratchUploadSchema = z.object({
@@ -13,11 +12,11 @@ export type ScratchUpload = z.infer<typeof scratchUploadSchema>;
 type RequestUpload = (file: File, signal: AbortSignal) => Promise<unknown>;
 
 export async function uploadPhoto(
-  original: File,
+  file: File,
   requestUpload: RequestUpload,
   options: UploadOptions,
 ): Promise<string> {
-  const file = await preparePhoto(original, options.signal);
+  options.signal.throwIfAborted();
   const upload = scratchUploadSchema.parse(
     await requestUpload(file, options.signal),
   );
