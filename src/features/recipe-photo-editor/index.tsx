@@ -1,8 +1,8 @@
 "use client";
 
 import { Button, Label, ProgressBar } from "@heroui/react";
-import { useId, useRef, type PointerEvent } from "react";
-import { PHOTO_ACCEPT, clampFocus, type PhotoFocus } from "./types";
+import { type PointerEvent, useId, useRef } from "react";
+import { clampFocus, PHOTO_ACCEPT, type PhotoFocus } from "./types";
 import type { usePhotoUpload } from "./use-photo-upload";
 
 type PhotoEditorProps = {
@@ -88,7 +88,7 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
           ) : null}
         </div>
         {previewUrl ? (
-          <div className="grid items-start gap-md @lg:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] items-start gap-sm">
             <div className="flex min-w-0 flex-col gap-sm">
               <div className="relative w-fit max-w-full overflow-hidden rounded-field">
                 {/* Local blob previews must not go through the Next image proxy. */}
@@ -96,7 +96,7 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
                 <img
                   src={previewUrl}
                   alt="Selected recipe photo"
-                  className="block max-h-64 max-w-full"
+                  className="block max-h-40 max-w-full"
                 />
                 <button
                   type="button"
@@ -150,18 +150,10 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
                   />
                 </button>
               </div>
-              <p id={helpId} className="text-xs text-muted">
-                Click or drag to choose the focus. Use arrow keys to adjust,
-                Shift for larger steps, or Enter to center.
-              </p>
-              <p role="status" className="sr-only">
-                Photo focus: {Math.round(focus[0] * 100)}% from left,{" "}
-                {Math.round(focus[1] * 100)}% from top.
-              </p>
             </div>
             <div className="flex min-w-0 flex-col gap-sm">
               <p className="text-xs font-medium">Crop preview</p>
-              <figure className="w-1/4">
+              <figure className="w-full max-w-24">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previewUrl}
@@ -172,11 +164,15 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
                   }}
                 />
               </figure>
-              <p className="text-xs text-muted">
-                The same focus is used on recipe cards and detail pages.
-                Cropping varies with screen size.
-              </p>
             </div>
+            <p id={helpId} className="col-span-2 text-xs text-muted">
+              Click or drag to choose the focus. Use arrow keys to adjust, Shift
+              for larger steps, or Enter to center.
+            </p>
+            <p role="status" className="sr-only">
+              Photo focus: {Math.round(focus[0] * 100)}% from left,{" "}
+              {Math.round(focus[1] * 100)}% from top.
+            </p>
           </div>
         ) : null}
         {photo.isPreparing ? (

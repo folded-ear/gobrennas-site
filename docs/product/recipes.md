@@ -121,7 +121,8 @@ without leaving the Library behind.
   prepared image and clears any stale selection error.
 - Clicking or dragging on the image sets its focus. Arrow keys adjust focus by
   one percentage point, Shift-arrow by ten, and Enter/Space resets it to center.
-  A narrow crop preview updates as focus changes. Cards and detail pages use the
+  A compact narrow crop preview sits beside the focus image and updates as focus
+  changes. Cards and detail pages use the
   same saved focus; exact cropping varies with the image container and screen.
 - Once a replacement is prepared, it cancels the previous upload and resets focus
   to center. Late results from a canceled attempt cannot replace the current selection.
