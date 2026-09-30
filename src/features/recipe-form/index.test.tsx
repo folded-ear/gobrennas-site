@@ -459,14 +459,6 @@ describe("RecipeForm", () => {
     await user.tab();
     expect(titleInput).toHaveFocus();
     await user.tab();
-    expect(sourceUrlInput).toHaveFocus();
-    await user.tab();
-    expect(yieldInput).toHaveFocus();
-    await user.tab();
-    expect(totalTimeInput).toHaveFocus();
-    await user.tab();
-    expect(caloriesInput).toHaveFocus();
-    await user.tab();
     expect(screen.getByRole("button", { name: /Recipe labels/ })).toHaveFocus();
     await user.tab();
     expect(editableMorsel("Ingredient 1")).toHaveFocus();
@@ -478,6 +470,14 @@ describe("RecipeForm", () => {
     expect(
       screen.getByRole("button", { name: "Add ingredient below 1" }),
     ).toHaveFocus();
+    await user.tab();
+    expect(sourceUrlInput).toHaveFocus();
+    await user.tab();
+    expect(yieldInput).toHaveFocus();
+    await user.tab();
+    expect(totalTimeInput).toHaveFocus();
+    await user.tab();
+    expect(caloriesInput).toHaveFocus();
     await user.tab();
     expect(directions).toHaveFocus();
     await user.tab();

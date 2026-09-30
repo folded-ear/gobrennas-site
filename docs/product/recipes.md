@@ -28,9 +28,10 @@ without leaving the Library behind.
   until the title contains non-whitespace text. Directions are optional.
 - It also offers optional Source URL, Yield, Total cook time, and Calories per
   serving fields, in that order between Title and Directions.
-- Title, Source URL, Yield, Total cook time, Calories per serving, and recipe
-  labels share two equal-width columns above ingredients and directions.
-  Narrow editors stack these fields in a single column.
+- Title is the first field and spans the full editor width. Below it, two equal
+  columns place Photo, Labels, and Ingredients on the left, and Source URL,
+  Yield, Total cook time, Calories per serving, and Directions on the right.
+  Narrow editors stack the left column before the right column.
 - Yield is a positive whole number. Calories per serving is a non-negative
   whole number. A blank value means it is unknown; zero remains valid for
   Calories per serving.
@@ -95,7 +96,7 @@ without leaving the Library behind.
 
 ### Photos in recipe creation
 
-- The Photo field sits below metadata and above ingredients and directions.
+- The Photo field sits below Title, above Labels and Ingredients in the left column.
   Choose photo opens a file picker; dropping a file selects it as well.
 - Selection first decodes and, if needed, resizes the image, then shows a local
   preview and starts a direct browser upload through the existing scratch-upload
