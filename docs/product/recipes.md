@@ -58,8 +58,9 @@ without leaving the Library behind.
   fresh blank input ready to use.
 - Pasting multiple lines replaces the selection, preserves surrounding text,
   and creates one row per nonblank line. Focus moves to the last pasted row.
-- Blank ingredient rows are omitted when saving. Populated rows preserve their
-  raw text and order; ingredient recognition is not required.
+- New or edited blank ingredient rows are omitted when saving. Untouched saved
+  rows are preserved, even if their raw text is blank. Populated rows preserve
+  their raw text and order; ingredient recognition is not required.
 - Editing or focusing an ingredient runs recognition after a brief pause and
   shows a labeled preview. Saving includes current recognized details when
   available and preserves raw text when recognition is pending or fails. See

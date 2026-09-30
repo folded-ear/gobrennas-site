@@ -166,6 +166,80 @@ describe("ingredient recognition input", () => {
     expect(submit).toHaveBeenCalledWith(storedInfo);
   });
 
+  it.each(["", "   "])(
+    "omits cleared saved ingredients in the recipe and its owned section (%j)",
+    async (blank) => {
+      const initial = recipeToDraft(storedRecipe);
+      const submit = vi.fn().mockResolvedValue(undefined);
+      render(
+        <RecipeForm
+          heading="Edit Recipe"
+          initialDraft={initial}
+          onSubmit={async (draft) => {
+            await submit(toRecipeUpdate(draft, initial, storedRecipe));
+          }}
+          onCancel={vi.fn()}
+          recognizeIngredient={recognizeFlour}
+        />,
+      );
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      await tick(0);
+      for (const field of [input(), editableMorsel("Section 1 ingredient 1")]) {
+        await user.clear(field);
+        if (blank) await user.type(field, blank);
+      }
+      await user.click(screen.getByRole("button", { name: "Save recipe" }));
+      expect(submit).toHaveBeenCalledWith({
+        ...storedInfo,
+        ingredients: [storedInfo.ingredients?.[1]],
+        sections: [
+          { ...storedInfo.sections?.[0], ingredients: [] },
+          storedInfo.sections?.[1],
+        ],
+      });
+    },
+  );
+
+  it("saves a different picked food on a saved row even when its name leaves the text unchanged", async () => {
+    const recipe = {
+      ...storedRecipe,
+      sections: [],
+      ingredients: [
+        {
+          ...storedRecipe.ingredients[1],
+          raw: "flour",
+          ingredient: { __typename: "PantryItem" as const, id: "old-flour" },
+        },
+      ],
+    };
+    const initial = recipeToDraft(recipe);
+    const submit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <RecipeForm
+        heading="Edit Recipe"
+        initialDraft={initial}
+        onSubmit={async (draft) => {
+          await submit(toRecipeUpdate(draft, initial, recipe));
+        }}
+        onCancel={vi.fn()}
+        recognizeIngredient={recognizeFlour}
+      />,
+    );
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await tick(0);
+    await user.click(input());
+    await user.keyboard("{End}{ArrowDown}");
+    await tick();
+    await user.click(screen.getByRole("option", { name: "flour" }));
+    expect(input()).toHaveTextContent(/^flour$/);
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    expect(submit).toHaveBeenCalledWith({
+      ...storedInfo,
+      sections: [],
+      ingredients: [{ raw: "flour", ingredientId: "pantry-flour" }],
+    });
+  });
+
   it("keeps a recognized row quiet on return and through quantity, unit, and preparation edits until the name changes", async () => {
     const { user } = editor(recognizeFlour, ["1 cup flour, sifted"]);
     await user.click(input());
