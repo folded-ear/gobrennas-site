@@ -207,6 +207,14 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Editing items
 
+- Existing leaf rows inside an open item's detail use compact, inline Morsel while being edited.
+  Quantity, unit, and ingredient highlights update after a brief pause. This
+  first version has no suggestions; saving still sends the entered text.
+  A leading `!` skips recognition. Recognition failures do not prevent saving.
+  Resting rows use the same highlights while preserving the original wording,
+  fractions, and punctuation. Pending name and status changes keep their existing
+  visual feedback. Failed recognition leaves resting text readable without highlights.
+  Headings, new rows, and section screens keep their plain text fields.
 - A user who can change a plan edits an item's name in place wherever it
   shows as text: below the open item or in a section screen, and the open
   item itself at the head of the item screen. Names on the timeline open

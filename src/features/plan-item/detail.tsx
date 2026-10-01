@@ -115,6 +115,7 @@ export function PlanItemDetail({
           node={node}
           sectionRoot={holdsSection && descendants.includes(node)}
           spansPlans={spansPlans}
+          recognizeIngredients={parentId !== undefined}
           context={context}
           tree={dnd?.tree}
           onMove={dnd?.moves.moveInTree}

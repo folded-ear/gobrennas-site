@@ -4,6 +4,7 @@ import { displayName } from "@/lib/plan-item-name";
 import clsx from "clsx";
 import { ReactNode, useEffect, useLayoutEffect, useRef } from "react";
 import { keyString } from "./drafts";
+import { IngredientNameEditor } from "./ingredient-name-editor";
 import { ItemNameEditor } from "./item-name-editor";
 import { headingKeymap, RowActions, rowKeymap } from "./keymap";
 import { useEditSurface } from "./surface";
@@ -16,6 +17,8 @@ type EditableNameProps = {
   readonly hasChildren: boolean;
   /** Whether the viewer may edit the item now. */
   readonly canEdit: boolean;
+  /** Highlight ingredient recognition while editing a recipe's leaf row. */
+  readonly recognizeIngredient?: boolean;
   /** Which keys the editor takes: a row's, or the item screen heading's. */
   readonly keys?: "row" | "heading";
   /** A new item made beside me is assigned this bucket once created. */
@@ -45,6 +48,7 @@ export function EditableName({
   name,
   hasChildren,
   canEdit,
+  recognizeIngredient = false,
   keys = "row",
   bucketId,
   group,
@@ -95,6 +99,7 @@ export function EditableName({
   }
 
   if (editing) {
+    const Editor = recognizeIngredient ? IngredientNameEditor : ItemNameEditor;
     const actions: RowActions = {
       split: (atStart) =>
         keys === "heading"
@@ -106,7 +111,7 @@ export function EditableName({
     };
     return (
       <span className={clsx("flex min-w-0 flex-1", stacked, className)}>
-        <ItemNameEditor
+        <Editor
           initialText={surface.resumeText() ?? name}
           caret={surface.caret}
           keymap={

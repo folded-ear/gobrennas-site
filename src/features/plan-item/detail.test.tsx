@@ -691,6 +691,8 @@ describe("PlanItemDetail, editing", () => {
     const { requests } = renderEditable(pieNode, pieNode.children);
     await userEvent.click(screen.getByRole("button", { name: "Pie crust" }));
 
+    // user-event does not yet recognize plaintext-only contenteditables.
+    screen.getByRole("textbox").setAttribute("contenteditable", "true");
     await userEvent.clear(screen.getByRole("textbox"));
     await userEvent.type(screen.getByRole("textbox"), "Tart crust");
     await leave();
@@ -719,6 +721,7 @@ describe("PlanItemDetail, editing", () => {
   it("goes up to the heading on Backspace in the first row", async () => {
     const { requests } = renderEditable(pieNode, pieNode.children);
     await userEvent.click(screen.getByRole("button", { name: "Pie crust" }));
+    screen.getByRole("textbox").setAttribute("contenteditable", "true");
     await userEvent.clear(screen.getByRole("textbox"));
 
     await userEvent.keyboard("{Backspace}");
