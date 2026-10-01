@@ -1,0 +1,7 @@
+mutation deleteRecipe($id: ID!) {
+  library {
+    deleteRecipe(id: $id) {
+      id
+    }
+  }
+}

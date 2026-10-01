@@ -15,6 +15,7 @@ export function RecipeEdit({ id }: RecipeEditProps) {
       id={id}
       onSaved={returnToRecipe}
       onCancel={returnToRecipe}
+      onDeleted={() => router.replace("/recipes")}
     />
   );
 }
