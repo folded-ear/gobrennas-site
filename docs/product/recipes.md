@@ -27,14 +27,14 @@ Delivery: Built
 
 - Library recipe detail is for reading, adding to a plan, editing, and deleting
   the saved recipe. Scaling and cooking belong to planned recipes.
-- The name, optional photo, source, yield, total time, calories per serving, and
-  labels precede the ingredients and directions. Unknown information is omitted;
-  zero time and calories remain visible.
+- Recipe information appears in a compact strip above the content. Unknown
+  information is omitted; zero time and calories remain visible.
 - Ingredients and directions sit side by side on wider screens and stack on
-  narrow screens. Recognized ingredients display their saved quantity, unit,
-  ingredient name, and preparation. Quantity, unit, and ingredient use Morsel's
-  text treatment, without interactive controls. Unrecognized rows retain their
-  original wording. No recognition requests are needed to read the recipe.
+  narrow screens. The photo sits above the ingredients at the same width, while
+  directions start at the top of the right column. Recognized ingredients display
+  their saved quantity, unit, ingredient name, and preparation. Quantity, unit,
+  and ingredient use Morsel's text treatment, without interactive controls.
+  Unrecognized rows retain their original wording. No recognition requests are needed to read the recipe.
 - Directions preserve line and paragraph breaks. Missing ingredients or
   directions are identified explicitly. Owned and borrowed sections appear in
   saved order, each with its own heading, ingredients, and directions.
@@ -53,8 +53,9 @@ Delivery: Built
   recipe action. Other people see neither action. Deletion uses the confirmation
   and recovery behavior below and returns to the Library on success.
 - Share and Copy to my library are deferred until those features are ready.
-- Planned recipe detail and cooking are separate future views, with their own
-  actions.
+- Opening a planned recipe in the planner remains focused on editing that
+  occurrence. Its Cook view provides the readable recipe and cooking actions;
+  see [Cooking](planner.md#cooking).
 
 ### Create editor
 

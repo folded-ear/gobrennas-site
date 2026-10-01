@@ -1,0 +1,70 @@
+fragment cookPlan on Plan {
+  id
+  name
+  mine
+  grants {
+    level
+    user {
+      id
+      me
+    }
+  }
+  # Includes linked prep even after it moves or is completed. Descendants
+  # alone only follows the active scheduling tree.
+  updatedSince(cutoff: 0) {
+    __typename
+    id
+    ... on PlanItem {
+      id
+      name
+      pendingName @client
+      status
+      notes
+      preparation
+      aggregate {
+        id
+      }
+      parent {
+        __typename
+        id
+      }
+      plan {
+        id
+      }
+      children {
+        id
+      }
+      components {
+        id
+      }
+      quantity {
+        quantity
+        units {
+          id
+          name
+        }
+      }
+      ingredient {
+        __typename
+        id
+        name
+        ... on Recipe {
+          directions
+          externalUrl
+          yield
+          totalTime
+          calories
+          labels
+          photo {
+            url
+          }
+          sections {
+            id
+          }
+          ...recipePhoto
+        }
+      }
+      ...planItemStatus
+    }
+  }
+}

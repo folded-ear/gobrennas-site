@@ -117,8 +117,10 @@ export function CookedItButton({
   return (
     <Button
       aria-label={actionLabel(look.action, item.name)}
-      className="border-status-completed text-status-completed"
-      isDisabled={item.inert || item.pendingStatus !== null}
+      className="bg-status-completed text-status-completed-foreground"
+      isDisabled={
+        item.inert || item.savingStatus || item.pendingStatus !== null
+      }
       onPress={() => {
         queue.hold({
           kind: "status",
@@ -129,7 +131,7 @@ export function CookedItButton({
         });
         onCooked?.();
       }}
-      variant="outline"
+      variant="primary"
     >
       <CookedItIcon size="small" aria-hidden="true" />
       {look.action}

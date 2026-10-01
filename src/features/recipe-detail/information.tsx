@@ -35,8 +35,8 @@ export function RecipeInformation({
     .filter(Boolean)
     .join(" ");
   return (
-    <div className="flex flex-col gap-lg">
-      <dl className="flex flex-wrap gap-x-xxl gap-y-md">
+    <div className="flex flex-wrap items-center gap-md">
+      <dl className="flex flex-wrap gap-x-lg gap-y-sm">
         {recipeYield !== null ? (
           <div>
             <dt className="text-sm text-muted">Yield</dt>
@@ -56,7 +56,7 @@ export function RecipeInformation({
           </div>
         ) : null}
         {source ? (
-          <div className="min-w-0 basis-full">
+          <div className="min-w-0">
             <dt className="text-sm text-muted">Source</dt>
             <dd className="break-words">
               {href ? (
@@ -80,7 +80,7 @@ export function RecipeInformation({
           {labels.map((label, index) => (
             <li
               key={`${label}:${index}`}
-              className="rounded-full bg-surface-secondary px-md py-xs text-sm"
+              className="rounded-full bg-surface-secondary px-sm py-xs text-sm"
             >
               {label}
             </li>

@@ -27,9 +27,11 @@ Shared UI belongs in `src/components/`. Shared hooks and providers belong in
 Recipe ingredient, direction, and section displays in
 `src/features/recipe-ingredients-and-directions/content.tsx` take plain content
 props. The library's fragment-reading components adapt saved recipe data to
-these displays. Planned recipe and cooking views can reuse the displays with
-their own data, layout, and actions. Recipe detail and the editor share deletion
-and cache cleanup through `src/features/recipe-form/use-delete-recipe.ts`.
+these displays. Cook adapts planned items and their cooking links to the same
+displays, using planned notes before saved directions. It reads the plan’s full
+item graph, including retained completed prep, through `updatedSince(0)`; the
+scheduling tree alone omits those items. Each view retains its own actions.
+Recipe detail and the editor share deletion and cache cleanup through `src/features/recipe-form/use-delete-recipe.ts`.
 
 ## Navigation shell
 

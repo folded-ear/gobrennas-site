@@ -1,19 +1,8 @@
-query Cook($planId: ID!, $itemId: ID!) {
+query Cook($planId: ID!) {
   planner {
     plan(id: $planId) {
       id
-      mine
-      grants {
-        level
-        user {
-          id
-          me
-        }
-      }
-    }
-    planItem(id: $itemId) {
-      id
-      ...planItem
+      ...cookPlan
     }
   }
 }

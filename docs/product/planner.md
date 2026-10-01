@@ -110,10 +110,38 @@ The terms used here are defined in the [domain model](../domain/model.md).
   in the item screen's walk down to the open item, and below it.
 - The cook view is a page of its own, in the Planner section. Back returns
   to where it was opened from, with the item screen still open if it was.
-- The cook view shows its item's status, and a user who can change the
-  plan can mark it cooked. Marking it cooked goes back, and the item waits
-  out its undo window there, with a button to undo it in place of each of
-  its cook links.
+- Cook is a readable view of one planned recipe and its sections, subrecipes,
+  and preparation. Opening a recipe in the planner still opens the existing
+  editable item screen. Cooking a whole day or bucket is deferred.
+- The planned name, quantities, preparations, and ingredient choices are shown.
+  Unrecognized rows keep their wording; recognized rows use the same read-only
+  quantity, unit, and ingredient treatment as library recipes. Cook offers no
+  ingredient editing or scaling controls.
+- Ingredients come from the planned occurrence, including linked preparation
+  moved elsewhere in the plan. A piece reachable both through the tree and a
+  cooking link is shown once. Distinct planned copies of the same saved recipe
+  remain distinct. Deleted items are omitted; completed prep remains readable
+  and is identified as already prepared.
+- Plan-specific notes replace saved directions when present. Otherwise, the
+  linked recipe supplies directions. An occurrence whose saved recipe was
+  deleted remains readable from its planned items and notes.
+- Cook keeps a small photo thumbnail and serving count beside the title. The
+  thumbnail opens a larger photo without leaving Cook. Time, source, calories,
+  and labels are available under Recipe details, collapsed by default so the
+  ingredients and directions begin near the top.
+- An independently planned recipe's yield reflects the scale used when it was
+  added to the plan; existing planned ingredient quantities are never scaled
+  again by the view.
+- The title, plan name, I cooked it, I prepped this, and Close remain above the
+  scrolling content. Close returns to where Cook was opened. The view loads current plan
+  data on entry; a missing or deleted occurrence offers a way back to the planner.
+- I cooked it is the primary action. I prepped this is a secondary action that
+  marks the recipe Acquired, keeps it in the plan, and stays in Cook. Once saved,
+  it reads Prepped and can be pressed again to undo prep (mark Needed). Both
+  actions wait while a status change is saving. Viewers see the prep status as
+  text and cannot change it.
+- Marking a recipe cooked goes back, and the item waits out its undo window
+  there, with a button to undo it in place of each of its cook links.
 
 ### Status
 

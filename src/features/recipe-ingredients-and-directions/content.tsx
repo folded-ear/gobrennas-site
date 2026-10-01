@@ -38,6 +38,7 @@ type ContentProps = {
   ingredients: readonly RecipeIngredient[];
   directions?: string | null;
   headingLevel?: 2 | 3;
+  ingredientHeader?: ReactNode;
 };
 
 /** Recipe content shared by reading and cooking views, independent of its source. */
@@ -45,10 +46,14 @@ export function RecipeContent({
   ingredients,
   directions,
   headingLevel = 2,
+  ingredientHeader,
 }: ContentProps) {
   return (
-    <div className="grid gap-xl md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-xxl">
-      <IngredientList ingredients={ingredients} headingLevel={headingLevel} />
+    <div className="grid gap-lg md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+      <div className="flex min-w-0 flex-col gap-lg">
+        {ingredientHeader}
+        <IngredientList ingredients={ingredients} headingLevel={headingLevel} />
+      </div>
       <Directions text={directions} headingLevel={headingLevel} />
     </div>
   );
@@ -62,7 +67,7 @@ export function IngredientList({
   const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
     <section aria-labelledby={id} className="min-w-0">
-      <Heading id={id} className="mb-md text-xl">
+      <Heading id={id} className="mb-sm text-xl">
         Ingredients
       </Heading>
       {ingredients.length > 0 ? (
@@ -70,7 +75,7 @@ export function IngredientList({
           {ingredients.map((ingredient, index) => (
             <li
               key={index}
-              className="whitespace-pre-wrap break-words py-md leading-relaxed"
+              className="whitespace-pre-wrap break-words py-sm leading-normal"
             >
               <IngredientRefText {...ingredient} />
             </li>
@@ -94,11 +99,11 @@ export function Directions({
   const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
     <section aria-labelledby={id} className="min-w-0">
-      <Heading id={id} className="mb-md text-xl">
+      <Heading id={id} className="mb-sm text-xl">
         Directions
       </Heading>
       {text?.trim() ? (
-        <div className="whitespace-pre-wrap break-words leading-relaxed">
+        <div className="whitespace-pre-wrap break-words leading-normal">
           {text}
         </div>
       ) : (
@@ -117,8 +122,8 @@ export function RecipeSection({
 }) {
   const id = useId();
   return (
-    <section aria-labelledby={id} className="border-t border-separator pt-xl">
-      <h2 id={id} className="mb-xl">
+    <section aria-labelledby={id} className="border-t border-separator pt-lg">
+      <h2 id={id} className="mb-md">
         {title}
       </h2>
       {children}

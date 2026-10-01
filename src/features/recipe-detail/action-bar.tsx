@@ -18,7 +18,7 @@ export function RecipeActionBar({
   onClose: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-md border-b border-separator py-md">
+    <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-sm border-b border-separator py-sm">
       <div className="min-w-0 basis-full sm:basis-auto sm:flex-1">{title}</div>
       <div
         role="group"

@@ -41,22 +41,22 @@ export function RecipeDetail({ id, inScreen = false }: RecipeDetailProps) {
     </RecipeActionBar>
   );
   const content = (
-    <div className="flex flex-col gap-xl pb-xl">
-      <div
-        className={
-          recipe.photo
-            ? "grid items-start gap-xl sm:grid-cols-[16rem_minmax(0,1fr)]"
-            : undefined
+    <div className="flex flex-col gap-lg pb-md">
+      <RecipeInformation {...recipe} />
+      <IngredientsAndDirections
+        parent={recipe}
+        ingredientHeader={
+          recipe.photo ? (
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
+              <RecipePhoto
+                recipe={recipe}
+                loading="eager"
+                sizes="(min-width: 1024px) 400px, (min-width: 768px) 40vw, 100vw"
+              />
+            </div>
+          ) : undefined
         }
-      >
-        {recipe.photo ? (
-          <div className="relative aspect-[4/3] w-full max-w-64 overflow-hidden rounded-lg">
-            <RecipePhoto recipe={recipe} loading="eager" sizes="256px" />
-          </div>
-        ) : null}
-        <RecipeInformation {...recipe} />
-      </div>
-      <IngredientsAndDirections parent={recipe} />
+      />
       <RecipeSections recipe={recipe} />
     </div>
   );
@@ -66,13 +66,13 @@ export function RecipeDetail({ id, inScreen = false }: RecipeDetailProps) {
       <Screen
         label={recipe.name}
         showCloseButton={false}
-        header={<div className="mx-auto w-full max-w-5xl pb-xl">{header}</div>}
+        header={<div className="mx-auto w-full max-w-5xl pb-md">{header}</div>}
       >
         <article className="mx-auto w-full max-w-5xl">{content}</article>
       </Screen>
     );
   return (
-    <article className="mx-auto flex w-full max-w-5xl flex-col gap-xl">
+    <article className="mx-auto flex w-full max-w-5xl flex-col gap-lg">
       {header}
       {content}
     </article>
