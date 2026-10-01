@@ -26,19 +26,6 @@ export function useDeleteRecipe(
     if (result.data?.library.deleteRecipe.id !== recipe.id)
       throw new Error("Delete returned no matching recipe.");
     client.cache.batch({
-      onWatchUpdated(watch) {
-        // The detail is leaving. Refetching its now-deleted recipe before
-        // navigation finishes would replace the page with a missing-recipe error.
-        if (
-          watch.variables?.id === recipe.id &&
-          watch.query.definitions.some(
-            (definition) =>
-              definition.kind === "OperationDefinition" &&
-              definition.name?.value === "getRecipeDetail",
-          )
-        )
-          return false;
-      },
       update(cache) {
         const deletedIds = new Set(
           [

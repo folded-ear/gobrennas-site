@@ -1,5 +1,6 @@
 import { DeleteRecipeDocument } from "@/features/recipe-form/__generated__/deleteRecipe.generated";
 import {
+  act,
   buildInMemoryCache,
   render,
   screen,
@@ -204,6 +205,24 @@ describe("RecipeDetail", () => {
       "The recipe hasn’t been deleted.",
     );
     expect(cache.readQuery(query)).not.toBeNull();
+    // A failed deletion must resume the detail query, not leave a frozen snapshot.
+    act(() =>
+      cache.writeQuery({
+        ...query,
+        data: {
+          library: {
+            __typename: "LibraryQuery",
+            getRecipeById: { ...recipe, name: "Apple pie, revised" },
+          },
+        },
+      }),
+    );
+    expect(
+      await screen.findByRole("alertdialog", {
+        name: "Delete “Apple pie, revised”?",
+      }),
+    ).toBeVisible();
+
     expect(replace).not.toHaveBeenCalled();
     await user.click(
       within(dialog).getByRole("button", { name: "Delete recipe" }),
