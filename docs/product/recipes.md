@@ -164,6 +164,22 @@ without leaving the Library behind.
   ingredient cannot be removed until that reference is removed; this avoids the
   API update-ordering concern tracked in BFS-96.
 
+### Deleting saved recipes
+
+- Only the owner sees Delete recipe, at the bottom of the edit form, separate
+  from Save. The API enforces ownership on deletion.
+- Delete opens a confirmation naming the saved recipe. Cancel receives initial
+  focus; Cancel or Escape closes the dialog and returns focus to Delete recipe
+  without changing the draft.
+- Confirming sends one deletion request. While it is pending, confirmation and
+  cancellation are disabled. Failure keeps the draft and cached recipe intact,
+  shows an error in the dialog, and allows retry or cancellation.
+- Success returns to the Library and refreshes cached recipe, label, and plan
+  data so the deleted recipe disappears without a hard reload.
+- Existing meal-plan entries remain. The API removes their recipe links and may
+  copy directions into empty notes. Photo cleanup and owned-section handling
+  use the existing API deletion behavior.
+
 ### Owned sections
 
 State: Agreed — frontend scope of BFS-24.

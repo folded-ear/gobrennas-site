@@ -13,6 +13,7 @@ import { Alert, Button, Form, Spinner } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState, type FormEvent } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import { DeleteRecipeButton } from "./delete-recipe-button";
 import { RecipeFormError } from "./edit-recipe-draft";
 import type { RecognizeIngredient } from "./ingredient-recognition";
 import { IngredientRows } from "./ingredient-rows";
@@ -25,6 +26,7 @@ type RecipeFormProps = {
   initialDraft: RecipeDraft;
   onSubmit: (draft: RecipeDraft) => Promise<void>;
   onCancel: () => void;
+  onDelete?: () => Promise<void>;
   recognizeIngredient: RecognizeIngredient;
   labelSuggestions?: LabelSuggestions;
   uploadPhoto?: UploadPhoto;
@@ -36,6 +38,7 @@ export function RecipeForm({
   initialDraft,
   onSubmit,
   onCancel,
+  onDelete,
   recognizeIngredient,
   labelSuggestions,
   uploadPhoto,
@@ -251,6 +254,15 @@ export function RecipeForm({
           isDisabled={isSubmitting}
           onEdit={clearSaveFailure}
         />
+        {onDelete ? (
+          <div className="border-t border-separator pt-md">
+            <DeleteRecipeButton
+              name={initialDraft.title}
+              isDisabled={isSubmitting}
+              onDelete={onDelete}
+            />
+          </div>
+        ) : null}
       </div>
     </Form>
   );
