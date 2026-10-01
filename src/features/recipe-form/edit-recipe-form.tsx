@@ -1,10 +1,8 @@
 "use client";
 
-import { isReference, type NormalizedCacheObject } from "@apollo/client";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import { Alert, Button } from "@heroui/react";
 import { useState } from "react";
-import { DeleteRecipeDocument } from "./__generated__/deleteRecipe.generated";
 import { GetRecipeForEditDocument } from "./__generated__/getRecipeForEdit.generated";
 import { UpdateRecipeDocument } from "./__generated__/updateRecipe.generated";
 import { RecipeEditLoading } from "./edit-loading";
@@ -15,6 +13,7 @@ import {
 } from "./edit-recipe-draft";
 import { RecipeForm } from "./index";
 import type { RecipeDraft } from "./recipe-draft";
+import { useDeleteRecipe } from "./use-delete-recipe";
 import { useRecipeFormServices } from "./use-recipe-form-services";
 
 type Props = {
@@ -90,46 +89,7 @@ function LoadedRecipeEditor({
   const client = useApolloClient();
   const services = useRecipeFormServices();
   const [updateRecipe] = useMutation(UpdateRecipeDocument);
-  const [deleteRecipe] = useMutation(DeleteRecipeDocument);
-  async function remove() {
-    if (!recipe.mine) throw new Error("Recipe is not deletable.");
-    const result = await deleteRecipe({ variables: { id: recipe.id } });
-    if (result.data?.library.deleteRecipe.id !== recipe.id)
-      throw new Error("Delete returned no matching recipe.");
-    client.cache.batch({
-      update(cache) {
-        const deletedIds = new Set(
-          [
-            snapshot.recipe,
-            ...snapshot.recipe.sections.filter(
-              (section) => section.sectionOf?.id === recipe.id,
-            ),
-          ]
-            .map((item) => cache.identify(item))
-            .filter((id) => id !== undefined),
-        );
-        // The API keeps plan entries but severs their recipe link and may fill
-        // empty notes. Keep their local editing state while refreshing these fields.
-        // Apollo's generic cache interface erases the InMemoryCache store type.
-        const store = cache.extract() as NormalizedCacheObject;
-        for (const [id, item] of Object.entries(store)) {
-          if (
-            item?.__typename === "PlanItem" &&
-            isReference(item.ingredient) &&
-            deletedIds.has(item.ingredient.__ref)
-          ) {
-            cache.evict({ id, fieldName: "ingredient" });
-            cache.evict({ id, fieldName: "notes" });
-          }
-        }
-        for (const id of deletedIds) cache.evict({ id });
-        for (const fieldName of ["library", "labels", "planner"]) {
-          cache.evict({ id: "ROOT_QUERY", fieldName });
-        }
-      },
-    });
-    onDeleted();
-  }
+  const remove = useDeleteRecipe(snapshot.recipe, onDeleted);
   async function submit(draft: RecipeDraft) {
     if (!recipe.mine) throw new Error("Recipe is not editable.");
     const info = toRecipeUpdate(draft, snapshot.draft, snapshot.recipe);

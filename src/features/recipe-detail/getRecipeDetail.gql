@@ -1,9 +1,20 @@
-query getRecipeDetail($id: ID!, $activePlanId: ID!) {
+query getRecipeDetail($id: ID!) {
   library {
     getRecipeById(id: $id) {
       id
       mine
       name
+      externalUrl
+      yield
+      totalTime
+      calories
+      labels
+      sections {
+        id
+        sectionOf {
+          id
+        }
+      }
       ownedBy {
         id
         ...userAvatar
@@ -16,5 +27,4 @@ query getRecipeDetail($id: ID!, $activePlanId: ID!) {
       ...recipeSections
     }
   }
-  ...sendToPlan
 }

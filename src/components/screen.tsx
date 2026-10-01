@@ -27,6 +27,7 @@ type ScreenProps = PropsWithChildren<{
   /** Shown above my content, staying put while the content scrolls. */
   header?: ReactNode;
   isOpen?: boolean;
+  showCloseButton?: boolean;
 }>;
 
 /**
@@ -39,6 +40,7 @@ export function Screen({
   label,
   header,
   isOpen = true,
+  showCloseButton = true,
   children,
 }: ScreenProps) {
   const router = useRouter();
@@ -64,10 +66,11 @@ export function Screen({
             className="w-full max-w-none p-0 sm:max-w-[90vw]"
           >
             <Drawer.Header className="gap-0 px-xl pt-xl text-base text-foreground">
-              {/* in its own row, so the header never runs underneath it */}
-              <div className="flex justify-end">
-                <Drawer.CloseTrigger className="static" />
-              </div>
+              {showCloseButton ? (
+                <div className="flex justify-end">
+                  <Drawer.CloseTrigger className="static" />
+                </div>
+              ) : null}
               {header}
             </Drawer.Header>
             <Drawer.Body className="m-0 px-xl pb-xl text-base text-foreground">
