@@ -1,9 +1,7 @@
 import { IngredientsAndDirections } from "@/features/recipe-ingredients-and-directions";
-import { IngredientsAndDirectionsFragment } from "@/features/recipe-ingredients-and-directions/__generated__/ingredientsAndDirections.generated";
+import { RecipeSection } from "@/features/recipe-ingredients-and-directions/content";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
-import { Separator } from "@heroui/react";
-import { Fragment } from "react";
 import {
   RecipeSectionsFragment,
   RecipeSectionsFragmentDoc,
@@ -14,29 +12,19 @@ type RecipeSectionsProps = {
 };
 
 export function RecipeSections({ recipe }: RecipeSectionsProps) {
-  const { data } = useFragment({
+  const { data, complete } = useFragment({
     fragment: RecipeSectionsFragmentDoc,
     fragmentName: "recipeSections",
     from: recipe,
   });
-  if (!data?.sections || data.sections.length == 0) return null;
+  if (!complete || data.sections.length === 0) return null;
   return (
     <>
-      <hr />
-      Sections:
-      <hr />
-      {data.sections.map(
-        (s, i) =>
-          s && (
-            <Fragment key={i}>
-              <Separator />
-              <h3 className="text-lg">{s.name}</h3>
-              <IngredientsAndDirections
-                parent={s as FragmentType<IngredientsAndDirectionsFragment>}
-              />
-            </Fragment>
-          ),
-      )}
+      {data.sections.map((section, index) => (
+        <RecipeSection key={`${section.id}:${index}`} title={section.name}>
+          <IngredientsAndDirections parent={section} headingLevel={3} />
+        </RecipeSection>
+      ))}
     </>
   );
 }

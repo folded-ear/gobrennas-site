@@ -292,13 +292,11 @@ export function Morsel({
   }, []);
 
   return (
-    <div id={id} className="relative min-w-0">
+    <div id={id} className="morsel-text relative min-w-0 text-foreground">
       <style>{`
-      #${id} { --morsel-text: color-mix(in oklch, var(--foreground) 75%, var(--background)); --morsel-ingredient: #000; }
-      .dark #${id} { --morsel-ingredient: #fff; }
       ::highlight(${id}-quantity) { color: var(--morsel-text); background-color: var(--default); }
       ::highlight(${id}-unit) { color: var(--morsel-text); text-decoration: underline dotted var(--muted); }
-      ::highlight(${id}-ingredient) { color: var(--morsel-ingredient); text-shadow: 0.25px 0 0 currentColor, -0.25px 0 0 currentColor; }
+      ::highlight(${id}-ingredient) { color: var(--morsel-ingredient); text-shadow: var(--morsel-ingredient-shadow); }
       #${id} [contenteditable]:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
     `}</style>
       <div

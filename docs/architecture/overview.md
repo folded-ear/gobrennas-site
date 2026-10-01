@@ -24,6 +24,15 @@ Shared UI belongs in `src/components/`. Shared hooks and providers belong in
 `src/hooks/` and `src/providers/`. Feature-specific code stays together under
 `src/features/<feature-name>/`.
 
+Recipe ingredient, direction, and section displays in
+`src/features/recipe-ingredients-and-directions/content.tsx` take plain content
+props. The library's fragment-reading components adapt saved recipe data to
+these displays. Cook adapts planned items and their cooking links to the same
+displays, using planned notes before saved directions. It reads the plan’s full
+item graph, including retained completed prep, through `updatedSince(0)`; the
+scheduling tree alone omits those items. Each view retains its own actions.
+Recipe detail and the editor share deletion and cache cleanup through `src/features/recipe-form/use-delete-recipe.ts`.
+
 ## Navigation shell
 
 `app/(private)/layout.tsx` renders the page, the bottom section nav
@@ -84,4 +93,3 @@ its component tree, state shape, or file layout into the new application.
 | MUI and Emotion | HeroUI and Tailwind CSS |
 | Flux stores and immutable.js | Apollo Client cache and RSC data fetching |
 | `src/features/<PascalCase>/` | `src/features/<kebab-case>/` |
-

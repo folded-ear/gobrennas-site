@@ -1,0 +1,16 @@
+query RecipePlanChoices {
+  planner {
+    plans {
+      id
+      name
+      mine
+      grants {
+        level
+        user {
+          id
+          me
+        }
+      }
+    }
+  }
+}

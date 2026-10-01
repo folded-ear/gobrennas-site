@@ -235,6 +235,37 @@
 }
 
 @layer components {
+  .morsel-text {
+    --morsel-text: color-mix(
+      in oklch,
+      var(--foreground) 75%,
+      var(--background)
+    );
+    --morsel-ingredient: #000;
+    --morsel-ingredient-shadow:
+      0.25px 0 0 currentColor, -0.25px 0 0 currentColor;
+    color: var(--morsel-text);
+  }
+
+  .dark .morsel-text {
+    --morsel-ingredient: #fff;
+  }
+
+  .morsel-quantity {
+    color: var(--morsel-text);
+    background-color: var(--default);
+  }
+
+  .morsel-unit {
+    color: var(--morsel-text);
+    text-decoration: underline dotted var(--muted);
+  }
+
+  .morsel-ingredient {
+    color: var(--morsel-ingredient);
+    text-shadow: var(--morsel-ingredient-shadow);
+  }
+
   .button--sm {
     @apply h-5 rounded-sm;
   }

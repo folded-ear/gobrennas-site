@@ -19,6 +19,44 @@ without leaving the Library behind.
 - Selecting recipe detail from the Library opens it over the Library. Direct
   detail and editor addresses use full-page fallbacks.
 
+### Reading a library recipe
+
+State: Agreed — library recipe view scope.
+
+Delivery: Built
+
+- Library recipe detail is for reading, adding to a plan, editing, and deleting
+  the saved recipe. Scaling and cooking belong to planned recipes.
+- Recipe information appears in a compact strip above the content. Unknown
+  information is omitted; zero time and calories remain visible.
+- Ingredients and directions sit side by side on wider screens and stack on
+  narrow screens. The photo sits above the ingredients at the same width, while
+  directions start at the top of the right column. Recognized ingredients display
+  their saved quantity, unit, ingredient name, and preparation. Quantity, unit,
+  and ingredient use Morsel's text treatment, without interactive controls.
+  Unrecognized rows retain their original wording. No recognition requests are needed to read the recipe.
+- Directions preserve line and paragraph breaks. Missing ingredients or
+  directions are identified explicitly. Owned and borrowed sections appear in
+  saved order, each with its own heading, ingredients, and directions.
+- Source URLs using HTTP or HTTPS open in a new tab. Other saved source text is
+  displayed as text.
+- A sticky action bar keeps Add to plan and Close visible while reading, in both
+  the drawer and full-page view. On phones, actions sit below the recipe title.
+  Closing the drawer returns to the previous view; closing the full page returns
+  to the Library.
+- Add to plan opens a chooser containing owned plans and shared plans the viewer
+  can change. Plans load only when requested; loading failures can be retried and
+  an empty chooser explains that there are no editable plans. Adding uses the
+  saved recipe quantities, prevents repeated clicks while pending, confirms the
+  destination on success, and allows retry after failure.
+- The owner can open More recipe actions for Edit recipe and a separated Delete
+  recipe action. Other people see neither action. Deletion uses the confirmation
+  and recovery behavior below and returns to the Library on success.
+- Share and Copy to my library are deferred until those features are ready.
+- Opening a planned recipe in the planner remains focused on editing that
+  occurrence. Its Cook view provides the readable recipe and cooking actions;
+  see [Cooking](planner.md#cooking).
+
 ### Create editor
 
 - The create editor lets a person save a new recipe or cancel.
@@ -166,11 +204,11 @@ without leaving the Library behind.
 
 ### Deleting saved recipes
 
-- Only the owner sees Delete recipe, at the bottom of the edit form, separate
-  from Save. The API enforces ownership on deletion.
+- Only the owner sees Delete recipe, in the detail action menu and at the bottom
+  of the edit form, separate from Save. The API enforces ownership on deletion.
 - Delete opens a confirmation naming the saved recipe. Cancel receives initial
-  focus; Cancel or Escape closes the dialog and returns focus to Delete recipe
-  without changing the draft.
+  focus; Cancel or Escape closes the dialog and returns focus to More recipe
+  actions in detail, or Delete recipe in the editor, without changing the draft.
 - Confirming sends one deletion request. While it is pending, confirmation and
   cancellation are disabled. Failure keeps the draft and cached recipe intact,
   shows an error in the dialog, and allows retry or cancellation.
@@ -225,8 +263,6 @@ State: Agreed — frontend scope of BFS-24.
   Library.
 - Saving or canceling edit replaces the editor with recipe detail, so the editor
   is not left in history. Canceling shows the unchanged detail.
-- This metadata slice does not yet hydrate metadata into an edit editor or show
-  it in recipe detail.
 
 ## Open questions
 

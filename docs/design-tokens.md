@@ -101,6 +101,15 @@ different level than its semantic level (e.g. an `<h2>` styled like an h3 for
 document-outline reasons), override with utilities on that instance —
 don't change the base rule.
 
+### Ingredient text
+
+Morsel and read-only ingredient refs share the `.morsel-text` color variables.
+Quantities use a `default` background, units use a muted dotted underline, and
+ingredient names use black in light mode or white in dark mode with a subtle
+text shadow for emphasis. The `.morsel-quantity`, `.morsel-unit`, and
+`.morsel-ingredient` classes apply this treatment to ordinary text spans;
+Morsel's editable text uses the same variables in CSS Custom Highlights.
+
 ## Border radius
 
 `--radius` (0.5rem) is the base HeroUI uses to derive `--radius-xs` through
