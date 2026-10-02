@@ -1,0 +1,13 @@
+# The same recipe-add action as the library, with its complete tree for the open planner.
+mutation addPlannerRecipe($recipeId: ID!, $planId: ID!) {
+  library {
+    sendRecipeToPlan(id: $recipeId, planId: $planId) {
+      id
+      ...planItemResult
+      descendants {
+        id
+        ...planItemResult
+      }
+    }
+  }
+}

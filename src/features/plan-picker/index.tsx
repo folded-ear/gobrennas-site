@@ -1,6 +1,7 @@
 "use client";
 
 import PlanAvatar from "@/components/plan-avatar";
+import { PlanDot } from "@/components/plan-dot";
 import { orderPlans } from "@/lib/plans";
 import { Header, Key, Label, ListBox, Select, Separator } from "@heroui/react";
 import clsx from "clsx";
@@ -17,6 +18,8 @@ type PlanPickerProps = {
   selectedIds: readonly string[];
   onChange: (ids: string[]) => void;
   hideSingleName?: boolean;
+  /** A small, natural-width trigger with a dot for the selected plan. */
+  compact?: boolean;
 };
 
 type AvatarGroupProps = {
@@ -90,6 +93,7 @@ export function PlanPicker({
   selectedIds,
   onChange,
   hideSingleName,
+  compact = false,
 }: PlanPickerProps) {
   if (plans.length < 2) return null;
 
@@ -104,6 +108,7 @@ export function PlanPicker({
 
   return (
     <Select
+      className={compact ? "w-fit max-w-full shrink-0 sm:max-w-56" : undefined}
       aria-label={label}
       selectionMode={selectionMode}
       value={single ? (selectedIds[0] ?? null) : [...selectedIds]}
@@ -117,14 +122,22 @@ export function PlanPicker({
         if (keys.length > 0) onChange(keys.map(String));
       }}
     >
-      <Select.Trigger>
+      <Select.Trigger className={compact ? "min-h-10 gap-sm px-sm" : undefined}>
         <Select.Value>
-          <span className="flex items-center gap-xs">
-            <AvatarGroup label="My Plans" plans={selectedMine} />
-            {selectedMine.length > 0 && selectedShared.length > 0 ? (
-              <span aria-hidden className="h-5 w-px bg-separator" />
-            ) : null}
-            <AvatarGroup label="Shared Plans" plans={selectedShared} />
+          <span className="flex min-w-0 items-center gap-xs">
+            {compact && selected.length === 1 ? (
+              <span aria-hidden className="inline-flex">
+                <PlanDot plan={selected[0]} />
+              </span>
+            ) : (
+              <>
+                <AvatarGroup label="My Plans" plans={selectedMine} />
+                {selectedMine.length > 0 && selectedShared.length > 0 ? (
+                  <span aria-hidden className="h-5 w-px bg-separator" />
+                ) : null}
+                <AvatarGroup label="Shared Plans" plans={selectedShared} />
+              </>
+            )}
             {selected.length === 1 ? (
               <span
                 className={clsx("truncate", {

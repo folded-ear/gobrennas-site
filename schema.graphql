@@ -507,10 +507,20 @@ type PlannerMutation {
   """
 
   Create a new item under the specified parent (which may be a plan, for
-  top-level items), after the specified peer item (null means 'at end'), and with
+  top-level items), after the specified peer item (null means 'first'), and with
   the specified name.
   """
-  createItem(afterId: ID, name: String!, parentId: ID!): PlanItem!
+  createItem(
+    afterId: ID
+    """
+    An explicitly selected ingredient and its range in name. Omitted or
+    null keeps automatic name recognition unchanged. A leading ! in name
+    still disables recognition, including an explicit choice.
+    """
+    choice: RecognitionChoice
+    name: String!
+    parentId: ID!
+  ): PlanItem!
   "Create a new empty plan, optionally duplicating the specified source plan."
   createPlan(name: String!, sourcePlanId: ID): Plan!
   "Delete a bucket from a plan."

@@ -41,15 +41,17 @@ function fieldFor(change: SentChange, i: number): Field {
           [`parentId${i}`]: "ID!",
           [`afterId${i}`]: "ID",
           [`name${i}`]: "String!",
+          ...(change.choice ? { [`choice${i}`]: "RecognitionChoice" } : {}),
         },
         values: {
           [`parentId${i}`]: change.parentId,
           [`afterId${i}`]: change.afterId,
           [`name${i}`]: change.name,
+          ...(change.choice ? { [`choice${i}`]: change.choice } : {}),
         },
         selection:
           `createItem(parentId: $parentId${i}, afterId: $afterId${i},` +
-          ` name: $name${i}) { ...planItemResult @unmask }`,
+          ` name: $name${i}${change.choice ? `, choice: $choice${i}` : ""}) { ...planItemResult @unmask }`,
         fragment: PlanItemResultFragmentDoc,
       };
     case "assignBucket":

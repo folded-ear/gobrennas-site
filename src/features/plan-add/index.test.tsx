@@ -1,0 +1,479 @@
+import {
+  PlanItemStatus,
+  RecognitionKind,
+  RecognizedRangeType,
+} from "@/__generated__/graphql";
+import {
+  editableMorsel,
+  withTextInsertion,
+} from "@/features/morsel/test-helpers";
+import {
+  PlanItemResultFragmentDoc,
+  type PlanItemResultFragment,
+} from "@/features/plan-changes/__generated__/planItemResult.generated";
+import {
+  seededCache,
+  THANKSGIVING,
+} from "@/features/plan-changes/test/status-cache";
+import {
+  buildPlanDirectory,
+  PlanDirectoryProvider,
+} from "@/features/plan-directory";
+import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
+import { PlanTimeline } from "@/features/plan-timeline";
+import { buildPlanContext } from "@/features/plan-timeline/context";
+import type { TimelineSection } from "@/features/plan-timeline/model";
+import { buildSubtree } from "@/features/plan-timeline/model";
+import { render, screen, userEvent, waitFor } from "@/test";
+import { ApolloClient, ApolloLink, gql, Observable } from "@apollo/client";
+import { LocalState } from "@apollo/client/local-state";
+import type { GraphQLCodegenDataMasking } from "@apollo/client/masking";
+import { ApolloProvider, useQuery } from "@apollo/client/react";
+import { print } from "@apollo/client/utilities";
+import { useState } from "react";
+import { describe, expect, it } from "vitest";
+import type { AddPlannerRecipeMutation } from "./__generated__/addPlannerRecipe.generated";
+import type { AddPlan } from "./destination";
+import { PlanAdd } from "./index";
+
+const plan: AddPlan = {
+  __typename: "Plan",
+  id: THANKSGIVING,
+  name: "Thanksgiving",
+  color: "#ff0000",
+  mine: true,
+  grants: [],
+  children: [{ id: "1" }, { id: "3" }],
+  buckets: [],
+};
+const unplanned: TimelineSection = { kind: "unplanned", roots: [] };
+const day: TimelineSection = { kind: "day", date: "2026-10-02", roots: [] };
+
+const ingredient = {
+  __typename: "PlanItem" as const,
+  id: "101",
+  name: "2 carrots",
+  status: PlanItemStatus.NEEDED,
+  notes: null,
+  preparation: null,
+  parent: { __typename: "PlanItem" as const, id: "100" },
+  aggregate: { __typename: "PlanItem" as const, id: "100" },
+  ingredient: {
+    __typename: "PantryItem" as const,
+    id: "carrot",
+    name: "carrot",
+    storeOrder: 1,
+  },
+  quantity: { __typename: "Quantity" as const, quantity: 2, units: null },
+  components: [],
+  children: [],
+  bucket: null,
+};
+const addedRecipe: GraphQLCodegenDataMasking.Unmasked<AddPlannerRecipeMutation> =
+  {
+    library: {
+      __typename: "LibraryMutation",
+      sendRecipeToPlan: {
+        ...ingredient,
+        id: "100",
+        name: "Soup",
+        aggregate: null,
+        parent: { __typename: "Plan", id: THANKSGIVING },
+        ingredient: { __typename: "Recipe", id: "recipe-soup", name: "Soup" },
+        quantity: { __typename: "Quantity", quantity: 1, units: null },
+        children: [{ __typename: "PlanItem", id: "101" }],
+        components: [{ __typename: "PlanItem", id: "101" }],
+        descendants: [ingredient],
+      },
+    },
+  };
+
+// Observe the same flat tree the planner uses, so a saved recipe must appear
+// with working cooking/details controls without a reload or refetch.
+const SAVED_PLAN = gql`
+  query AddedRecipePlan {
+    planner {
+      plan(id: "7") {
+        id
+        children {
+          id
+        }
+        descendants {
+          ...planItemResult @unmask
+        }
+      }
+    }
+  }
+  ${print(PlanItemResultFragmentDoc)}
+`;
+type SavedPlanData = {
+  planner: {
+    plan: {
+      id: string;
+      children: { id: string }[];
+      descendants: Omit<PlanItemResultFragment, " $fragmentName">[];
+    };
+  };
+};
+
+function SavedPlan() {
+  const { data } = useQuery<SavedPlanData>(SAVED_PLAN);
+  const [openId, setOpenId] = useState<string>();
+  if (!data) return null;
+  const items = data.planner.plan.descendants;
+  const timelinePlans = [
+    {
+      rootIds: data.planner.plan.children.map((it) => it.id),
+      items,
+      buckets: [],
+    },
+  ];
+  const context = buildPlanContext({ plans: timelinePlans });
+  const opened = items.find((it) => it.id === openId);
+  const descendants = opened ? buildSubtree(items, opened.id) : [];
+  return (
+    <PlanDirectoryProvider
+      directory={buildPlanDirectory([{ ...plan, descendants: items }])}
+    >
+      <PlanTimeline plans={timelinePlans} onSelect={setOpenId} />
+      {opened ? (
+        <section aria-label="Item details">
+          <PlanItemHeader
+            item={opened}
+            context={context}
+            hasDescendants={descendants.length > 0}
+          />
+          <PlanItemDetail
+            context={context}
+            descendants={descendants}
+            parentId={opened.id}
+          />
+        </section>
+      ) : null}
+    </PlanDirectoryProvider>
+  );
+}
+
+function setup(
+  section = unplanned,
+  failAssignment = false,
+  showSavedPlan = false,
+) {
+  const requests: {
+    name: string;
+    variables: Record<string, unknown>;
+    query: string;
+  }[] = [];
+  let assignments = 0;
+  const client = new ApolloClient({
+    cache: seededCache(),
+    dataMasking: true,
+    localState: new LocalState(),
+    link: new ApolloLink(
+      (operation) =>
+        new Observable((observer) => {
+          const v = operation.variables;
+          requests.push({
+            name: operation.operationName ?? "",
+            variables: v,
+            query: print(operation.query),
+          });
+          if (operation.operationName === "recognizeIngredient") {
+            observer.next({
+              data: {
+                library: {
+                  recognizeItem: {
+                    raw: v.raw,
+                    cursor: v.cursor,
+                    ranges: [],
+                    suggestions: [
+                      {
+                        name: "Soup",
+                        kind: RecognitionKind.PANTRY_ITEM,
+                        detail: null,
+                        target: {
+                          start: 0,
+                          end: v.raw.length,
+                          type: RecognizedRangeType.ITEM,
+                          id: "pantry-soup",
+                        },
+                      },
+                      {
+                        name: "Soup",
+                        kind: RecognitionKind.RECIPE,
+                        detail: null,
+                        target: {
+                          start: 0,
+                          end: v.raw.length,
+                          type: RecognizedRangeType.ITEM,
+                          id: "recipe-soup",
+                        },
+                      },
+                      {
+                        name: "Stock",
+                        kind: RecognitionKind.SECTION,
+                        detail: "Chicken soup",
+                        target: {
+                          start: 0,
+                          end: v.raw.length,
+                          type: RecognizedRangeType.ITEM,
+                          id: "section-stock",
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            });
+          } else if (operation.operationName === "doCreateBucket") {
+            observer.next({
+              data: {
+                planner: {
+                  __typename: "PlannerMutation",
+                  createBucket: {
+                    __typename: "PlanBucket",
+                    id: "bucket-new",
+                    name: v.name,
+                    date: v.date,
+                  },
+                },
+              },
+            });
+          } else if (operation.operationName === "doAssignBucket") {
+            assignments++;
+            if (failAssignment && assignments === 1) {
+              observer.error(new Error("Offline"));
+              return;
+            }
+            observer.next({
+              data: {
+                planner: {
+                  __typename: "PlannerMutation",
+                  assignBucket: {
+                    __typename: "PlanItem",
+                    id: v.id,
+                    bucket: { __typename: "PlanBucket", id: v.bucketId },
+                  },
+                },
+              },
+            });
+          } else if (operation.operationName === "addPlannerRecipe") {
+            observer.next({ data: addedRecipe });
+          } else if (operation.operationName === "doChanges") {
+            observer.next({
+              data: {
+                planner: {
+                  __typename: "PlannerMutation",
+                  s0: {
+                    __typename: "PlanItem",
+                    id: "100",
+                    name: v.name0,
+                    status: "NEEDED",
+                    notes: null,
+                    parent: { __typename: "Plan", id: v.parentId0 },
+                    aggregate: null,
+                    preparation: null,
+                    ingredient: null,
+                    quantity: null,
+                    components: [],
+                    bucket: null,
+                    children: [],
+                  },
+                },
+              },
+            });
+          } else {
+            observer.error(
+              new Error(`Unexpected operation: ${operation.operationName}`),
+            );
+            return;
+          }
+          observer.complete();
+        }),
+    ),
+  });
+  if (showSavedPlan) {
+    client.cache.writeQuery({
+      query: SAVED_PLAN,
+      data: {
+        planner: {
+          __typename: "PlannerQuery",
+          plan: {
+            __typename: "Plan",
+            id: plan.id,
+            children: plan.children.map((it) => ({
+              __typename: "PlanItem",
+              id: it.id,
+            })),
+            descendants: [],
+          },
+        },
+      },
+    });
+  }
+  render(
+    <ApolloProvider client={client}>
+      <PlanAdd plans={[plan]} section={section} />
+      {showSavedPlan ? <SavedPlan /> : null}
+    </ApolloProvider>,
+  );
+  return { requests, client, user: userEvent.setup() };
+}
+
+withTextInsertion();
+
+describe("planner Add", () => {
+  it("adds a selected recipe with its ingredients, cooking link, and working detail view", async () => {
+    const { user, requests, client } = setup(unplanned, false, true);
+    await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
+    await user.type(editableMorsel("Item for Unplanned"), "So");
+    await user.click((await screen.findAllByRole("option"))[1]);
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    expect(
+      await screen.findByRole("link", { name: "Cook Soup" }),
+    ).toHaveAttribute("href", `/plan/${THANKSGIVING}/recipe/100`);
+    await user.click(screen.getByRole("button", { name: "Soup" }));
+    expect(
+      screen.getByRole("region", { name: "Item details" }),
+    ).toHaveTextContent("2 carrots");
+    expect(requests.filter((it) => it.name === "doChanges")).toHaveLength(0);
+    expect(
+      requests
+        .filter((it) => it.name === "addPlannerRecipe")
+        .map((it) => it.variables),
+    ).toEqual([{ planId: THANKSGIVING, recipeId: "recipe-soup" }]);
+    const saved = client.cache.readQuery<SavedPlanData>({ query: SAVED_PLAN });
+    expect(saved?.planner.plan.children.map((it) => it.id)).toEqual([
+      "1",
+      "3",
+      "100",
+    ]);
+    expect(saved?.planner.plan.descendants.map((it) => it.id)).toEqual([
+      "100",
+      "101",
+    ]);
+  });
+
+  it("retries a recipe's bucket assignment without adding the recipe twice", async () => {
+    const { user, requests } = setup(day, true);
+    await user.click(screen.getByRole("button", { name: /^Add to/ }));
+    await user.type(editableMorsel("Item for Fri, Oct 2"), "So");
+    await user.click((await screen.findAllByRole("option"))[1]);
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Retry to move the same item",
+    );
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("form")).not.toBeInTheDocument(),
+    );
+    expect(
+      requests.filter((it) => it.name === "addPlannerRecipe"),
+    ).toHaveLength(1);
+    expect(requests.filter((it) => it.name === "doChanges")).toHaveLength(0);
+    expect(
+      requests
+        .filter((it) => it.name === "doAssignBucket")
+        .map((it) => it.variables),
+    ).toEqual([
+      { id: "100", bucketId: "bucket-new" },
+      { id: "100", bucketId: "bucket-new" },
+    ]);
+  });
+
+  it("shows all suggestion kinds and saves the chosen identity through the real change queue", async () => {
+    const { user, requests } = setup();
+    await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
+    const input = editableMorsel("Item for Unplanned");
+    expect(input).toHaveFocus();
+    await user.type(input, "So");
+    const options = await screen.findAllByRole("option");
+    expect(options).toHaveLength(3);
+    expect(screen.getByText("Chicken soup")).toBeInTheDocument();
+    await user.click(options[0]);
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("form")).not.toBeInTheDocument(),
+    );
+    const saved = requests.find((it) => it.name === "doChanges");
+    expect(saved?.variables).toMatchObject({
+      parentId0: THANKSGIVING,
+      afterId0: "3",
+      name0: "Soup",
+      choice0: { id: "pantry-soup", start: 0, end: 4 },
+    });
+    expect(saved?.query).toContain("$choice0: RecognitionChoice");
+    expect(saved?.query).toContain("choice: $choice0");
+    expect(
+      screen.getByRole("button", { name: "Add to Unplanned" }),
+    ).toHaveFocus();
+  });
+
+  it("saves plain text without choice and honors the recognition opt-out", async () => {
+    const { user, requests } = setup();
+    await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
+    await user.type(editableMorsel("Item for Unplanned"), "!Takeout");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("form")).not.toBeInTheDocument(),
+    );
+    const saved = requests.find((it) => it.name === "doChanges");
+    expect(saved?.variables).toEqual({
+      parentId0: THANKSGIVING,
+      afterId0: "3",
+      name0: "!Takeout",
+    });
+    expect(saved?.query).not.toContain("choice");
+    expect(requests.filter((it) => it.name === "doAssignBucket")).toHaveLength(
+      0,
+    );
+  });
+
+  it("creates a missing day bucket and retries placement without creating a duplicate item", async () => {
+    const { user, requests } = setup(day, true);
+    await user.click(screen.getByRole("button", { name: /^Add to/ }));
+    await user.type(
+      editableMorsel(screen.getByRole("combobox").getAttribute("aria-label")!),
+      "!Dinner",
+    );
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Retry to move the same item",
+    );
+    expect(screen.getByRole("combobox")).toHaveAttribute(
+      "contenteditable",
+      "false",
+    );
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("form")).not.toBeInTheDocument(),
+    );
+    expect(requests.filter((it) => it.name === "doChanges")).toHaveLength(1);
+    expect(
+      requests
+        .filter((it) => it.name === "doCreateBucket")
+        .map((it) => it.variables),
+    ).toEqual([{ planId: THANKSGIVING, date: "2026-10-02", name: null }]);
+    expect(
+      requests
+        .filter((it) => it.name === "doAssignBucket")
+        .map((it) => it.variables),
+    ).toEqual([
+      { id: "100", bucketId: "bucket-new" },
+      { id: "100", bucketId: "bucket-new" },
+    ]);
+  });
+
+  it("cancels without saving", async () => {
+    const { user, requests } = setup();
+    await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
+    await user.type(editableMorsel("Item for Unplanned"), "!Dinner");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(requests.filter((it) => it.name !== "recognizeIngredient")).toEqual(
+      [],
+    );
+    expect(
+      screen.getByRole("button", { name: "Add to Unplanned" }),
+    ).toHaveFocus();
+  });
+});

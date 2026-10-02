@@ -6,11 +6,7 @@ import { useApolloClient, useQuery } from "@apollo/client/react";
 import { useCallback } from "react";
 import { RecipeLabelSuggestionsDocument } from "./__generated__/recipeLabelSuggestions.generated";
 import { RecipePhotoUploadDocument } from "./__generated__/recipePhotoUpload.generated";
-import { RecognizeIngredientDocument } from "./__generated__/recognizeIngredient.generated";
-import {
-  ingredientRecognitionSchema,
-  type RecognizeIngredient,
-} from "./ingredient-recognition";
+import { useRecognizeIngredient } from "./use-recognize-ingredient";
 
 export function useRecipeFormServices() {
   const client = useApolloClient();
@@ -36,27 +32,7 @@ export function useRecipeFormServices() {
     [client],
   );
 
-  const recognizeIngredient = useCallback<RecognizeIngredient>(
-    async (raw, cursor, signal, options) => {
-      const result = await client.query({
-        query: RecognizeIngredientDocument,
-        variables: {
-          raw,
-          cursor,
-          suggest: options?.suggest ?? false,
-          choice: options?.choice
-            ? { id: options.choice.food.id, ...options.choice.range }
-            : null,
-        },
-        fetchPolicy: "no-cache",
-        context: { queryDeduplication: false, fetchOptions: { signal } },
-      });
-      return ingredientRecognitionSchema.parse(
-        result.data?.library.recognizeItem,
-      );
-    },
-    [client],
-  );
+  const recognizeIngredient = useRecognizeIngredient();
 
   return {
     uploadPhoto,

@@ -2,6 +2,8 @@
 
 import { Screen } from "@/components/screen";
 import { SectionHeader } from "@/components/section-header";
+import { PlanAdd } from "@/features/plan-add";
+import { canAddToSection } from "@/features/plan-add/destination";
 import {
   buildPlanDirectory,
   PlanDirectoryProvider,
@@ -210,6 +212,11 @@ export function Planner() {
         {shownPlans.length > 0 ? (
           <PlanTimeline
             plans={timelinePlans}
+            renderFooter={(section) =>
+              shownPlans.some((plan) => canAddToSection(plan, section)) ? (
+                <PlanAdd plans={shownPlans} section={section} />
+              ) : null
+            }
             openId={selected?.id}
             onSelect={(id) => open.push({ item: id })}
             onOpenSection={(key) => open.push({ section: key })}
