@@ -158,6 +158,7 @@ function setup(
   section = unplanned,
   failAssignment = false,
   showSavedPlan = false,
+  failFreshRecognition = false,
 ) {
   const requests: {
     name: string;
@@ -179,20 +180,38 @@ function setup(
             query: print(operation.query),
           });
           if (operation.operationName === "recognizeIngredient") {
+            if (failFreshRecognition && v.raw === "3 Soup" && !v.suggest) {
+              observer.error(new Error("Recognition unavailable"));
+              return;
+            }
+            const prefix = /^(\d+(?:\.\d+)?(?:\/\d+)?)\s+/.exec(v.raw);
+            const amount = prefix?.[1];
+            const [numerator, denominator = "1"] = amount?.split("/") ?? [];
+            const ranges = amount
+              ? [
+                  {
+                    start: 0,
+                    end: amount.length,
+                    type: RecognizedRangeType.QUANTITY,
+                    quantity: Number(numerator) / Number(denominator),
+                    id: null,
+                  },
+                ]
+              : [];
             observer.next({
               data: {
                 library: {
                   recognizeItem: {
                     raw: v.raw,
                     cursor: v.cursor,
-                    ranges: [],
+                    ranges,
                     suggestions: [
                       {
                         name: "Soup",
                         kind: RecognitionKind.PANTRY_ITEM,
                         detail: null,
                         target: {
-                          start: 0,
+                          start: prefix?.[0].length ?? 0,
                           end: v.raw.length,
                           type: RecognizedRangeType.ITEM,
                           id: "pantry-soup",
@@ -203,7 +222,7 @@ function setup(
                         kind: RecognitionKind.RECIPE,
                         detail: null,
                         target: {
-                          start: 0,
+                          start: prefix?.[0].length ?? 0,
                           end: v.raw.length,
                           type: RecognizedRangeType.ITEM,
                           id: "recipe-soup",
@@ -214,7 +233,7 @@ function setup(
                         kind: RecognitionKind.SECTION,
                         detail: "Chicken soup",
                         target: {
-                          start: 0,
+                          start: prefix?.[0].length ?? 0,
                           end: v.raw.length,
                           type: RecognizedRangeType.ITEM,
                           id: "section-stock",
@@ -341,7 +360,7 @@ describe("planner Add", () => {
       requests
         .filter((it) => it.name === "addPlannerRecipe")
         .map((it) => it.variables),
-    ).toEqual([{ planId: THANKSGIVING, recipeId: "recipe-soup" }]);
+    ).toEqual([{ planId: THANKSGIVING, recipeId: "recipe-soup", scale: 1 }]);
     const saved = client.cache.readQuery<SavedPlanData>({ query: SAVED_PLAN });
     expect(saved?.planner.plan.children.map((it) => it.id)).toEqual([
       "1",
@@ -352,6 +371,88 @@ describe("planner Add", () => {
       "100",
       "101",
     ]);
+  });
+
+  it.each([
+    ["2", 2],
+    ["1/2", 0.5],
+  ])(
+    "uses the recognized quantity %s as the recipe scale",
+    async (quantity, scale) => {
+      const { user, requests } = setup();
+      await user.click(
+        screen.getByRole("button", { name: "Add to Unplanned" }),
+      );
+      await user.type(editableMorsel("Item for Unplanned"), `${quantity} So`);
+      await user.click((await screen.findAllByRole("option"))[1]);
+      await user.click(screen.getByRole("button", { name: "Add" }));
+      await waitFor(() =>
+        expect(screen.queryByRole("form")).not.toBeInTheDocument(),
+      );
+      const saved = requests.find((it) => it.name === "addPlannerRecipe");
+      expect(saved?.variables).toEqual({
+        planId: THANKSGIVING,
+        recipeId: "recipe-soup",
+        scale,
+      });
+      expect(saved?.query).toContain("scale: $scale");
+    },
+  );
+
+  it("recognizes the latest quantity when Add is pressed before the editor's debounce", async () => {
+    const { user, requests } = setup();
+    await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
+    const input = editableMorsel("Item for Unplanned");
+    await user.type(input, "2 So");
+    await user.click((await screen.findAllByRole("option"))[1]);
+    await user.keyboard("{Home}{Delete}3");
+    expect(input).toHaveTextContent("3 Soup");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("form")).not.toBeInTheDocument(),
+    );
+    expect(
+      requests.find((it) => it.name === "addPlannerRecipe")?.variables,
+    ).toMatchObject({ scale: 3 });
+    expect(
+      requests.filter(
+        (it) =>
+          it.name === "recognizeIngredient" &&
+          it.variables.raw === "3 Soup" &&
+          it.variables.suggest === false,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("keeps the draft when fresh quantity recognition fails instead of adding a single batch", async () => {
+    const { user, requests } = setup(unplanned, false, false, true);
+    await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
+    const input = editableMorsel("Item for Unplanned");
+    await user.type(input, "2 So");
+    await user.click((await screen.findAllByRole("option"))[1]);
+    await user.keyboard("{Home}{Delete}3");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Your text is still here",
+    );
+    expect(input).toHaveTextContent("3 Soup");
+    expect(
+      requests.filter((it) => it.name === "addPlannerRecipe"),
+    ).toHaveLength(0);
+  });
+
+  it("rejects a zero recipe quantity before creating the destination bucket", async () => {
+    const { user, requests } = setup(day);
+    await user.click(screen.getByRole("button", { name: /^Add to/ }));
+    await user.type(editableMorsel("Item for Fri, Oct 2"), "0 So");
+    await user.click((await screen.findAllByRole("option"))[1]);
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "greater than zero",
+    );
+    expect(
+      requests.filter((it) => it.name !== "recognizeIngredient"),
+    ).toHaveLength(0);
   });
 
   it("retries a recipe's bucket assignment without adding the recipe twice", async () => {

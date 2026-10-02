@@ -217,7 +217,10 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - Add saves a new root item at the end of the chosen plan and assigns it to the
   section's bucket. Unplanned items have no bucket. Choosing a recipe uses the same action as the library’s Add to plan: its
   ingredients and nested sections are added too, making the cooking and detail
-  views available. A section suggestion still saves a reference only.
+  views available. A typed quantity scales the recipe (for example, `2 Chili` adds
+  a double batch); no quantity means one batch. Saving waits for current recognition
+  if the quantity was just edited. Recipe quantities must be greater than zero.
+  A section suggestion still saves a reference only.
 - Cancel discards the draft. A failed save keeps the text. If the item was created
   but assigning its bucket failed, Retry moves that same item without creating a
   duplicate; Close leaves it in Unplanned.

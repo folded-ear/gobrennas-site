@@ -4,6 +4,8 @@ import { DoAssignBucketDocument } from "@/features/plan-dnd/__generated__/doAssi
 import { DoCreateBucketDocument } from "@/features/plan-dnd/__generated__/doCreateBucket.generated";
 import type { TimelineSection } from "@/features/plan-timeline/model";
 import type { IngredientDraft } from "@/features/recipe-form/ingredient-draft";
+import { recognizedParts } from "@/features/recipe-form/ingredient-recognition";
+import { useRecognizeIngredient } from "@/features/recipe-form/use-recognize-ingredient";
 import type { Reference } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
 import { useRef, useState } from "react";
@@ -18,6 +20,7 @@ import {
 export function useAddItem(section: TimelineSection) {
   const client = useApolloClient();
   const changes = usePlanChanges();
+  const recognize = useRecognizeIngredient();
   const busy = useRef(false);
   const placed = useRef<{ itemId: string; bucketId: string } | undefined>(
     undefined,
@@ -29,10 +32,10 @@ export function useAddItem(section: TimelineSection) {
   const [error, setError] = useState<string>();
   const [created, setCreated] = useState(false);
 
-  async function addRecipe(plan: AddPlan, recipeId: string) {
+  async function addRecipe(plan: AddPlan, recipeId: string, scale: number) {
     const result = await client.mutate({
       mutation: AddPlannerRecipeDocument,
-      variables: { recipeId, planId: plan.id },
+      variables: { recipeId, planId: plan.id, scale },
       update(cache, { data }) {
         const item = data?.library.sendRecipeToPlan;
         if (!item) return;
@@ -81,6 +84,29 @@ export function useAddItem(section: TimelineSection) {
     try {
       let placement = placed.current;
       if (!placement) {
+        const choice = !row.raw.startsWith("!") ? row.choice : undefined;
+        let scale = 1;
+        if (choice?.food.kind === "Recipe") {
+          // Add can beat the editor's debounce after a quantity edit. Resolve
+          // the current text before saving instead of silently using scale 1.
+          const recognition =
+            row.recognition?.raw === row.raw
+              ? row.recognition
+              : await recognize(
+                  row.raw,
+                  row.raw.length,
+                  new AbortController().signal,
+                  {
+                    choice,
+                    suggest: false,
+                  },
+                );
+          scale = recognizedParts(recognition).quantity?.quantity ?? 1;
+          if (!Number.isFinite(scale) || scale <= 0) {
+            setError("Use a recipe quantity greater than zero.");
+            return false;
+          }
+        }
         let bucketId =
           destinationBucket(plan, section) ??
           (madeBucket.current?.planId === plan.id
@@ -116,10 +142,9 @@ export function useAddItem(section: TimelineSection) {
           madeBucket.current = { planId: plan.id, id: bucketId };
         }
         const afterId = plan.children.at(-1)?.id;
-        const choice = !row.raw.startsWith("!") ? row.choice : undefined;
         const itemId =
           choice?.food.kind === "Recipe"
-            ? await addRecipe(plan, choice.food.id)
+            ? await addRecipe(plan, choice.food.id, scale)
             : await changes.create({
                 kind: "create",
                 draftId: row.clientId,
