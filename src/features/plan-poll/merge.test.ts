@@ -102,7 +102,7 @@ const polledItem = (
   name: over.name ?? `Item ${id}`,
   status: over.status ?? PlanItemStatus.NEEDED,
   notes: null,
-  parent: null,
+  parent: { __typename: "Plan" as const, id: PLAN },
   aggregate: null,
   preparation: null,
   ingredient: null,

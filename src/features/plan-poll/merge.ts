@@ -5,13 +5,17 @@ import {
   PlanItemResultFragmentDoc,
 } from "../plan-changes/__generated__/planItemResult.generated";
 import { evictItem } from "../plan-changes/evict";
+import { PlanItemFragment } from "../plan-item/__generated__/planItem.generated";
 import {
   CorePlanItemChildrenFragmentDoc,
   PollPlanFragment,
   PollPlanFragmentDoc,
 } from "./__generated__/pollPlan.generated";
 
-export type PolledNode = PlanItemResultFragment | PollPlanFragment;
+/** An item as a poll returns it: its fragments unmasked, all in one. */
+export type PolledItem = PlanItemResultFragment & PlanItemFragment;
+
+export type PolledNode = PolledItem | PollPlanFragment;
 
 const TRASHED: ReadonlySet<PlanItemStatus> = new Set([
   PlanItemStatus.COMPLETED,
