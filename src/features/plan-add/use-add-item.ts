@@ -22,15 +22,15 @@ export function useAddItem(section: TimelineSection) {
   const changes = usePlanChanges();
   const recognize = useRecognizeIngredient();
   const busy = useRef(false);
-  const placed = useRef<{ itemId: string; bucketId: string } | undefined>(
-    undefined,
-  );
+  const [createdItem, setCreatedItem] = useState<{
+    itemId: string;
+    bucketId: string;
+  }>();
   const madeBucket = useRef<{ planId: string; id: string } | undefined>(
     undefined,
   );
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
-  const [created, setCreated] = useState(false);
 
   async function addRecipe(plan: AddPlan, recipeId: string, scale: number) {
     const result = await client.mutate({
@@ -46,18 +46,7 @@ export function useAddItem(section: TimelineSection) {
           parentId: plan.id,
           afterId: plan.children.at(-1)?.id ?? null,
           planId: plan.id,
-        });
-        cache.modify<{ descendants: readonly Reference[] }>({
-          id: cache.identify({ __typename: "Plan", id: plan.id }),
-          fields: {
-            descendants: (existing, { toReference }) => [
-              ...existing,
-              ...item.descendants.flatMap((child) => {
-                const ref = toReference(child);
-                return ref ? [ref] : [];
-              }),
-            ],
-          },
+          descendantIds: item.descendants.map((child) => child.id),
         });
         const recipe = cache.identify({ __typename: "Recipe", id: recipeId });
         for (const fieldName of ["plannedCount", "plannedHistory"])
@@ -65,6 +54,45 @@ export function useAddItem(section: TimelineSection) {
       },
     });
     return result.data?.library.sendRecipeToPlan.id;
+  }
+
+  async function ensureBucket(plan: AddPlan): Promise<string | undefined> {
+    if (section.kind === "unplanned") return undefined;
+    let bucketId =
+      destinationBucket(plan, section) ??
+      (madeBucket.current?.planId === plan.id
+        ? madeBucket.current.id
+        : undefined);
+    if (!bucketId) {
+      const result = await client.mutate({
+        mutation: DoCreateBucketDocument,
+        variables: {
+          planId: plan.id,
+          date: section.date,
+          name: section.kind === "bucket" ? section.name : null,
+        },
+        update(cache, { data }) {
+          const bucket = data?.planner.createBucket;
+          if (!bucket) return;
+          cache.modify<{ buckets: readonly Reference[] }>({
+            id: cache.identify({ __typename: "Plan", id: plan.id }),
+            fields: {
+              buckets: (existing = [], { toReference, readField }) => {
+                const ref = toReference(bucket);
+                return !ref ||
+                  existing.some((it) => readField("id", it) === bucket.id)
+                  ? existing
+                  : [...existing, ref];
+              },
+            },
+          });
+        },
+      });
+      bucketId = result.data?.planner.createBucket.id;
+      if (!bucketId) throw new Error("No bucket returned");
+      madeBucket.current = { planId: plan.id, id: bucketId };
+    }
+    return bucketId;
   }
 
   async function add(
@@ -81,8 +109,8 @@ export function useAddItem(section: TimelineSection) {
     busy.current = true;
     setPending(true);
     setError(undefined);
+    let placement = createdItem;
     try {
-      let placement = placed.current;
       if (!placement) {
         const choice = !row.raw.startsWith("!") ? row.choice : undefined;
         let scale = 1;
@@ -107,40 +135,7 @@ export function useAddItem(section: TimelineSection) {
             return false;
           }
         }
-        let bucketId =
-          destinationBucket(plan, section) ??
-          (madeBucket.current?.planId === plan.id
-            ? madeBucket.current.id
-            : undefined);
-        if (section.kind !== "unplanned" && !bucketId) {
-          const result = await client.mutate({
-            mutation: DoCreateBucketDocument,
-            variables: {
-              planId: plan.id,
-              date: section.date,
-              name: section.kind === "bucket" ? section.name : null,
-            },
-            update(cache, { data }) {
-              const bucket = data?.planner.createBucket;
-              if (!bucket) return;
-              cache.modify<{ buckets: readonly Reference[] }>({
-                id: cache.identify({ __typename: "Plan", id: plan.id }),
-                fields: {
-                  buckets: (existing = [], { toReference, readField }) => {
-                    const ref = toReference(bucket);
-                    return !ref ||
-                      existing.some((it) => readField("id", it) === bucket.id)
-                      ? existing
-                      : [...existing, ref];
-                  },
-                },
-              });
-            },
-          });
-          bucketId = result.data?.planner.createBucket.id;
-          if (!bucketId) throw new Error("No bucket returned");
-          madeBucket.current = { planId: plan.id, id: bucketId };
-        }
+        const bucketId = await ensureBucket(plan);
         const afterId = plan.children.at(-1)?.id;
         const itemId =
           choice?.food.kind === "Recipe"
@@ -159,8 +154,7 @@ export function useAddItem(section: TimelineSection) {
         if (!itemId) throw new Error("No item returned");
         if (!bucketId) return true;
         placement = { itemId, bucketId };
-        placed.current = placement;
-        setCreated(true);
+        setCreatedItem(placement);
       }
       const result = await client.mutate({
         mutation: DoAssignBucketDocument,
@@ -171,7 +165,7 @@ export function useAddItem(section: TimelineSection) {
       return true;
     } catch {
       setError(
-        placed.current
+        placement
           ? "The item was added to Unplanned, but couldn’t be moved here. Retry to move the same item."
           : "Couldn’t add this item. Your text is still here; please try again.",
       );
@@ -182,5 +176,5 @@ export function useAddItem(section: TimelineSection) {
     }
   }
 
-  return { add, pending, error, created };
+  return { add, pending, error, created: createdItem !== undefined };
 }

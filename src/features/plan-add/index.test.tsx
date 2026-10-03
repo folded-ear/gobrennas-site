@@ -154,12 +154,17 @@ function SavedPlan() {
   );
 }
 
-function setup(
+function setup({
   section = unplanned,
   failAssignment = false,
   showSavedPlan = false,
   failFreshRecognition = false,
-) {
+}: {
+  section?: TimelineSection;
+  failAssignment?: boolean;
+  showSavedPlan?: boolean;
+  failFreshRecognition?: boolean;
+} = {}) {
   const requests: {
     name: string;
     variables: Record<string, unknown>;
@@ -343,7 +348,7 @@ withTextInsertion();
 
 describe("planner Add", () => {
   it("adds a selected recipe with its ingredients, cooking link, and working detail view", async () => {
-    const { user, requests, client } = setup(unplanned, false, true);
+    const { user, requests, client } = setup({ showSavedPlan: true });
     await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
     await user.type(editableMorsel("Item for Unplanned"), "So");
     await user.click((await screen.findAllByRole("option"))[1]);
@@ -425,7 +430,7 @@ describe("planner Add", () => {
   });
 
   it("keeps the draft when fresh quantity recognition fails instead of adding a single batch", async () => {
-    const { user, requests } = setup(unplanned, false, false, true);
+    const { user, requests } = setup({ failFreshRecognition: true });
     await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
     const input = editableMorsel("Item for Unplanned");
     await user.type(input, "2 So");
@@ -442,7 +447,7 @@ describe("planner Add", () => {
   });
 
   it("rejects a zero recipe quantity before creating the destination bucket", async () => {
-    const { user, requests } = setup(day);
+    const { user, requests } = setup({ section: day });
     await user.click(screen.getByRole("button", { name: /^Add to/ }));
     await user.type(editableMorsel("Item for Fri, Oct 2"), "0 So");
     await user.click((await screen.findAllByRole("option"))[1]);
@@ -456,7 +461,7 @@ describe("planner Add", () => {
   });
 
   it("retries a recipe's bucket assignment without adding the recipe twice", async () => {
-    const { user, requests } = setup(day, true);
+    const { user, requests } = setup({ section: day, failAssignment: true });
     await user.click(screen.getByRole("button", { name: /^Add to/ }));
     await user.type(editableMorsel("Item for Fri, Oct 2"), "So");
     await user.click((await screen.findAllByRole("option"))[1]);
@@ -531,7 +536,7 @@ describe("planner Add", () => {
   });
 
   it("creates a missing day bucket and retries placement without creating a duplicate item", async () => {
-    const { user, requests } = setup(day, true);
+    const { user, requests } = setup({ section: day, failAssignment: true });
     await user.click(screen.getByRole("button", { name: /^Add to/ }));
     await user.type(
       editableMorsel(screen.getByRole("combobox").getAttribute("aria-label")!),

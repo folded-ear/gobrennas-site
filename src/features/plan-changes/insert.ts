@@ -6,6 +6,8 @@ export type CreatedPlace = {
   /** The sibling I follow, or null when I'm first. */
   readonly afterId: string | null;
   readonly planId: string;
+  /** Descendants already written to the cache with the created item. */
+  readonly descendantIds?: readonly string[];
 };
 
 // Plans are keyed as PlanItems too (build-in-memory-cache.ts), so this
@@ -21,7 +23,7 @@ function itemCacheId(cache: ApolloCache, id: string): string | undefined {
  */
 export function insertCreated(
   cache: ApolloCache,
-  { id, parentId, afterId, planId }: CreatedPlace,
+  { id, parentId, afterId, planId, descendantIds = [] }: CreatedPlace,
 ): void {
   const ref = { __ref: itemCacheId(cache, id)! } satisfies Reference;
   cache.modify<{ children: readonly Reference[] }>({
@@ -39,7 +41,13 @@ export function insertCreated(
   cache.modify<{ descendants: readonly Reference[] }>({
     id: itemCacheId(cache, planId),
     fields: {
-      descendants: (existing) => [...existing, ref],
+      descendants: (existing) => [
+        ...existing,
+        ref,
+        ...descendantIds.map((childId) => ({
+          __ref: itemCacheId(cache, childId)!,
+        })),
+      ],
     },
   });
 }
