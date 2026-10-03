@@ -1,10 +1,17 @@
+import {
+  attachView,
+  makeView,
+  overlayPolicies,
+} from "@/features/plan-sync/overlay";
 import { possibleTypes } from "@/lib/apollo/possible-types";
 import { defaultDataIdFromObject, Reference } from "@apollo/client";
 import { InMemoryCache } from "@apollo/client-integration-nextjs";
 import { relayStylePagination } from "@apollo/client/utilities";
 
 export function buildInMemoryCache() {
-  return new InMemoryCache({
+  const view = makeView();
+  const overlay = overlayPolicies(view);
+  const cache = new InMemoryCache({
     possibleTypes,
     typePolicies: {
       Query: {
@@ -28,11 +35,11 @@ export function buildInMemoryCache() {
       },
       // Change state is local (schema-local.graphql); it reads as settled
       // until the change queue writes otherwise.
+      // Pending plan changes show over server data (plan-sync/overlay.ts).
+      Plan: overlay.Plan,
       PlanItem: {
         fields: {
-          pendingStatus: {
-            read: (existing) => existing ?? null,
-          },
+          ...overlay.PlanItem.fields,
           savingStatus: {
             read: (existing) => existing ?? false,
           },
@@ -72,4 +79,6 @@ export function buildInMemoryCache() {
       }
     },
   });
+  attachView(cache, view);
+  return cache;
 }
