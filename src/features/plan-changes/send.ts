@@ -67,7 +67,7 @@ function fieldFor(change: SentChange, i: number): Field {
 }
 
 /** I print each named definition once, the first of any repeats. */
-function uniqueDefinitions(documents: readonly DocumentNode[]): string {
+export function uniqueDefinitions(documents: readonly DocumentNode[]): string {
   const byName = new Map<string, string>();
   for (const definition of documents.flatMap((it) => it.definitions)) {
     const name = "name" in definition ? definition.name?.value : undefined;
