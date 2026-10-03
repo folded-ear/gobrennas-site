@@ -1,0 +1,24 @@
+# What a poll writes of a plan that changed; the rest of a plan is the
+# server's. Items are written with planItemResult.
+fragment pollPlan on Plan {
+  id
+  name
+  color
+  notes
+  buckets {
+    id
+    date
+    name
+  }
+  children {
+    id
+  }
+}
+
+# What reachability reads: a plan or an item, and whom it lists.
+fragment corePlanItemChildren on CorePlanItem {
+  id
+  children {
+    id
+  }
+}
