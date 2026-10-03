@@ -2,6 +2,7 @@ import { ErrorFallback } from "@/components/error-fallback";
 import { graphqlUri } from "@/constants";
 import { getUserProfile } from "@/data-rsc/get-user-profile";
 import { ApolloWrapper } from "@/lib/apollo-browser-and-ssr";
+import brand from "@/lib/brand.json";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Toast } from "@heroui/react";
 import type { Metadata, Viewport } from "next";
@@ -12,6 +13,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "Brenna's Food Software", template: "%s :: BFS" },
   description: "Your _face_ is a food software!",
+  appleWebApp: {
+    capable: true,
+    title: "BFS",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport: Viewport = {
@@ -21,7 +27,7 @@ export const viewport: Viewport = {
   minimumScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#F57F17", // duplicated in styles
+  themeColor: brand.color,
 };
 
 export default async function RootLayout({

@@ -8,6 +8,8 @@
     "predev": "pnpm run generate",
     "dev": "next dev --turbopack --port 4000",
     "format": "prettier . --write",
+    "icons": "node scripts/build-icons.mjs",
+    "posticons": "prettier src/components/bfs-logo-mark.tsx scripts/build-icons.mjs --write",
     "pregenerate": "find src -depth -type d -name __generated__ -print -exec rm -r {} \\;",
     "generate": "graphql-codegen",
     "lint": "eslint --max-warnings 0",
@@ -69,6 +71,7 @@
     "jsdom": "~26.1.0",
     "prettier": "3.9.6",
     "prettier-plugin-organize-imports": "~4.3.0",
+    "sharp": "^0.35.5",
     "typescript": "~5.8.3",
     "vitest": "~3.2.4"
   },
