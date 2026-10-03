@@ -1,6 +1,6 @@
+import brand from "@/lib/brand.json";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import brand from "@/lib/brand.json";
 import manifest from "./manifest";
 
 const PUBLIC_DIR = resolve(__dirname, "../public");

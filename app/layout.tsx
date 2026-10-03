@@ -1,6 +1,7 @@
 import { ErrorFallback } from "@/components/error-fallback";
 import { graphqlUri } from "@/constants";
 import { getUserProfile } from "@/data-rsc/get-user-profile";
+import { CaptureInstallPrompt } from "@/features/install-app";
 import { ApolloWrapper } from "@/lib/apollo-browser-and-ssr";
 import brand from "@/lib/brand.json";
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -42,6 +43,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="h-full">
       <body className="bg-background text-foreground h-full">
+        <CaptureInstallPrompt />
         <CookiesProvider>
           <ApolloWrapper graphqlUri={gqlUri} profileQuery={profileQuery}>
             <ThemeProvider>

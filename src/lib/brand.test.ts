@@ -18,7 +18,9 @@ const toSrgbHex = (lightnessPct: number, chroma: number, hueDeg: number) => {
     -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
   ];
   const channel = (x: number) =>
-    Math.round(255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055))
+    Math.round(
+      255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055),
+    )
       .toString(16)
       .padStart(2, "0");
   return `#${linear.map(channel).join("")}`;
@@ -26,7 +28,10 @@ const toSrgbHex = (lightnessPct: number, chroma: number, hueDeg: number) => {
 
 describe("brand color", () => {
   it("matches --color-brand in globals.css", () => {
-    const css = readFileSync(resolve(__dirname, "../../app/globals.css"), "utf8");
+    const css = readFileSync(
+      resolve(__dirname, "../../app/globals.css"),
+      "utf8",
+    );
     const match = BRAND_TOKEN.exec(css);
     expect(match).not.toBeNull();
     const [, lightness, chroma, hue] = match!;
