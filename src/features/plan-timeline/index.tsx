@@ -2,10 +2,15 @@
 
 import { PlanDnd } from "@/features/plan-dnd";
 import { DragSession } from "@/features/plan-dnd/drag-session";
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { buildPlanContext } from "./context";
 import { DayList } from "./day-list";
-import { buildTimeline, sectionOfItems, TimelinePlan } from "./model";
+import {
+  buildTimeline,
+  sectionOfItems,
+  TimelinePlan,
+  type TimelineSection,
+} from "./model";
 import { TimelineDnd } from "./timeline-row";
 import { useToday } from "./use-today";
 
@@ -17,6 +22,7 @@ type PlanTimelineProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  renderFooter?: (section: TimelineSection) => ReactNode;
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
 };
@@ -27,6 +33,7 @@ export function PlanTimeline({
   openId,
   onSelect,
   onOpenSection,
+  renderFooter,
   dnd,
 }: PlanTimelineProps) {
   const today = useToday();
@@ -53,6 +60,7 @@ export function PlanTimeline({
         openId={openId}
         onSelect={onSelect}
         onOpenSection={onOpenSection}
+        renderFooter={renderFooter}
       />
     );
   }
@@ -66,6 +74,7 @@ export function PlanTimeline({
         openId={openId}
         onSelect={onSelect}
         onOpenSection={onOpenSection}
+        renderFooter={renderFooter}
         dnd={timelineDnd}
       />
     </DragSession>

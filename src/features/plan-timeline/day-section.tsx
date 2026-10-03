@@ -1,6 +1,7 @@
 import { useDragSession } from "@/features/plan-dnd/drag-session";
 import { ZoneSpec } from "@/features/plan-dnd/zone-layer";
 import { WHOLE_ZONE } from "@/features/plan-dnd/zones";
+import type { ReactNode } from "react";
 import { PlanContext } from "./context";
 import { TimelineDay } from "./model";
 import { sectionLabel } from "./section-label";
@@ -16,6 +17,7 @@ type DaySectionProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  footer?: ReactNode;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
 };
@@ -28,6 +30,7 @@ export function DaySection({
   openId,
   onSelect,
   onOpenSection,
+  footer,
   dnd,
 }: DaySectionProps) {
   const { dragged } = useDragSession();
@@ -57,6 +60,7 @@ export function DaySection({
       openId={openId}
       onSelect={onSelect}
       onOpenSection={onOpenSection}
+      footer={footer}
       dnd={dnd}
     />
   );

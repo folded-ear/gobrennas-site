@@ -1,8 +1,9 @@
+import type { ReactNode } from "react";
 import { BucketSection, UnplannedSection } from "./bucket-section";
 import { PlanContext } from "./context";
 import { DaySection } from "./day-section";
 import { GapRow } from "./gap-row";
-import { TimelineEntry } from "./model";
+import { TimelineEntry, type TimelineSection } from "./model";
 import { TimelineDnd } from "./timeline-row";
 
 type DayListProps = {
@@ -14,6 +15,7 @@ type DayListProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  renderFooter?: (section: TimelineSection) => ReactNode;
   dnd?: TimelineDnd;
 };
 
@@ -25,6 +27,7 @@ export function DayList({
   openId,
   onSelect,
   onOpenSection,
+  renderFooter,
   dnd,
 }: DayListProps) {
   return (
@@ -41,6 +44,7 @@ export function DayList({
                 openId={openId}
                 onSelect={onSelect}
                 onOpenSection={onOpenSection}
+                footer={renderFooter?.(entry)}
                 dnd={dnd}
               />
             );
@@ -53,6 +57,7 @@ export function DayList({
                 openId={openId}
                 onSelect={onSelect}
                 onOpenSection={onOpenSection}
+                footer={renderFooter?.(entry)}
                 dnd={dnd}
               />
             );
@@ -65,6 +70,7 @@ export function DayList({
                 openId={openId}
                 onSelect={onSelect}
                 onOpenSection={onOpenSection}
+                footer={renderFooter?.(entry)}
                 dnd={dnd}
               />
             );

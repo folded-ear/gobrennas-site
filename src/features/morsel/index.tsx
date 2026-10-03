@@ -1,6 +1,7 @@
 "use client";
 
 import { Spinner } from "@heroui/react";
+import clsx from "clsx";
 import {
   useEffect,
   useEffectEvent,
@@ -8,6 +9,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type KeyboardEvent,
   type KeyboardEventHandler,
   type RefCallback,
 } from "react";
@@ -27,10 +29,14 @@ export type MorselProps = {
   label: string;
   descriptionId?: string;
   placeholder?: string;
+  /** Inline editing fits the line height and text alignment of a planner row. */
+  variant?: "field" | "inline";
   isDisabled?: boolean;
   isPending?: boolean;
   recognition?: MorselRecognition;
   suggestions?: MorselSuggestions;
+  /** Use a plain textbox with recognition highlights, without suggestions. */
+  suggestionsEnabled?: boolean;
   inputRef?: RefCallback<HTMLDivElement>;
   onChange: (raw: string, cursor: number, inputType?: string) => void;
   onChoose?: (raw: string, cursor: number, choice: MorselChoice) => void;
@@ -40,7 +46,7 @@ export type MorselProps = {
   onCompositionStart?: () => void;
   onCompositionEnd?: (raw: string, cursor: number) => void;
   onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
-  onEnter?: () => void;
+  onEnter?: (event?: KeyboardEvent<HTMLDivElement>) => void;
   onPasteLines?: (text: string, selection: TextRange) => boolean;
 };
 
@@ -79,10 +85,12 @@ export function Morsel({
   label,
   descriptionId,
   placeholder = "e.g. 2 cups flour",
+  variant = "field",
   isDisabled = false,
   isPending = false,
   recognition,
   suggestions,
+  suggestionsEnabled = true,
   inputRef,
   onChange,
   onChoose,
@@ -188,6 +196,7 @@ export function Morsel({
   }, [id, matching]);
 
   const currentSuggestions =
+    suggestionsEnabled &&
     suggestions?.raw === value &&
     suggestions.raw === context.raw &&
     suggestions.cursor === context.cursor
@@ -268,10 +277,10 @@ export function Morsel({
     else onChange(next.raw, next.cursor);
   }
 
-  function enter() {
+  function enter(event?: KeyboardEvent<HTMLDivElement>) {
     if (isDisabled || composing.current) return;
     if (open && active >= 0 && options[active]) choose(options[active]);
-    else onEnter?.();
+    else onEnter?.(event);
   }
   // Touch keyboards can send an editing intent without a usable Enter keydown.
   const beforeInput = useEffectEvent((event: InputEvent) => {
@@ -306,7 +315,7 @@ export function Morsel({
         }}
         contentEditable={isDisabled ? false : "plaintext-only"}
         suppressContentEditableWarning
-        role="combobox"
+        role={suggestionsEnabled ? "combobox" : "textbox"}
         tabIndex={isDisabled ? -1 : 0}
         aria-label={label}
         aria-disabled={isDisabled}
@@ -318,8 +327,8 @@ export function Morsel({
         ]
           .filter(Boolean)
           .join(" ")}
-        aria-autocomplete="list"
-        aria-expanded={open}
+        aria-autocomplete={suggestionsEnabled ? "list" : undefined}
+        aria-expanded={suggestionsEnabled ? open : undefined}
         aria-controls={open ? `${id}-options` : undefined}
         aria-activedescendant={
           open && active >= 0 && active < options.length
@@ -328,7 +337,12 @@ export function Morsel({
         }
         data-placeholder={placeholder}
         spellCheck={false}
-        className="min-h-10 w-full whitespace-pre-wrap break-words rounded-field border border-field-border bg-field py-sm pr-xxl pl-md text-base leading-6 text-(--morsel-text) outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 aria-disabled:opacity-50"
+        className={clsx(
+          "w-full whitespace-pre-wrap break-words rounded-field text-base leading-6 text-(--morsel-text) outline-none focus:ring-2 focus:ring-accent/20 aria-disabled:opacity-50",
+          variant === "inline"
+            ? "min-h-6 border-0 bg-transparent py-0 pr-xl pl-0"
+            : "min-h-10 border border-field-border bg-field py-sm pr-xxl pl-md focus:border-accent",
+        )}
         onFocus={(event) => {
           settleIngredient(event.currentTarget.textContent ?? "");
           const cursor = readSelection(event.currentTarget).start;
@@ -388,6 +402,7 @@ export function Morsel({
           )
             return;
           if (
+            suggestionsEnabled &&
             (event.key === "ArrowDown" || event.key === "ArrowUp") &&
             (options.length || (event.key === "ArrowDown" && settled))
           ) {
@@ -403,7 +418,7 @@ export function Morsel({
                     ? options.length - 1
                     : index - 1,
             );
-          } else if (event.key === "Escape") {
+          } else if (event.key === "Escape" && suggestionsEnabled) {
             event.preventDefault();
             setDismissed(true);
             setActive(-1);
@@ -419,7 +434,7 @@ export function Morsel({
             if (event.key === "Tab") setDismissed(true);
             if (event.key === "Enter") {
               event.preventDefault();
-              enter();
+              enter(event);
             }
             onKeyDown?.(event);
           }
@@ -430,12 +445,18 @@ export function Morsel({
           aria-label={`${label}: recognizing`}
           color="current"
           size="sm"
-          className="pointer-events-none absolute top-md right-md text-muted"
+          className={clsx(
+            "pointer-events-none absolute text-muted",
+            variant === "inline"
+              ? "top-1/2 right-xs -translate-y-1/2"
+              : "top-md right-md",
+          )}
         />
       )}
       <span id={`${id}-help`} className="sr-only">
-        Use arrow keys to browse suggestions, Enter to choose, Escape to
-        dismiss, and Tab to move on.
+        {suggestionsEnabled
+          ? "Use arrow keys to browse suggestions, Enter to choose, Escape to dismiss, and Tab to move on."
+          : "Quantity, unit, and ingredient are highlighted as you type."}
       </span>
       {open && (
         <div

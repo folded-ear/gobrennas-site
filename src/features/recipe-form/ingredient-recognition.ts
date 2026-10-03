@@ -3,7 +3,11 @@ import {
   RecognizedRangeType,
   type IngredientRefInfo,
 } from "@/__generated__/graphql";
-import type { MorselChoice, MorselSuggestion } from "@/features/morsel/types";
+import type {
+  MorselChoice,
+  MorselRecognition,
+  MorselSuggestion,
+} from "@/features/morsel/types";
 import { z } from "zod";
 
 export const ingredientRecognitionSchema = z
@@ -61,6 +65,26 @@ export const ingredientRecognitionSchema = z
   });
 
 export type IngredientRecognition = z.infer<typeof ingredientRecognitionSchema>;
+
+/** Shared highlight ranges for editable and resting ingredient text. */
+export function toMorselRecognition(
+  result: IngredientRecognition,
+): MorselRecognition {
+  const ranges: MorselRecognition["ranges"] = result.ranges.flatMap((range) => {
+    const type =
+      range.type === RecognizedRangeType.QUANTITY
+        ? "quantity"
+        : range.type === RecognizedRangeType.UNIT ||
+            range.type === RecognizedRangeType.NEW_UNIT
+          ? "unit"
+          : range.type === RecognizedRangeType.ITEM ||
+              range.type === RecognizedRangeType.NEW_ITEM
+            ? "ingredient"
+            : undefined;
+    return type ? [{ start: range.start, end: range.end, type }] : [];
+  });
+  return { raw: result.raw, ranges };
+}
 export type RecognizeIngredient = (
   raw: string,
   cursor: number,

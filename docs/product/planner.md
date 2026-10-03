@@ -205,8 +205,36 @@ The terms used here are defined in the [domain model](../domain/model.md).
   and a message says so.
 - Items can be moved by keyboard; see [Keyboard shortcuts](#keyboard-shortcuts).
 
+### Adding from the timeline
+
+- Each day, named bucket, and Unplanned section has an Add button when the user
+  can add there. It opens the shared Morsel editor with pantry, recipe, and section
+  suggestions. Choosing a suggestion preserves its identity when saved, including
+  suggestions with the same name. A leading `!` skips recognition.
+- When several eligible plans are shown, a plan picker chooses where the new item
+  belongs. Creating a missing destination bucket requires administering that plan;
+  adding to an existing bucket only requires permission to change items.
+- Add saves a new root item at the end of the chosen plan and assigns it to the
+  section's bucket. Unplanned items have no bucket. Choosing a recipe uses the same action as the library’s Add to plan: its
+  ingredients and nested sections are added too, making the cooking and detail
+  views available. A typed quantity scales the recipe (for example, `2 Chili` adds
+  a double batch); no quantity means one batch. Saving waits for current recognition
+  if the quantity was just edited. Recipe quantities must be greater than zero.
+  A section suggestion still saves a reference only.
+- Cancel discards the draft. A failed save keeps the text. If the item was created
+  but assigning its bucket failed, Retry moves that same item without creating a
+  duplicate; Close leaves it in Unplanned.
+
 ### Editing items
 
+- Existing leaf rows inside an open item's detail use compact, inline Morsel while being edited.
+  Quantity, unit, and ingredient highlights update after a brief pause. This
+  first version has no suggestions; saving still sends the entered text.
+  A leading `!` skips recognition. Recognition failures do not prevent saving.
+  Resting rows use the same highlights while preserving the original wording,
+  fractions, and punctuation. Pending name and status changes keep their existing
+  visual feedback. Failed recognition leaves resting text readable without highlights.
+  Headings, new rows, and section screens keep their plain text fields.
 - A user who can change a plan edits an item's name in place wherever it
   shows as text: below the open item or in a section screen, and the open
   item itself at the head of the item screen. Names on the timeline open

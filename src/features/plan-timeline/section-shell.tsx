@@ -22,6 +22,7 @@ type SectionShellProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  footer?: ReactNode;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
 };
@@ -39,6 +40,7 @@ export function SectionShell({
   openId,
   onSelect,
   onOpenSection,
+  footer,
   dnd,
 }: SectionShellProps) {
   const title = (
@@ -72,7 +74,9 @@ export function SectionShell({
       </h3>
       {roots.length === 0 ? (
         // Room to read the section as somewhere an item could go.
-        <div className="h-xl" />
+        footer ? null : (
+          <div className="h-xl" />
+        )
       ) : (
         <div className="py-xs">
           <PlanItemTree
@@ -91,6 +95,7 @@ export function SectionShell({
           />
         </div>
       )}
+      {footer}
       <ZoneLayer zones={zones} />
     </li>
   );

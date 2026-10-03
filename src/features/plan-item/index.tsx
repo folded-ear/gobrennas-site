@@ -9,9 +9,14 @@ import { ItemName } from "./item-name";
 type PlanItemProps = {
   item: FragmentType<PlanItemFragment>;
   onSelect?: (id: string) => void;
+  highlightIngredient?: boolean;
 };
 
-export function PlanItem({ item, onSelect }: PlanItemProps) {
+export function PlanItem({
+  item,
+  onSelect,
+  highlightIngredient = false,
+}: PlanItemProps) {
   const { data, complete } = useFragment({
     fragment: PlanItemFragmentDoc,
     fragmentName: "planItem",
@@ -24,7 +29,7 @@ export function PlanItem({ item, onSelect }: PlanItemProps) {
   if (!onSelect) {
     return (
       <span>
-        <ItemName itemId={data.id} />
+        <ItemName itemId={data.id} highlightIngredient={highlightIngredient} />
       </span>
     );
   }

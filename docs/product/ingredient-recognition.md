@@ -59,7 +59,13 @@ recognition UI branch.
 ## Morsel interaction
 
 `Morsel` is the reusable food editor. Recipe creation is its first consumer;
-planner and shopping adoption are later work. The archived prototype keeps its
+planner item details also use recognition-only Morsel for existing leaf rows.
+Planner fields use a compact inline layout; resting ingredient rows reuse its
+highlight styles on the original text.
+The planner’s timeline Add control uses the full suggestion dropdown and sends the
+selected identity with `planner.createItem(choice:)` for pantry items and sections.
+Recipe choices use `library.sendRecipeToPlan` so their ingredient trees are added too. Existing planner leaf edits
+remain recognition-only. Shopping adoption is later work. The archived prototype keeps its
 fake parser and catalog on the separate branch linked above.
 
 - Suggest ingredients only, not units. Group candidates by **Pantry item**,

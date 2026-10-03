@@ -58,6 +58,21 @@ export function changeApiClient(
     (operation) =>
       new Observable((observer) => {
         const variables = operation.variables;
+        if (operation.operationName === "recognizeIngredient") {
+          observer.next({
+            data: {
+              library: {
+                recognizeItem: {
+                  raw: variables.raw,
+                  cursor: variables.cursor,
+                  ranges: [],
+                },
+              },
+            },
+          });
+          observer.complete();
+          return;
+        }
         requests.push({
           variables,
           keepalive: operation.getContext().fetchOptions?.keepalive,

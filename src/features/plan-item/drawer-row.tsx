@@ -28,6 +28,7 @@ type DrawerRowProps = {
   sectionRoot?: boolean;
   /** Whether my section's own items come from more than one plan. */
   spansPlans?: boolean;
+  recognizeIngredients?: boolean;
   context: PlanContext;
   /** Left out, nothing can be dropped on me. */
   tree?: PlanTree;
@@ -44,6 +45,7 @@ export function DrawerRow({
   node,
   sectionRoot = false,
   spansPlans = false,
+  recognizeIngredients = false,
   context,
   tree,
   onMove,
@@ -73,6 +75,12 @@ export function DrawerRow({
 
   const statusClassName = useItemStatusClassName(id);
   const status = useItemStatus(id);
+  const isIngredient = recognizeIngredients && node.item.children.length === 0;
+  const highlightIngredient =
+    isIngredient &&
+    status !== null &&
+    !status.inert &&
+    status.pendingStatus === null;
   const canEdit =
     plan?.changeable === true &&
     status !== null &&
@@ -105,14 +113,21 @@ export function DrawerRow({
           name={name}
           hasChildren={node.item.children.length > 0}
           canEdit={canEdit}
+          recognizeIngredient={isIngredient}
           bucketId={bucketId}
           className={statusClassName}
         >
-          <PlanItem item={node.item} />
+          <PlanItem
+            item={node.item}
+            highlightIngredient={highlightIngredient}
+          />
         </EditableName>
       ) : (
         <span className={clsx("min-w-0", statusClassName)}>
-          <PlanItem item={node.item} />
+          <PlanItem
+            item={node.item}
+            highlightIngredient={highlightIngredient}
+          />
         </span>
       )}
       {plan !== undefined && node.item.children.length > 0 ? (

@@ -22,6 +22,7 @@ import {
 import type { IngredientDraft } from "./ingredient-draft";
 import {
   recognizedParts,
+  toMorselRecognition,
   type IngredientRecognition,
   type RecognizeIngredient,
 } from "./ingredient-recognition";
@@ -79,22 +80,7 @@ export function IngredientInput({
   const parts = result ? recognizedParts(result) : undefined;
   const morselRecognition = useMemo<MorselRecognition | undefined>(() => {
     if (!result) return undefined;
-    const ranges: MorselRecognition["ranges"] = result.ranges.flatMap(
-      (range) => {
-        const type =
-          range.type === RecognizedRangeType.QUANTITY
-            ? "quantity"
-            : range.type === RecognizedRangeType.UNIT ||
-                range.type === RecognizedRangeType.NEW_UNIT
-              ? "unit"
-              : range.type === RecognizedRangeType.ITEM ||
-                  range.type === RecognizedRangeType.NEW_ITEM
-                ? "ingredient"
-                : undefined;
-        return type ? [{ start: range.start, end: range.end, type }] : [];
-      },
-    );
-    return { raw: result.raw, ranges };
+    return toMorselRecognition(result);
   }, [result]);
 
   return (

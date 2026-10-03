@@ -6,6 +6,7 @@ import {
 import { useDragSession } from "@/features/plan-dnd/drag-session";
 import { ZoneSpec } from "@/features/plan-dnd/zone-layer";
 import { WHOLE_ZONE } from "@/features/plan-dnd/zones";
+import type { ReactNode } from "react";
 import { PlanContext } from "./context";
 import {
   TimelineBucketSection,
@@ -22,6 +23,7 @@ type SectionProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  footer?: ReactNode;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
 };
@@ -38,6 +40,7 @@ export function BucketSection({
   openId,
   onSelect,
   onOpenSection,
+  footer,
   dnd,
 }: BucketSectionProps) {
   const { dragged } = useDragSession();
@@ -75,6 +78,7 @@ export function BucketSection({
       openId={openId}
       onSelect={onSelect}
       onOpenSection={onOpenSection}
+      footer={footer}
       dnd={dnd}
     />
   );
@@ -92,6 +96,7 @@ export function UnplannedSection({
   openId,
   onSelect,
   onOpenSection,
+  footer,
   dnd,
 }: UnplannedSectionProps) {
   const { dragged } = useDragSession();
@@ -118,6 +123,7 @@ export function UnplannedSection({
       openId={openId}
       onSelect={onSelect}
       onOpenSection={onOpenSection}
+      footer={footer}
       dnd={dnd}
     />
   );

@@ -1,4 +1,7 @@
-import { PlanItemStatus } from "@/__generated__/graphql";
+import {
+  PlanItemStatus,
+  type RecognitionChoice,
+} from "@/__generated__/graphql";
 import { ApolloCache } from "@apollo/client";
 import {
   PlanItemChangeStateFragment,
@@ -35,6 +38,7 @@ export type CreateChange = {
   readonly parentId: string;
   readonly afterId: ItemKey | null;
   readonly name: string;
+  readonly choice?: RecognitionChoice;
   /** Assigned once created; left out, the item only inherits one. */
   readonly bucketId?: string | null;
 };
@@ -205,6 +209,7 @@ export function createChangeQueue({
       parentId: change.parentId,
       afterId,
       name: change.name,
+      ...(change.choice ? { choice: change.choice } : {}),
     };
   }
 
