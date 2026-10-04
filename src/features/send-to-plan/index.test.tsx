@@ -1,4 +1,3 @@
-import { FAILURE_TOAST_TITLE } from "@/lib/apollo/failure-toast-link";
 import {
   buildInMemoryCache,
   render,
@@ -88,7 +87,6 @@ describe("SendToPlan", () => {
     expect(
       await screen.findByText("Couldn’t add recipe to plan"),
     ).toBeVisible();
-    expect(screen.queryByText(FAILURE_TOAST_TITLE)).not.toBeInTheDocument();
   });
 
   it("says so when the plan doesn't take the recipe", async () => {
@@ -102,7 +100,6 @@ describe("SendToPlan", () => {
     expect(
       await screen.findByText("Couldn’t add recipe to plan"),
     ).toBeVisible();
-    expect(screen.queryByText(FAILURE_TOAST_TITLE)).not.toBeInTheDocument();
   });
 
   it("says so when no plan item comes back", async () => {

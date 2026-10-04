@@ -24,10 +24,6 @@ import { PlanTimeline } from "@/features/plan-timeline";
 import { buildPlanContext } from "@/features/plan-timeline/context";
 import type { TimelineSection } from "@/features/plan-timeline/model";
 import { buildSubtree } from "@/features/plan-timeline/model";
-import {
-  FAILURE_TOAST_TITLE,
-  failureToastLink,
-} from "@/lib/apollo/failure-toast-link";
 import { render, screen, userEvent, waitFor } from "@/test";
 import { ApolloClient, ApolloLink, gql, Observable } from "@apollo/client";
 import { LocalState } from "@apollo/client/local-state";
@@ -179,142 +175,140 @@ function setup({
     cache: seededCache(),
     dataMasking: true,
     localState: new LocalState(),
-    link: failureToastLink.concat(
-      new ApolloLink(
-        (operation) =>
-          new Observable((observer) => {
-            const v = operation.variables;
-            requests.push({
-              name: operation.operationName ?? "",
-              variables: v,
-              query: print(operation.query),
+    link: new ApolloLink(
+      (operation) =>
+        new Observable((observer) => {
+          const v = operation.variables;
+          requests.push({
+            name: operation.operationName ?? "",
+            variables: v,
+            query: print(operation.query),
+          });
+          if (operation.operationName === failing) {
+            observer.error(new Error("Failed to fetch"));
+            return;
+          }
+          if (operation.operationName === "recognizeIngredient") {
+            if (failFreshRecognition && v.raw === "3 Soup" && !v.suggest) {
+              observer.error(new Error("Recognition unavailable"));
+              return;
+            }
+            const prefix = /^(\d+(?:\.\d+)?(?:\/\d+)?)\s+/.exec(v.raw);
+            const amount = prefix?.[1];
+            const [numerator, denominator = "1"] = amount?.split("/") ?? [];
+            const ranges = amount
+              ? [
+                  {
+                    start: 0,
+                    end: amount.length,
+                    type: RecognizedRangeType.QUANTITY,
+                    quantity: Number(numerator) / Number(denominator),
+                    id: null,
+                  },
+                ]
+              : [];
+            observer.next({
+              data: {
+                library: {
+                  recognizeItem: {
+                    raw: v.raw,
+                    cursor: v.cursor,
+                    ranges,
+                    suggestions: [
+                      {
+                        name: "Soup",
+                        kind: RecognitionKind.PANTRY_ITEM,
+                        detail: null,
+                        target: {
+                          start: prefix?.[0].length ?? 0,
+                          end: v.raw.length,
+                          type: RecognizedRangeType.ITEM,
+                          id: "pantry-soup",
+                        },
+                      },
+                      {
+                        name: "Soup",
+                        kind: RecognitionKind.RECIPE,
+                        detail: null,
+                        target: {
+                          start: prefix?.[0].length ?? 0,
+                          end: v.raw.length,
+                          type: RecognizedRangeType.ITEM,
+                          id: "recipe-soup",
+                        },
+                      },
+                      {
+                        name: "Stock",
+                        kind: RecognitionKind.SECTION,
+                        detail: "Chicken soup",
+                        target: {
+                          start: prefix?.[0].length ?? 0,
+                          end: v.raw.length,
+                          type: RecognizedRangeType.ITEM,
+                          id: "section-stock",
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
             });
-            if (operation.operationName === failing) {
-              observer.error(new Error("Failed to fetch"));
-              return;
-            }
-            if (operation.operationName === "recognizeIngredient") {
-              if (failFreshRecognition && v.raw === "3 Soup" && !v.suggest) {
-                observer.error(new Error("Recognition unavailable"));
-                return;
-              }
-              const prefix = /^(\d+(?:\.\d+)?(?:\/\d+)?)\s+/.exec(v.raw);
-              const amount = prefix?.[1];
-              const [numerator, denominator = "1"] = amount?.split("/") ?? [];
-              const ranges = amount
-                ? [
-                    {
-                      start: 0,
-                      end: amount.length,
-                      type: RecognizedRangeType.QUANTITY,
-                      quantity: Number(numerator) / Number(denominator),
-                      id: null,
-                    },
-                  ]
-                : [];
-              observer.next({
-                data: {
-                  library: {
-                    recognizeItem: {
-                      raw: v.raw,
-                      cursor: v.cursor,
-                      ranges,
-                      suggestions: [
-                        {
-                          name: "Soup",
-                          kind: RecognitionKind.PANTRY_ITEM,
-                          detail: null,
-                          target: {
-                            start: prefix?.[0].length ?? 0,
-                            end: v.raw.length,
-                            type: RecognizedRangeType.ITEM,
-                            id: "pantry-soup",
-                          },
-                        },
-                        {
-                          name: "Soup",
-                          kind: RecognitionKind.RECIPE,
-                          detail: null,
-                          target: {
-                            start: prefix?.[0].length ?? 0,
-                            end: v.raw.length,
-                            type: RecognizedRangeType.ITEM,
-                            id: "recipe-soup",
-                          },
-                        },
-                        {
-                          name: "Stock",
-                          kind: RecognitionKind.SECTION,
-                          detail: "Chicken soup",
-                          target: {
-                            start: prefix?.[0].length ?? 0,
-                            end: v.raw.length,
-                            type: RecognizedRangeType.ITEM,
-                            id: "section-stock",
-                          },
-                        },
-                      ],
-                    },
+          } else if (operation.operationName === "doCreateBucket") {
+            observer.next({
+              data: {
+                planner: {
+                  __typename: "PlannerMutation",
+                  createBucket: {
+                    __typename: "PlanBucket",
+                    id: "bucket-new",
+                    name: v.name,
+                    date: v.date,
                   },
                 },
-              });
-            } else if (operation.operationName === "doCreateBucket") {
-              observer.next({
-                data: {
-                  planner: {
-                    __typename: "PlannerMutation",
-                    createBucket: {
-                      __typename: "PlanBucket",
-                      id: "bucket-new",
-                      name: v.name,
-                      date: v.date,
-                    },
-                  },
-                },
-              });
-            } else if (operation.operationName === "addPlannerRecipe") {
-              observer.next({ data: addedRecipe });
-            } else if (operation.operationName === "doChanges") {
-              const planner: Record<string, unknown> = {
-                __typename: "PlannerMutation",
-              };
-              for (let i = 0; `name${i}` in v || `id${i}` in v; i++) {
-                planner[`s${i}`] =
-                  `parentId${i}` in v
-                    ? {
-                        __typename: "PlanItem",
-                        id: "100",
-                        name: v[`name${i}`],
-                        status: "NEEDED",
-                        notes: null,
-                        parent: { __typename: "Plan", id: v[`parentId${i}`] },
-                        aggregate: null,
-                        preparation: null,
-                        ingredient: null,
-                        quantity: null,
-                        components: [],
-                        bucket: null,
-                        children: [],
-                      }
-                    : {
-                        __typename: "PlanItem",
-                        id: v[`id${i}`],
-                        bucket: {
-                          __typename: "PlanBucket",
-                          id: v[`bucketId${i}`],
-                        },
-                      };
-              }
-              observer.next({ data: { planner } });
-            } else {
-              observer.error(
-                new Error(`Unexpected operation: ${operation.operationName}`),
-              );
-              return;
+              },
+            });
+          } else if (operation.operationName === "addPlannerRecipe") {
+            observer.next({ data: addedRecipe });
+          } else if (operation.operationName === "doChanges") {
+            const planner: Record<string, unknown> = {
+              __typename: "PlannerMutation",
+            };
+            for (let i = 0; `name${i}` in v || `id${i}` in v; i++) {
+              planner[`s${i}`] =
+                `parentId${i}` in v
+                  ? {
+                      __typename: "PlanItem",
+                      id: "100",
+                      name: v[`name${i}`],
+                      status: "NEEDED",
+                      notes: null,
+                      parent: { __typename: "Plan", id: v[`parentId${i}`] },
+                      aggregate: null,
+                      preparation: null,
+                      ingredient: null,
+                      quantity: null,
+                      components: [],
+                      bucket: null,
+                      children: [],
+                    }
+                  : {
+                      __typename: "PlanItem",
+                      id: v[`id${i}`],
+                      bucket: {
+                        __typename: "PlanBucket",
+                        id: v[`bucketId${i}`],
+                      },
+                    };
             }
-            observer.complete();
-          }),
-      ),
+            observer.next({ data: { planner } });
+          } else {
+            observer.error(
+              new Error(`Unexpected operation: ${operation.operationName}`),
+            );
+            return;
+          }
+          observer.complete();
+        }),
     ),
   });
   if (showSavedPlan) {
@@ -575,7 +569,6 @@ describe("planner Add", () => {
     await user.click(screen.getByRole("button", { name: "Add" }));
 
     expect(await screen.findByText(/Couldn’t add this item/)).toBeVisible();
-    expect(screen.queryByText(FAILURE_TOAST_TITLE)).not.toBeInTheDocument();
     expect(input).toHaveTextContent("Soup");
   });
 
@@ -587,7 +580,6 @@ describe("planner Add", () => {
     await user.click(screen.getByRole("button", { name: "Add" }));
 
     expect(await screen.findByText(/Couldn’t add this item/)).toBeVisible();
-    expect(screen.queryByText(FAILURE_TOAST_TITLE)).not.toBeInTheDocument();
     expect(input).toHaveTextContent("!Dinner");
   });
 

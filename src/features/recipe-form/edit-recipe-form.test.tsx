@@ -2,7 +2,6 @@ import {
   soupPhoto,
   stubPhotoBrowser,
 } from "@/features/recipe-photo-editor/test/browser";
-import { FAILURE_TOAST_TITLE } from "@/lib/apollo/failure-toast-link";
 import { RecipeEdit } from "@/screens/recipe-edit";
 import {
   act,
@@ -177,7 +176,6 @@ describe("editing owned recipes", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Couldn’t save recipe",
     );
-    expect(screen.queryByText(FAILURE_TOAST_TITLE)).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(
       "Apple pie",
     );
@@ -505,7 +503,6 @@ describe("deleting owned recipes", () => {
       expect(await within(dialog).findByRole("alert")).toHaveTextContent(
         "Couldn’t delete recipe",
       );
-      expect(screen.queryByText(FAILURE_TOAST_TITLE)).not.toBeInTheDocument();
       expect(onDeleted).not.toHaveBeenCalled();
       expect(cache.readQuery(query)).toEqual(load.result.data);
       await user.click(within(dialog).getByRole("button", { name: "Cancel" }));

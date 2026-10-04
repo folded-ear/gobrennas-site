@@ -1,6 +1,5 @@
 import { AccessLevel } from "@/__generated__/graphql";
 import { DoSendToPlanDocument } from "@/features/send-to-plan/__generated__/doSendToPlan.generated";
-import { FAILURE_TOAST_TITLE } from "@/lib/apollo/failure-toast-link";
 import { buildInMemoryCache, render, screen, userEvent, waitFor } from "@/test";
 import { gql } from "@apollo/client";
 import { describe, expect, it, vi } from "vitest";
@@ -136,7 +135,6 @@ describe("AddRecipeToPlan", () => {
     expect(
       await screen.findByText("Couldn’t add recipe to plan"),
     ).toBeVisible();
-    expect(screen.queryByText(FAILURE_TOAST_TITLE)).not.toBeInTheDocument();
     await chooseParty();
     expect(await screen.findByText("Added to Party")).toBeVisible();
   });

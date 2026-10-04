@@ -3,10 +3,6 @@ import { PreferenceValueFragmentDoc } from "@/hooks/use-preference/__generated__
 import { useSetPreference } from "@/hooks/use-set-preference";
 import { InitializeDeviceKeyDocument } from "@/lib/apollo/__generated__/initializeDeviceKey.generated";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
-import {
-  FAILURE_TOAST_TITLE,
-  failureToastLink,
-} from "@/lib/apollo/failure-toast-link";
 import { ApolloClient, ApolloLink, Operation } from "@apollo/client";
 import { LocalState } from "@apollo/client/local-state";
 import { ApolloProvider } from "@apollo/client/react";
@@ -19,14 +15,15 @@ import { DoSetPreferenceDocument } from "./__generated__/doSetPreference.generat
 const DEVICE_KEY = "a-device-key";
 const PREF = "somePreference";
 const THE_PREF = { __typename: "UserPreference" as const, name: PREF };
+const FAILED_SAVE = "Couldn’t save your change";
 
 /** What the last press's setter call returned. */
 let lastSet: Promise<unknown> | undefined;
 
-function Probe() {
+function Probe({ quiet }: { quiet?: boolean }) {
   const [setPreference] = useSetPreference(PREF);
   return (
-    <button onClick={() => (lastSet = setPreference("new"))}>
+    <button onClick={() => (lastSet = setPreference("new", { quiet }))}>
       {usePreference(PREF)}
     </button>
   );
@@ -34,10 +31,11 @@ function Probe() {
 
 type ProbeOptions = {
   seedDeviceKey?: boolean;
+  quiet?: boolean;
   mock?: Partial<MockLink.MockedResponse>;
 };
 
-function renderProbe({ seedDeviceKey = true, mock }: ProbeOptions = {}) {
+function renderProbe({ seedDeviceKey = true, quiet, mock }: ProbeOptions = {}) {
   const cache = buildInMemoryCache();
   if (seedDeviceKey) {
     // this is what apollo-rsc.ts writes, and what reaches the browser cache
@@ -62,7 +60,6 @@ function renderProbe({ seedDeviceKey = true, mock }: ProbeOptions = {}) {
         seen.push(operation);
         return forward(operation);
       }),
-      failureToastLink,
       new MockLink([
         {
           request: {
@@ -89,7 +86,7 @@ function renderProbe({ seedDeviceKey = true, mock }: ProbeOptions = {}) {
 
   render(
     <ApolloProvider client={client}>
-      <Probe />
+      <Probe quiet={quiet} />
     </ApolloProvider>,
   );
   return { cache, seen, button: screen.getByRole("button") };
@@ -157,7 +154,19 @@ describe("useSetPreference", () => {
     await expect(lastSet).resolves.toBeUndefined();
     expect(
       toast.getQueue().visibleToasts.map(({ content }) => content.title),
-    ).toEqual([FAILURE_TOAST_TITLE]);
+    ).toEqual([FAILED_SAVE]);
+  });
+
+  it("settles without a word when told to keep quiet", async () => {
+    const { button } = renderProbe({
+      quiet: true,
+      mock: { error: new Error("nope") },
+    });
+
+    button.click();
+
+    await expect(lastSet).resolves.toBeUndefined();
+    expect(toast.getQueue().visibleToasts).toEqual([]);
   });
 
   it("leaves the cached device key alone while guessing", async () => {

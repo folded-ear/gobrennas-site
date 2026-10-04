@@ -101,14 +101,11 @@ rendering because the boundary has not mounted yet.
    something that works.
 3. **Errors the user caused by acting get a toast.** A failed mutation the user
    triggered is transient and belongs near the action, not in a page-level
-   boundary. `failureToastLink` (`src/lib/apollo/failure-toast-link.ts`)
-   toasts a generic failure for every failed mutation on the browser client.
+   boundary.
 4. **Errors bound to a place get an inline `Alert`.** Anything tied to a field,
    a form, or one region shows there, where the thing that failed is.
-5. **Never swallow a mutation error, and report it once.** The generic toast is
-   the floor. A call site that reports the failure itself — a specific toast,
-   a form or dialog error, an inline error — passes
-   `context: { failureToast: false }` so the generic toast stays out of it.
+5. **Never swallow a mutation error.** Every mutation handles failure
+   explicitly. Silence is the current behavior and it is a bug, not a pattern.
 6. **Authentication is not an error condition.** An expired or missing session
    is a routing outcome, not something for an error boundary to interpret.
 

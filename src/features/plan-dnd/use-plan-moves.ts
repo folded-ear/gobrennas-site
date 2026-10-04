@@ -63,9 +63,7 @@ function reportFailure(name: string) {
 export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
   const { cache } = useApolloClient();
   const engine = usePageEngine();
-  const [createBucket] = useMutation(DoCreateBucketDocument, {
-    context: { failureToast: false },
-  });
+  const [createBucket] = useMutation(DoCreateBucketDocument);
   const planOf = useMemo(
     () =>
       new Map(

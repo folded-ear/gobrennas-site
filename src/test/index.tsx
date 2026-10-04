@@ -1,6 +1,5 @@
 import { PageEngine } from "@/features/page-engine";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
-import { failureToastLink } from "@/lib/apollo/failure-toast-link";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { ApolloClient, FragmentType } from "@apollo/client";
 import { LocalState } from "@apollo/client/local-state";
@@ -63,7 +62,7 @@ export function render(
       dataMasking: true,
       cache: cache ?? buildInMemoryCache(),
       localState: new LocalState(),
-      link: failureToastLink.concat(new MockLink(mocks ?? [])),
+      link: new MockLink(mocks ?? []),
     });
 
   function Providers({ children }: { children: ReactNode }) {

@@ -4,7 +4,6 @@ import {
   type SectionInfo,
 } from "@/__generated__/graphql";
 import { editableMorsel } from "@/features/morsel/test-helpers";
-import { FAILURE_TOAST_TITLE } from "@/lib/apollo/failure-toast-link";
 import { buildInMemoryCache, render, screen, userEvent, waitFor } from "@/test";
 import { MockLink } from "@apollo/client/testing";
 import { describe, expect, it, vi } from "vitest";
@@ -427,8 +426,7 @@ describe("CreateRecipeForm", () => {
     );
     await user.click(screen.getByRole("button", { name: /save recipe/i }));
 
-    expect(await screen.findByText("Couldn’t save recipe")).toBeVisible();
-    expect(screen.queryByText(FAILURE_TOAST_TITLE)).not.toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: /title/i })).toHaveValue(
       "Cider-braised chicken",
     );

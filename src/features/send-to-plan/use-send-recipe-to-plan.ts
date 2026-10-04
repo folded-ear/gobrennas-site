@@ -22,9 +22,7 @@ const RECIPE_PLANNING = ["plannedCount", "plannedHistory"];
  * rejects.
  */
 export function useSendRecipeToPlan() {
-  const [mutate, { loading: sending }] = useMutation(DoSendToPlanDocument, {
-    context: { failureToast: false },
-  });
+  const [mutate, { loading: sending }] = useMutation(DoSendToPlanDocument);
   const client = useApolloClient();
   const pending = useRef(false);
 

@@ -36,7 +36,6 @@ export function useAddItem(section: TimelineSection) {
     const result = await client.mutate({
       mutation: AddPlannerRecipeDocument,
       variables: { recipeId, planId: plan.id, scale },
-      context: { failureToast: false },
       update(cache, { data }) {
         const item = data?.library.sendRecipeToPlan;
         if (!item) return;
@@ -72,7 +71,6 @@ export function useAddItem(section: TimelineSection) {
           date: section.date,
           name: section.kind === "bucket" ? section.name : null,
         },
-        context: { failureToast: false },
         update(cache, { data }) {
           const bucket = data?.planner.createBucket;
           if (!bucket) return;

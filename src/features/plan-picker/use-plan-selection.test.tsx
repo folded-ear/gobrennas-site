@@ -4,7 +4,7 @@ import { InitializeDeviceKeyDocument } from "@/lib/apollo/__generated__/initiali
 import { formatIdSet } from "@/lib/preferences";
 import { buildInMemoryCache, render, screen, userEvent, waitFor } from "@/test";
 import { MockLink } from "@apollo/client/testing";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { PickablePlan, SelectionMode } from "./selection";
 import { usePlanSelection } from "./use-plan-selection";
 
@@ -116,6 +116,30 @@ describe("usePlanSelection", () => {
     });
 
     await waitFor(() => expect(storedValue(cache)).toBe(WEEKNIGHTS.id));
+  });
+
+  it("tries a fill once, and quietly, when it can't be stored", async () => {
+    const attempt = vi.fn(() => ({ errors: [{ message: "nope" }] }));
+    const cache = renderProbe({
+      stored: null,
+      mode: "single",
+      mocks: [
+        {
+          ...setPreferenceMock(WEEKNIGHTS.id),
+          result: attempt,
+          delay: 0,
+          maxUsageCount: Infinity,
+        },
+      ],
+    });
+
+    await waitFor(() => expect(attempt).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(storedValue(cache)).toBeNull());
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(attempt).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("status")).toHaveTextContent(WEEKNIGHTS.id);
+    expect(screen.queryByText("Couldn’t save your change")).toBeNull();
   });
 
   it("stores a new selection", async () => {
