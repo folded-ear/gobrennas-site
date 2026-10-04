@@ -101,7 +101,42 @@ describe("buildInMemoryCache", () => {
       }),
     ).toEqual({ __typename: "PlanItem" });
   });
+
+  it("keeps one answer per plan of what changed since a cutoff", () => {
+    const cache = seededWithPlan();
+    const updatedSince = (cutoff: number) =>
+      cache.writeQuery({
+        query: UPDATED_SINCE,
+        variables: { planId: PLAN_ID, cutoff },
+        data: {
+          planner: {
+            __typename: "PlannerQuery",
+            updatedSince: [{ __typename: "Plan", id: PLAN_ID }],
+          },
+        },
+      });
+
+    updatedSince(1000);
+    updatedSince(2000);
+
+    const { planner } = cache.extract().ROOT_QUERY as {
+      planner: Record<string, unknown>;
+    };
+    expect(
+      Object.keys(planner).filter((it) => it.startsWith("updatedSince")),
+    ).toHaveLength(1);
+  });
 });
+
+const UPDATED_SINCE = gql`
+  query UpdatedSince($planId: ID!, $cutoff: Long!) {
+    planner {
+      updatedSince(planId: $planId, cutoff: $cutoff) {
+        id
+      }
+    }
+  }
+`;
 
 // A plan holding a recipe, holding an ingredient, as the planner reads them.
 const PIE_TREE = gql`

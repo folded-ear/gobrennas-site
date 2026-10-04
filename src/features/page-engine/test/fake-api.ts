@@ -12,6 +12,10 @@ export type ApiRequest = {
 /** Where the fake API numbers the items it creates from. */
 export const FIRST_CREATED_ID = 900;
 
+/** The notes and preparation of every item the fake API saves. */
+export const SAVED_NOTES = "saved notes";
+export const SAVED_PREPARATION = "saved preparation";
+
 /** How the fake API answers: saving, refusing, unreachable, or never. */
 export type ApiMode = "save" | "refuse" | "unreachable" | "hang";
 
@@ -20,10 +24,10 @@ const whole = (id: string, name: string, parent: object) => ({
   id,
   name,
   status: "NEEDED",
-  notes: null,
+  notes: SAVED_NOTES,
   parent,
   aggregate: null,
-  preparation: null,
+  preparation: SAVED_PREPARATION,
   ingredient: null,
   quantity: null,
   components: [],

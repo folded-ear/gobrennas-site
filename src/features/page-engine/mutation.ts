@@ -27,7 +27,7 @@ function fieldFor(change: SentChange, i: number): Field {
         values: { [`id${i}`]: change.id, [`status${i}`]: change.status },
         selection:
           `setStatus(id: $id${i}, status: $status${i})` +
-          ` { ...setStatusResult @unmask }`,
+          ` { ...setStatusResult }`,
         fragment: SetStatusResultFragmentDoc,
       };
     case "rename":
@@ -37,7 +37,7 @@ function fieldFor(change: SentChange, i: number): Field {
         // A plan can be renamed too, so the result is only an interface.
         selection:
           `rename(id: $id${i}, name: $name${i})` +
-          ` { __typename id ... on PlanItem { ...planItemResult @unmask } }`,
+          ` { __typename id ... on PlanItem { ...planItemResult } }`,
         fragment: PlanItemResultFragmentDoc,
       };
     case "create":
@@ -58,7 +58,7 @@ function fieldFor(change: SentChange, i: number): Field {
           `createItem(parentId: $parentId${i}, afterId: $afterId${i},` +
           ` name: $name${i}` +
           (change.choice ? `, choice: $choice${i}` : "") +
-          `) { ...planItemResult @unmask }`,
+          `) { __typename id ...planItemResult }`,
         fragment: PlanItemResultFragmentDoc,
       };
     case "assignBucket":
@@ -67,7 +67,7 @@ function fieldFor(change: SentChange, i: number): Field {
         values: { [`id${i}`]: change.id, [`bucketId${i}`]: change.bucketId },
         selection:
           `assignBucket(id: $id${i}, bucketId: $bucketId${i})` +
-          ` { ...assignBucketResult @unmask }`,
+          ` { ...assignBucketResult }`,
         fragment: AssignBucketResultFragmentDoc,
       };
     case "move":

@@ -1,10 +1,8 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import type { ApolloCache, Reference } from "@apollo/client";
-import { AssignBucketResultFragmentDoc } from "./__generated__/assignBucketResult.generated";
 import { PlanItemParentFragmentDoc } from "./__generated__/planItemParent.generated";
 import { PlanItemResultFragmentDoc } from "./__generated__/planItemResult.generated";
 import { CorePlanItemChildrenFragmentDoc } from "./__generated__/pollPlan.generated";
-import { SetStatusResultFragmentDoc } from "./__generated__/setStatusResult.generated";
 import { evictItem } from "./evict";
 import { insertCreated } from "./insert";
 import { mergePoll, PolledNode } from "./merge";
@@ -107,12 +105,14 @@ function writeMove(
 }
 
 type Answered = {
-  readonly __typename?: string;
   readonly id?: string;
   readonly children?: readonly { id: string }[];
 };
 
-/** I write what the server answered for a saved batch. */
+/**
+ * I place what a saved batch moved, created, or removed; Apollo has
+ * written the saved items themselves.
+ */
 export function writeSaved(
   cache: ApolloCache,
   changes: readonly SentChange[],
@@ -128,40 +128,14 @@ export function writeSaved(
         if (!result) return;
         switch (change.kind) {
           case "status":
-            if (REMOVALS.has(change.status)) {
-              evictItem(cache, change.id);
-            } else {
-              cache.writeFragment({
-                fragment: SetStatusResultFragmentDoc,
-                data: { __typename: "PlanItem", id: change.id, ...result },
-              } as never);
-            }
-            return;
-          case "rename":
-            if (result.__typename !== "PlanItem") return;
-            cache.writeFragment({
-              fragment: PlanItemResultFragmentDoc,
-              fragmentName: "planItemResult",
-              data: result as never,
-            });
+            if (REMOVALS.has(change.status)) evictItem(cache, change.id);
             return;
           case "create":
-            cache.writeFragment({
-              fragment: PlanItemResultFragmentDoc,
-              fragmentName: "planItemResult",
-              data: result as never,
-            });
             insertCreated(cache, {
               id: result.id!,
               parentId: change.parentId,
               afterId: change.afterId,
               planId: change.planId,
-            });
-            return;
-          case "assignBucket":
-            cache.writeFragment({
-              fragment: AssignBucketResultFragmentDoc,
-              data: result as never,
             });
             return;
           case "move":

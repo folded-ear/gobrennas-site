@@ -4,7 +4,12 @@ import type { PageLocks } from "./locks";
 import { createRunner, Runner } from "./runner";
 import { ChangeRecord, RETRY_BASE_MS, UNDO_WINDOW_MS } from "./state";
 import type { Snapshot } from "./store";
-import { fakeApi, FIRST_CREATED_ID } from "./test/fake-api";
+import {
+  fakeApi,
+  FIRST_CREATED_ID,
+  SAVED_NOTES,
+  SAVED_PREPARATION,
+} from "./test/fake-api";
 import { memoryStore } from "./test/memory-store";
 import {
   childIdsOf,
@@ -85,6 +90,10 @@ function start({
 const mutations = () =>
   api.requests.filter((it) => it.operation === "doChanges");
 
+/** I give an item as the cache stores it, under no overlay. */
+const stored = (from: typeof cache, id: string) =>
+  (from.extract() as Record<string, Record<string, unknown>>)[`PlanItem:${id}`];
+
 beforeEach(() => {
   cache = seededCache();
   api = fakeApi(cache);
@@ -154,6 +163,68 @@ describe("the runner", () => {
     expect(id).toBe(String(FIRST_CREATED_ID));
     expect(runner.resolve("draft:s")).toBe(id);
     expect(childIdsOf(cache, THANKSGIVING)).toEqual(["1", id, "3"]);
+  });
+
+  it("writes all of a renamed item the server answered with", async () => {
+    const { runner } = start();
+
+    runner.post({
+      type: "change",
+      change: {
+        kind: "rename",
+        id: "3",
+        planId: THANKSGIVING,
+        name: "Ice cream",
+      },
+    });
+
+    await vi.waitFor(() =>
+      expect(stored(cache, "3")).toMatchObject({
+        name: "Ice cream",
+        notes: SAVED_NOTES,
+        preparation: SAVED_PREPARATION,
+        components: [],
+      }),
+    );
+  });
+
+  it("writes all of a created item the server answered with", async () => {
+    const { runner } = start();
+
+    const id = await runner.create({
+      kind: "create",
+      id: "draft:s",
+      planId: THANKSGIVING,
+      parentId: THANKSGIVING,
+      afterId: "1",
+      name: "Stuffing",
+    });
+
+    expect(stored(cache, id!)).toMatchObject({
+      name: "Stuffing",
+      notes: SAVED_NOTES,
+      preparation: SAVED_PREPARATION,
+      components: [],
+    });
+  });
+
+  it("writes the bucket the server answered with", async () => {
+    const { runner } = start();
+
+    runner.post({
+      type: "change",
+      change: {
+        kind: "assignBucket",
+        id: "3",
+        planId: THANKSGIVING,
+        name: "Whipped cream",
+        bucketId: "b1",
+      },
+    });
+
+    await vi.waitFor(() =>
+      expect(stored(cache, "3")?.bucket).toEqual({ __ref: "PlanBucket:b1" }),
+    );
   });
 
   it("holds nothing back from the user once it's refused", async () => {
