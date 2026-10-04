@@ -60,11 +60,11 @@ describe("RecipeDetail", () => {
     expect(screen.getByText("apples")).toHaveClass("morsel-ingredient");
     expect(screen.getAllByText("cup")).toHaveLength(2);
     expect(screen.getByText("pinch of mystery spice")).toBeVisible();
-    expect(screen.getByText("0.5")).toHaveClass("morsel-quantity");
+    expect(screen.getByText("½")).toHaveClass("morsel-quantity");
     expect(screen.getByText("sugar")).toHaveClass("morsel-ingredient");
     expect(
       screen.getAllByRole("listitem").map((item) => item.textContent),
-    ).toContain("0.5 cup sugar, divided");
+    ).toContain("½ cup sugar, divided");
     expect(screen.getByText(/Bake until golden/).textContent).toBe(
       recipe.directions,
     );

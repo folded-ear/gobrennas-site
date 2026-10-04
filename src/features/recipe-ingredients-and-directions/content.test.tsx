@@ -42,7 +42,7 @@ describe("RecipeContent", () => {
     expect(screen.getByText("No directions provided.")).toBeVisible();
   });
 
-  it("styles saved quantity, unit, and ingredient as read-only Morsel text", () => {
+  it("styles saved quantity, unit, and ingredient as read-only Morsel text, with the quantity as a fraction", () => {
     render(
       <RecipeContent
         ingredients={[
@@ -56,11 +56,11 @@ describe("RecipeContent", () => {
         ]}
       />,
     );
-    expect(screen.getByText("0.5")).toHaveClass("morsel-quantity");
+    expect(screen.getByText("½")).toHaveClass("morsel-quantity");
     expect(screen.getByText("cup")).toHaveClass("morsel-unit");
     expect(screen.getByText("sugar")).toHaveClass("morsel-ingredient");
     expect(screen.getByRole("listitem")).toHaveTextContent(
-      "0.5 cup sugar, divided",
+      "½ cup sugar, divided",
     );
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
