@@ -1,7 +1,5 @@
-import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanTree } from "@/features/plan-dnd/moves";
 import { EditSurfaceProvider, useEditState } from "@/features/plan-edit";
-import { ToggleStatus } from "@/features/plan-status";
 import { Disclosure, DisclosureGroup } from "@heroui/react";
 import { useId, useState } from "react";
 import {
@@ -31,8 +29,6 @@ type RegionSectionProps = {
   readonly loose: readonly ShoppingRow[];
   readonly looseGroup: string;
   readonly rows: ShoppingRows;
-  /** The status my shopping items show as. */
-  readonly status: ToggleStatus;
 };
 
 function isEmpty({ items }: Region, loose: readonly ShoppingRow[]): boolean {
@@ -48,7 +44,6 @@ function RegionSection({
   loose,
   looseGroup,
   rows,
-  status,
 }: RegionSectionProps) {
   const headingId = useId();
   if (isEmpty(region, loose)) return null;
@@ -57,7 +52,7 @@ function RegionSection({
     <ul className="flex flex-col gap-sm">
       {region.items.map((item) => (
         <li key={item.ingredient.id}>
-          <ShoppingItemRow item={item} status={status} rows={rows} />
+          <ShoppingItemRow item={item} rows={rows} />
         </li>
       ))}
       {loose.map((row) => (
@@ -132,7 +127,6 @@ export function ShoppingRegions({ list, tree }: ShoppingRegionsProps) {
         loose={neededLoose}
         looseGroup={LOOSE_NEEDED}
         rows={rows}
-        status={PlanItemStatus.NEEDED}
       />
       <RegionSection
         title="Acquired"
@@ -142,7 +136,6 @@ export function ShoppingRegions({ list, tree }: ShoppingRegionsProps) {
         loose={acquiredLoose}
         looseGroup={LOOSE_ACQUIRED}
         rows={rows}
-        status={PlanItemStatus.ACQUIRED}
       />
     </DisclosureGroup>
   );

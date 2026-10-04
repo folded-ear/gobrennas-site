@@ -108,7 +108,7 @@ function renderRow(
 ) {
   render(
     <PlanDirectoryProvider directory={directoryOf(plans)}>
-      <ShoppingItemRow item={item} status={PlanItemStatus.NEEDED} />
+      <ShoppingItemRow item={item} />
     </PlanDirectoryProvider>,
     { cache },
   );
