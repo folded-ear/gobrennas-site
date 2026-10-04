@@ -39,8 +39,12 @@ function renderList(list: ShoppingList, cache = buildInMemoryCache()) {
   );
 }
 
+async function expandAcquired() {
+  await userEvent.click(screen.getByRole("button", { name: /^Acquired/ }));
+}
+
 describe("ShoppingRegions", () => {
-  it("lists what's needed, then what's acquired, each with its loose items last", () => {
+  it("lists what's needed, then what's acquired, each with its loose items last", async () => {
     const cache = buildInMemoryCache();
     const list = buildShoppingList([
       plan(
@@ -78,9 +82,10 @@ describe("ShoppingRegions", () => {
     ]);
 
     renderList(list, cache);
+    await expandAcquired();
 
     const needed = screen.getByRole("region", { name: "Needed" });
-    const acquired = screen.getByRole("region", { name: "Acquired" });
+    const acquired = screen.getByRole("region", { name: "Acquired (2)" });
     const [basil, towels] = within(needed).getAllByRole("listitem");
     expect(within(basil).getByRole("button", { name: /^basil/ })).toBeVisible();
     expect(towels).toHaveTextContent("paper towels");
@@ -121,8 +126,44 @@ describe("ShoppingRegions", () => {
 
     renderList(list, cache);
 
-    expect(screen.getByRole("heading", { name: "Acquired" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Acquired (1)" })).toBeVisible();
     expect(screen.queryByRole("heading", { name: "Needed" })).toBeNull();
+  });
+
+  it("collapses the acquired region until it's expanded", async () => {
+    const cache = buildInMemoryCache();
+    const list = buildShoppingList([
+      plan(
+        WEEKNIGHTS.id,
+        WEEKNIGHTS.name,
+        WEEKNIGHTS.color,
+        ["d"],
+        [
+          seedItem(cache, {
+            id: "d",
+            name: "sugar",
+            parent: "7",
+            pantry: SUGAR,
+            status: PlanItemStatus.ACQUIRED,
+          }),
+        ],
+      ),
+    ]);
+
+    renderList(list, cache);
+    const toggle = screen.getByRole("button", { name: "Acquired (1)" });
+
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: /^sugar/ })).toBeNull();
+
+    await userEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: /^sugar/ })).toBeVisible();
+
+    await userEvent.click(toggle);
+
+    expect(screen.queryByRole("button", { name: /^sugar/ })).toBeNull();
   });
 
   it("expands one shopping item at a time", async () => {
@@ -151,6 +192,7 @@ describe("ShoppingRegions", () => {
       ),
     ]);
     renderList(list, cache);
+    await expandAcquired();
     const basil = screen.getByRole("button", { name: /^basil/ });
     const sugar = screen.getByRole("button", { name: /^sugar/ });
 
