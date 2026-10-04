@@ -1,5 +1,6 @@
 "use client";
 
+import { displayQuantity } from "@/features/morsel/quantity";
 import { RecognizeIngredientDocument } from "@/features/recipe-form/__generated__/recognizeIngredient.generated";
 import {
   ingredientRecognitionSchema,
@@ -8,7 +9,7 @@ import {
 import { useQuery } from "@apollo/client/react";
 import { Fragment, type ReactNode } from "react";
 
-/** Decorate the original wording without rebuilding it from parsed ingredients. */
+/** Decorate the original wording, showing quantities as fractions, without rebuilding it from parsed ingredients. */
 export function IngredientName({ name }: { name: string }) {
   const skip = name.startsWith("!") || name.trim().length < 2;
   const { data } = useQuery(RecognizeIngredientDocument, {
@@ -32,11 +33,12 @@ export function IngredientName({ name }: { name: string }) {
   for (const range of ranges) {
     // Overlapping ranges cannot be represented as separate text spans safely.
     if (range.start < cursor) return <>{name}</>;
+    const text = name.slice(range.start, range.end);
     pieces.push(
       <Fragment key={`${range.start}-${range.end}`}>
         {name.slice(cursor, range.start)}
         <span className={`morsel-${range.type}`}>
-          {name.slice(range.start, range.end)}
+          {range.type === "quantity" ? displayQuantity(text) : text}
         </span>
       </Fragment>,
     );

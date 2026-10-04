@@ -8,7 +8,7 @@ import { MockLink } from "@apollo/client/testing";
 import { describe, expect, it, vi } from "vitest";
 import { IngredientName } from "./ingredient-name";
 
-const RAW = '1½ cups "flour", sifted';
+const RAW = '1 1/2 cups "flour", sifted';
 
 function recognized(
   raw = RAW,
@@ -31,23 +31,23 @@ function recognized(
               {
                 __typename: "RecognizedRange",
                 start: 0,
-                end: 2,
+                end: 5,
                 type: RecognizedRangeType.QUANTITY,
                 quantity: 1.5,
                 id: null,
               },
               {
                 __typename: "RecognizedRange",
-                start: 3,
-                end: 7,
+                start: 6,
+                end: 10,
                 type: RecognizedRangeType.UNIT,
                 quantity: null,
                 id: "cup",
               },
               {
                 __typename: "RecognizedRange",
-                start: 8,
-                end: 15,
+                start: 11,
+                end: 18,
                 type: RecognizedRangeType.ITEM,
                 quantity: null,
                 id: "flour",
@@ -61,7 +61,7 @@ function recognized(
 }
 
 describe("IngredientName", () => {
-  it("highlights the original fraction, units, and quoted ingredient without rewriting the row", async () => {
+  it("shows the quantity as a fraction and highlights units and quoted ingredient, keeping the rest as typed", async () => {
     render(
       <p>
         <IngredientName name={RAW} />
@@ -73,7 +73,9 @@ describe("IngredientName", () => {
     expect(await screen.findByText('"flour"')).toHaveClass("morsel-ingredient");
     expect(screen.getByText("1½")).toHaveClass("morsel-quantity");
     expect(screen.getByText("cups")).toHaveClass("morsel-unit");
-    expect(screen.getByRole("paragraph").textContent).toBe(RAW);
+    expect(screen.getByRole("paragraph").textContent).toBe(
+      '1½ cups "flour", sifted',
+    );
   });
 
   it("shows a renamed row immediately while its new recognition is pending", async () => {

@@ -1,3 +1,4 @@
+import { displayQuantity } from "@/features/morsel/quantity";
 import { useId, type ReactNode } from "react";
 
 export type RecipeIngredient = {
@@ -20,7 +21,9 @@ export function IngredientRefText({
     <span className="morsel-text">
       {quantity !== undefined ? (
         <>
-          <span className="morsel-quantity">{quantity}</span>{" "}
+          <span className="morsel-quantity">
+            {displayQuantity(quantity)}
+          </span>{" "}
         </>
       ) : null}
       {unit ? (

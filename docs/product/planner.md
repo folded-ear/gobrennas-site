@@ -231,8 +231,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
   Quantity, unit, and ingredient highlights update after a brief pause. This
   first version has no suggestions; saving still sends the entered text.
   A leading `!` skips recognition. Recognition failures do not prevent saving.
-  Resting rows use the same highlights while preserving the original wording,
-  fractions, and punctuation. Pending name and status changes keep their existing
+  Resting rows use the same highlights and show quantities as fractions (see
+  [Text conventions](ingredient-recognition.md#text-conventions-and-saving)),
+  preserving the rest of the original wording and punctuation. Pending name and status changes keep their existing
   visual feedback. Failed recognition leaves resting text readable without highlights.
   Headings, new rows, and section screens keep their plain text fields.
 - A user who can change a plan edits an item's name in place wherever it
