@@ -16,7 +16,7 @@ export function nextWake(state: State): number | null {
     const sendable = state.pending.some(
       (it) => it.phase === "ready" && it.kept !== "storing",
     );
-    if (sendable) times.push(state.retryAt);
+    if (sendable || state.seedWanted) times.push(state.retryAt);
     if (state.visible && Object.keys(state.watched).length > 0) {
       times.push(Math.max(state.retryAt, state.pollDueAt));
     }

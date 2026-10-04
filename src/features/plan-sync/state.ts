@@ -108,7 +108,7 @@ export type ChangeRecord = {
 };
 
 export type InFlight = {
-  readonly kind: "send" | "poll";
+  readonly kind: "send" | "poll" | "seed";
   readonly id: number;
   /** When the request is given up on. */
   readonly deadline: number;
@@ -164,6 +164,18 @@ export type State = {
   readonly installable: boolean;
   /** Whether a new version of the app is installed and waiting. */
   readonly updateWaiting: boolean;
+  /** Whether the cache needs the Shopping query fetched, for a snapshot. */
+  readonly seedWanted: boolean;
+  /** Whether snapshots are kept; false once the device is forgotten. */
+  readonly snapshotting: boolean;
+};
+
+/** What a restored snapshot says of the data it put in the cache. */
+export type Restored = {
+  /** When the server rendered the page whose data the snapshot began with. */
+  readonly renderedAt: number;
+  /** Each polled plan's next cutoff. */
+  readonly cutoffs: Readonly<Record<string, number>>;
 };
 
 export type SendOutcome =
@@ -183,7 +195,16 @@ type At = { readonly at: number };
 
 export type Event = At &
   (
-    | { readonly type: "boot"; readonly adopted: readonly ChangeRecord[] }
+    | {
+        readonly type: "boot";
+        readonly adopted: readonly ChangeRecord[];
+        /** A snapshot newer than the page, now in the cache, if any. */
+        readonly restored: Restored | null;
+        /** Whether this user has a snapshot from this build. */
+        readonly snapshotCurrent: boolean;
+        /** Whether the cache holds the Shopping query. */
+        readonly shoppingCached: boolean;
+      }
     | {
         readonly type: "change";
         readonly change: Change;
@@ -205,6 +226,12 @@ export type Event = At &
     | { readonly type: "pageshow"; readonly persisted: boolean }
     | { readonly type: "restored"; readonly keys: readonly string[] }
     | { readonly type: "storageBlocked" }
+    | { readonly type: "forget" }
+    | {
+        readonly type: "seeded";
+        readonly requestId: number;
+        readonly outcome: PollOutcome;
+      }
     | { readonly type: "installPrompt" }
     | { readonly type: "install" }
     | { readonly type: "workerWaiting" }
@@ -252,6 +279,9 @@ export type Effect =
       readonly requestId: number;
       readonly requests: readonly PollRequest[];
     }
+  | { readonly kind: "seed"; readonly requestId: number }
+  /** Snapshot the cache, whose newest data was read at takenAt. */
+  | { readonly kind: "snapshot"; readonly takenAt: number }
   | { readonly kind: "abort" }
   | { readonly kind: "writeDraft"; readonly change: CreateChange }
   | { readonly kind: "evictDraft"; readonly id: string }

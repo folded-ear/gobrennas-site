@@ -63,6 +63,8 @@ export function initialState({
     pollDueAt: 0,
     installable: false,
     updateWaiting: false,
+    seedWanted: false,
+    snapshotting: userId !== null,
   };
 }
 
@@ -213,6 +215,15 @@ function handle(s: Stepping, event: Event) {
           s.emit({ kind: "writeDraft", change: record.change });
         }
       }
+      if (event.restored !== null) {
+        w.renderedAt = event.restored.renderedAt;
+        w.cutoffs = { ...event.restored.cutoffs, ...w.cutoffs };
+      }
+      if (w.snapshotting && !event.snapshotCurrent) {
+        if (event.shoppingCached) {
+          s.emit({ kind: "snapshot", takenAt: w.renderedAt });
+        } else w.seedWanted = true;
+      }
       w.lifecycle = "running";
       return;
     case "change":
@@ -297,6 +308,33 @@ function handle(s: Stepping, event: Event) {
       w.lifecycle = "running";
       return;
     }
+    case "forget":
+      w.snapshotting = false;
+      w.seedWanted = false;
+      return;
+    case "seeded": {
+      const flight = w.inFlight;
+      if (flight?.kind !== "seed" || flight.id !== event.requestId) return;
+      w.inFlight = null;
+      switch (event.outcome.kind) {
+        case "saved":
+          w.seedWanted = false;
+          if (w.snapshotting) {
+            s.emit({ kind: "snapshot", takenAt: flight.startedAt });
+          }
+          return;
+        case "refused":
+          w.seedWanted = false;
+          return;
+        case "unreachable":
+          if (flight.abort !== "reconnect") backOff(s);
+          return;
+        case "unauthorized":
+          w.authorized = false;
+          return;
+      }
+      return;
+    }
     case "installPrompt":
       w.installable = true;
       return;
@@ -359,6 +397,9 @@ function handle(s: Stepping, event: Event) {
           );
           w.failures = 0;
           w.pollDueAt = flight.startedAt + POLL_INTERVAL_MS;
+          if (w.snapshotting && hasResults(event.outcome.data)) {
+            s.emit({ kind: "snapshot", takenAt: flight.startedAt });
+          }
           return;
         }
         case "refused":
@@ -568,7 +609,37 @@ function dispatch(s: Stepping) {
     return;
   }
   if (send(s)) return;
+  if (w.seedWanted) {
+    seed(s);
+    return;
+  }
   poll(s);
+}
+
+/** I tell whether a poll brought anything. */
+function hasResults(data: unknown): boolean {
+  const planner = (data as { planner?: Record<string, unknown> } | null)
+    ?.planner;
+  return Object.values(planner ?? {}).some(
+    (it) => Array.isArray(it) && it.length > 0,
+  );
+}
+
+/** I ask for the Shopping query, so the cache can be snapshotted. */
+function seed(s: Stepping) {
+  const { w, at } = s;
+  w.inFlight = {
+    kind: "seed",
+    id: ++w.lastRequestId,
+    deadline: at + REQUEST_TIMEOUT_MS,
+    abort: null,
+    keys: [],
+    changes: [],
+    planIds: [],
+    startedAt: at,
+    retiring: [],
+  };
+  s.emit({ kind: "seed", requestId: w.inFlight.id });
 }
 
 function send(s: Stepping): boolean {

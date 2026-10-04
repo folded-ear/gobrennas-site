@@ -25,7 +25,7 @@ import type {
   RenameChange,
   StatusChange,
 } from "./state";
-import { createIdbChangeStore } from "./store";
+import { createIdbStore } from "./store";
 
 const PAGE_LOAD_ID_LENGTH = 12;
 const SERVICE_WORKER_URL = "/serwist/sw.js";
@@ -83,6 +83,8 @@ export type PlanSync = {
   install(): void;
   /** I switch to the waiting version of the app, sending held changes first. */
   update(): void;
+  /** I forget what this device keeps of the user's shopping. */
+  forgetDevice(): Promise<void>;
 };
 
 const PlanSyncContext = createContext<Runner | null>(null);
@@ -124,14 +126,17 @@ export function PlanSync({
     if (typeof window === "undefined") return null;
     const pageLoadId = rand_chars(PAGE_LOAD_ID_LENGTH);
     const canStore = userId !== null && typeof indexedDB !== "undefined";
+    const store = canStore
+      ? createIdbStore(() => made.post({ type: "storageBlocked" }))
+      : null;
     const made: Runner = createRunner({
       client,
       pageLoadId,
       userId,
       renderedAt,
-      store: canStore
-        ? createIdbChangeStore(() => made.post({ type: "storageBlocked" }))
-        : null,
+      store,
+      snapshots: store,
+      buildId: process.env.NEXT_PUBLIC_BUILD_ID ?? "",
       locks: createPageLocks(navigator.locks, pageLoadId),
       toast: reportFailure,
       publish: (view) => publishView(client.cache, view),
@@ -167,6 +172,7 @@ export function usePlanSync(): PlanSync {
       unsent: () => runner?.unsent() ?? Promise.resolve(0),
       install: () => post({ type: "install" }),
       update: () => post({ type: "update" }),
+      forgetDevice: () => runner?.forget() ?? Promise.resolve(),
     };
   }, [runner]);
 }

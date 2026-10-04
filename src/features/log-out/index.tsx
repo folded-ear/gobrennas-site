@@ -8,25 +8,27 @@ import { useState } from "react";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 
-function logOut() {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  doLogout();
-}
-
 /**
- * I log the user out, forgetting any access token this browser kept. If
- * changes haven't reached the server yet, I warn first: they stay on this
- * device, and are sent once the same user signs in again.
+ * I log the user out, forgetting any access token this browser kept, and
+ * what the device keeps of the user's shopping. If changes haven't reached
+ * the server yet, I warn first: they stay on this device, and are sent
+ * once the same user signs in again.
  */
 export function LogOutButton() {
   const sync = usePlanSync();
   const [unsent, setUnsent] = useState(0);
 
+  async function logOut() {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    await sync.forgetDevice();
+    doLogout();
+  }
+
   async function press() {
     sync.flush();
     const count = await sync.unsent();
     if (count > 0) setUnsent(count);
-    else logOut();
+    else await logOut();
   }
 
   const one = unsent === 1;

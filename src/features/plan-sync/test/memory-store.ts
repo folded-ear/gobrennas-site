@@ -1,10 +1,23 @@
 import type { ChangeRecord } from "../state";
-import type { ChangeStore } from "../store";
+import type { ChangeStore, Snapshot, SnapshotStore } from "../store";
 
-/** I keep records in memory, as IndexedDB would, for tests. */
-export function memoryStore(initial: readonly ChangeRecord[] = []) {
+/** I keep records and a snapshot in memory, as IndexedDB would, for tests. */
+export function memoryStore(
+  initial: readonly ChangeRecord[] = [],
+  snapshot: Snapshot | null = null,
+) {
   const records = new Map(initial.map((it) => [it.key, it]));
-  const store: ChangeStore = {
+  const kept = { snapshot };
+  const store: ChangeStore & SnapshotStore = {
+    async read() {
+      return kept.snapshot;
+    },
+    async write(it) {
+      kept.snapshot = it;
+    },
+    async clear() {
+      kept.snapshot = null;
+    },
     async apply(put, remove) {
       put.forEach((it) => records.set(it.key, it));
       remove.forEach((it) => records.delete(it));
@@ -33,5 +46,5 @@ export function memoryStore(initial: readonly ChangeRecord[] = []) {
     close() {},
     open() {},
   };
-  return { store, records };
+  return { store, records, kept };
 }

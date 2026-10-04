@@ -102,6 +102,8 @@ export function fakeApi(cache: ApolloCache) {
   const api = {
     mode: "save" as ApiMode,
     polled: [] as unknown[][],
+    /** The plans the Shopping query answers with. */
+    shopping: [] as unknown[],
     requests,
     client: null as unknown as ApolloClient,
   };
@@ -144,11 +146,13 @@ export function fakeApi(cache: ApolloCache) {
         }
         const planner: Record<string, unknown> = {
           __typename:
-            operation.operationName === "pollPlans"
-              ? "PlannerQuery"
-              : "PlannerMutation",
+            operation.operationName === "doChanges"
+              ? "PlannerMutation"
+              : "PlannerQuery",
         };
-        if (operation.operationName === "pollPlans") {
+        if (operation.operationName === "Shopping") {
+          planner.plans = api.shopping;
+        } else if (operation.operationName === "pollPlans") {
           for (let i = 0; `planId${i}` in variables; i++) {
             planner[`p${i}`] = api.polled[i] ?? [];
           }

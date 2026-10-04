@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PageLocks } from "./locks";
 import { createRunner, Runner } from "./runner";
 import { ChangeRecord, RETRY_BASE_MS, UNDO_WINDOW_MS } from "./state";
+import type { Snapshot } from "./store";
 import { fakeApi, FIRST_CREATED_ID } from "./test/fake-api";
 import { memoryStore } from "./test/memory-store";
 import {
@@ -43,26 +44,42 @@ let api: ReturnType<typeof fakeApi>;
 let runner: Runner | undefined;
 let views: View[];
 
+const BUILD = "build-1";
+
+/** A snapshot from this build, older than any page, so it's left alone. */
+const OLD_SNAPSHOT: Snapshot = {
+  userId: ME,
+  buildId: BUILD,
+  takenAt: 0,
+  renderedAt: 0,
+  cutoffs: {},
+  cache: {},
+};
+
 function start({
   records = [] as readonly ChangeRecord[],
   open = [] as readonly string[],
   userId = ME as string | null,
+  snapshot = OLD_SNAPSHOT as Snapshot | null,
+  renderedAt = Date.now(),
 } = {}) {
-  const { store, records: kept } = memoryStore(records);
+  const memory = memoryStore(records, snapshot);
   const toast = vi.fn();
   runner = createRunner({
     client: api.client,
     pageLoadId: THIS_PAGE,
     userId,
-    renderedAt: Date.now(),
-    store: userId === null ? null : store,
+    renderedAt,
+    store: userId === null ? null : memory.store,
+    snapshots: userId === null ? null : memory.store,
+    buildId: BUILD,
     locks: fakeLocks(open),
     toast,
     publish: (view) => views.push(view),
     worker: null,
   });
   runner.start();
-  return { runner, kept, toast };
+  return { runner, kept: memory.records, memory, toast };
 }
 
 const mutations = () =>
@@ -300,5 +317,80 @@ describe("the runner", () => {
 
     expect(mutations()).toHaveLength(0);
     expect(kept.size).toBe(0);
+  });
+});
+
+describe("the runner's snapshot", () => {
+  /** I give a cache like this test's, with whipped cream renamed. */
+  function renamedCache() {
+    const other = seededCache();
+    other.modify({
+      id: "PlanItem:3",
+      fields: { name: () => "Ice cream" },
+    });
+    return other.extract();
+  }
+
+  const nameOf = (id: string) => readStatus(cache, id)?.name;
+
+  it("fetches shopping and snapshots the cache when none is current", async () => {
+    const { memory } = start({ snapshot: null });
+
+    await vi.waitFor(() => expect(memory.kept.snapshot).not.toBeNull());
+    expect(api.requests.map((it) => it.operation)).toContain("Shopping");
+    expect(memory.kept.snapshot).toMatchObject({
+      userId: ME,
+      buildId: BUILD,
+    });
+  });
+
+  it("restores a newer snapshot of this user's, from this build", async () => {
+    start({
+      renderedAt: 1000,
+      snapshot: { ...OLD_SNAPSHOT, takenAt: 2000, cache: renamedCache() },
+    });
+
+    await vi.waitFor(() => expect(nameOf("3")).toBe("Ice cream"));
+  });
+
+  it("leaves the page's data alone for an older snapshot", async () => {
+    vi.useFakeTimers();
+    start({
+      renderedAt: 3000,
+      snapshot: { ...OLD_SNAPSHOT, takenAt: 2000, cache: renamedCache() },
+    });
+
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(nameOf("3")).toBe("Whipped cream");
+  });
+
+  it("leaves another user's snapshot alone", async () => {
+    vi.useFakeTimers();
+    start({
+      renderedAt: 1000,
+      snapshot: {
+        ...OLD_SNAPSHOT,
+        userId: "someone-else",
+        takenAt: 2000,
+        cache: renamedCache(),
+      },
+    });
+
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(nameOf("3")).toBe("Whipped cream");
+  });
+
+  it("forgets the snapshot and the page the worker keeps", async () => {
+    const deleted = vi.fn().mockResolvedValue(true);
+    vi.stubGlobal("caches", { delete: deleted });
+    const { runner, memory } = start();
+
+    await runner.forget();
+
+    expect(memory.kept.snapshot).toBeNull();
+    expect(deleted).toHaveBeenCalledWith("shopping-page");
+    vi.unstubAllGlobals();
   });
 });

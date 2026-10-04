@@ -46,6 +46,18 @@ describe("LogOutButton", () => {
     expect(localStorage.getItem("accessToken")).toBeNull();
   });
 
+  it("forgets the shopping this device keeps", async () => {
+    const deleted = vi.fn().mockResolvedValue(true);
+    vi.stubGlobal("caches", { delete: deleted });
+    render(<LogOutButton />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Log Out" }));
+
+    await waitFor(() => expect(doLogout).toHaveBeenCalledTimes(1));
+    expect(deleted).toHaveBeenCalledWith("shopping-page");
+    vi.unstubAllGlobals();
+  });
+
   it("warns before logging out with changes not yet saved", async () => {
     renderWithChange();
     await userEvent.click(screen.getByRole("button", { name: "Rename" }));

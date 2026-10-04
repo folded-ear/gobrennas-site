@@ -27,8 +27,12 @@ if (process.env.AWS_S3_BUCKET_NAME) {
   }
 }
 
+// Each build has its own id, so a snapshot can tell it's from another one.
+const buildId = Date.now().toString(36);
+
 const nextConfig: NextConfig = {
   output: "standalone",
+  env: { NEXT_PUBLIC_BUILD_ID: buildId },
   poweredByHeader: false,
   images: {
     remotePatterns: remoteImagePatterns,

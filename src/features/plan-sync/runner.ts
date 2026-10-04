@@ -1,3 +1,5 @@
+import { ShoppingDocument } from "@/screens/__generated__/shopping.generated";
+import { SHOPPING_PAGE_CACHE } from "@/worker/cache-names";
 import type { ApolloClient } from "@apollo/client";
 import {
   evictDraft,
@@ -17,7 +19,7 @@ import type {
   State,
 } from "./state";
 import { initialState, step } from "./step";
-import type { ChangeStore } from "./store";
+import type { ChangeStore, SnapshotStore } from "./store";
 import { buildView, type View } from "./view";
 import { nextWake } from "./wake";
 
@@ -51,6 +53,10 @@ export type RunnerDeps = {
   readonly renderedAt: number;
   /** Null when nothing is stored. */
   readonly store: ChangeStore | null;
+  /** Null when nothing is stored. */
+  readonly snapshots: SnapshotStore | null;
+  /** Names this build, whose snapshots fit its cache. */
+  readonly buildId: string;
   readonly locks: PageLocks;
   readonly toast: (failed: readonly Change[]) => void;
   readonly publish: (view: View) => void;
@@ -69,6 +75,11 @@ export type Runner = {
   resolve(id: string): string;
   /** I count the user's changes the server has yet to answer. */
   unsent(): Promise<number>;
+  /**
+   * I forget what this device keeps of the user's shopping: the snapshot,
+   * and the page the worker keeps. Unsent changes are left alone.
+   */
+  forget(): Promise<void>;
   subscribe(listener: () => void): () => void;
   status(): SyncStatus;
 };
@@ -86,6 +97,8 @@ export function createRunner({
   userId,
   renderedAt,
   store,
+  snapshots,
+  buildId,
   locks,
   toast,
   publish,
@@ -227,6 +240,47 @@ export function createRunner({
           .then((outcome) => post({ type: "polled", requestId, outcome }));
         return;
       }
+      case "seed": {
+        const { requestId } = effect;
+        if (!running) return;
+        if (shoppingCached()) {
+          post({
+            type: "seeded",
+            requestId,
+            outcome: { kind: "saved", data: null },
+          });
+          return;
+        }
+        const controller = new AbortController();
+        request = { id: requestId, controller };
+        client
+          .query({
+            query: ShoppingDocument,
+            fetchPolicy: "network-only",
+            context: { fetchOptions: { signal: controller.signal } },
+          })
+          .then(
+            ({ data, error }) => pollOutcome({ data, error }),
+            (thrown: unknown) => pollOutcome({ thrown }),
+          )
+          .then((outcome) => post({ type: "seeded", requestId, outcome }));
+        return;
+      }
+      case "snapshot":
+        if (snapshots !== null && userId !== null && shoppingCached()) {
+          const snapshot = {
+            userId,
+            buildId,
+            takenAt: effect.takenAt,
+            renderedAt: state.renderedAt,
+            cutoffs: state.cutoffs,
+            cache: client.cache.extract(),
+          };
+          storing = storing
+            .then(() => snapshots.write(snapshot))
+            .catch(() => {});
+        }
+        return;
       case "abort":
         request?.controller.abort();
         request = null;
@@ -272,6 +326,34 @@ export function createRunner({
         worker?.activate();
         return;
     }
+  }
+
+  /** I tell whether the cache holds the Shopping query whole. */
+  function shoppingCached(): boolean {
+    try {
+      return client.cache.readQuery({ query: ShoppingDocument }) !== null;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * I put this user's snapshot in the cache when it's from this build and
+   * newer than the page, as on a launch the worker served from its cache.
+   */
+  async function restore() {
+    const kept =
+      snapshots === null || userId === null ? null : await snapshots.read();
+    const current = kept?.userId === userId && kept?.buildId === buildId;
+    const newer = current && kept.takenAt > renderedAt;
+    if (newer) client.cache.restore(kept.cache as never);
+    return {
+      restored: newer
+        ? { renderedAt: kept.renderedAt, cutoffs: kept.cutoffs }
+        : null,
+      snapshotCurrent: current,
+      shoppingCached: shoppingCached(),
+    };
   }
 
   /** I adopt the user's changes kept by page loads that are gone. */
@@ -339,10 +421,16 @@ export function createRunner({
       }
       if (booted) return;
       booted = true;
-      void adopt().then(
-        (adopted) => post({ type: "boot", adopted }),
+      void Promise.all([adopt(), restore()]).then(
+        ([adopted, restored]) => post({ type: "boot", adopted, ...restored }),
         () => {
-          post({ type: "boot", adopted: [] });
+          post({
+            type: "boot",
+            adopted: [],
+            restored: null,
+            snapshotCurrent: true,
+            shoppingCached: true,
+          });
           post({ type: "storageBlocked" });
         },
       );
@@ -371,6 +459,14 @@ export function createRunner({
       return created;
     },
     resolve: (id) => state.aliases[id] ?? id,
+    async forget() {
+      post({ type: "forget" });
+      await storing.catch(() => {});
+      await snapshots?.clear().catch(() => {});
+      if (typeof caches !== "undefined") {
+        await caches.delete(SHOPPING_PAGE_CACHE).catch(() => false);
+      }
+    },
     async unsent() {
       if (store !== null && userId !== null) return store.count(userId);
       return state.pending.filter((it) => it.phase !== "answered").length;

@@ -21,7 +21,14 @@ function booted(over: { online?: boolean; visible?: boolean } = {}): State {
     visible: true,
     ...over,
   });
-  return step(state, { type: "boot", at: START, adopted: [] }).state;
+  return step(state, {
+    type: "boot",
+    at: START,
+    adopted: [],
+    restored: null,
+    snapshotCurrent: true,
+    shoppingCached: true,
+  }).state;
 }
 
 const after = (state: State, ...events: Parameters<typeof step>[1][]) =>

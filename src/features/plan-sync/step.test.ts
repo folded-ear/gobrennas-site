@@ -10,6 +10,7 @@ import {
   POLL_MARGIN_MS,
   Posted,
   REQUEST_TIMEOUT_MS,
+  Restored,
   RETRY_BASE_MS,
   State,
   UNDO_WINDOW_MS,
@@ -91,8 +92,21 @@ function engine(init: Partial<StateInit> = {}) {
     get at() {
       return at;
     },
-    boot(adopted: readonly ChangeRecord[] = []) {
-      return post({ type: "boot", adopted });
+    boot(
+      adopted: readonly ChangeRecord[] = [],
+      {
+        restored = null as Restored | null,
+        snapshotCurrent = true,
+        shoppingCached = true,
+      } = {},
+    ) {
+      return post({
+        type: "boot",
+        adopted,
+        restored,
+        snapshotCurrent,
+        shoppingCached,
+      });
     },
     /** I store whatever the last step asked to store. */
     storeAll() {
@@ -682,6 +696,93 @@ describe("updating", () => {
     e.boot();
 
     e.post({ type: "update" });
+
+    expect(e.effects).toEqual([]);
+  });
+});
+
+describe("the shopping snapshot", () => {
+  const POLLED = { planner: { p0: [{ __typename: "PlanItem", id: PIE }] } };
+
+  it("snapshots at boot when the cache holds shopping and no snapshot is current", () => {
+    const e = engine();
+
+    e.boot([], { snapshotCurrent: false, shoppingCached: true });
+
+    expect(kinds(e.effects)).toEqual(["snapshot"]);
+  });
+
+  it("fetches shopping first when the cache lacks it, then snapshots", () => {
+    const e = engine();
+
+    e.boot([], { snapshotCurrent: false, shoppingCached: false });
+    const seed = e.of("seed");
+    expect(seed).toHaveLength(1);
+
+    e.post({
+      type: "seeded",
+      requestId: seed[0].requestId,
+      outcome: { kind: "saved", data: null },
+    });
+    expect(kinds(e.effects)).toEqual(["snapshot"]);
+  });
+
+  it("snapshots after a poll that brought changes, not after an empty one", () => {
+    const e = engine();
+    e.boot();
+    e.post({ type: "watch", planIds: [PLAN] });
+    e.post({
+      type: "polled",
+      requestId: e.lastPoll().requestId,
+      outcome: { kind: "saved", data: { planner: { p0: [] } } },
+    });
+    expect(e.of("snapshot")).toEqual([]);
+
+    e.advance(POLL_INTERVAL_MS);
+    e.post({
+      type: "polled",
+      requestId: e.lastPoll().requestId,
+      outcome: { kind: "saved", data: POLLED },
+    });
+
+    expect(e.of("snapshot")).toHaveLength(1);
+  });
+
+  it("takes up a restored snapshot's cutoffs and age", () => {
+    const e = engine();
+    const takenAt = START - 60_000;
+
+    e.boot([], {
+      restored: { renderedAt: takenAt - 1000, cutoffs: { [PLAN]: takenAt } },
+    });
+    e.post({ type: "watch", planIds: [PLAN, "8"] });
+
+    expect(e.lastPoll().requests).toEqual([
+      { planId: PLAN, cutoff: takenAt },
+      { planId: "8", cutoff: takenAt - 1000 - POLL_MARGIN_MS },
+    ]);
+  });
+
+  it("snapshots nothing once the device has been forgotten", () => {
+    const e = engine();
+    e.boot();
+    e.post({ type: "watch", planIds: [PLAN] });
+    const poll = e.lastPoll();
+    e.post({ type: "forget" });
+
+    e.post({
+      type: "polled",
+      requestId: poll.requestId,
+      outcome: { kind: "saved", data: POLLED },
+    });
+
+    expect(e.of("snapshot")).toEqual([]);
+  });
+
+  it("neither seeds nor snapshots when signed out", () => {
+    const e = engine({ userId: null });
+
+    e.boot([], { snapshotCurrent: false, shoppingCached: false });
 
     expect(e.effects).toEqual([]);
   });

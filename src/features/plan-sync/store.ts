@@ -1,6 +1,28 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 import type { ChangeRecord } from "./state";
 
+/** The cache as it was, for a launch that can't reach the server. */
+export type Snapshot = {
+  readonly userId: string;
+  /** The build that wrote me; another build's cache may not fit. */
+  readonly buildId: string;
+  /** When my newest data was read from the server. */
+  readonly takenAt: number;
+  /** When the server rendered the page my data began with. */
+  readonly renderedAt: number;
+  /** Each polled plan's next cutoff. */
+  readonly cutoffs: Readonly<Record<string, number>>;
+  /** The normalized cache, as `extract` gives it. */
+  readonly cache: unknown;
+};
+
+/** I keep one snapshot of the cache. */
+export type SnapshotStore = {
+  read(): Promise<Snapshot | null>;
+  write(snapshot: Snapshot): Promise<void>;
+  clear(): Promise<void>;
+};
+
 /** I keep changes across page loads, for the page loads of one browser. */
 export type ChangeStore = {
   /** I put and remove records in one transaction. */
@@ -20,24 +42,35 @@ export type ChangeStore = {
   open(): void;
 };
 
-interface ChangesDb extends DBSchema {
+interface SyncDb extends DBSchema {
   changes: { key: string; value: ChangeRecord };
+  snapshots: { key: string; value: Snapshot };
 }
 
 const DB_NAME = "plan-sync";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE = "changes";
+const SNAPSHOTS = "snapshots";
+const SNAPSHOT_KEY = "shopping";
 
 /**
- * I keep changes in IndexedDB. When a newer build needs to upgrade the
- * database, I tell onBlocking, and should be closed.
+ * I keep changes and the snapshot in IndexedDB. When a newer build needs
+ * to upgrade the database, I tell onBlocking, and should be closed.
  */
-export function createIdbChangeStore(onBlocking: () => void): ChangeStore {
-  let db: Promise<IDBPDatabase<ChangesDb>> | null = null;
+export function createIdbStore(
+  onBlocking: () => void,
+): ChangeStore & SnapshotStore {
+  let db: Promise<IDBPDatabase<SyncDb>> | null = null;
   const open = () =>
-    (db ??= openDB<ChangesDb>(DB_NAME, DB_VERSION, {
-      upgrade: (upgrading) =>
-        void upgrading.createObjectStore(STORE, { keyPath: "key" }),
+    (db ??= openDB<SyncDb>(DB_NAME, DB_VERSION, {
+      upgrade(upgrading) {
+        if (!upgrading.objectStoreNames.contains(STORE)) {
+          upgrading.createObjectStore(STORE, { keyPath: "key" });
+        }
+        if (!upgrading.objectStoreNames.contains(SNAPSHOTS)) {
+          upgrading.createObjectStore(SNAPSHOTS);
+        }
+      },
       blocking: onBlocking,
     }));
   const all = async () => (await open()).getAll(STORE);
@@ -85,5 +118,10 @@ export function createIdbChangeStore(onBlocking: () => void): ChangeStore {
     open() {
       void open();
     },
+    read: async () =>
+      (await (await open()).get(SNAPSHOTS, SNAPSHOT_KEY)) ?? null,
+    write: async (snapshot) =>
+      void (await (await open()).put(SNAPSHOTS, snapshot, SNAPSHOT_KEY)),
+    clear: async () => (await open()).delete(SNAPSHOTS, SNAPSHOT_KEY),
   };
 }

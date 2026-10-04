@@ -4,7 +4,7 @@ export type RouteContext = {
   readonly sameOrigin: boolean;
 };
 
-const SHOPPING_PATH = "/shopping";
+export const SHOPPING_PATH = "/shopping";
 const NEXT_STATIC_PREFIX = "/_next/static/";
 const NEXT_IMAGE_PATH = "/_next/image";
 const S3_HOST = /\.amazonaws\.com$/;
