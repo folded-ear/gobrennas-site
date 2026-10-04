@@ -5,7 +5,6 @@ import {
   screen,
   seedFragment,
   userEvent,
-  waitFor,
 } from "@/test";
 import { MockedProviderProps } from "@apollo/client/testing/react";
 import { describe, expect, it, vi } from "vitest";
