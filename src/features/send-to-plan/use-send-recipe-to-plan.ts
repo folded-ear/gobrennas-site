@@ -31,7 +31,7 @@ export function useSendRecipeToPlan() {
     pending.current = true;
     try {
       const result = await mutate({ variables: { recipeId, planId: plan.id } });
-      if (!result.data?.library.sendRecipeToPlan.id)
+      if (!result.data?.library.sendRecipeToPlan?.id)
         throw new Error("No plan item returned.");
       client.cache.batch({
         update(cache) {

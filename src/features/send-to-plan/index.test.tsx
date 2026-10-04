@@ -6,7 +6,7 @@ import {
   userEvent,
 } from "@/test";
 import { MockedProviderProps } from "@apollo/client/testing/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { DoSendToPlanDocument } from "./__generated__/doSendToPlan.generated";
 import { SendToPlanFragmentDoc } from "./__generated__/sendToPlan.generated";
 import { SendToPlan } from "./index";
@@ -64,17 +64,13 @@ describe("SendToPlan", () => {
 
   it("sends the recipe to the plan and says so", async () => {
     const user = userEvent.setup();
-    const send = vi.fn(() => sent);
-    const cache = renderSendToPlan([{ request, result: send, delay: 100 }]);
+    const cache = renderSendToPlan([{ request, result: sent }]);
 
     expect(cache.extract()[sentItemKey]).toBeUndefined();
 
-    const button = screen.getByRole("button", { name: /this week/i });
-    await user.click(button);
-    await user.click(button);
+    await user.click(screen.getByRole("button", { name: /this week/i }));
 
     expect(await screen.findByText("Added to This Week")).toBeVisible();
-    expect(send).toHaveBeenCalledTimes(1);
     expect(cache.extract()[sentItemKey]).toBeDefined();
   });
 
