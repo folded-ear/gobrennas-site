@@ -1,8 +1,8 @@
 import { SendToPlanIcon } from "@/components/icons";
-import { useFragment, useMutation } from "@apollo/client/react";
+import { useFragment } from "@apollo/client/react";
 import { Button, ButtonProps, Spinner } from "@heroui/react";
-import { DoSendToPlanDocument } from "./__generated__/doSendToPlan.generated";
 import { SendToPlanFragmentDoc } from "./__generated__/sendToPlan.generated";
+import { useSendRecipeToPlan } from "./use-send-recipe-to-plan";
 
 type SendToPlanProps = ButtonProps & {
   recipeId: string;
@@ -20,7 +20,7 @@ export function SendToPlan({
     from: "ROOT_QUERY",
   });
 
-  const [sendToPlan, { loading }] = useMutation(DoSendToPlanDocument);
+  const { send, sending } = useSendRecipeToPlan();
 
   if (!complete) return null;
 
@@ -28,15 +28,10 @@ export function SendToPlan({
   return (
     <Button
       {...rest}
-      isPending={loading}
-      onPress={() =>
-        sendToPlan({
-          variables: {
-            recipeId,
-            planId: activePlanId,
-          },
-        })
-      }
+      isPending={sending}
+      onPress={() => {
+        void send(recipeId, plan);
+      }}
     >
       {({ isPending }) => (
         <>

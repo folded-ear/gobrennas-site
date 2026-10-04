@@ -117,10 +117,6 @@ These are recorded because the code does not match the rules above yet.
   maps `UNAUTHORIZED` to `undefined`, but descendant queries can still fail
   during server rendering. The client-only `UNAUTHORIZED` → login fallback
   cannot reliably turn a hard-load server error into navigation.
-- `src/features/send-to-plan/` calls its mutation with no error handling; a
-  failure is an unhandled rejection with no user-visible feedback.
-- `src/hooks/use-set-preference/` returns its mutation promise, but its current
-  callers do not handle rejection or show a failure.
 - `src/components/error-fallback.tsx` displays raw exception text to the user.
 - Recipe creation and the single-recipe Cook route have loading boundaries.
   Most private routes still lack one, and no `error.tsx` or `global-error.tsx`
@@ -140,5 +136,3 @@ Not yet decided. Do not invent an answer to these.
 - Where the `UNAUTHORIZED` → login redirect belongs. A request filter in
   `src/filters/` is one option, but enforcing authentication there is an
   architectural change and needs agreement first.
-- Whether toasts warrant a shared mutation wrapper or explicit per-call
-  handling. This overlaps with the mutation and cache-update pattern (BFS-32).

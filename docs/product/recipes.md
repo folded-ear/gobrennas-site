@@ -18,6 +18,9 @@ without leaving the Library behind.
   Library.
 - Selecting recipe detail from the Library opens it over the Library. Direct
   detail and editor addresses use full-page fallbacks.
+- Each Library card has a button named for the active plan. It adds the recipe
+  to that plan the same way detail's Add to plan does: one add at a time, a
+  toast confirming the destination on success, and a toast reporting failure.
 
 ### Reading a library recipe
 

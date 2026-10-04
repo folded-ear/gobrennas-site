@@ -1,10 +1,16 @@
 import { useMutation } from "@apollo/client/react";
+import { toast } from "@heroui/react";
 import { useCallback } from "react";
 import { DoSetPreferenceDocument } from "./__generated__/doSetPreference.generated";
 
+/**
+ * I give a setter for the named preference. It shows the new value at once,
+ * rolls it back if the save fails, and toasts the failure. The setter never
+ * rejects.
+ */
 export function useSetPreference(
   name: string,
-): [(value: string) => ReturnType<typeof mutate>, typeof result] {
+): [(value: string) => Promise<void>, typeof result] {
   const [mutate, result] = useMutation(DoSetPreferenceDocument, {
     variables: { name },
     optimisticResponse: ({ value, deviceKey }) => ({
@@ -21,7 +27,15 @@ export function useSetPreference(
     }),
   });
   const setter = useCallback(
-    (value: string) => mutate({ variables: { value } }),
+    async (value: string) => {
+      try {
+        await mutate({ variables: { value } });
+      } catch {
+        toast.danger("Couldn’t save your change", {
+          description: "Please try again.",
+        });
+      }
+    },
     [mutate],
   );
   return [setter, result];

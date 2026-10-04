@@ -2,12 +2,12 @@
 
 import { SendToPlanIcon } from "@/components/icons";
 import { useBlockScreenEscape } from "@/components/screen";
-import { DoSendToPlanDocument } from "@/features/send-to-plan/__generated__/doSendToPlan.generated";
+import { useSendRecipeToPlan } from "@/features/send-to-plan/use-send-recipe-to-plan";
 import { canChangePlan, orderPlans } from "@/lib/plans";
-import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
-import { Button, Dropdown, Label, toast } from "@heroui/react";
+import { useQuery } from "@apollo/client/react";
+import { Button, Dropdown, Label } from "@heroui/react";
 import { ChevronDown } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { RecipePlanChoicesDocument } from "./__generated__/recipePlanChoices.generated";
 
 export function AddRecipeToPlan({ recipeId }: { recipeId: string }) {
@@ -17,46 +17,9 @@ export function AddRecipeToPlan({ recipeId }: { recipeId: string }) {
     RecipePlanChoicesDocument,
     { skip: !requested },
   );
-  const [send, { loading: sending }] = useMutation(DoSendToPlanDocument);
-  const client = useApolloClient();
-  const pending = useRef(false);
+  const { send, sending } = useSendRecipeToPlan();
   useBlockScreenEscape(open);
   const plans = orderPlans(data?.planner.plans ?? []).filter(canChangePlan);
-
-  async function add(plan: { id: string; name: string }) {
-    if (pending.current) return;
-    pending.current = true;
-    try {
-      const result = await send({ variables: { recipeId, planId: plan.id } });
-      if (!result.data?.library.sendRecipeToPlan.id)
-        throw new Error("No plan item returned.");
-      client.cache.batch({
-        update(cache) {
-          const id = cache.identify({ __typename: "Plan", id: plan.id });
-          for (const fieldName of [
-            "children",
-            "descendants",
-            "childCount",
-            "descendantCount",
-            "buckets",
-            "bucketCount",
-          ]) {
-            cache.evict({ id, fieldName });
-          }
-          const recipe = cache.identify({ __typename: "Recipe", id: recipeId });
-          for (const fieldName of ["plannedCount", "plannedHistory"])
-            cache.evict({ id: recipe, fieldName });
-        },
-      });
-      toast.success(`Added to ${plan.name}`);
-    } catch {
-      toast.danger("Couldn’t add recipe to plan", {
-        description: "Please try again.",
-      });
-    } finally {
-      pending.current = false;
-    }
-  }
 
   return (
     <Dropdown
@@ -109,7 +72,7 @@ export function AddRecipeToPlan({ recipeId }: { recipeId: string }) {
                 id={plan.id}
                 textValue={plan.name}
                 onAction={() => {
-                  void add(plan);
+                  void send(recipeId, plan);
                 }}
               >
                 <Label>{plan.name}</Label>

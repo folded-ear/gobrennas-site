@@ -158,10 +158,13 @@ function setup({
   section = unplanned,
   showSavedPlan = false,
   failFreshRecognition = false,
+  failing,
 }: {
   section?: TimelineSection;
   showSavedPlan?: boolean;
   failFreshRecognition?: boolean;
+  /** An operation the API fails, by name. */
+  failing?: string;
 } = {}) {
   const requests: {
     name: string;
@@ -181,6 +184,10 @@ function setup({
             variables: v,
             query: print(operation.query),
           });
+          if (operation.operationName === failing) {
+            observer.error(new Error("Failed to fetch"));
+            return;
+          }
           if (operation.operationName === "recognizeIngredient") {
             if (failFreshRecognition && v.raw === "3 Soup" && !v.suggest) {
               observer.error(new Error("Recognition unavailable"));
@@ -551,6 +558,29 @@ describe("planner Add", () => {
         .filter((it) => it.name === "doCreateBucket")
         .map((it) => it.variables),
     ).toEqual([{ planId: THANKSGIVING, date: "2026-10-02", name: null }]);
+  });
+
+  it("keeps the draft and says so when the recipe can't be added", async () => {
+    const { user } = setup({ failing: "addPlannerRecipe" });
+    await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
+    const input = editableMorsel("Item for Unplanned");
+    await user.type(input, "So");
+    await user.click((await screen.findAllByRole("option"))[1]);
+    await user.click(screen.getByRole("button", { name: "Add" }));
+
+    expect(await screen.findByText(/Couldn’t add this item/)).toBeVisible();
+    expect(input).toHaveTextContent("Soup");
+  });
+
+  it("keeps the draft and says so when the day bucket can't be made", async () => {
+    const { user } = setup({ section: day, failing: "doCreateBucket" });
+    await user.click(screen.getByRole("button", { name: /^Add to/ }));
+    const input = editableMorsel("Item for Fri, Oct 2");
+    await user.type(input, "!Dinner");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+
+    expect(await screen.findByText(/Couldn’t add this item/)).toBeVisible();
+    expect(input).toHaveTextContent("!Dinner");
   });
 
   it("cancels without saving", async () => {

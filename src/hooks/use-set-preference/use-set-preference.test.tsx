@@ -7,6 +7,7 @@ import { ApolloClient, ApolloLink, Operation } from "@apollo/client";
 import { LocalState } from "@apollo/client/local-state";
 import { ApolloProvider } from "@apollo/client/react";
 import { MockLink } from "@apollo/client/testing";
+import { toast } from "@heroui/react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { DoSetPreferenceDocument } from "./__generated__/doSetPreference.generated";
@@ -14,11 +15,17 @@ import { DoSetPreferenceDocument } from "./__generated__/doSetPreference.generat
 const DEVICE_KEY = "a-device-key";
 const PREF = "somePreference";
 const THE_PREF = { __typename: "UserPreference" as const, name: PREF };
+const FAILED_SAVE = "Couldn’t save your change";
+
+/** What the last press's setter call returned. */
+let lastSet: Promise<unknown> | undefined;
 
 function Probe() {
   const [setPreference] = useSetPreference(PREF);
   return (
-    <button onClick={() => setPreference("new")}>{usePreference(PREF)}</button>
+    <button onClick={() => (lastSet = setPreference("new"))}>
+      {usePreference(PREF)}
+    </button>
   );
 }
 
@@ -136,6 +143,17 @@ describe("useSetPreference", () => {
 
     await waitFor(() => expect(button).toHaveTextContent("new"));
     await waitFor(() => expect(button).toHaveTextContent("old"));
+  });
+
+  it("settles, and the user hears of it, when the server rejects the change", async () => {
+    const { button } = renderProbe({ mock: { error: new Error("nope") } });
+
+    button.click();
+
+    await expect(lastSet).resolves.toBeUndefined();
+    expect(
+      toast.getQueue().visibleToasts.map(({ content }) => content.title),
+    ).toEqual([FAILED_SAVE]);
   });
 
   it("leaves the cached device key alone while guessing", async () => {
