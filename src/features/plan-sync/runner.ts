@@ -25,7 +25,12 @@ import { nextWake } from "./wake";
 export type SyncStatus = {
   readonly online: boolean;
   readonly authorized: boolean;
+  /** Whether the browser's install prompt can be shown. */
+  readonly installable: boolean;
 };
+
+/** The browser's install prompt, as Chrome gives it. */
+type InstallPromptEvent = Event & { prompt(): Promise<void> };
 
 export type RunnerDeps = {
   readonly client: ApolloClient;
@@ -90,7 +95,12 @@ export function createRunner({
   let storing: Promise<unknown> = Promise.resolve();
   const waiting = new Map<string, (id: string | null) => void>();
   const listeners = new Set<() => void>();
-  let status: SyncStatus = { online: state.online, authorized: true };
+  let status: SyncStatus = {
+    online: state.online,
+    authorized: true,
+    installable: false,
+  };
+  let installPrompt: InstallPromptEvent | null = null;
 
   function post(event: Posted) {
     mailbox.push(event);
@@ -112,13 +122,19 @@ export function createRunner({
   }
 
   function announce() {
+    const next: SyncStatus = {
+      online: state.online,
+      authorized: state.authorized,
+      installable: state.installable,
+    };
     if (
-      status.online === state.online &&
-      status.authorized === state.authorized
+      (Object.keys(next) as (keyof SyncStatus)[]).every(
+        (it) => next[it] === status[it],
+      )
     ) {
       return;
     }
-    status = { online: state.online, authorized: state.authorized };
+    status = next;
     listeners.forEach((it) => it());
   }
 
@@ -232,6 +248,10 @@ export function createRunner({
       case "closeStorage":
         store?.close();
         return;
+      case "showInstallPrompt":
+        void installPrompt?.prompt();
+        installPrompt = null;
+        return;
     }
   }
 
@@ -259,6 +279,12 @@ export function createRunner({
     post({ type: "pagehide", persisted: e.persisted });
   const onPageShow = (e: PageTransitionEvent) =>
     post({ type: "pageshow", persisted: e.persisted });
+  const onInstallPrompt = (e: Event) => {
+    // Held, so the profile page can offer it when asked.
+    e.preventDefault();
+    installPrompt = e as InstallPromptEvent;
+    post({ type: "installPrompt" });
+  };
 
   /**
    * I fail a request the engine thinks is out but isn't, as one made while
@@ -285,6 +311,7 @@ export function createRunner({
       document.addEventListener("visibilitychange", onVisibility);
       window.addEventListener("pagehide", onPageHide);
       window.addEventListener("pageshow", onPageShow);
+      window.addEventListener("beforeinstallprompt", onInstallPrompt);
       failLost();
       arm();
       if (booted) return;
@@ -308,6 +335,7 @@ export function createRunner({
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pagehide", onPageHide);
       window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("beforeinstallprompt", onInstallPrompt);
       locks.release();
       store?.close();
     },

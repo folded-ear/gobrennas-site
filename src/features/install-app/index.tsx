@@ -1,14 +1,9 @@
 "use client";
 
+import { usePlanSync, useSyncStatus } from "@/features/plan-sync";
 import { Button } from "@heroui/react";
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { installOffer } from "./install-offer";
-import {
-  captureInstallPrompt,
-  hasInstallPrompt,
-  showInstallPrompt,
-  subscribeToInstallPrompt,
-} from "./install-prompt";
 
 const COARSE_POINTER = "(pointer: coarse)";
 const STANDALONE_DISPLAY = "(display-mode: standalone)";
@@ -29,20 +24,11 @@ const useMounted = () =>
     () => false,
   );
 
-/** I hold the browser's install prompt from page load, so it's available later. */
-export function CaptureInstallPrompt() {
-  useEffect(captureInstallPrompt, []);
-  return null;
-}
-
 /** I offer to install the app on touch devices that haven't yet. */
 export function InstallApp() {
   const mounted = useMounted();
-  const canPrompt = useSyncExternalStore(
-    subscribeToInstallPrompt,
-    hasInstallPrompt,
-    () => false,
-  );
+  const { installable: canPrompt } = useSyncStatus();
+  const sync = usePlanSync();
   if (!mounted) return null;
 
   const offer = installOffer({
@@ -54,7 +40,7 @@ export function InstallApp() {
 
   if (offer === "prompt") {
     return (
-      <Button variant="secondary" onPress={showInstallPrompt}>
+      <Button variant="secondary" onPress={sync.install}>
         Install app
       </Button>
     );

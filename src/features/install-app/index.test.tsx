@@ -1,7 +1,7 @@
 import { render, screen, userEvent } from "@/test";
 import { act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CaptureInstallPrompt, InstallApp } from "./index";
+import { InstallApp } from "./index";
 
 const COARSE = "(pointer: coarse)";
 const STANDALONE = "(display-mode: standalone)";
@@ -37,13 +37,7 @@ const fireInstallPrompt = () => {
   return { prompt, event };
 };
 
-const renderOffer = () =>
-  render(
-    <>
-      <CaptureInstallPrompt />
-      <InstallApp />
-    </>,
-  );
+const renderOffer = () => render(<InstallApp />);
 
 describe("InstallApp", () => {
   beforeEach(() => stubEnvironment([COARSE]));

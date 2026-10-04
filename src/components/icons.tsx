@@ -6,8 +6,10 @@ import {
   ChevronUp,
   Circle,
   CircleCheckBig,
+  CloudOff,
   EyeIcon,
   GripVertical,
+  LogIn,
   LogOut,
   LucideIcon,
   LucideProps,
@@ -56,6 +58,7 @@ export const LibraryIcon = createIcon(BookOpen);
 export const LogoutIcon = createIcon(LogOut);
 export const MenuOpenIcon = createIcon(ChevronDown);
 export const NeededIcon = createIcon(Circle);
+export const OfflineIcon = createIcon(CloudOff);
 export const PantryIcon = createIcon(ShelvingUnit);
 export const PlanScheduleIcon = createIcon(NotebookTabs);
 export const PlanCalendarIcon = createIcon(Calendar);
@@ -63,4 +66,5 @@ export const RecipeEditIcon = createIcon(Pencil);
 export const RecipeViewIcon = createIcon(EyeIcon);
 export const SearchIcon = createIcon(Search);
 export const SendToPlanIcon = createIcon(SquareArrowRightEnter);
+export const SignInIcon = createIcon(LogIn);
 export const ShoppingCartIcon = createIcon(ShoppingCart);

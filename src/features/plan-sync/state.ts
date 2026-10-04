@@ -160,6 +160,8 @@ export type State = {
   readonly renderedAt: number;
   /** When the next poll is due. */
   readonly pollDueAt: number;
+  /** Whether the browser's install prompt is held, ready to show. */
+  readonly installable: boolean;
 };
 
 export type SendOutcome =
@@ -201,6 +203,8 @@ export type Event = At &
     | { readonly type: "pageshow"; readonly persisted: boolean }
     | { readonly type: "restored"; readonly keys: readonly string[] }
     | { readonly type: "storageBlocked" }
+    | { readonly type: "installPrompt" }
+    | { readonly type: "install" }
     | { readonly type: "stored"; readonly keys: readonly string[] }
     | { readonly type: "storeFailed"; readonly keys: readonly string[] }
     | {
@@ -265,4 +269,5 @@ export type Effect =
     }
   | { readonly kind: "freeze" }
   | { readonly kind: "thaw" }
-  | { readonly kind: "closeStorage" };
+  | { readonly kind: "closeStorage" }
+  | { readonly kind: "showInstallPrompt" };

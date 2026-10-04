@@ -646,3 +646,19 @@ describe("booting and the bfcache", () => {
     expect(e.lastSend().changes).toEqual([rename(PIE, "Apple pie")]);
   });
 });
+
+describe("installing", () => {
+  it("shows the held install prompt once, when asked", () => {
+    const e = engine();
+    e.boot();
+    e.post({ type: "installPrompt" });
+    expect(e.state.installable).toBe(true);
+
+    e.post({ type: "install" });
+    expect(kinds(e.effects)).toEqual(["showInstallPrompt"]);
+    expect(e.state.installable).toBe(false);
+
+    e.post({ type: "install" });
+    expect(kinds(e.effects)).toEqual([]);
+  });
+});

@@ -61,6 +61,7 @@ export function initialState({
     cutoffs: {},
     renderedAt,
     pollDueAt: 0,
+    installable: false,
   };
 }
 
@@ -295,6 +296,14 @@ function handle(s: Stepping, event: Event) {
       w.lifecycle = "running";
       return;
     }
+    case "installPrompt":
+      w.installable = true;
+      return;
+    case "install":
+      if (!w.installable) return;
+      w.installable = false;
+      s.emit({ kind: "showInstallPrompt" });
+      return;
     case "storageBlocked":
       w.storing = false;
       w.pending = w.pending.map((it) =>

@@ -11,10 +11,11 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { createPageLocks } from "./locks";
 import { publishView } from "./overlay";
-import { createRunner, Runner } from "./runner";
+import { createRunner, Runner, SyncStatus } from "./runner";
 import type {
   AssignBucketChange,
   Change,
@@ -49,6 +50,8 @@ export type PlanSync = {
   resolve(id: string): string;
   /** I count the user's changes the server has yet to answer. */
   unsent(): Promise<number>;
+  /** I show the browser's install prompt, if it's held. */
+  install(): void;
 };
 
 const PlanSyncContext = createContext<Runner | null>(null);
@@ -123,6 +126,7 @@ export function usePlanSync(): PlanSync {
       create: (change) => runner?.create(change) ?? Promise.resolve(null),
       resolve: (id) => runner?.resolve(id) ?? id,
       unsent: () => runner?.unsent() ?? Promise.resolve(0),
+      install: () => post({ type: "install" }),
     };
   }, [runner]);
 }
@@ -136,4 +140,23 @@ export function useWatchPlans(planIds: readonly string[]): void {
     runner?.post({ type: "watch", planIds: watched });
     return () => runner?.post({ type: "unwatch", planIds: watched });
   }, [runner, key]);
+}
+
+/** What the server renders, before the engine has said anything. */
+const SERVER_STATUS: SyncStatus = {
+  online: true,
+  authorized: true,
+  installable: false,
+};
+
+const noSubscription = () => () => {};
+
+/** I give the page's sync status, following it as it changes. */
+export function useSyncStatus(): SyncStatus {
+  const runner = useContext(PlanSyncContext);
+  return useSyncExternalStore(
+    runner?.subscribe ?? noSubscription,
+    () => runner?.status() ?? SERVER_STATUS,
+    () => SERVER_STATUS,
+  );
 }
