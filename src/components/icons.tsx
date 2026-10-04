@@ -9,16 +9,16 @@ import {
   CloudOff,
   EyeIcon,
   GripVertical,
-  LogIn,
   LogOut,
   LucideIcon,
   LucideProps,
   NotebookTabs,
+  PackagePlus,
   Pencil,
   Plus,
-  RefreshCw,
   Search,
   ShelvingUnit,
+  ShieldQuestionMark,
   ShoppingCart,
   SquareArrowRightEnter,
   Trash,
@@ -67,6 +67,6 @@ export const RecipeEditIcon = createIcon(Pencil);
 export const RecipeViewIcon = createIcon(EyeIcon);
 export const SearchIcon = createIcon(Search);
 export const SendToPlanIcon = createIcon(SquareArrowRightEnter);
-export const SignInIcon = createIcon(LogIn);
-export const UpdateIcon = createIcon(RefreshCw);
+export const SignedOutIcon = createIcon(ShieldQuestionMark);
+export const UpdateIcon = createIcon(PackagePlus);
 export const ShoppingCartIcon = createIcon(ShoppingCart);

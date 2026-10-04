@@ -3,7 +3,7 @@ import { changeMutation } from "@/features/page-engine/mutation";
 import type { WorkerHost } from "@/features/page-engine/runner";
 import { act, render, screen, userEvent } from "@/test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PageStatus } from "./index";
+import { PageStatus, SIGN_IN_TIP, UPDATE_TIP } from "./index";
 
 const { doLogin } = vi.hoisted(() => ({ doLogin: vi.fn() }));
 
@@ -73,6 +73,24 @@ describe("PageStatus", () => {
     expect(worker.activate).toHaveBeenCalledTimes(1);
   });
 
+  it("explains the update offer in a tooltip", async () => {
+    let waiting = () => {};
+    render(
+      <PageEngine
+        userId={null}
+        renderedAt={0}
+        worker={{ register: (it) => (waiting = it), activate: () => {} }}
+      >
+        <PageStatus />
+      </PageEngine>,
+    );
+    act(() => waiting());
+
+    await userEvent.tab();
+
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(UPDATE_TIP);
+  });
+
   it("offers to sign in again once the login has expired", async () => {
     const { mutation, variables } = changeMutation([RENAME]);
     render(
@@ -98,11 +116,13 @@ describe("PageStatus", () => {
       },
     );
     await userEvent.click(screen.getByRole("button", { name: "Rename" }));
+    const signIn = await screen.findByRole("button", { name: "Sign in again" });
 
-    await userEvent.click(
-      await screen.findByRole("button", { name: "Sign in again" }),
-    );
+    await userEvent.tab();
+    expect(signIn).toHaveFocus();
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(SIGN_IN_TIP);
 
+    await userEvent.click(signIn);
     expect(doLogin).toHaveBeenCalledTimes(1);
   });
 });
