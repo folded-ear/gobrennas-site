@@ -4,7 +4,7 @@ import { DoSetPreferenceDocument } from "./__generated__/doSetPreference.generat
 
 export function useSetPreference(
   name: string,
-): [(value: string) => ReturnType<typeof mutate>, typeof result] {
+): [(value: string) => Promise<void>, typeof result] {
   const [mutate, result] = useMutation(DoSetPreferenceDocument, {
     variables: { name },
     optimisticResponse: ({ value, deviceKey }) => ({
@@ -21,7 +21,12 @@ export function useSetPreference(
     }),
   });
   const setter = useCallback(
-    (value: string) => mutate({ variables: { value } }),
+    (value: string) =>
+      mutate({ variables: { value } }).then(
+        () => {},
+        // The failure toast link reports it, and the guess rolls back.
+        () => {},
+      ),
     [mutate],
   );
   return [setter, result];

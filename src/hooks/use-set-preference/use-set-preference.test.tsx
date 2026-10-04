@@ -3,10 +3,15 @@ import { PreferenceValueFragmentDoc } from "@/hooks/use-preference/__generated__
 import { useSetPreference } from "@/hooks/use-set-preference";
 import { InitializeDeviceKeyDocument } from "@/lib/apollo/__generated__/initializeDeviceKey.generated";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
+import {
+  FAILURE_TOAST_TITLE,
+  failureToastLink,
+} from "@/lib/apollo/failure-toast-link";
 import { ApolloClient, ApolloLink, Operation } from "@apollo/client";
 import { LocalState } from "@apollo/client/local-state";
 import { ApolloProvider } from "@apollo/client/react";
 import { MockLink } from "@apollo/client/testing";
+import { toast } from "@heroui/react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { DoSetPreferenceDocument } from "./__generated__/doSetPreference.generated";
@@ -15,10 +20,15 @@ const DEVICE_KEY = "a-device-key";
 const PREF = "somePreference";
 const THE_PREF = { __typename: "UserPreference" as const, name: PREF };
 
+/** What the last press's setter call returned. */
+let lastSet: Promise<unknown> | undefined;
+
 function Probe() {
   const [setPreference] = useSetPreference(PREF);
   return (
-    <button onClick={() => setPreference("new")}>{usePreference(PREF)}</button>
+    <button onClick={() => (lastSet = setPreference("new"))}>
+      {usePreference(PREF)}
+    </button>
   );
 }
 
@@ -52,6 +62,7 @@ function renderProbe({ seedDeviceKey = true, mock }: ProbeOptions = {}) {
         seen.push(operation);
         return forward(operation);
       }),
+      failureToastLink,
       new MockLink([
         {
           request: {
@@ -136,6 +147,17 @@ describe("useSetPreference", () => {
 
     await waitFor(() => expect(button).toHaveTextContent("new"));
     await waitFor(() => expect(button).toHaveTextContent("old"));
+  });
+
+  it("settles, and the user hears of it, when the server rejects the change", async () => {
+    const { button } = renderProbe({ mock: { error: new Error("nope") } });
+
+    button.click();
+
+    await expect(lastSet).resolves.toBeUndefined();
+    expect(
+      toast.getQueue().visibleToasts.map(({ content }) => content.title),
+    ).toEqual([FAILURE_TOAST_TITLE]);
   });
 
   it("leaves the cached device key alone while guessing", async () => {
