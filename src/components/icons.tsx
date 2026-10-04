@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  BrushCleaning,
   Calendar,
   ChefHat,
   ChevronDown,
@@ -68,5 +69,6 @@ export const RecipeViewIcon = createIcon(EyeIcon);
 export const SearchIcon = createIcon(Search);
 export const SendToPlanIcon = createIcon(SquareArrowRightEnter);
 export const SignedOutIcon = createIcon(ShieldQuestionMark);
+export const SweepIcon = createIcon(BrushCleaning);
 export const UpdateIcon = createIcon(PackagePlus);
 export const ShoppingCartIcon = createIcon(ShoppingCart);

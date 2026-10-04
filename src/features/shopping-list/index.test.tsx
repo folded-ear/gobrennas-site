@@ -12,7 +12,7 @@ import {
 } from "@/test";
 import { ApolloProvider } from "@apollo/client/react";
 import { ReactElement } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { BASIL, plan, seedItem, SUGAR } from "./fixtures";
 import { ShoppingRegions } from "./index";
 import { buildShoppingList, ingredientKey, ShoppingList } from "./model";
@@ -24,7 +24,11 @@ const WEEKNIGHTS = {
   changeable: true,
 };
 
-function renderList(list: ShoppingList, cache = buildInMemoryCache()) {
+function renderList(
+  list: ShoppingList,
+  cache = buildInMemoryCache(),
+  onAcquiredToggle?: () => void,
+) {
   render(
     <PlanDirectoryProvider
       directory={{
@@ -33,7 +37,7 @@ function renderList(list: ShoppingList, cache = buildInMemoryCache()) {
         planOfBucket: new Map(),
       }}
     >
-      <ShoppingRegions list={list} />
+      <ShoppingRegions list={list} onAcquiredToggle={onAcquiredToggle} />
     </PlanDirectoryProvider>,
     { cache },
   );
@@ -164,6 +168,34 @@ describe("ShoppingRegions", () => {
     await userEvent.click(toggle);
 
     expect(screen.queryByRole("button", { name: /^sugar/ })).toBeNull();
+  });
+
+  it("tells when the acquired region opens or closes", async () => {
+    const cache = buildInMemoryCache();
+    const list = buildShoppingList([
+      plan(
+        WEEKNIGHTS.id,
+        WEEKNIGHTS.name,
+        WEEKNIGHTS.color,
+        ["d"],
+        [
+          seedItem(cache, {
+            id: "d",
+            name: "sugar",
+            parent: "7",
+            pantry: SUGAR,
+            status: PlanItemStatus.ACQUIRED,
+          }),
+        ],
+      ),
+    ]);
+    const onAcquiredToggle = vi.fn();
+    renderList(list, cache, onAcquiredToggle);
+
+    await expandAcquired();
+    await expandAcquired();
+
+    expect(onAcquiredToggle).toHaveBeenCalledTimes(2);
   });
 
   it("expands one shopping item at a time", async () => {

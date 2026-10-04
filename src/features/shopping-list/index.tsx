@@ -16,6 +16,8 @@ type ShoppingRegionsProps = {
   readonly list: ShoppingList;
   /** The shopped plans' trees. Left out, nothing can be edited. */
   readonly tree?: PlanTree;
+  /** Called as Acquired opens or closes. */
+  readonly onAcquiredToggle?: () => void;
 };
 
 type RegionSectionProps = {
@@ -24,6 +26,8 @@ type RegionSectionProps = {
   readonly showsTitle: boolean;
   /** Whether I start collapsed, my title then counting what's inside. */
   readonly collapsible?: boolean;
+  /** Called as I open or close, when collapsible. */
+  readonly onToggle?: () => void;
   readonly region: Region;
   /** My loose rows, new items among them, and the list they make. */
   readonly loose: readonly ShoppingRow[];
@@ -40,6 +44,7 @@ function RegionSection({
   title,
   showsTitle,
   collapsible = false,
+  onToggle,
   region,
   loose,
   looseGroup,
@@ -71,7 +76,7 @@ function RegionSection({
     >
       {collapsible ? (
         // No id, so I keep my own state rather than joining the item group.
-        <Disclosure>
+        <Disclosure onExpandedChange={onToggle}>
           <Disclosure.Heading id={headingId} level={2} className="text-lg">
             <Disclosure.Trigger className="flex w-full items-center gap-sm text-left">
               {title} ({region.items.length + loose.length})
@@ -97,7 +102,11 @@ function RegionSection({
  * shopping item expanded. Given the plans' trees, plan items can be edited
  * in place.
  */
-export function ShoppingRegions({ list, tree }: ShoppingRegionsProps) {
+export function ShoppingRegions({
+  list,
+  tree,
+  onAcquiredToggle,
+}: ShoppingRegionsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const edit = useEditState();
   const rows = shoppingRows(list, expandedId, edit.drafts);
@@ -132,6 +141,7 @@ export function ShoppingRegions({ list, tree }: ShoppingRegionsProps) {
         title="Acquired"
         showsTitle
         collapsible
+        onToggle={onAcquiredToggle}
         region={list.acquired}
         loose={acquiredLoose}
         looseGroup={LOOSE_ACQUIRED}

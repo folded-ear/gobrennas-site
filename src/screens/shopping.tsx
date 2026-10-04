@@ -10,7 +10,8 @@ import { buildPlanTree } from "@/features/plan-dnd/moves";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { ShoppingRegions } from "@/features/shopping-list";
-import { buildShoppingList } from "@/features/shopping-list/model";
+import { SweepButton } from "@/features/shopping-list/sweep-button";
+import { useShoppingList } from "@/features/shopping-list/use-shopping-list";
 import { canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_SHOPPING_PLANS } from "@/lib/preferences";
 import { ShoppingDocument } from "@/screens/__generated__/shopping.generated";
@@ -34,21 +35,20 @@ export function Shopping() {
   );
   // Only the shopped plans, so indicators show when several are shopped.
   const directory = useMemo(() => buildPlanDirectory(shownPlans), [shownPlans]);
-  const list = useMemo(
+  const shoppingPlans = useMemo(
     () =>
-      buildShoppingList(
-        shownPlans.map((plan) => ({
-          id: plan.id,
-          name: plan.name,
-          color: plan.color,
-          changeable: canChangePlan(plan),
-          rootIds: plan.children.map((it) => it.id),
-          items: plan.descendants,
-          buckets: plan.buckets,
-        })),
-      ),
+      shownPlans.map((plan) => ({
+        id: plan.id,
+        name: plan.name,
+        color: plan.color,
+        changeable: canChangePlan(plan),
+        rootIds: plan.children.map((it) => it.id),
+        items: plan.descendants,
+        buckets: plan.buckets,
+      })),
     [shownPlans],
   );
+  const { list, sweep } = useShoppingList(shoppingPlans);
 
   const tree = useMemo(
     () =>
@@ -59,16 +59,19 @@ export function Shopping() {
   return (
     <PlanDirectoryProvider directory={directory}>
       <SectionHeader title="Shopping">
-        <PlanPicker
-          label="Plans"
-          plans={plans}
-          selectionMode="multiple"
-          selectedIds={planIds}
-          onChange={setPlanIds}
-        />
+        <div className="flex items-center gap-sm">
+          <PlanPicker
+            label="Plans"
+            plans={plans}
+            selectionMode="multiple"
+            selectedIds={planIds}
+            onChange={setPlanIds}
+          />
+          <SweepButton onSweep={sweep} />
+        </div>
       </SectionHeader>
       <div className="p-md bg-surface">
-        <ShoppingRegions list={list} tree={tree} />
+        <ShoppingRegions list={list} tree={tree} onAcquiredToggle={sweep} />
       </div>
     </PlanDirectoryProvider>
   );
