@@ -18,10 +18,16 @@ away and lets focused content slide in without losing the user's place.
 - The tab for the section the current page belongs to is marked.
 - Each section's page has a header that stays at the top as the page
   scrolls, holding the section's title and controls.
+- Beside the title, the header shows an icon while the device is offline.
+  It offers to sign in again when the login has expired, and to update
+  when a new version of the app is waiting. Updating sends any held
+  changes, switches to the new version, and reloads.
 - The Library header has a picker for the one plan recipes are sent to. The
   Planner and Shopping headers each have a picker for the plans they show.
   No picker shows when the user has only one plan.
-- Logging out is on the Profile page.
+- Logging out is on the Profile page. On a phone or tablet, so is
+  installing the app, which opens on Shopping, with shortcuts to Shop,
+  Plan, and Library.
 
 ### Screens
 
