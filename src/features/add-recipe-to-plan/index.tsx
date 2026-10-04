@@ -17,7 +17,9 @@ export function AddRecipeToPlan({ recipeId }: { recipeId: string }) {
     RecipePlanChoicesDocument,
     { skip: !requested },
   );
-  const [send, { loading: sending }] = useMutation(DoSendToPlanDocument);
+  const [send, { loading: sending }] = useMutation(DoSendToPlanDocument, {
+    context: { failureToast: false },
+  });
   const client = useApolloClient();
   const pending = useRef(false);
   useBlockScreenEscape(open);

@@ -20,7 +20,9 @@ export function CreateRecipeForm({
   onCancel,
 }: CreateRecipeFormProps) {
   const client = useApolloClient();
-  const [createRecipe] = useMutation(CreateRecipeDocument);
+  const [createRecipe] = useMutation(CreateRecipeDocument, {
+    context: { failureToast: false },
+  });
   const services = useRecipeFormServices();
 
   async function submitRecipe(draft: RecipeDraft): Promise<void> {

@@ -6,6 +6,7 @@ import {
 } from "@/data-rsc/get-user-profile/__generated__/getUserProfileRsc.generated";
 import { buildApolloLink } from "@/lib/apollo/build-apollo-link";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
+import { failureToastLink } from "@/lib/apollo/failure-toast-link";
 import { HttpLink, setLogVerbosity } from "@apollo/client";
 import {
   ApolloClient,
@@ -56,7 +57,7 @@ export function ApolloWrapper({
       dataMasking: true,
       cache,
       localState: new LocalState(),
-      link: buildApolloLink("browser-and-ssr", httpLink),
+      link: buildApolloLink("browser-and-ssr", failureToastLink, httpLink),
       devtools: {
         enabled: true,
       },

@@ -19,7 +19,9 @@ export function useDeleteRecipe(
   onDeleted: () => void,
 ) {
   const client = useApolloClient();
-  const [deleteRecipe] = useMutation(DeleteRecipeDocument);
+  const [deleteRecipe] = useMutation(DeleteRecipeDocument, {
+    context: { failureToast: false },
+  });
   return async function remove() {
     if (!recipe.mine) throw new Error("Recipe is not deletable.");
     const result = await deleteRecipe({ variables: { id: recipe.id } });

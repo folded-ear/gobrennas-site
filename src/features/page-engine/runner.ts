@@ -206,6 +206,7 @@ export function createRunner({
             errorPolicy: "all",
             fetchPolicy: "no-cache",
             context: {
+              failureToast: false,
               fetchOptions: {
                 keepalive: effect.keepalive,
                 signal: controller.signal,

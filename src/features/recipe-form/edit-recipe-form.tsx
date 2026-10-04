@@ -88,7 +88,9 @@ function LoadedRecipeEditor({
   const [snapshot] = useState(() => ({ recipe, draft: recipeToDraft(recipe) }));
   const client = useApolloClient();
   const services = useRecipeFormServices();
-  const [updateRecipe] = useMutation(UpdateRecipeDocument);
+  const [updateRecipe] = useMutation(UpdateRecipeDocument, {
+    context: { failureToast: false },
+  });
   const remove = useDeleteRecipe(snapshot.recipe, onDeleted);
   async function submit(draft: RecipeDraft) {
     if (!recipe.mine) throw new Error("Recipe is not editable.");

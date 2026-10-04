@@ -1,3 +1,4 @@
+import { failureToastLink } from "@/lib/apollo/failure-toast-link";
 import type { ApolloCache } from "@apollo/client";
 import { ApolloClient, ApolloLink, Observable } from "@apollo/client";
 import { LocalState } from "@apollo/client/local-state";
@@ -172,7 +173,7 @@ export function fakeApi(cache: ApolloCache) {
     dataMasking: true,
     cache,
     localState: new LocalState(),
-    link,
+    link: failureToastLink.concat(link),
   });
   return api;
 }

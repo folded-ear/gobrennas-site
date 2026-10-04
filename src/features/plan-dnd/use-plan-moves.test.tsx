@@ -3,6 +3,7 @@ import { changeMutation } from "@/features/page-engine/mutation";
 import type { SentChange } from "@/features/page-engine/state";
 import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
 import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
+import { FAILURE_TOAST_TITLE } from "@/lib/apollo/failure-toast-link";
 import {
   PlannerDocument,
   PlannerQuery,
@@ -505,6 +506,7 @@ describe("usePlanMoves, onto a date", () => {
     );
 
     expect(await screen.findByText("Couldn't move Breakfast")).toBeVisible();
+    expect(screen.queryByText(FAILURE_TOAST_TITLE)).not.toBeInTheDocument();
     expect(screen.getByText(/Breakfast is on/)).toHaveTextContent("no date");
     expect(screen.getByText(/Dated buckets/)).toHaveTextContent("1");
   });

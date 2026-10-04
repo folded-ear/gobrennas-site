@@ -1,4 +1,5 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { toast as appToast } from "@heroui/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PageLocks } from "./locks";
 import { createRunner, Runner } from "./runner";
@@ -172,6 +173,7 @@ describe("the runner", () => {
 
     await vi.waitFor(() => expect(toast).toHaveBeenCalledTimes(1));
     expect(await runner.unsent()).toBe(0);
+    expect(appToast.getQueue().visibleToasts).toEqual([]);
   });
 
   it("keeps a change while unreachable, and sends it when back online", async () => {
@@ -190,6 +192,7 @@ describe("the runner", () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(mutations()).toHaveLength(1);
     expect(await runner.unsent()).toBe(1);
+    expect(appToast.getQueue().visibleToasts).toEqual([]);
 
     api.mode = "save";
     window.dispatchEvent(new Event("online"));
