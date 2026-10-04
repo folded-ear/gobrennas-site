@@ -66,7 +66,8 @@ production, and no test has to know which providers a component needs.
 
 Put the cache in the state the app would have put it in, then render
 against it. `render` takes the cache and builds a client around it that
-matches production — masked, with local state and a mock link.
+matches production — masked, with local state, the failure toast link, and a
+mock link.
 
 **Component reads fragment data.** Seed the fragment and pass what
 `seedFragment` gives back. It writes the data and returns the reference
