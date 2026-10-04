@@ -2,7 +2,7 @@ import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanTree } from "@/features/plan-dnd/moves";
 import { EditSurfaceProvider, useEditState } from "@/features/plan-edit";
 import { ToggleStatus } from "@/features/plan-status";
-import { DisclosureGroup } from "@heroui/react";
+import { Disclosure, DisclosureGroup } from "@heroui/react";
 import { useId, useState } from "react";
 import {
   LOOSE_ACQUIRED,
@@ -24,6 +24,8 @@ type RegionSectionProps = {
   readonly title: string;
   /** Whether my title shows, or only names me to assistive tech. */
   readonly showsTitle: boolean;
+  /** Whether I start collapsed, my title then counting what's inside. */
+  readonly collapsible?: boolean;
   readonly region: Region;
   /** My loose rows, new items among them, and the list they make. */
   readonly loose: readonly ShoppingRow[];
@@ -41,6 +43,7 @@ function isEmpty({ items }: Region, loose: readonly ShoppingRow[]): boolean {
 function RegionSection({
   title,
   showsTitle,
+  collapsible = false,
   region,
   loose,
   looseGroup,
@@ -50,23 +53,46 @@ function RegionSection({
   const headingId = useId();
   if (isEmpty(region, loose)) return null;
 
+  const list = (
+    <ul className="flex flex-col gap-sm">
+      {region.items.map((item) => (
+        <li key={item.ingredient.id}>
+          <ShoppingItemRow item={item} status={status} rows={rows} />
+        </li>
+      ))}
+      {loose.map((row) => (
+        <ShoppingRowLine key={rowKey(row)} row={row} group={looseGroup} />
+      ))}
+    </ul>
+  );
+
   return (
     <section
       aria-label={showsTitle ? undefined : title}
       aria-labelledby={showsTitle ? headingId : undefined}
-      className="flex flex-col gap-sm"
+      className={
+        collapsible ? "mt-md flex flex-col gap-sm" : "flex flex-col gap-sm"
+      }
     >
-      {showsTitle ? <h2 id={headingId}>{title}</h2> : null}
-      <ul className="flex flex-col gap-sm">
-        {region.items.map((item) => (
-          <li key={item.ingredient.id}>
-            <ShoppingItemRow item={item} status={status} rows={rows} />
-          </li>
-        ))}
-        {loose.map((row) => (
-          <ShoppingRowLine key={rowKey(row)} row={row} group={looseGroup} />
-        ))}
-      </ul>
+      {collapsible ? (
+        // No id, so I keep my own state rather than joining the item group.
+        <Disclosure>
+          <Disclosure.Heading id={headingId} level={2} className="text-lg">
+            <Disclosure.Trigger className="flex w-full items-center gap-sm text-left">
+              {title} ({region.items.length + loose.length})
+              <Disclosure.Indicator className="ms-auto" />
+            </Disclosure.Trigger>
+          </Disclosure.Heading>
+          <Disclosure.Content>
+            <Disclosure.Body>{list}</Disclosure.Body>
+          </Disclosure.Content>
+        </Disclosure>
+      ) : (
+        <>
+          {showsTitle ? <h2 id={headingId}>{title}</h2> : null}
+          {list}
+        </>
+      )}
     </section>
   );
 }
@@ -111,6 +137,7 @@ export function ShoppingRegions({ list, tree }: ShoppingRegionsProps) {
       <RegionSection
         title="Acquired"
         showsTitle
+        collapsible
         region={list.acquired}
         loose={acquiredLoose}
         looseGroup={LOOSE_ACQUIRED}

@@ -40,6 +40,10 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 - The list has two regions: Needed on top, Acquired below. Only Acquired
   is headed. A region with nothing in it doesn't appear.
+- Acquired starts collapsed. Its heading counts what's in it, like
+  "Acquired (17)", and has a control to expand and collapse it. Whether
+  it's open is kept only on the page, apart from which shopping item is
+  expanded.
 - A plan item with a zero quantity counts as acquired, whatever its status.
 - A plan item under an acquired item, or under one with a zero quantity,
   counts as acquired too, whatever its own status. Its status isn't changed.
@@ -116,7 +120,6 @@ and "2 Tbsp sugar" under the iced tea.
 
 ## Not included
 
-- Collapsing the Acquired region.
 - Reordering ingredients to set their store order.
 - Adding items that aren't on a plan.
 
