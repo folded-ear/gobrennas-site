@@ -37,6 +37,8 @@ Delivery: Built
   directions start at the top of the right column. Recognized ingredients display
   their saved quantity, unit, ingredient name, and preparation. Quantity, unit,
   and ingredient use Morsel's text treatment, without interactive controls.
+  Quantities show as fractions (see
+  [Text conventions](ingredient-recognition.md#text-conventions-and-saving)).
   Unrecognized rows retain their original wording. No recognition requests are needed to read the recipe.
 - Directions preserve line and paragraph breaks. Missing ingredients or
   directions are identified explicitly. Owned and borrowed sections appear in

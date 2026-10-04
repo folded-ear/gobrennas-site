@@ -137,6 +137,10 @@ is required.
   value returned by recognition. An explicit unit without a number saves with
   quantity one, matching the API's automatic-recognition behavior; the API
   stores units as part of a quantity.
+- Read-only ingredient text shows a quantity's fractional part as a fraction
+  (`0.5` and `1/2` show as `½`, `1.0625` as `1 1/16`) when it falls in a range
+  listed in `src/features/morsel/fractions.ts`. Other quantities show as
+  written. Editable Morsel text always shows exactly as entered.
 - Preparation is the text left after removing recognized quantity, unit, and
   ingredient ranges. Normalize its whitespace and redundant commas for saving,
   leaving the original raw text unchanged.
