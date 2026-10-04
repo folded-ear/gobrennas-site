@@ -1,6 +1,6 @@
 "use client";
 
-import { Input, Label, Switch } from "@heroui/react";
+import { Input, Switch } from "@heroui/react";
 import { Search, X } from "lucide-react";
 
 interface RecipeFilterProps {
@@ -43,10 +43,12 @@ export function RecipeFilter({
         )}
       </div>
       <Switch isSelected={includeOthers} onChange={onIncludeOthersChange}>
-        <Switch.Control>
-          <Switch.Thumb />
-        </Switch.Control>
-        <Label className="text-sm">Everyone&apos;s Recipes</Label>
+        <Switch.Content className="text-sm">
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+          Everyone&apos;s Recipes
+        </Switch.Content>
       </Switch>
     </div>
   );
