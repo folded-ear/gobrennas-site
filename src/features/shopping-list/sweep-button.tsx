@@ -11,7 +11,7 @@ type SweepButtonProps = {
 /** I sweep the shopping list, so every row shows where its status puts it. */
 export function SweepButton({ onSweep }: SweepButtonProps) {
   return (
-    <ControlTooltip label={SWEEP_LABEL}>
+    <ControlTooltip label={SWEEP_LABEL} placement="left">
       <Button
         isIconOnly
         size="sm"

@@ -60,6 +60,7 @@ export function Shopping() {
     <PlanDirectoryProvider directory={directory}>
       <SectionHeader title="Shopping">
         <div className="flex items-center gap-sm">
+          <SweepButton onSweep={sweep} />
           <PlanPicker
             label="Plans"
             plans={plans}
@@ -67,7 +68,6 @@ export function Shopping() {
             selectedIds={planIds}
             onChange={setPlanIds}
           />
-          <SweepButton onSweep={sweep} />
         </div>
       </SectionHeader>
       <div className="p-md bg-surface">
