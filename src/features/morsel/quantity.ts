@@ -12,12 +12,11 @@ export function displayQuantity(
 ): string {
   const text = String(written);
   const parts = split(text);
-  const row =
-    parts &&
-    fractions.find(
-      ([low, high]) => low <= parts.fraction && parts.fraction <= (high ?? low),
-    );
-  if (!parts || !row) return text;
+  if (!parts) return text;
+  const row = fractions.find(
+    ([low, high]) => low <= parts.fraction && parts.fraction <= (high ?? low),
+  );
+  if (!row) return text;
   const [, , display] = row;
   if (parts.whole === 0) return display;
   return display.includes("/")
