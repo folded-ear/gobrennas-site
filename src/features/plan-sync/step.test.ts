@@ -157,6 +157,22 @@ describe("sending", () => {
     expect(e.lastSend().changes).toEqual([rename(PIE, "Apple pie")]);
   });
 
+  it("sends changes made together in one request", () => {
+    const e = engine();
+    e.boot();
+
+    e.post({
+      type: "changes",
+      changes: [rename(PIE, "Apple pie"), rename(CREAM, "Ice cream")],
+    });
+    e.storeAll();
+
+    expect(e.lastSend().changes).toEqual([
+      rename(PIE, "Apple pie"),
+      rename(CREAM, "Ice cream"),
+    ]);
+  });
+
   it("has one request out at a time", () => {
     const e = engine();
     e.boot();
@@ -363,6 +379,38 @@ describe("answers", () => {
 
     expect(e.of("toast")[0].failed).toEqual([rename(CREAM, "Ice cream")]);
     expect(e.of("writeSaved")).toEqual([]);
+    expect(e.lastSend().changes).toEqual([rename(PIE, "Apple pie")]);
+  });
+
+  it("refuses changes made together when one of them is refused", () => {
+    const e = engine();
+    e.boot();
+    e.change(rename(PIE, "Apple pie"));
+    e.post({
+      type: "sent",
+      requestId: e.lastSend().requestId,
+      outcome: { kind: "unreachable" },
+    });
+    e.post({
+      type: "changes",
+      changes: [
+        rename(CREAM, "Ice cream"),
+        status(CREAM, PlanItemStatus.ACQUIRED),
+      ],
+    });
+    e.storeAll();
+    e.post({ type: "online" });
+
+    e.post({
+      type: "sent",
+      requestId: e.lastSend().requestId,
+      outcome: { kind: "refused", fields: [2] },
+    });
+
+    expect(e.of("toast")[0].failed).toEqual([
+      rename(CREAM, "Ice cream"),
+      status(CREAM, PlanItemStatus.ACQUIRED),
+    ]);
     expect(e.lastSend().changes).toEqual([rename(PIE, "Apple pie")]);
   });
 

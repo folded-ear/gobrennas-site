@@ -1,11 +1,11 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { PlanItemChangeStateFragmentDoc } from "@/features/plan-changes/__generated__/planItemChangeState.generated";
 import {
+  markPending,
   readStatus,
   seededCache,
   THANKSGIVING,
-} from "@/features/plan-changes/test/status-cache";
-import { savedStatuses } from "@/features/plan-changes/test/status-mocks";
+} from "@/features/plan-sync/test/status-cache";
+import { savedStatuses } from "@/features/plan-sync/test/status-mocks";
 import { render, screen, userEvent } from "@/test";
 import { describe, expect, it } from "vitest";
 import { TOGGLE_LOOKS } from "./status";
@@ -32,7 +32,7 @@ describe("StatusButton", () => {
     expect(readStatus(cache, CREAM)?.status).toBe(PlanItemStatus.ACQUIRED);
   });
 
-  it("shows it is saving until the server answers", async () => {
+  it("shows the new status before the server answers", async () => {
     render(<StatusButton itemId={CREAM} planId={THANKSGIVING} canChange />, {
       cache: seededCache(),
       mocks: [
@@ -41,13 +41,14 @@ describe("StatusButton", () => {
         }),
       ],
     });
-    const button = screen.getByRole("button", {
-      name: "Mark acquired: Whipped cream",
-    });
 
-    await userEvent.click(button);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Mark acquired: Whipped cream" }),
+    );
 
-    expect(button).toHaveAttribute("data-pending", "true");
+    expect(
+      await screen.findByRole("button", { name: "Mark needed: Whipped cream" }),
+    ).toBeInTheDocument();
   });
 
   it("only shows the status to a viewer who can't change it", () => {
@@ -96,16 +97,7 @@ describe("StatusButton", () => {
 
   it("can't be used while an ancestor is going away", () => {
     const cache = seededCache();
-    cache.writeFragment({
-      fragment: PlanItemChangeStateFragmentDoc,
-      id: "PlanItem:1",
-      data: {
-        __typename: "PlanItem",
-        pendingStatus: PlanItemStatus.DELETED,
-        savingStatus: false,
-        pendingName: null,
-      },
-    });
+    markPending(cache, "1", PlanItemStatus.DELETED);
 
     render(<StatusButton itemId="2" planId={THANKSGIVING} canChange />, {
       cache,

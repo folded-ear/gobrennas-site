@@ -216,6 +216,11 @@ function handle(s: Stepping, event: Event) {
     case "change":
       add(s, event.change, event.hold ?? false);
       return;
+    case "changes": {
+      const group = `${w.pageLoadId}-g${w.lastKey + 1}`;
+      event.changes.forEach((it) => add(s, it, false, group));
+      return;
+    }
     case "cancel": {
       const held = w.pending.find(
         (it) =>
@@ -350,7 +355,7 @@ function handle(s: Stepping, event: Event) {
   }
 }
 
-function add(s: Stepping, change: Change, hold: boolean) {
+function add(s: Stepping, change: Change, hold: boolean, group?: string) {
   const { w, at } = s;
   if (change.kind === "rename") {
     const waiting = w.pending.find(
@@ -359,7 +364,7 @@ function add(s: Stepping, change: Change, hold: boolean) {
         it.change.kind === "rename" &&
         it.change.id === change.id,
     );
-    if (waiting !== undefined) {
+    if (waiting !== undefined && waiting.group === undefined) {
       s.replace(s.keep([{ ...waiting, change }])[0]);
       return;
     }
@@ -371,6 +376,7 @@ function add(s: Stepping, change: Change, hold: boolean) {
     change,
     phase: held ? "held" : "ready",
     ...(held ? { holdUntil: at + UNDO_WINDOW_MS } : {}),
+    ...(group === undefined ? {} : { group }),
     kept: "unkept",
   };
   s.insert(s.keep([entry])[0]);
@@ -432,10 +438,14 @@ function answered(s: Stepping, flight: InFlight, outcome: SendOutcome) {
       saved(s, flight, batch, outcome.data);
       return;
     case "refused": {
-      const blamed =
+      const named =
         outcome.fields.length === 0
           ? batch
           : outcome.fields.map((i) => batch[i]).filter(Boolean);
+      const groups = new Set(named.map((it) => it.group).filter(Boolean));
+      const blamed = batch.filter(
+        (it) => named.includes(it) || groups.has(it.group),
+      );
       ready(batch.filter((it) => !blamed.includes(it)));
       blamed.forEach((it) => s.refuse(it));
       return;

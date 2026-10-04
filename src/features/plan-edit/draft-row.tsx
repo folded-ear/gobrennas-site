@@ -15,8 +15,8 @@ type DraftRowProps = {
 const NEW_ITEM = "New item";
 
 /**
- * I am a new item's name: edited as any row is, then faded while its
- * create is sent. Pressed while saving, it's edited once created.
+ * I am a new item's name, edited as any row is. Once committed, the item
+ * shows in my place, under my draft id.
  */
 export function DraftRow({ draft, className }: DraftRowProps) {
   const surface = useEditSurface();
@@ -27,7 +27,7 @@ export function DraftRow({ draft, className }: DraftRowProps) {
       { draftId: draft.draftId },
       {
         editable: true,
-        initialText: draft.text,
+        initialText: "",
         commit: (text) => surface.commitDraft(draft, text),
       },
     );
@@ -35,11 +35,11 @@ export function DraftRow({ draft, className }: DraftRowProps) {
 
   if (surface === null) return null;
 
-  if (draft.state === "editing" && surface.isEditing(key)) {
+  if (surface.isEditing(key)) {
     return (
       <span className={clsx("flex min-w-0 flex-1", className)}>
         <ItemNameEditor
-          initialText={surface.resumeText() ?? draft.text}
+          initialText={surface.resumeText() ?? ""}
           caret={surface.caret}
           keymap={rowKeymap({
             split: (atStart) =>
@@ -61,17 +61,5 @@ export function DraftRow({ draft, className }: DraftRowProps) {
     );
   }
 
-  return (
-    <span
-      className={clsx("flex min-w-0 flex-1 cursor-text", className)}
-      onClick={() => surface.start(key)}
-    >
-      <span
-        aria-busy={draft.state === "saving"}
-        className={clsx(draft.state === "saving" && "opacity-60")}
-      >
-        {draft.text}
-      </span>
-    </span>
-  );
+  return null;
 }

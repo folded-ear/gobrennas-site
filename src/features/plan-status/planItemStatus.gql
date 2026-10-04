@@ -3,6 +3,5 @@ fragment planItemStatus on PlanItem {
   name
   status
   pendingStatus @client
-  savingStatus @client
   inert @client
 }

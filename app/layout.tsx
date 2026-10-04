@@ -2,8 +2,10 @@ import { ErrorFallback } from "@/components/error-fallback";
 import { graphqlUri } from "@/constants";
 import { getUserProfile } from "@/data-rsc/get-user-profile";
 import { CaptureInstallPrompt } from "@/features/install-app";
+import { PlanSync } from "@/features/plan-sync";
 import { ApolloWrapper } from "@/lib/apollo-browser-and-ssr";
 import brand from "@/lib/brand.json";
+import { renderTime } from "@/lib/render-time";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Toast } from "@heroui/react";
 import type { Metadata, Viewport } from "next";
@@ -36,9 +38,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [gqlUri, profileQuery] = await Promise.all([
+  const [gqlUri, profileQuery, renderedAt] = await Promise.all([
     graphqlUri(),
     getUserProfile(),
+    renderTime(),
   ]);
   return (
     <html lang="en" suppressHydrationWarning className="h-full">
@@ -46,12 +49,17 @@ export default async function RootLayout({
         <CaptureInstallPrompt />
         <CookiesProvider>
           <ApolloWrapper graphqlUri={gqlUri} profileQuery={profileQuery}>
-            <ThemeProvider>
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                {children}
-              </ErrorBoundary>
-              <Toast.Provider />
-            </ThemeProvider>
+            <PlanSync
+              userId={profileQuery?.profile.me.id ?? null}
+              renderedAt={renderedAt}
+            >
+              <ThemeProvider>
+                <ErrorBoundary FallbackComponent={ErrorFallback}>
+                  {children}
+                </ErrorBoundary>
+                <Toast.Provider />
+              </ThemeProvider>
+            </PlanSync>
           </ApolloWrapper>
         </CookiesProvider>
       </body>

@@ -1,16 +1,16 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ApolloCache, Reference } from "@apollo/client";
+import { PlanItemFragment } from "../plan-item/__generated__/planItem.generated";
 import {
   PlanItemResultFragment,
   PlanItemResultFragmentDoc,
-} from "../plan-changes/__generated__/planItemResult.generated";
-import { evictItem } from "../plan-changes/evict";
-import { PlanItemFragment } from "../plan-item/__generated__/planItem.generated";
+} from "./__generated__/planItemResult.generated";
 import {
   CorePlanItemChildrenFragmentDoc,
   PollPlanFragment,
   PollPlanFragmentDoc,
 } from "./__generated__/pollPlan.generated";
+import { evictItem } from "./evict";
 
 /** An item as a poll returns it: its fragments unmasked, all in one. */
 export type PolledItem = PlanItemResultFragment & PlanItemFragment;

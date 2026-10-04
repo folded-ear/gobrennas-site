@@ -1,13 +1,11 @@
+import { usePlanSync } from "@/features/plan-sync";
 import { displayName } from "@/lib/plan-item-name";
 import { ApolloCache, Reference } from "@apollo/client";
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { toast } from "@heroui/react";
-import { useCallback, useMemo, useState } from "react";
-import { DoAssignBucketDocument } from "./__generated__/doAssignBucket.generated";
+import { useMemo } from "react";
 import { DoCreateBucketDocument } from "./__generated__/doCreateBucket.generated";
-import { DoMutateTreeDocument } from "./__generated__/doMutateTree.generated";
 import {
-  applyTreeMove,
   bucketChangeFor,
   bucketForDate,
   bucketForName,
@@ -35,13 +33,12 @@ type UsePlanMovesOptions = {
   tree: PlanTree;
 };
 
-/** The moves a planner can make, and which items are mid-move. */
+/** The moves a planner can make. */
 export type PlanMoves = {
   moveInTree(move: TreeMove, name: string): void;
   moveToDate(itemId: string, date: string, name: string): void;
   moveToBucket(itemId: string, bucket: BucketName, name: string): void;
   moveToUnplanned(itemId: string, name: string): void;
-  isMoving(itemId: string): boolean;
 };
 
 /** Keeps a stand-in bucket's id, and its optimistic layer's, off real ids. */
@@ -58,16 +55,15 @@ function reportFailure(name: string) {
 }
 
 /**
- * I make moves against the server, showing each as done the moment it's
- * asked for, and undoing it if the server refuses. A bucket an item joins
- * is always one of its own plan's.
+ * I make moves through the sync engine, which shows each as done the
+ * moment it's asked for, keeps it until the server has it, and undoes it
+ * if the server refuses. A bucket an item joins is always one of its own
+ * plan's. A bucket that doesn't exist yet is made first, directly.
  */
 export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
   const { cache } = useApolloClient();
-  const [mutateTree] = useMutation(DoMutateTreeDocument);
-  const [assignBucket] = useMutation(DoAssignBucketDocument);
+  const sync = usePlanSync();
   const [createBucket] = useMutation(DoCreateBucketDocument);
-  const [moving, setMoving] = useState<ReadonlySet<string>>(new Set());
   const planOf = useMemo(
     () =>
       new Map(
@@ -76,101 +72,26 @@ export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
     [plans],
   );
 
-  const track = useCallback((ids: readonly string[], work: Promise<void>) => {
-    setMoving((prev) => new Set([...prev, ...ids]));
-    void work.finally(() =>
-      setMoving((prev) => new Set([...prev].filter((id) => !ids.includes(id)))),
-    );
-  }, []);
-
   function moveInTree(move: TreeMove, name: string) {
-    const oldParentIds = new Set(
-      move.ids.flatMap((id) => tree.parentOf.get(id) ?? []),
-    );
-    oldParentIds.delete(move.parentId);
-    const children = applyTreeMove(tree, move).childrenOf.get(move.parentId);
-
-    const work = mutateTree({
-      variables: {
-        spec: { ids: move.ids, parentId: move.parentId, afterId: move.afterId },
-      },
-      optimisticResponse: {
-        planner: {
-          __typename: "PlannerMutation",
-          mutateTree: {
-            __typename: "PlanItem",
-            children: (children ?? []).map((id) => ({
-              __typename: "PlanItem" as const,
-              id,
-            })),
-          },
-        },
-      },
-      update(c, { data }) {
-        const moved = data?.planner.mutateTree.children;
-        if (!moved) return;
-        const parentCacheId = itemCacheId(c, move.parentId);
-        c.modify<{ children: readonly Reference[] }>({
-          id: parentCacheId,
-          fields: {
-            children: (_, { toReference }) =>
-              moved.flatMap(
-                (it) =>
-                  toReference({ __typename: "PlanItem", id: it.id }) ?? [],
-              ),
-          },
-        });
-        // By cache id, so the parent's own typename is never rewritten.
-        for (const id of move.ids) {
-          c.modify<{ parent: Reference }>({
-            id: itemCacheId(c, id),
-            fields: {
-              parent: (existing, { toReference }) =>
-                (parentCacheId && toReference(parentCacheId)) || existing,
-            },
-          });
-        }
-        for (const oldParentId of oldParentIds) {
-          c.modify<{ children: readonly Reference[] }>({
-            id: itemCacheId(c, oldParentId),
-            fields: {
-              children: (existing, { readField }) =>
-                existing.filter(
-                  (ref) => !move.ids.includes(readField<string>("id", ref)!),
-                ),
-            },
-          });
-        }
-      },
-    }).then(
-      () => {},
-      () => reportFailure(name),
-    );
-    track(move.ids, work);
-  }
-
-  function assign(itemId: string, bucketId: string | null) {
-    return assignBucket({
-      variables: { id: itemId, bucketId },
-      optimisticResponse: {
-        planner: {
-          __typename: "PlannerMutation",
-          assignBucket: {
-            __typename: "PlanItem",
-            id: itemId,
-            bucket:
-              bucketId === null
-                ? null
-                : { __typename: "PlanBucket", id: bucketId },
-          },
-        },
-      },
+    const plan = planOf.get(move.ids[0]);
+    if (plan === undefined) {
+      reportFailure(name);
+      return;
+    }
+    sync.move({
+      kind: "move",
+      ids: move.ids,
+      planId: plan.id,
+      parentId: move.parentId,
+      afterId: move.afterId,
+      name,
     });
   }
 
   async function assignNewBucket(
     itemId: string,
     planId: string,
+    name: string,
     date: string | null,
     bucketName: string | null,
   ) {
@@ -223,12 +144,16 @@ export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
           });
         },
       });
-      const assigned = assign(itemId, data!.planner.createBucket.id);
-      // The stand-in's bucket list hides the real bucket, so it goes the
-      // moment the assignment's own optimistic result has replaced it.
-      cache.removeOptimistic(layerId);
-      await assigned;
+      sync.assignBucket({
+        kind: "assignBucket",
+        id: itemId,
+        planId,
+        name,
+        bucketId: data!.planner.createBucket.id,
+      });
     } finally {
+      // The engine now shows the assignment, and the stand-in's bucket list
+      // would hide the real bucket.
       cache.removeOptimistic(layerId);
     }
   }
@@ -236,25 +161,43 @@ export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
   /**
    * I assign a bucket, clearing it instead when an ancestor already
    * carries the very one given, then clear it from any descendant left
-   * duplicating what it would now inherit. A descendant is only cleared
-   * once the item's own assignment lands, so a failed one moves nothing.
+   * duplicating what it would now inherit. They're sent together, so a
+   * refused assignment moves nothing.
    */
   function applyBucketChange(
     itemId: string,
     newBucketId: string | null,
     name: string,
   ) {
+    const plan = planOf.get(itemId);
+    if (plan === undefined) {
+      reportFailure(name);
+      return;
+    }
     const { ownBucketId, redundant } = bucketChangeFor(
       tree,
       itemId,
       newBucketId,
     );
-    const ids = [itemId, ...redundant];
-    const work = assign(itemId, ownBucketId)
-      .then(() => Promise.all(redundant.map((id) => assign(id, null))))
-      .then(() => {})
-      .catch(() => reportFailure(name));
-    track(ids, work);
+    sync.set([
+      {
+        kind: "assignBucket",
+        id: itemId,
+        planId: plan.id,
+        name,
+        bucketId: ownBucketId,
+      },
+      ...redundant.map(
+        (id) =>
+          ({
+            kind: "assignBucket",
+            id,
+            planId: plan.id,
+            name,
+            bucketId: null,
+          }) as const,
+      ),
+    ]);
   }
 
   /** I join a bucket of the item's own plan, making it first if need be. */
@@ -272,10 +215,9 @@ export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
     }
     const bucketId = find(plan.buckets);
     if (bucketId === null) {
-      const work = assignNewBucket(itemId, plan.id, date, bucketName).catch(
-        () => reportFailure(name),
+      void assignNewBucket(itemId, plan.id, name, date, bucketName).catch(() =>
+        reportFailure(name),
       );
-      track([itemId], work);
       return;
     }
     applyBucketChange(itemId, bucketId, name);
@@ -305,11 +247,5 @@ export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
     applyBucketChange(itemId, null, name);
   }
 
-  return {
-    moveInTree,
-    moveToDate,
-    moveToBucket,
-    moveToUnplanned,
-    isMoving: (itemId) => moving.has(itemId),
-  };
+  return { moveInTree, moveToDate, moveToBucket, moveToUnplanned };
 }

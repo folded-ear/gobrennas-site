@@ -1,6 +1,12 @@
+import { rand_chars } from "@/lib/entropy";
 import type { Change } from "./state";
 
 export const DRAFT_PREFIX = "draft:";
+const DRAFT_ID_LENGTH = 10;
+
+/** I give a new item's id, unique across page loads, as its create can outlive one. */
+export const newDraftId = (): string =>
+  `${DRAFT_PREFIX}${rand_chars(DRAFT_ID_LENGTH)}`;
 
 /** I tell an item waiting on its create from one the server has. */
 export const isDraftId = (id: string): boolean => id.startsWith(DRAFT_PREFIX);

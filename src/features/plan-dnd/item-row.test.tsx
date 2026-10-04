@@ -72,16 +72,14 @@ function Row({
 
 function Harness({
   canMove = () => true,
-  moving = [],
   offer = "after",
 }: {
   canMove?: (itemId: string) => boolean;
-  moving?: readonly string[];
   offer?: Offer;
 }) {
   const [dropped, setDropped] = useState("nothing dropped");
   return (
-    <DragSession canMove={canMove} isMoving={(id) => moving.includes(id)}>
+    <DragSession canMove={canMove}>
       {ITEMS.map((it) => (
         <Row key={it.id} {...it} offer={offer} onDropped={setDropped} />
       ))}
@@ -173,32 +171,6 @@ describe("ItemRow", () => {
     await pointerRelease();
 
     expect(zones).toHaveLength(0);
-  });
-
-  it("marks an item's handle unavailable while it is being moved", () => {
-    render(<Harness moving={["2"]} />);
-
-    expect(
-      screen.getByRole("button", { name: "Move Pumpkin pie" }),
-    ).toHaveAttribute("aria-disabled", "true");
-    expect(
-      screen.getByRole("button", { name: "Move Roast turkey" }),
-    ).not.toHaveAttribute("aria-disabled");
-  });
-
-  it("ends a pointer drag even once its item has started moving", async () => {
-    const { rerender } = render(<Harness />);
-
-    await pointerDrag("Move Pumpkin pie");
-    expect(getDropZone("Put after Roast turkey")).toBeInTheDocument();
-    // A drop starts the item's move before the drag itself ends.
-    rerender(<Harness moving={["2"]} />);
-    await pointerRelease();
-
-    expect(queryAllDropZones(/^Put /)).toHaveLength(0);
-    expect(
-      screen.getByRole("button", { name: "Move Pumpkin pie" }),
-    ).toHaveAttribute("aria-disabled", "true");
   });
 
   it("drops its mark when the zone it marked goes away mid-drag", async () => {

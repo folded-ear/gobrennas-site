@@ -114,7 +114,7 @@ function AddForm({
       }}
     >
       <div className="flex flex-col gap-sm sm:flex-row sm:items-start">
-        {plans.length > 1 && !save.pending && !save.created ? (
+        {plans.length > 1 && !save.pending ? (
           <PlanPicker
             compact
             label="Add to plan"
@@ -128,7 +128,7 @@ function AddForm({
           row={row}
           label={`Item for ${label}`}
           helpId={helpId}
-          isDisabled={save.pending || save.created}
+          isDisabled={save.pending}
           inputRef={(element) => {
             input.current = element;
           }}
@@ -176,7 +176,7 @@ function AddForm({
           isPending={save.pending}
           isDisabled={!plan || !row.raw.trim() || save.pending}
         >
-          {save.created ? "Retry" : "Add"}
+          Add
         </Button>
         <Button
           type="button"
@@ -185,7 +185,7 @@ function AddForm({
           isDisabled={save.pending}
           onPress={onClose}
         >
-          {save.created ? "Close" : "Cancel"}
+          Cancel
         </Button>
       </div>
     </form>

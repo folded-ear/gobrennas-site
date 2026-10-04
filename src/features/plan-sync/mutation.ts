@@ -1,12 +1,12 @@
 import { DocumentNode, gql } from "@apollo/client";
 import { print } from "@apollo/client/utilities";
-import { AssignBucketResultFragmentDoc } from "../plan-changes/__generated__/assignBucketResult.generated";
-import { PlanItemResultFragmentDoc } from "../plan-changes/__generated__/planItemResult.generated";
-import { SetStatusResultFragmentDoc } from "../plan-changes/__generated__/setStatusResult.generated";
 import { PlanItemFragmentDoc } from "../plan-item/__generated__/planItem.generated";
-import { PollPlanFragmentDoc } from "../plan-poll/__generated__/pollPlan.generated";
 import { TimelineItemFragmentDoc } from "../plan-timeline/__generated__/timelineItem.generated";
 import { ShoppingPlanItemFragmentDoc } from "../shopping-list/__generated__/shoppingPlanItem.generated";
+import { AssignBucketResultFragmentDoc } from "./__generated__/assignBucketResult.generated";
+import { PlanItemResultFragmentDoc } from "./__generated__/planItemResult.generated";
+import { PollPlanFragmentDoc } from "./__generated__/pollPlan.generated";
+import { SetStatusResultFragmentDoc } from "./__generated__/setStatusResult.generated";
 import type { PollRequest, SentChange } from "./state";
 
 type Field = {

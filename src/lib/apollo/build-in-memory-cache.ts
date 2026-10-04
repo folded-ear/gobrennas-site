@@ -33,19 +33,12 @@ export function buildInMemoryCache() {
           suggestRecipesToCook: relayStylePagination(false),
         },
       },
-      // Change state is local (schema-local.graphql); it reads as settled
-      // until the change queue writes otherwise.
-      // Pending plan changes show over server data (plan-sync/overlay.ts).
+      // Pending plan changes show over server data (plan-sync/overlay.ts),
+      // local fields (schema-local.graphql) among them.
       Plan: overlay.Plan,
       PlanItem: {
         fields: {
           ...overlay.PlanItem.fields,
-          savingStatus: {
-            read: (existing) => existing ?? false,
-          },
-          pendingName: {
-            read: (existing) => existing ?? null,
-          },
           inert: {
             read(_, { readField }) {
               let parent = readField<Reference>("parent");

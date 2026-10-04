@@ -82,16 +82,17 @@ export function createRunner({
   });
   const mailbox: Posted[] = [];
   let stepping = false;
-  let stopped = false;
+  let running = false;
+  let booted = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
-  let request: AbortController | null = null;
+  /** The request out, and which of the engine's it is. */
+  let request: { id: number; controller: AbortController } | null = null;
   let storing: Promise<unknown> = Promise.resolve();
   const waiting = new Map<string, (id: string | null) => void>();
   const listeners = new Set<() => void>();
   let status: SyncStatus = { online: state.online, authorized: true };
 
   function post(event: Posted) {
-    if (stopped) return;
     mailbox.push(event);
     if (stepping) return;
     stepping = true;
@@ -124,7 +125,7 @@ export function createRunner({
   function arm() {
     clearTimeout(timer);
     const wake = nextWake(state);
-    if (wake === null || stopped) return;
+    if (wake === null || !running) return;
     timer = setTimeout(
       () => post({ type: "tick" }),
       Math.max(0, wake - Date.now()),
@@ -149,7 +150,9 @@ export function createRunner({
         return;
       case "send": {
         const { requestId } = effect;
-        request = new AbortController();
+        if (!running) return;
+        const controller = new AbortController();
+        request = { id: requestId, controller };
         const { mutation, variables } = changeMutation(effect.changes);
         client
           .mutate({
@@ -160,7 +163,7 @@ export function createRunner({
             context: {
               fetchOptions: {
                 keepalive: effect.keepalive,
-                signal: request.signal,
+                signal: controller.signal,
               },
             },
           })
@@ -173,7 +176,9 @@ export function createRunner({
       }
       case "poll": {
         const { requestId } = effect;
-        request = new AbortController();
+        if (!running) return;
+        const controller = new AbortController();
+        request = { id: requestId, controller };
         const { query, variables } = pollQuery(effect.requests);
         client
           .query({
@@ -181,7 +186,7 @@ export function createRunner({
             variables,
             errorPolicy: "all",
             fetchPolicy: "no-cache",
-            context: { fetchOptions: { signal: request.signal } },
+            context: { fetchOptions: { signal: controller.signal } },
           })
           .then(
             ({ data, error }) => pollOutcome({ data, error }),
@@ -191,7 +196,7 @@ export function createRunner({
         return;
       }
       case "abort":
-        request?.abort();
+        request?.controller.abort();
         request = null;
         return;
       case "writeDraft":
@@ -255,14 +260,35 @@ export function createRunner({
   const onPageShow = (e: PageTransitionEvent) =>
     post({ type: "pageshow", persisted: e.persisted });
 
+  /**
+   * I fail a request the engine thinks is out but isn't, as one made while
+   * stopped never went, so the engine can try again.
+   */
+  function failLost() {
+    const flight = state.inFlight;
+    if (flight === null || request?.id === flight.id) return;
+    const outcome = { kind: "unreachable" } as const;
+    post(
+      flight.kind === "send"
+        ? { type: "sent", requestId: flight.id, outcome }
+        : { type: "polled", requestId: flight.id, outcome },
+    );
+  }
+
   return {
     start() {
+      if (running) return;
+      running = true;
       locks.hold();
       window.addEventListener("online", onOnline);
       window.addEventListener("offline", onOffline);
       document.addEventListener("visibilitychange", onVisibility);
       window.addEventListener("pagehide", onPageHide);
       window.addEventListener("pageshow", onPageShow);
+      failLost();
+      arm();
+      if (booted) return;
+      booted = true;
       void adopt().then(
         (adopted) => post({ type: "boot", adopted }),
         () => {
@@ -272,9 +298,11 @@ export function createRunner({
       );
     },
     stop() {
-      stopped = true;
+      if (!running) return;
+      running = false;
       clearTimeout(timer);
-      request?.abort();
+      request?.controller.abort();
+      request = null;
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
       document.removeEventListener("visibilitychange", onVisibility);

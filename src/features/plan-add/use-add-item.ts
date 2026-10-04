@@ -1,7 +1,7 @@
-import { insertCreated } from "@/features/plan-changes/insert";
-import { usePlanChanges } from "@/features/plan-changes/use-plan-changes";
-import { DoAssignBucketDocument } from "@/features/plan-dnd/__generated__/doAssignBucket.generated";
 import { DoCreateBucketDocument } from "@/features/plan-dnd/__generated__/doCreateBucket.generated";
+import { usePlanSync } from "@/features/plan-sync";
+import { newDraftId } from "@/features/plan-sync/ids";
+import { insertCreated } from "@/features/plan-sync/insert";
 import type { TimelineSection } from "@/features/plan-timeline/model";
 import type { IngredientDraft } from "@/features/recipe-form/ingredient-draft";
 import { recognizedParts } from "@/features/recipe-form/ingredient-recognition";
@@ -16,16 +16,16 @@ import {
   type AddPlan,
 } from "./destination";
 
-/** Retain a created item's identity if only its bucket assignment needs retrying. */
+/**
+ * I add an item to a section. A plain item is created through the sync
+ * engine, so it shows at once, bucket and all; a recipe is added directly,
+ * and its bucket assigned through the engine.
+ */
 export function useAddItem(section: TimelineSection) {
   const client = useApolloClient();
-  const changes = usePlanChanges();
+  const changes = usePlanSync();
   const recognize = useRecognizeIngredient();
   const busy = useRef(false);
-  const [createdItem, setCreatedItem] = useState<{
-    itemId: string;
-    bucketId: string;
-  }>();
   const madeBucket = useRef<{ planId: string; id: string } | undefined>(
     undefined,
   );
@@ -109,65 +109,59 @@ export function useAddItem(section: TimelineSection) {
     busy.current = true;
     setPending(true);
     setError(undefined);
-    let placement = createdItem;
     try {
-      if (!placement) {
-        const choice = !row.raw.startsWith("!") ? row.choice : undefined;
-        let scale = 1;
-        if (choice?.food.kind === "Recipe") {
-          // Add can beat the editor's debounce after a quantity edit. Resolve
-          // the current text before saving instead of silently using scale 1.
-          const recognition =
-            row.recognition?.raw === row.raw
-              ? row.recognition
-              : await recognize(
-                  row.raw,
-                  row.raw.length,
-                  new AbortController().signal,
-                  {
-                    choice,
-                    suggest: false,
-                  },
-                );
-          scale = recognizedParts(recognition).quantity?.quantity ?? 1;
-          if (!Number.isFinite(scale) || scale <= 0) {
-            setError("Use a recipe quantity greater than zero.");
-            return false;
-          }
+      const choice = !row.raw.startsWith("!") ? row.choice : undefined;
+      let scale = 1;
+      if (choice?.food.kind === "Recipe") {
+        // Add can beat the editor's debounce after a quantity edit. Resolve
+        // the current text before saving instead of silently using scale 1.
+        const recognition =
+          row.recognition?.raw === row.raw
+            ? row.recognition
+            : await recognize(
+                row.raw,
+                row.raw.length,
+                new AbortController().signal,
+                {
+                  choice,
+                  suggest: false,
+                },
+              );
+        scale = recognizedParts(recognition).quantity?.quantity ?? 1;
+        if (!Number.isFinite(scale) || scale <= 0) {
+          setError("Use a recipe quantity greater than zero.");
+          return false;
         }
-        const bucketId = await ensureBucket(plan);
-        const afterId = plan.children.at(-1)?.id;
-        const itemId =
-          choice?.food.kind === "Recipe"
-            ? await addRecipe(plan, choice.food.id, scale)
-            : await changes.create({
-                kind: "create",
-                draftId: row.clientId,
-                planId: plan.id,
-                parentId: plan.id,
-                afterId: afterId ? { id: afterId } : null,
-                name: row.raw,
-                ...(choice
-                  ? { choice: { id: choice.food.id, ...choice.range } }
-                  : {}),
-              });
-        if (!itemId) throw new Error("No item returned");
-        if (!bucketId) return true;
-        placement = { itemId, bucketId };
-        setCreatedItem(placement);
       }
-      const result = await client.mutate({
-        mutation: DoAssignBucketDocument,
-        variables: { id: placement.itemId, bucketId: placement.bucketId },
+      const bucketId = await ensureBucket(plan);
+      if (choice?.food.kind === "Recipe") {
+        const itemId = await addRecipe(plan, choice.food.id, scale);
+        if (!itemId) throw new Error("No item returned");
+        if (bucketId) {
+          changes.assignBucket({
+            kind: "assignBucket",
+            id: itemId,
+            planId: plan.id,
+            name: row.raw,
+            bucketId,
+          });
+        }
+        return true;
+      }
+      void changes.create({
+        kind: "create",
+        id: newDraftId(),
+        planId: plan.id,
+        parentId: plan.id,
+        afterId: plan.children.at(-1)?.id ?? null,
+        name: row.raw,
+        ...(bucketId ? { bucketId } : {}),
+        ...(choice ? { choice: { id: choice.food.id, ...choice.range } } : {}),
       });
-      if (result.data?.planner.assignBucket.bucket?.id !== placement.bucketId)
-        throw new Error("Bucket assignment failed");
       return true;
     } catch {
       setError(
-        placement
-          ? "The item was added to Unplanned, but couldn’t be moved here. Retry to move the same item."
-          : "Couldn’t add this item. Your text is still here; please try again.",
+        "Couldn’t add this item. Your text is still here; please try again.",
       );
       return false;
     } finally {
@@ -176,5 +170,5 @@ export function useAddItem(section: TimelineSection) {
     }
   }
 
-  return { add, pending, error, created: createdItem !== undefined };
+  return { add, pending, error };
 }

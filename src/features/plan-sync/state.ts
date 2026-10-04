@@ -88,6 +88,8 @@ export type Pending = {
   readonly phase: Phase;
   /** When a held change becomes ready. */
   readonly holdUntil?: number;
+  /** Names the changes made together with me, which fail together. */
+  readonly group?: string;
   /**
    * Whether my record is being stored, is stored, or won't be. I'm sent
    * only once I'm not still being stored.
@@ -184,6 +186,8 @@ export type Event = At &
         /** Hold a COMPLETED or DELETED status for its undo window. */
         readonly hold?: boolean;
       }
+    /** Several changes at once, which are sent together. */
+    | { readonly type: "changes"; readonly changes: readonly Change[] }
     | { readonly type: "cancel"; readonly id: string }
     | { readonly type: "flush" }
     | { readonly type: "watch"; readonly planIds: readonly string[] }

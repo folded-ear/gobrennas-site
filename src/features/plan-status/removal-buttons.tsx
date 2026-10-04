@@ -3,7 +3,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ControlTooltip } from "@/components/control-tooltip";
 import { CookedItIcon, DeleteIcon } from "@/components/icons";
-import { usePlanChanges } from "@/features/plan-changes/use-plan-changes";
+import { usePlanSync } from "@/features/plan-sync";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
 import {
@@ -28,13 +28,13 @@ type CancelPendingButtonProps = {
 
 /**
  * I cancel an item's held removal, and show nothing unless it's the one
- * held. Once it's being sent, I show that it can no longer be cancelled.
+ * held.
  */
 export function CancelPendingButton({
   itemId,
   status,
 }: CancelPendingButtonProps) {
-  const queue = usePlanChanges();
+  const queue = usePlanSync();
   const item = useItemStatus(itemId);
   if (item?.pendingStatus !== status) return null;
 
@@ -44,7 +44,6 @@ export function CancelPendingButton({
       // What it says leads what it's called, so it can be asked for by sight.
       aria-label={`${CANCEL_TEXT} ${actionLabel(look.undo, item.name)}`}
       className={clsx("h-xl shrink-0", look.pendingClassName)}
-      isPending={item.savingStatus}
       onPress={() => queue.cancel(itemId)}
       size="sm"
     >
@@ -55,7 +54,7 @@ export function CancelPendingButton({
 
 /** I delete an item, after a window in which it can be undone. */
 export function DeleteButton({ itemId, planId }: RemovalButtonProps) {
-  const queue = usePlanChanges();
+  const queue = usePlanSync();
   const item = useItemStatus(itemId);
   if (item === null) return null;
   if (item.pendingStatus === PlanItemStatus.DELETED) {
@@ -104,7 +103,7 @@ export function CookedItButton({
   planId,
   onCooked,
 }: CookedItButtonProps) {
-  const queue = usePlanChanges();
+  const queue = usePlanSync();
   const item = useItemStatus(itemId);
   if (item === null) return null;
   if (item.pendingStatus === PlanItemStatus.COMPLETED) {
@@ -118,9 +117,7 @@ export function CookedItButton({
     <Button
       aria-label={actionLabel(look.action, item.name)}
       className="bg-status-completed text-status-completed-foreground"
-      isDisabled={
-        item.inert || item.savingStatus || item.pendingStatus !== null
-      }
+      isDisabled={item.inert || item.pendingStatus !== null}
       onPress={() => {
         queue.hold({
           kind: "status",

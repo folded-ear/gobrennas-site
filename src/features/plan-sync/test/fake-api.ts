@@ -31,8 +31,25 @@ const whole = (id: string, name: string, parent: object) => ({
   children: [],
 });
 
+/** I name an item, plan or not, as the cache has it. */
+function named(cache: ApolloCache, id: string) {
+  const store = cache.extract() as Record<string, Record<string, unknown>>;
+  return {
+    __typename: (store[`PlanItem:${id}`]?.__typename as string) ?? "PlanItem",
+    id,
+  };
+}
+
+/** I name an item's parent as the cache has it. */
+function parentOf(cache: ApolloCache, id: string) {
+  const store = cache.extract() as Record<string, Record<string, unknown>>;
+  const ref = (store[`PlanItem:${id}`]?.parent as { __ref: string })?.__ref;
+  return named(cache, ref?.slice("PlanItem:".length) ?? "");
+}
+
 /** I answer one aliased change field as saved. */
 function answerField(
+  cache: ApolloCache,
   variables: Record<string, unknown>,
   i: number,
   nextId: () => string,
@@ -42,10 +59,11 @@ function answerField(
     return { __typename: "PlanItem", id, status: variables[`status${i}`] };
   }
   if (`parentId${i}` in variables) {
-    return whole(nextId(), variables[`name${i}`] as string, {
-      __typename: "Plan",
-      id: variables[`parentId${i}`],
-    });
+    return whole(
+      nextId(),
+      variables[`name${i}`] as string,
+      named(cache, variables[`parentId${i}`] as string),
+    );
   }
   if (`bucketId${i}` in variables) {
     const bucketId = variables[`bucketId${i}`];
@@ -63,10 +81,7 @@ function answerField(
       children: spec.ids.map((it) => ({ __typename: "PlanItem", id: it })),
     };
   }
-  return whole(id, variables[`name${i}`] as string, {
-    __typename: "Plan",
-    id: "7",
-  });
+  return whole(id, variables[`name${i}`] as string, parentOf(cache, id));
 }
 
 const fieldCount = (variables: Record<string, unknown>) => {
@@ -94,6 +109,21 @@ export function fakeApi(cache: ApolloCache) {
     (operation) =>
       new Observable((observer) => {
         const { variables } = operation;
+        if (operation.operationName === "recognizeIngredient") {
+          observer.next({
+            data: {
+              library: {
+                recognizeItem: {
+                  raw: variables.raw,
+                  cursor: variables.cursor,
+                  ranges: [],
+                },
+              },
+            },
+          });
+          observer.complete();
+          return;
+        }
         requests.push({
           operation: operation.operationName ?? "",
           variables,
@@ -125,7 +155,7 @@ export function fakeApi(cache: ApolloCache) {
         } else {
           const count = fieldCount(variables);
           for (let i = 0; i < count; i++) {
-            planner[`s${i}`] = answerField(variables, i, () =>
+            planner[`s${i}`] = answerField(cache, variables, i, () =>
               String(created++),
             );
           }

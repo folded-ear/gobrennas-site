@@ -66,7 +66,7 @@ export function PlanTimeline({
   }
   const timelineDnd: TimelineDnd = { ...dnd, rootIds: rootIdSet, sectionOf };
   return (
-    <DragSession canMove={dnd.canMove} isMoving={dnd.moves.isMoving}>
+    <DragSession canMove={dnd.canMove}>
       <DayList
         entries={entries}
         today={today}

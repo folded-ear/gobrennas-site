@@ -1,11 +1,5 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import {
-  changeApiClient,
-  ChangeRequest,
-  FIRST_CREATED_ID,
-} from "@/features/plan-changes/test/change-api";
-import { markPending } from "@/features/plan-changes/test/status-cache";
-import {
   buildPlanDirectory,
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
@@ -27,6 +21,12 @@ import {
   treeOrder,
   useEditState,
 } from "@/features/plan-edit";
+import {
+  ApiRequest,
+  fakeApi,
+  FIRST_CREATED_ID,
+} from "@/features/plan-sync/test/fake-api";
+import { markPending } from "@/features/plan-sync/test/status-cache";
 import {
   buildPlanContext,
   PlanContext,
@@ -382,7 +382,6 @@ function fakeMoves(): PlanMoves {
     moveToDate: vi.fn(),
     moveToBucket: vi.fn(),
     moveToUnplanned: vi.fn(),
-    isMoving: () => false,
   };
 }
 
@@ -666,20 +665,18 @@ describe("PlanItemDetail, editing", () => {
     for (const id of pendingIds) {
       markPending(cache, id, PlanItemStatus.DELETED);
     }
-    const requests: ChangeRequest[] = [];
+    const { client, requests } = fakeApi(cache);
     const onRemoved = vi.fn();
     render(
-      <ApolloProvider client={changeApiClient(cache, requests)}>
-        <PlanDirectoryProvider directory={buildPlanDirectory([HOLIDAYS])}>
-          <Editable open={open} roots={roots} onRemoved={onRemoved} />
-        </PlanDirectoryProvider>
-      </ApolloProvider>,
-      { cache },
+      <PlanDirectoryProvider directory={buildPlanDirectory([HOLIDAYS])}>
+        <Editable open={open} roots={roots} onRemoved={onRemoved} />
+      </PlanDirectoryProvider>,
+      { client },
     );
     return { requests, onRemoved };
   }
 
-  function sent(requests: readonly ChangeRequest[]) {
+  function sent(requests: readonly ApiRequest[]) {
     return requests.map((it) => it.variables);
   }
 

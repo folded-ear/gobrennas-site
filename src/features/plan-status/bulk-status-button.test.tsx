@@ -4,8 +4,8 @@ import {
   readStatus,
   seededCache,
   THANKSGIVING,
-} from "@/features/plan-changes/test/status-cache";
-import { savedStatuses } from "@/features/plan-changes/test/status-mocks";
+} from "@/features/plan-sync/test/status-cache";
+import { savedStatuses } from "@/features/plan-sync/test/status-mocks";
 import { render, screen, userEvent, waitFor } from "@/test";
 import { describe, expect, it } from "vitest";
 import { BulkStatusButton } from "./bulk-status-button";

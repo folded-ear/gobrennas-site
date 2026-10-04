@@ -1,16 +1,16 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  childIdsOf,
-  readStatus,
-  seededCache,
-  THANKSGIVING,
-} from "../plan-changes/test/status-cache";
 import type { PageLocks } from "./locks";
 import { createRunner, Runner } from "./runner";
 import { ChangeRecord, RETRY_BASE_MS, UNDO_WINDOW_MS } from "./state";
 import { fakeApi, FIRST_CREATED_ID } from "./test/fake-api";
 import { memoryStore } from "./test/memory-store";
+import {
+  childIdsOf,
+  readStatus,
+  seededCache,
+  THANKSGIVING,
+} from "./test/status-cache";
 import type { View } from "./view";
 
 const ME = "u1";

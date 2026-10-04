@@ -6,6 +6,7 @@ import {
   buildEntries,
   Draft,
   dropDraft,
+  followCreated,
   settleDraft,
   siblingBefore,
   treeOrder,
@@ -52,8 +53,6 @@ function draft(
     parentId,
     afterId,
     beside,
-    text: "",
-    state: "editing",
   };
 }
 
@@ -206,6 +205,18 @@ describe("settleDraft", () => {
   it("keeps drafts where they show when a created item moves away", () => {
     expect(settleDraft(drafts, "d1", "100", false)).toEqual([
       draft("d2", after({ id: "2" }), { afterId: { id: "100" } }),
+    ]);
+  });
+});
+
+describe("followCreated", () => {
+  it("points drafts at a created item's real id", () => {
+    const drafts = [
+      draft("d2", after({ id: "draft:a" }), { afterId: { id: "draft:a" } }),
+    ];
+
+    expect(followCreated(drafts, "draft:a", "100")).toEqual([
+      draft("d2", after({ id: "100" }), { afterId: { id: "100" } }),
     ]);
   });
 });

@@ -1,6 +1,8 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
 import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
+import { changeMutation } from "@/features/plan-sync/mutation";
+import type { SentChange } from "@/features/plan-sync/state";
 import {
   PlannerDocument,
   PlannerQuery,
@@ -17,9 +19,7 @@ import { Unmasked } from "@apollo/client/masking";
 import { useQuery } from "@apollo/client/react";
 import { MockLink } from "@apollo/client/testing";
 import { describe, expect, it } from "vitest";
-import { DoAssignBucketDocument } from "./__generated__/doAssignBucket.generated";
 import { DoCreateBucketDocument } from "./__generated__/doCreateBucket.generated";
-import { DoMutateTreeDocument } from "./__generated__/doMutateTree.generated";
 import { buildPlanTree, treeMove, TreeSource } from "./moves";
 import { usePlanMoves } from "./use-plan-moves";
 
@@ -154,10 +154,6 @@ function Probe() {
           ? `${tacosBucket.id} (${tacosBucket.name ?? "unnamed"} on ${tacosBucket.date ?? "no date"})`
           : "unplanned"}
       </p>
-      <p>
-        Moving:{" "}
-        {["5", "6"].filter((id) => moves.isMoving(id)).join(", ") || "nothing"}
-      </p>
       <p>Dated buckets: {plan.buckets.filter((b) => b.date).length}</p>
       <button
         type="button"
@@ -181,7 +177,6 @@ function Probe() {
         <button
           key={date}
           type="button"
-          disabled={moves.isMoving("6")}
           onClick={() => moves.moveToDate("6", date, "Breakfast")}
         >
           Put breakfast on {date}
@@ -189,7 +184,6 @@ function Probe() {
       ))}
       <button
         type="button"
-        disabled={moves.isMoving("6")}
         onClick={() =>
           moves.moveToBucket("6", { name: "Lunch", date: null }, "Breakfast")
         }
@@ -212,7 +206,6 @@ function Probe() {
       </button>
       <button
         type="button"
-        disabled={moves.isMoving("6")}
         onClick={() => moves.moveToUnplanned("6", "Breakfast")}
       >
         Unplan breakfast
@@ -241,37 +234,87 @@ function childrenOf(name: string) {
   return within(list).getByText(new RegExp(`^${name}:`));
 }
 
-const NEST_TURKEY = {
-  query: DoMutateTreeDocument,
-  variables: { spec: { ids: ["5"], parentId: "6", afterId: null } },
-};
+/** I give the request the sync engine sends for changes made together. */
+function changesRequest(...changes: SentChange[]) {
+  const { mutation, variables } = changeMutation(changes);
+  return { query: mutation, variables };
+}
 
-const NESTED_TURKEY = {
-  data: {
-    planner: {
-      __typename: "PlannerMutation",
-      mutateTree: {
-        __typename: "PlanItem",
-        children: [{ __typename: "PlanItem", id: "5" }],
-      },
-    },
-  },
-};
-
-function assigned(bucketId: string) {
+/** I give the server's answer saving each change in turn. */
+function saved(...answers: object[]) {
   return {
     data: {
       planner: {
         __typename: "PlannerMutation",
-        assignBucket: {
-          __typename: "PlanItem",
-          id: "6",
-          bucket: { __typename: "PlanBucket", id: bucketId },
-        },
+        ...Object.fromEntries(answers.map((it, i) => [`s${i}`, it])),
       },
     },
   };
 }
+
+/** The server refusing a request's first change. */
+const REFUSED = {
+  errors: [{ message: "Forbidden", path: ["planner", "s0"] }],
+};
+
+const move = (
+  id: string,
+  name: string,
+  parentId: string,
+  afterId: string | null,
+): SentChange => ({
+  kind: "move",
+  ids: [id],
+  planId: PLAN_ID,
+  parentId,
+  afterId,
+  name,
+});
+
+const assign = (
+  id: string,
+  name: string,
+  planId: string,
+  bucketId: string | null,
+): SentChange => ({ kind: "assignBucket", id, planId, name, bucketId });
+
+const bucketOf = (id: string, bucketId: string | null) => ({
+  __typename: "PlanItem",
+  id,
+  bucket: bucketId === null ? null : { __typename: "PlanBucket", id: bucketId },
+});
+
+/** I read a parent's children as the server last sent them. */
+function savedChildren(
+  cache: ReturnType<typeof buildInMemoryCache>,
+  id: string,
+) {
+  const store = cache.extract() as Record<
+    string,
+    { children?: { __ref: string }[]; bucket?: { __ref: string } | null }
+  >;
+  return store[`PlanItem:${id}`]?.children?.map((it) =>
+    it.__ref.slice("PlanItem:".length),
+  );
+}
+
+/** I read an item's bucket as the server last sent it. */
+function savedBucket(cache: ReturnType<typeof buildInMemoryCache>, id: string) {
+  const store = cache.extract() as Record<
+    string,
+    { bucket?: { __ref: string } | null }
+  >;
+  return store[`PlanItem:${id}`]?.bucket?.__ref.slice("PlanBucket:".length);
+}
+
+const NEST_TURKEY = changesRequest(move("5", "Roast turkey", "6", null));
+
+const NESTED_TURKEY = saved({
+  __typename: "PlanItem",
+  children: [{ __typename: "PlanItem", id: "5" }],
+});
+
+const assigned = (bucketId: string) => saved(bucketOf("6", bucketId));
 
 const CREATE_SEP_14 = {
   query: DoCreateBucketDocument,
@@ -292,10 +335,7 @@ const CREATED_B9 = {
   },
 };
 
-const ASSIGN_B9 = {
-  query: DoAssignBucketDocument,
-  variables: { id: "6", bucketId: "b9" },
-};
+const ASSIGN_B9 = changesRequest(assign("6", "Breakfast", PLAN_ID, "b9"));
 
 describe("usePlanMoves, in the tree", () => {
   it("moves an item from its old parent to its new one", async () => {
@@ -305,9 +345,7 @@ describe("usePlanMoves, in the tree", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /Nest turkey/ }));
 
-    await waitFor(() =>
-      expect(screen.getByText(/^Moving:/)).toHaveTextContent("nothing"),
-    );
+    await waitFor(() => expect(savedChildren(cache, "6")).toEqual(["5"]));
     expect(childrenOf("Breakfast")).toHaveTextContent("Roast turkey");
     expect(childrenOf("Thanksgiving dinner")).toHaveTextContent(
       /^Thanksgiving dinner: Pumpkin pie$/,
@@ -335,7 +373,7 @@ describe("usePlanMoves, in the tree", () => {
   });
 
   it("puts the item back and says so when the move fails", async () => {
-    renderProbe([{ request: NEST_TURKEY, error: new Error("Forbidden") }]);
+    renderProbe([{ request: NEST_TURKEY, result: REFUSED }]);
 
     await userEvent.click(screen.getByRole("button", { name: /Nest turkey/ }));
 
@@ -347,22 +385,12 @@ describe("usePlanMoves, in the tree", () => {
   });
 });
 
-const BREAKFAST_FIRST = {
-  query: DoMutateTreeDocument,
-  variables: { spec: { ids: ["6"], parentId: PLAN_ID, afterId: null } },
-};
+const BREAKFAST_FIRST = changesRequest(move("6", "Breakfast", PLAN_ID, null));
 
-const PUT_BREAKFAST_FIRST = {
-  data: {
-    planner: {
-      __typename: "PlannerMutation",
-      mutateTree: {
-        __typename: "PlanItem",
-        children: ["6", "1"].map((id) => ({ __typename: "PlanItem", id })),
-      },
-    },
-  },
-};
+const PUT_BREAKFAST_FIRST = saved({
+  __typename: "PlanItem",
+  children: ["6", "1"].map((id) => ({ __typename: "PlanItem", id })),
+});
 
 describe("usePlanMoves, among the plan's own items", () => {
   // The plan picker reads the plan through a fragment on Plan, which stops
@@ -395,7 +423,7 @@ describe("usePlanMoves, among the plan's own items", () => {
     await userEvent.click(screen.getByRole("button", { name: /first/ }));
 
     await waitFor(() =>
-      expect(screen.getByText(/^Moving:/)).toHaveTextContent("nothing"),
+      expect(savedChildren(cache, PLAN_ID)).toEqual(["6", "1"]),
     );
     expect(childrenOf("Thanksgiving")).toHaveTextContent(
       /^Thanksgiving: Breakfast, Thanksgiving dinner$/,
@@ -408,10 +436,7 @@ describe("usePlanMoves, onto a date", () => {
   it("joins the bucket already on that date", async () => {
     renderProbe([
       {
-        request: {
-          query: DoAssignBucketDocument,
-          variables: { id: "6", bucketId: "b1" },
-        },
+        request: changesRequest(assign("6", "Breakfast", PLAN_ID, "b1")),
         result: assigned("b1"),
       },
     ]);
@@ -427,7 +452,7 @@ describe("usePlanMoves, onto a date", () => {
   });
 
   it("creates a bucket for a date that has none, then joins it", async () => {
-    renderProbe([
+    const cache = renderProbe([
       { request: CREATE_SEP_14, result: CREATED_B9 },
       { request: ASSIGN_B9, result: assigned("b9") },
     ]);
@@ -436,18 +461,14 @@ describe("usePlanMoves, onto a date", () => {
       screen.getByRole("button", { name: `Put breakfast on ${SEP_14}` }),
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: `Put breakfast on ${SEP_14}` }),
-      ).toBeEnabled(),
-    );
+    await waitFor(() => expect(savedBucket(cache, "6")).toBe("b9"));
     expect(screen.getByText(/Breakfast is on/)).toHaveTextContent(SEP_14);
     expect(screen.getByText(/Dated buckets/)).toHaveTextContent("2");
   });
 
   it("shows the item on its new date at every step of creating a bucket", async () => {
     let assignSent = false;
-    renderProbe([
+    const cache = renderProbe([
       { request: CREATE_SEP_14, result: CREATED_B9, delay: RESPONSE_DELAY_MS },
       {
         request: ASSIGN_B9,
@@ -467,14 +488,12 @@ describe("usePlanMoves, onto a date", () => {
 
     await userEvent.click(button());
     onSep14();
-    expect(button()).toBeDisabled();
 
     // The assignment only goes out once the bucket exists.
     await waitFor(() => expect(assignSent).toBe(true));
     onSep14();
-    expect(button()).toBeDisabled();
 
-    await waitFor(() => expect(button()).toBeEnabled());
+    await waitFor(() => expect(savedBucket(cache, "6")).toBe("b9"));
     onSep14();
   });
 
@@ -493,7 +512,7 @@ describe("usePlanMoves, onto a date", () => {
   it("puts the item back and says so when it can't join the new bucket", async () => {
     renderProbe([
       { request: CREATE_SEP_14, result: CREATED_B9 },
-      { request: ASSIGN_B9, error: new Error("Forbidden") },
+      { request: ASSIGN_B9, result: REFUSED },
     ]);
 
     await userEvent.click(
@@ -505,10 +524,9 @@ describe("usePlanMoves, onto a date", () => {
   });
 });
 
-const ASSIGN_LUNCH = {
-  query: DoAssignBucketDocument,
-  variables: { id: "6", bucketId: "bLunch" },
-};
+const ASSIGN_LUNCH = changesRequest(
+  assign("6", "Breakfast", PLAN_ID, "bLunch"),
+);
 
 describe("usePlanMoves, onto a named bucket", () => {
   it("joins the bucket directly, without creating one", async () => {
@@ -540,7 +558,7 @@ describe("usePlanMoves, onto a named bucket", () => {
   });
 
   it("puts the item back and says so when it can't join the bucket", async () => {
-    renderProbe([{ request: ASSIGN_LUNCH, error: new Error("Forbidden") }]);
+    renderProbe([{ request: ASSIGN_LUNCH, result: REFUSED }]);
 
     await userEvent.click(
       screen.getByRole("button", { name: "Put breakfast in Lunch" }),
@@ -553,25 +571,11 @@ describe("usePlanMoves, onto a named bucket", () => {
   });
 });
 
-const UNASSIGN_BREAKFAST = {
-  query: DoAssignBucketDocument,
-  variables: { id: "6", bucketId: null },
-};
+const UNASSIGN_BREAKFAST = changesRequest(
+  assign("6", "Breakfast", PLAN_ID, null),
+);
 
-function unassigned() {
-  return {
-    data: {
-      planner: {
-        __typename: "PlannerMutation",
-        assignBucket: {
-          __typename: "PlanItem",
-          id: "6",
-          bucket: null,
-        },
-      },
-    },
-  };
-}
+const unassigned = () => saved(bucketOf("6", null));
 
 function createdBucket(id: string, date: string | null, name: string | null) {
   return {
@@ -584,20 +588,7 @@ function createdBucket(id: string, date: string | null, name: string | null) {
   };
 }
 
-function assignedTacos(bucketId: string) {
-  return {
-    data: {
-      planner: {
-        __typename: "PlannerMutation",
-        assignBucket: {
-          __typename: "PlanItem",
-          id: "20",
-          bucket: { __typename: "PlanBucket", id: bucketId },
-        },
-      },
-    },
-  };
-}
+const assignedTacos = (bucketId: string) => saved(bucketOf("20", bucketId));
 
 describe("usePlanMoves, across plans", () => {
   it("creates a named bucket in the item's own plan, not joining another's", async () => {
@@ -610,10 +601,7 @@ describe("usePlanMoves, across plans", () => {
         result: createdBucket("wLunch", null, "Lunch"),
       },
       {
-        request: {
-          query: DoAssignBucketDocument,
-          variables: { id: "20", bucketId: "wLunch" },
-        },
+        request: changesRequest(assign("20", "Tacos", WEEKNIGHTS_ID, "wLunch")),
         result: assignedTacos("wLunch"),
       },
     ]);
@@ -639,10 +627,7 @@ describe("usePlanMoves, across plans", () => {
         result: createdBucket("wSep12", SEP_12, null),
       },
       {
-        request: {
-          query: DoAssignBucketDocument,
-          variables: { id: "20", bucketId: "wSep12" },
-        },
+        request: changesRequest(assign("20", "Tacos", WEEKNIGHTS_ID, "wSep12")),
         result: assignedTacos("wSep12"),
       },
     ]);
@@ -696,9 +681,7 @@ describe("usePlanMoves, onto unplanned", () => {
   });
 
   it("puts the item back and says so when it can't be cleared", async () => {
-    renderProbe([
-      { request: UNASSIGN_BREAKFAST, error: new Error("Forbidden") },
-    ]);
+    renderProbe([{ request: UNASSIGN_BREAKFAST, result: REFUSED }]);
 
     await userEvent.click(
       screen.getByRole("button", { name: "Unplan breakfast" }),
@@ -788,40 +771,17 @@ function renderRedundancyProbe(mocks: MockLink.MockedResponse[]) {
   render(<RedundancyProbe />, { cache, mocks });
 }
 
-function assignedItem(id: string, bucketId: string | null) {
-  return {
-    data: {
-      planner: {
-        __typename: "PlannerMutation",
-        assignBucket: {
-          __typename: "PlanItem",
-          id,
-          bucket:
-            bucketId === null
-              ? null
-              : { __typename: "PlanBucket", id: bucketId },
-        },
-      },
-    },
-  };
-}
+const SOLO_TO_B = changesRequest(
+  assign("13", "Solo", REDUNDANCY_PLAN_ID, BUCKET_B),
+  assign("14", "Solo", REDUNDANCY_PLAN_ID, null),
+);
 
 describe("usePlanMoves, folding away redundant buckets", () => {
   it("clears a descendant's bucket once it would inherit the very same one", async () => {
     renderRedundancyProbe([
       {
-        request: {
-          query: DoAssignBucketDocument,
-          variables: { id: "13", bucketId: BUCKET_B },
-        },
-        result: assignedItem("13", BUCKET_B),
-      },
-      {
-        request: {
-          query: DoAssignBucketDocument,
-          variables: { id: "14", bucketId: null },
-        },
-        result: assignedItem("14", null),
+        request: SOLO_TO_B,
+        result: saved(bucketOf("13", BUCKET_B), bucketOf("14", null)),
       },
     ]);
 
@@ -838,21 +798,7 @@ describe("usePlanMoves, folding away redundant buckets", () => {
 
   it("leaves a descendant's bucket alone when the dropped item can't move", async () => {
     renderRedundancyProbe([
-      {
-        request: {
-          query: DoAssignBucketDocument,
-          variables: { id: "13", bucketId: BUCKET_B },
-        },
-        error: new Error("Forbidden"),
-        delay: RESPONSE_DELAY_MS,
-      },
-      {
-        request: {
-          query: DoAssignBucketDocument,
-          variables: { id: "14", bucketId: null },
-        },
-        result: assignedItem("14", null),
-      },
+      { request: SOLO_TO_B, result: REFUSED, delay: RESPONSE_DELAY_MS },
     ]);
 
     await userEvent.click(
@@ -868,11 +814,10 @@ describe("usePlanMoves, folding away redundant buckets", () => {
   it("clears the dropped item's own bucket when an ancestor already carries it", async () => {
     renderRedundancyProbe([
       {
-        request: {
-          query: DoAssignBucketDocument,
-          variables: { id: "11", bucketId: null },
-        },
-        result: assignedItem("11", null),
+        request: changesRequest(
+          assign("11", "Middle", REDUNDANCY_PLAN_ID, null),
+        ),
+        result: saved(bucketOf("11", null)),
       },
     ]);
 

@@ -1,13 +1,13 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import type { ApolloCache, Reference } from "@apollo/client";
-import { AssignBucketResultFragmentDoc } from "../plan-changes/__generated__/assignBucketResult.generated";
-import { PlanItemResultFragmentDoc } from "../plan-changes/__generated__/planItemResult.generated";
-import { SetStatusResultFragmentDoc } from "../plan-changes/__generated__/setStatusResult.generated";
-import { evictItem } from "../plan-changes/evict";
-import { insertCreated } from "../plan-changes/insert";
-import { CorePlanItemChildrenFragmentDoc } from "../plan-poll/__generated__/pollPlan.generated";
-import { mergePoll, PolledNode } from "../plan-poll/merge";
+import { AssignBucketResultFragmentDoc } from "./__generated__/assignBucketResult.generated";
 import { PlanItemParentFragmentDoc } from "./__generated__/planItemParent.generated";
+import { PlanItemResultFragmentDoc } from "./__generated__/planItemResult.generated";
+import { CorePlanItemChildrenFragmentDoc } from "./__generated__/pollPlan.generated";
+import { SetStatusResultFragmentDoc } from "./__generated__/setStatusResult.generated";
+import { evictItem } from "./evict";
+import { insertCreated } from "./insert";
+import { mergePoll, PolledNode } from "./merge";
 import type { CreateChange, MoveChange, SentChange } from "./state";
 
 const REMOVALS: ReadonlySet<PlanItemStatus> = new Set([

@@ -1,9 +1,9 @@
 "use client";
 
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { ItemKey } from "@/features/plan-changes/queue";
-import { usePlanChanges } from "@/features/plan-changes/use-plan-changes";
 import { PlanTree } from "@/features/plan-dnd/moves";
+import { usePlanSync } from "@/features/plan-sync";
+import { newDraftId } from "@/features/plan-sync/ids";
 import { isBlankName } from "@/lib/plan-item-name";
 import {
   createContext,
@@ -19,6 +19,9 @@ import {
 import {
   Draft,
   dropDraft,
+  followCreated,
+  ItemKey,
+  keyId,
   keyString,
   sameKey,
   settleDraft,
@@ -96,13 +99,6 @@ export type EditSurface = {
 
 const EditSurfaceContext = createContext<EditSurface | null>(null);
 
-let lastDraft = 0;
-
-function nextDraftId(): string {
-  lastDraft += 1;
-  return `draft-${lastDraft}`;
-}
-
 /** I keep a surface's state: the item in edit mode, and new items. */
 export function useEditState(): EditState {
   const [editing, setEditing] = useState<Editing | null>(null);
@@ -132,7 +128,7 @@ export function EditSurfaceProvider({
   children,
 }: EditSurfaceProviderProps) {
   const { editing, setEditing, drafts, setDrafts } = state;
-  const queue = usePlanChanges();
+  const queue = usePlanSync();
   const rows = useRef(new Map<string, RowEntry>());
   const text = useRef<string | null>(null);
   const [focusKey, setFocusKey] = useState<ItemKey | null>(null);
@@ -165,12 +161,9 @@ export function EditSurfaceProvider({
       : drafts.find((it) => it.draftId === key.draftId)?.parentId;
   }
 
-  function addDraft(draft: Omit<Draft, "draftId" | "text" | "state">) {
-    const draftId = nextDraftId();
-    setDrafts((prev) => [
-      ...prev,
-      { ...draft, draftId, text: "", state: "editing" },
-    ]);
+  function addDraft(draft: Omit<Draft, "draftId">) {
+    const draftId = newDraftId();
+    setDrafts((prev) => [...prev, { ...draft, draftId }]);
     start({ draftId });
   }
 
@@ -246,35 +239,30 @@ export function EditSurfaceProvider({
         setDrafts((prev) => dropDraft(prev, draftId));
         return;
       }
-      setDrafts((prev) =>
-        prev.map((it) =>
-          it.draftId === draftId ? { ...it, text: typed, state: "saving" } : it,
-        ),
-      );
+      // The item shows at once under its draft id, so its draft row is done.
+      setDrafts((prev) => settleDraft(prev, draftId, draftId, createdStayPut));
       void queue
         .create({
           kind: "create",
-          draftId,
+          id: draftId,
           planId: draft.planId,
           parentId: draft.parentId,
-          afterId: draft.afterId,
+          afterId: draft.afterId === null ? null : keyId(draft.afterId),
           name: typed,
           ...(draft.bucketId === undefined ? {} : { bucketId: draft.bucketId }),
         })
         .then((id) => {
-          const gone = { draftId };
+          const shown = { id: draftId };
           setEditing((prev) =>
-            prev === null || !sameKey(prev.key, gone)
+            prev === null || !sameKey(prev.key, shown)
               ? prev
               : id === null
                 ? null
                 : { ...prev, key: { id } },
           );
-          setDrafts((prev) =>
-            id === null
-              ? dropDraft(prev, draftId)
-              : settleDraft(prev, draftId, id, createdStayPut),
-          );
+          if (id !== null && createdStayPut) {
+            setDrafts((prev) => followCreated(prev, draftId, id));
+          }
         });
     },
     wantsFocus: (key) => sameKey(focusKey, key),

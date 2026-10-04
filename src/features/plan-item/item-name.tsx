@@ -20,10 +20,7 @@ export function NameText({ name }: NameTextProps) {
   return <>{name}</>;
 }
 
-/**
- * I show a plan item's name, or the name it's being given while that
- * saves, marked as saving.
- */
+/** I show a plan item's name, its ingredient highlighted if asked. */
 export function ItemName({
   itemId,
   highlightIngredient = false,
@@ -33,16 +30,9 @@ export function ItemName({
     from: { __typename: "PlanItem", id: itemId },
   });
   if (!complete) return null;
-  if (data.pendingName === null) {
-    return highlightIngredient && !isBlankName(data.name) ? (
-      <IngredientName name={data.name} />
-    ) : (
-      <NameText name={data.name} />
-    );
-  }
-  return (
-    <span aria-busy="true" className="opacity-60">
-      <NameText name={data.pendingName} />
-    </span>
+  return highlightIngredient && !isBlankName(data.name) ? (
+    <IngredientName name={data.name} />
+  ) : (
+    <NameText name={data.name} />
   );
 }

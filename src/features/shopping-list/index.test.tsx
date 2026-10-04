@@ -1,10 +1,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import {
-  changeApiClient,
-  ChangeRequest,
-} from "@/features/plan-changes/test/change-api";
 import { PlanDirectoryProvider } from "@/features/plan-directory";
 import { buildPlanTree } from "@/features/plan-dnd/moves";
+import { ApiRequest, fakeApi } from "@/features/plan-sync/test/fake-api";
 import {
   buildInMemoryCache,
   render,
@@ -259,29 +256,26 @@ describe("ShoppingRegions, editing", () => {
 
   function renderEditable() {
     const cache = buildInMemoryCache();
-    const requests: ChangeRequest[] = [];
-    const client = changeApiClient(cache, requests);
+    const { client, requests } = fakeApi(cache);
     const wrap = (list: ShoppingList): ReactElement => (
-      <ApolloProvider client={client}>
-        <PlanDirectoryProvider
-          directory={{
-            plans: [WEEKNIGHTS],
-            planOfItem: new Map(),
-            planOfBucket: new Map(),
-          }}
-        >
-          <ShoppingRegions list={list} tree={TREE} />
-        </PlanDirectoryProvider>
-      </ApolloProvider>
+      <PlanDirectoryProvider
+        directory={{
+          plans: [WEEKNIGHTS],
+          planOfItem: new Map(),
+          planOfBucket: new Map(),
+        }}
+      >
+        <ShoppingRegions list={list} tree={TREE} />
+      </PlanDirectoryProvider>
     );
-    const { rerender } = render(wrap(weeknights(cache)), { cache });
+    const { rerender } = render(wrap(weeknights(cache)), { client });
     return {
       requests,
       without: () => rerender(wrap(weeknights(cache, { withSugar: false }))),
     };
   }
 
-  function sent(requests: readonly ChangeRequest[]) {
+  function sent(requests: readonly ApiRequest[]) {
     return requests.map((it) => it.variables);
   }
 

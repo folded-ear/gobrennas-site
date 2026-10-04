@@ -24,7 +24,7 @@ interface ChangesDb extends DBSchema {
   changes: { key: string; value: ChangeRecord };
 }
 
-const DB_NAME = "plan-changes";
+const DB_NAME = "plan-sync";
 const DB_VERSION = 1;
 const STORE = "changes";
 

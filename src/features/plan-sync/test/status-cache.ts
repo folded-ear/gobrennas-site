@@ -2,7 +2,6 @@ import { PlanItemStatus } from "@/__generated__/graphql";
 import { PlanItemStatusFragmentDoc } from "@/features/plan-status/__generated__/planItemStatus.generated";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
 import { gql } from "@apollo/client";
-import { PlanItemChangeStateFragmentDoc } from "../__generated__/planItemChangeState.generated";
 
 type Cache = ReturnType<typeof buildInMemoryCache>;
 
@@ -123,20 +122,19 @@ export function childIdsOf(cache: Cache, planId: string): string[] {
   return plan?.children.map((it) => it.id) ?? [];
 }
 
-/** I mark an item's removal as held, as the status queue would. */
+/** I mark an item's removal as held, as the overlay would show it. */
 export function markPending(
   cache: Cache,
   id: string,
   status: PlanItemStatus.COMPLETED | PlanItemStatus.DELETED,
 ) {
   cache.writeFragment({
-    fragment: PlanItemChangeStateFragmentDoc,
+    fragment: gql`
+      fragment StatusTestPending on PlanItem {
+        pendingStatus @client
+      }
+    `,
     id: `PlanItem:${id}`,
-    data: {
-      __typename: "PlanItem",
-      pendingStatus: status,
-      savingStatus: false,
-      pendingName: null,
-    },
+    data: { __typename: "PlanItem", pendingStatus: status },
   });
 }

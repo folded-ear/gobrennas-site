@@ -1,14 +1,14 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { gql } from "@apollo/client";
 import { beforeEach, describe, expect, it } from "vitest";
+import { evictDraft, writeDraft, writeSaved } from "./cache-writes";
+import type { CreateChange } from "./state";
 import {
   childIdsOf,
   readStatus,
   seededCache,
   THANKSGIVING,
-} from "../plan-changes/test/status-cache";
-import { evictDraft, writeDraft, writeSaved } from "./cache-writes";
-import type { CreateChange } from "./state";
+} from "./test/status-cache";
 
 const ITEM = gql`
   fragment CacheWritesTestItem on PlanItem {
