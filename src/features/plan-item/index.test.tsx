@@ -1,5 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { PlanItemChangeStateFragmentDoc } from "@/features/plan-changes/__generated__/planItemChangeState.generated";
+import { publishView } from "@/features/page-engine/overlay";
+import { buildView } from "@/features/page-engine/view";
 import {
   buildInMemoryCache,
   render,
@@ -46,16 +47,18 @@ describe("PlanItem", () => {
 
   it("shows a name being saved in place of the one it replaces", () => {
     const { cache, pie } = seedPie();
-    cache.writeFragment({
-      fragment: PlanItemChangeStateFragmentDoc,
-      id: "PlanItem:42",
-      data: {
-        __typename: "PlanItem",
-        pendingStatus: null,
-        savingStatus: false,
-        pendingName: "Apple pie",
-      },
-    });
+    publishView(
+      cache,
+      buildView([
+        {
+          key: "k1",
+          seq: 1,
+          phase: "ready",
+          kept: "kept",
+          change: { kind: "rename", id: "42", planId: "7", name: "Apple pie" },
+        },
+      ]),
+    );
 
     render(<PlanItem item={pie} />, { cache });
 

@@ -37,7 +37,7 @@ export function buildCookRecipe(items: readonly CookItem[], itemId: string) {
     const sectionIds = new Set(recipe?.sections.map(({ id }) => id));
     return {
       item,
-      title: displayName(item.pendingName ?? item.name),
+      title: displayName(item.name),
       directions: item.notes?.trim()
         ? item.notes
         : (recipe?.directions ?? null),
@@ -51,8 +51,7 @@ export function buildCookRecipe(items: readonly CookItem[], itemId: string) {
             ),
         )
         .map((child): RecipeIngredient => {
-          if (child.pendingName !== null || !child.ingredient)
-            return { text: displayName(child.pendingName ?? child.name) };
+          if (!child.ingredient) return { text: displayName(child.name) };
           return {
             text: displayName(child.name),
             quantity: child.quantity?.quantity,

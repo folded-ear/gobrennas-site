@@ -1,6 +1,8 @@
 import brand from "@/lib/brand.json";
 import type { MetadataRoute } from "next";
 
+// Installed devices know the app by this, so it never changes.
+const APP_ID = "/shopping";
 const BACKGROUND_COLOR = "#f6f6f5";
 const SHORTCUT_ICON_SIZES = [96, 192];
 
@@ -16,6 +18,7 @@ const shortcut = (name: string, icon: string, url: string) => ({
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: APP_ID,
     name: "Brenna's Food Software",
     short_name: "BFS",
     start_url: "/shopping",

@@ -1,5 +1,5 @@
-import { ItemKey } from "@/features/plan-changes/queue";
 import { Draft, placeDraftsIn } from "@/features/plan-edit";
+import { ItemKey } from "@/features/plan-edit/drafts";
 import { Region, ShoppingItem, ShoppingList, Source } from "./model";
 
 /** One row of a list on the shopping view: a plan item, or a new one. */

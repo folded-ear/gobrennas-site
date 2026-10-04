@@ -1,6 +1,0 @@
-# What the change queue writes; the rest of an item is the server's.
-fragment planItemChangeState on PlanItem {
-  pendingStatus @client
-  savingStatus @client
-  pendingName @client
-}

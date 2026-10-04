@@ -1,6 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ControlTooltip } from "@/components/control-tooltip";
-import { usePlanChanges } from "@/features/plan-changes/use-plan-changes";
+import { usePageEngine } from "@/features/page-engine";
 import {
   actionLabel,
   isToggleStatus,
@@ -16,7 +16,7 @@ type Props = {
 
 /** Preparation uses the planner's acquired status and keeps the recipe in its plan. */
 export function PreppedButton({ itemId, planId, canChange }: Props) {
-  const queue = usePlanChanges();
+  const engine = usePageEngine();
   const item = useItemStatus(itemId);
   if (item === null || !isToggleStatus(item.status)) return null;
 
@@ -38,12 +38,9 @@ export function PreppedButton({ itemId, planId, canChange }: Props) {
         )}
         aria-pressed={prepped}
         variant="tertiary"
-        isDisabled={
-          item.inert || item.savingStatus || item.pendingStatus !== null
-        }
-        isPending={item.savingStatus}
+        isDisabled={item.inert || item.pendingStatus !== null}
         onPress={() =>
-          queue.set([
+          engine.set([
             {
               kind: "status",
               id: itemId,

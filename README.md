@@ -40,6 +40,13 @@ Run `pnpm run build`
 Now you'll have a nice ready-to-deploy website in the `build` directory! And
 it's useless without an API to connect to.
 
+## The service worker
+
+The service worker only runs in production builds, and only over HTTPS or on `localhost`. To try it, run
+`pnpm run build && pnpm exec next start`, open the app, and check Application > Service Workers in the browser's dev
+tools. A phone on the LAN needs the app served over HTTPS. A new build installs as a waiting worker, and the section
+header's update button switches to it. Shopping opens offline only once it has been opened online.
+
 ## Project Structure
 
 ```

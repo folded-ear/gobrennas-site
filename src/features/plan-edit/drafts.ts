@@ -1,9 +1,8 @@
-import { ItemKey } from "@/features/plan-changes/queue";
 import { PlanTree } from "@/features/plan-dnd/moves";
 import { PlanItemNode } from "@/features/plan-timeline/model";
 
-/** Whether a new item is being typed, or its create is being sent. */
-export type DraftState = "editing" | "saving";
+/** A row's item, or a new item's draft row, not yet created. */
+export type ItemKey = { readonly id: string } | { readonly draftId: string };
 
 /** Where a new item shows: beside a row, or first in a parent's list. */
 export type Beside =
@@ -22,8 +21,6 @@ export type Draft = {
   readonly bucketId?: string | null;
   /** On a surface of flat lists, the list I was made in. */
   readonly group?: string;
-  readonly text: string;
-  readonly state: DraftState;
 };
 
 /** One row of a tree as shown: an item above its own rows, or a draft. */
@@ -34,6 +31,11 @@ export type TreeEntry =
       readonly children: readonly TreeEntry[];
     }
   | { readonly kind: "draft"; readonly draft: Draft };
+
+/** I give the id a key names: an item's, or a draft's, which it's created under. */
+export function keyId(key: ItemKey): string {
+  return "id" in key ? key.id : key.draftId;
+}
 
 /** I give a key as a string, the same for the same item. */
 export function keyString(key: ItemKey): string {
@@ -211,4 +213,25 @@ export function settleDraft(
       ? { key: { id }, side: shown.side }
       : settled.beside,
   );
+}
+
+/**
+ * I point drafts that follow, or show beside, an item created under a
+ * draft id at its real id instead.
+ */
+export function followCreated(
+  drafts: readonly Draft[],
+  draftId: string,
+  id: string,
+): readonly Draft[] {
+  const was: ItemKey = { id: draftId };
+  const now: ItemKey = { id };
+  return drafts.map((it) => ({
+    ...it,
+    afterId: sameKey(it.afterId, was) ? now : it.afterId,
+    beside:
+      "key" in it.beside && sameKey(it.beside.key, was)
+        ? { ...it.beside, key: now }
+        : it.beside,
+  }));
 }

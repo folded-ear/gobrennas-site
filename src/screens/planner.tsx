@@ -2,6 +2,7 @@
 
 import { Screen } from "@/components/screen";
 import { SectionHeader } from "@/components/section-header";
+import { useWatchPlans } from "@/features/page-engine";
 import { PlanAdd } from "@/features/plan-add";
 import { canAddToSection } from "@/features/plan-add/destination";
 import {
@@ -21,7 +22,6 @@ import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
 import { PlanSectionHeader } from "@/features/plan-item/section-header";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
-import { usePlanPolling } from "@/features/plan-poll/use-plan-polling";
 import { buildPlanContext } from "@/features/plan-timeline/context";
 import {
   buildSection,
@@ -74,7 +74,7 @@ export function Planner() {
     plans,
     "multiple",
   );
-  usePlanPolling(planIds);
+  useWatchPlans(planIds);
   const shownPlans = useMemo(
     () => orderPlans(plans).filter((plan) => planIds.includes(plan.id)),
     [plans, planIds],

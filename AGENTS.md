@@ -16,7 +16,7 @@
 - Follow the documentation structure in `docs/README.md` instead of guessing at product behavior, domain rules, or
   architecture.
 - Prefer simple, scoped changes over broad or speculative refactors.
-- Prefer HeroUI components to hand-rolled behaviors.
+- Prefer HeroUI (or other library) components to hand-rolled behaviors.
 - Drafts and open questions in `docs/` are not requirements — do not invent answers for them.
 - Stay aligned with existing repository patterns (App Router, Apollo, HeroUI/Tailwind) unless asked to change them.
 
@@ -26,6 +26,7 @@
 - If information is missing or unclear, say so directly and ask rather than guessing.
 - When making changes, explain what changed, why, and how you verified it.
 - Do not speculate about code, files, or behavior you have not inspected.
+- "I don't know" is always a reasonable answer.
 
 ## How to work
 
@@ -71,23 +72,25 @@
 
 ## Decision Heuristics
 
-| Situation                                                                                   | Default Action                                                                               |
-|---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| Uncertain about scope or requirements                                                       | Ask a clarifying question before proceeding                                                  |
-| Changing `schema.graphql`, `schema-local.graphql`, or GraphQL codegen config (`codegen.ts`) | Stop and ask first — the API repo is the real source of truth for schema                     |
-| Adding or upgrading a dependency                                                            | Ask first                                                                                    |
-| A larger refactor becomes tempting during scoped work                                       | Do not expand scope without approval                                                         |
-| Evidence is incomplete                                                                      | State what could not be verified and use `<!-- TODO: fill in -->` instead of inventing rules |
-| Multiple valid implementations exist                                                        | Prefer the simplest option that fits existing patterns                                       |
-| Architectural decisions (patterns, layer types, data flow, rendering pipeline)              | Always escalate before implementing                                                          |
+"Stop and ask" is always a reasonable choice.
+
+| Situation                                                                      | Default Action                                                                               |
+|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| Uncertain about scope or requirements                                          | Ask a clarifying question before proceeding                                                  |
+| Changing `schema.graphql`, or GraphQL codegen config (`codegen.ts`)            | Stop and ask first — the API repo is the real source of truth for schema                     |
+| Adding or upgrading a dependency                                               | Ask first                                                                                    |
+| A larger refactor becomes tempting during scoped work                          | Do not expand scope without approval                                                         |
+| Evidence is incomplete                                                         | State what could not be verified and use `<!-- TODO: fill in -->` instead of inventing rules |
+| Multiple valid implementations exist                                           | Prefer the simplest option that fits existing patterns                                       |
+| Architectural decisions (patterns, layer types, data flow, rendering pipeline) | Always escalate before implementing                                                          |
 
 ## Approval and safety boundaries
 
 Ask for approval before taking any of the actions below. Do not take the action first and ask afterward.
 
 - Add or upgrade a production or runtime dependency.
-- Hand-edit `schema.graphql` or `schema-local.graphql`, or change GraphQL codegen configuration (`codegen.ts`).
-- Delete a tracked file or begin a broad refactor.
+- Hand-edit `schema.graphql`, or change GraphQL codegen configuration (`codegen.ts`).
+- Delete a tracked file (moves/renames are fine) or begin a broad refactor.
 - Publish, send, or change information that people outside the current task rely on (release notes, tickets, messages).
 - Run an action against a remote, production, or other shared environment.
 - Change a configuration, generated artifact, or integration that another person, service, or deployment process
@@ -115,13 +118,17 @@ Always preserve these boundaries:
 
 ## Quality bar for finished work
 
-A change is not done until it meets the repository's CI gate and you report the required evidence.
+CI (`.github/workflows/ci-non-main.yaml`) on a pull request is the ultimate arbiter of "done". Changes **ONLY** land
+through pull requests. There is no CODEOWNERS or required-review policy today.
 
-- **Required checks to run:** `pnpm test`, `pnpm run lint`, `pnpm run format`, `pnpm run tsc` (mirrors
-  `.github/workflows/ci-non-main.yaml`, which also runs `pnpm run build` and fails on any diff left by lint/format)
-- **Required evidence to report:** which commands you ran and whether they passed, not just a conclusion
-- **Review or handoff expectations:** changes land through a pull request; there is no CODEOWNERS or required-review
-  policy documented today
+- During development, targeted test runs should be used, testing the code being changed and what is adjacent.
+- Before committing changes, formatting (`pnpm run format`) should be run on all new/changed files.
+- Before pushing a PR, typechecking (`pnpm run tsc`) and linting (`pnpm run lint`) should be run.
+
+The full test suite (bare `pnpm test`) should only be run when sweeping changes are made to justify it. Running the full
+CI gate locally is extremely unlikely to be appropriate.
+
+If CI _never_ fails, development is wasting time by being too conservative.
 
 ## Related Documentation
 

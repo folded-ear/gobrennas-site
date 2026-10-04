@@ -1,5 +1,5 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { THANKSGIVING } from "@/features/plan-changes/test/status-cache";
+import { THANKSGIVING } from "@/features/page-engine/test/status-cache";
 import { screen, userEvent, waitFor } from "@/test";
 import { describe, expect, it } from "vitest";
 import { renderEditHost } from "./test/edit-host";

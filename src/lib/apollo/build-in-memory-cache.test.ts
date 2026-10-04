@@ -1,5 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { PlanItemChangeStateFragmentDoc } from "@/features/plan-changes/__generated__/planItemChangeState.generated";
+import { publishView } from "@/features/page-engine/overlay";
+import { buildView } from "@/features/page-engine/view";
 import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
 import { PlanItemStatusFragmentDoc } from "@/features/plan-status/__generated__/planItemStatus.generated";
 import { RecipesDocument } from "@/screens/__generated__/recipes.generated";
@@ -179,7 +180,6 @@ describe("plan item status state", () => {
 
     expect(readStatus(cache, "2")).toMatchObject({
       pendingStatus: null,
-      savingStatus: false,
       inert: false,
     });
   });
@@ -187,16 +187,24 @@ describe("plan item status state", () => {
   it("makes an item inert while an ancestor's status is pending", () => {
     const cache = seededWithPie();
 
-    cache.writeFragment({
-      fragment: PlanItemChangeStateFragmentDoc,
-      id: "PlanItem:1",
-      data: {
-        __typename: "PlanItem",
-        pendingStatus: PlanItemStatus.DELETED,
-        savingStatus: false,
-        pendingName: null,
-      },
-    });
+    publishView(
+      cache,
+      buildView([
+        {
+          key: "k1",
+          seq: 1,
+          phase: "held",
+          kept: "kept",
+          change: {
+            kind: "status",
+            id: "1",
+            planId: PLAN_ID,
+            name: "Pumpkin pie",
+            status: PlanItemStatus.DELETED,
+          },
+        },
+      ]),
+    );
 
     expect(readStatus(cache, "2")?.inert).toBe(true);
     // the item itself stays live, so its change can be cancelled

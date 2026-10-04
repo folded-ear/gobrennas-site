@@ -1,3 +1,4 @@
+import { PageEngine } from "@/features/page-engine";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { ApolloClient, FragmentType } from "@apollo/client";
@@ -21,6 +22,9 @@ export { default as userEvent } from "@testing-library/user-event";
 
 type Cache = ReturnType<typeof buildInMemoryCache>;
 
+/** When a rendered page counts as rendered by the server. */
+const RENDERED_AT = 0;
+
 // The codegen flavour, matching what this app declares in
 // src/lib/apollo/apollo-client.d.ts. The generic `Unmasked` doesn't
 // resolve to it while TData is still open.
@@ -33,6 +37,11 @@ export type RenderWithProviders = Omit<RenderOptions, "wrapper"> & {
    */
   cache?: Cache;
   mocks?: ReadonlyArray<MockLink.MockedResponse>;
+  /**
+   * The client to render with, when a test needs its own link. Left out, I
+   * build one over the cache, answering with the mocks.
+   */
+  client?: ApolloClient;
 };
 
 /**
@@ -42,25 +51,29 @@ export type RenderWithProviders = Omit<RenderOptions, "wrapper"> & {
  */
 export function render(
   ui: ReactElement,
-  { cache, mocks, ...options }: RenderWithProviders = {},
+  { cache, mocks, client: given, ...options }: RenderWithProviders = {},
 ): RenderResult {
-  const client = new ApolloClient({
-    // Production sets this (src/lib/apollo-browser-and-ssr.tsx), and
-    // MockedProvider has no way to. Without it a component can read a
-    // field its own fragment never selected and the test still passes.
-    dataMasking: true,
-    cache: cache ?? buildInMemoryCache(),
-    localState: new LocalState(),
-    link: new MockLink(mocks ?? []),
-  });
+  const client =
+    given ??
+    new ApolloClient({
+      // Production sets this (src/lib/apollo-browser-and-ssr.tsx), and
+      // MockedProvider has no way to. Without it a component can read a
+      // field its own fragment never selected and the test still passes.
+      dataMasking: true,
+      cache: cache ?? buildInMemoryCache(),
+      localState: new LocalState(),
+      link: new MockLink(mocks ?? []),
+    });
 
   function Providers({ children }: { children: ReactNode }) {
     return (
       <ApolloProvider client={client}>
-        <ThemeProvider>
-          {children}
-          <Toast.Provider />
-        </ThemeProvider>
+        <PageEngine userId={null} renderedAt={RENDERED_AT}>
+          <ThemeProvider>
+            {children}
+            <Toast.Provider />
+          </ThemeProvider>
+        </PageEngine>
       </ApolloProvider>
     );
   }

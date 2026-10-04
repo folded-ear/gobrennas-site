@@ -28,10 +28,6 @@ extend type Mutation {
 extend type PlanItem {
   "A COMPLETED or DELETED status waiting to be sent, if any."
   pendingStatus: PlanItemStatus
-  "Whether a status change is being saved."
-  savingStatus: Boolean!
-  "A new name being saved, if any."
-  pendingName: String
   "Whether an ancestor has a pending status, so nothing can be done to me."
   inert: Boolean!
 }

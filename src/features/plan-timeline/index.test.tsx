@@ -1,5 +1,5 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { markPending } from "@/features/plan-changes/test/status-cache";
+import { markPending } from "@/features/page-engine/test/status-cache";
 import {
   buildPlanDirectory,
   PlanDirectory,
@@ -135,7 +135,6 @@ function fakeMoves(): PlanMoves {
     moveToDate: vi.fn(),
     moveToBucket: vi.fn(),
     moveToUnplanned: vi.fn(),
-    isMoving: () => false,
   };
 }
 

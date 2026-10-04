@@ -10,11 +10,11 @@ import {
 import {
   PlanItemResultFragmentDoc,
   type PlanItemResultFragment,
-} from "@/features/plan-changes/__generated__/planItemResult.generated";
+} from "@/features/page-engine/__generated__/planItemResult.generated";
 import {
   seededCache,
   THANKSGIVING,
-} from "@/features/plan-changes/test/status-cache";
+} from "@/features/page-engine/test/status-cache";
 import {
   buildPlanDirectory,
   PlanDirectoryProvider,
@@ -28,7 +28,7 @@ import { render, screen, userEvent, waitFor } from "@/test";
 import { ApolloClient, ApolloLink, gql, Observable } from "@apollo/client";
 import { LocalState } from "@apollo/client/local-state";
 import type { GraphQLCodegenDataMasking } from "@apollo/client/masking";
-import { ApolloProvider, useQuery } from "@apollo/client/react";
+import { useQuery } from "@apollo/client/react";
 import { print } from "@apollo/client/utilities";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
@@ -156,12 +156,10 @@ function SavedPlan() {
 
 function setup({
   section = unplanned,
-  failAssignment = false,
   showSavedPlan = false,
   failFreshRecognition = false,
 }: {
   section?: TimelineSection;
-  failAssignment?: boolean;
   showSavedPlan?: boolean;
   failFreshRecognition?: boolean;
 } = {}) {
@@ -170,7 +168,6 @@ function setup({
     variables: Record<string, unknown>;
     query: string;
   }[] = [];
-  let assignments = 0;
   const client = new ApolloClient({
     cache: seededCache(),
     dataMasking: true,
@@ -263,49 +260,40 @@ function setup({
                 },
               },
             });
-          } else if (operation.operationName === "doAssignBucket") {
-            assignments++;
-            if (failAssignment && assignments === 1) {
-              observer.error(new Error("Offline"));
-              return;
-            }
-            observer.next({
-              data: {
-                planner: {
-                  __typename: "PlannerMutation",
-                  assignBucket: {
-                    __typename: "PlanItem",
-                    id: v.id,
-                    bucket: { __typename: "PlanBucket", id: v.bucketId },
-                  },
-                },
-              },
-            });
           } else if (operation.operationName === "addPlannerRecipe") {
             observer.next({ data: addedRecipe });
           } else if (operation.operationName === "doChanges") {
-            observer.next({
-              data: {
-                planner: {
-                  __typename: "PlannerMutation",
-                  s0: {
-                    __typename: "PlanItem",
-                    id: "100",
-                    name: v.name0,
-                    status: "NEEDED",
-                    notes: null,
-                    parent: { __typename: "Plan", id: v.parentId0 },
-                    aggregate: null,
-                    preparation: null,
-                    ingredient: null,
-                    quantity: null,
-                    components: [],
-                    bucket: null,
-                    children: [],
-                  },
-                },
-              },
-            });
+            const planner: Record<string, unknown> = {
+              __typename: "PlannerMutation",
+            };
+            for (let i = 0; `name${i}` in v || `id${i}` in v; i++) {
+              planner[`s${i}`] =
+                `parentId${i}` in v
+                  ? {
+                      __typename: "PlanItem",
+                      id: "100",
+                      name: v[`name${i}`],
+                      status: "NEEDED",
+                      notes: null,
+                      parent: { __typename: "Plan", id: v[`parentId${i}`] },
+                      aggregate: null,
+                      preparation: null,
+                      ingredient: null,
+                      quantity: null,
+                      components: [],
+                      bucket: null,
+                      children: [],
+                    }
+                  : {
+                      __typename: "PlanItem",
+                      id: v[`id${i}`],
+                      bucket: {
+                        __typename: "PlanBucket",
+                        id: v[`bucketId${i}`],
+                      },
+                    };
+            }
+            observer.next({ data: { planner } });
           } else {
             observer.error(
               new Error(`Unexpected operation: ${operation.operationName}`),
@@ -336,10 +324,11 @@ function setup({
     });
   }
   render(
-    <ApolloProvider client={client}>
+    <>
       <PlanAdd plans={[plan]} section={section} />
       {showSavedPlan ? <SavedPlan /> : null}
-    </ApolloProvider>,
+    </>,
+    { client },
   );
   return { requests, client, user: userEvent.setup() };
 }
@@ -460,34 +449,29 @@ describe("planner Add", () => {
     ).toHaveLength(0);
   });
 
-  it("retries a recipe's bucket assignment without adding the recipe twice", async () => {
-    const { user, requests } = setup({ section: day, failAssignment: true });
+  it("adds a recipe once, and places it in a new day bucket", async () => {
+    const { user, requests } = setup({ section: day });
     await user.click(screen.getByRole("button", { name: /^Add to/ }));
     await user.type(editableMorsel("Item for Fri, Oct 2"), "So");
     await user.click((await screen.findAllByRole("option"))[1]);
     await user.click(screen.getByRole("button", { name: "Add" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Retry to move the same item",
-    );
-    await user.click(screen.getByRole("button", { name: "Retry" }));
+
     await waitFor(() =>
       expect(screen.queryByRole("form")).not.toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(
+        requests
+          .filter((it) => it.name === "doChanges")
+          .map((it) => it.variables),
+      ).toEqual([{ id0: "100", bucketId0: "bucket-new" }]),
     );
     expect(
       requests.filter((it) => it.name === "addPlannerRecipe"),
     ).toHaveLength(1);
-    expect(requests.filter((it) => it.name === "doChanges")).toHaveLength(0);
-    expect(
-      requests
-        .filter((it) => it.name === "doAssignBucket")
-        .map((it) => it.variables),
-    ).toEqual([
-      { id: "100", bucketId: "bucket-new" },
-      { id: "100", bucketId: "bucket-new" },
-    ]);
   });
 
-  it("shows all suggestion kinds and saves the chosen identity through the real change queue", async () => {
+  it("shows all suggestion kinds and saves the chosen identity through the page engine", async () => {
     const { user, requests } = setup();
     await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
     const input = editableMorsel("Item for Unplanned");
@@ -501,7 +485,11 @@ describe("planner Add", () => {
     await waitFor(() =>
       expect(screen.queryByRole("form")).not.toBeInTheDocument(),
     );
-    const saved = requests.find((it) => it.name === "doChanges");
+    const saved = await waitFor(() => {
+      const found = requests.find((it) => it.name === "doChanges");
+      expect(found).toBeDefined();
+      return found;
+    });
     expect(saved?.variables).toMatchObject({
       parentId0: THANKSGIVING,
       afterId0: "3",
@@ -523,51 +511,46 @@ describe("planner Add", () => {
     await waitFor(() =>
       expect(screen.queryByRole("form")).not.toBeInTheDocument(),
     );
-    const saved = requests.find((it) => it.name === "doChanges");
+    const saved = await waitFor(() => {
+      const found = requests.find((it) => it.name === "doChanges");
+      expect(found).toBeDefined();
+      return found;
+    });
     expect(saved?.variables).toEqual({
       parentId0: THANKSGIVING,
       afterId0: "3",
       name0: "!Takeout",
     });
     expect(saved?.query).not.toContain("choice");
-    expect(requests.filter((it) => it.name === "doAssignBucket")).toHaveLength(
-      0,
-    );
   });
 
-  it("creates a missing day bucket and retries placement without creating a duplicate item", async () => {
-    const { user, requests } = setup({ section: day, failAssignment: true });
+  it("creates a missing day bucket, then the item in it", async () => {
+    const { user, requests } = setup({ section: day });
     await user.click(screen.getByRole("button", { name: /^Add to/ }));
     await user.type(
       editableMorsel(screen.getByRole("combobox").getAttribute("aria-label")!),
       "!Dinner",
     );
     await user.click(screen.getByRole("button", { name: "Add" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Retry to move the same item",
-    );
-    expect(screen.getByRole("combobox")).toHaveAttribute(
-      "contenteditable",
-      "false",
-    );
-    await user.click(screen.getByRole("button", { name: "Retry" }));
+
     await waitFor(() =>
       expect(screen.queryByRole("form")).not.toBeInTheDocument(),
     );
-    expect(requests.filter((it) => it.name === "doChanges")).toHaveLength(1);
+    await waitFor(() =>
+      expect(
+        requests
+          .filter((it) => it.name === "doChanges")
+          .map((it) => it.variables),
+      ).toEqual([
+        { parentId0: THANKSGIVING, afterId0: "3", name0: "!Dinner" },
+        { id0: "100", bucketId0: "bucket-new" },
+      ]),
+    );
     expect(
       requests
         .filter((it) => it.name === "doCreateBucket")
         .map((it) => it.variables),
     ).toEqual([{ planId: THANKSGIVING, date: "2026-10-02", name: null }]);
-    expect(
-      requests
-        .filter((it) => it.name === "doAssignBucket")
-        .map((it) => it.variables),
-    ).toEqual([
-      { id: "100", bucketId: "bucket-new" },
-      { id: "100", bucketId: "bucket-new" },
-    ]);
   });
 
   it("cancels without saving", async () => {

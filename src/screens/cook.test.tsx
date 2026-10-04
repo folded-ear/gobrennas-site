@@ -8,7 +8,8 @@ import {
   ref,
   savedRecipe,
 } from "@/features/cook-recipe/test/recipe";
-import { savedStatuses } from "@/features/plan-changes/test/status-mocks";
+import { readStatus } from "@/features/page-engine/test/status-cache";
+import { savedStatuses } from "@/features/page-engine/test/status-mocks";
 import { CookDocument } from "@/screens/__generated__/cook.generated";
 import {
   act,
@@ -164,16 +165,13 @@ describe("Cook", () => {
       screen.getByRole("button", { name: "I cooked it: Holiday apple pie" }),
     );
     expect(back).toHaveBeenCalledOnce();
-    const data = cache.extract()["PlanItem:pie"];
-    expect(data).toMatchObject({
+    expect(readStatus(cache, "pie")).toMatchObject({
       pendingStatus: PlanItemStatus.COMPLETED,
       status: PlanItemStatus.NEEDED,
     });
     // Navigation is mocked, so the shared undo action is still available here.
     await userEvent.click(screen.getByRole("button", { name: /Wait, no!/ }));
-    expect(cache.extract()["PlanItem:pie"]).toMatchObject({
-      pendingStatus: null,
-    });
+    expect(readStatus(cache, "pie")).toMatchObject({ pendingStatus: null });
   });
 
   it("saves prep as acquired without leaving Cook, and can undo it", async () => {
@@ -208,21 +206,22 @@ describe("Cook", () => {
     ).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("prevents repeated prep and cooking while prep is being saved", async () => {
+  it("shows prep as done before the server answers", async () => {
     await show(cookData(), "pie", [
       savedStatuses([{ id: "pie", status: PlanItemStatus.ACQUIRED }], {
         delay: Infinity,
       }),
     ]);
-    const prep = screen.getByRole("button", {
-      name: "I prepped this: Holiday apple pie",
-    });
-    await userEvent.click(prep);
-    expect(prep).toHaveAttribute("data-pending", "true");
-    expect(prep).toHaveAttribute("aria-disabled", "true");
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "I prepped this: Holiday apple pie" }),
+    );
+
     expect(
-      screen.getByRole("button", { name: "I cooked it: Holiday apple pie" }),
-    ).toBeDisabled();
+      await screen.findByRole("button", {
+        name: "Prepped. Undo prep: Holiday apple pie",
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
   });
 
   it("closes without marking the recipe cooked", async () => {

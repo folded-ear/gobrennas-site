@@ -95,11 +95,13 @@ describe("buildCookRecipe", () => {
     expect(recipe?.sections).toEqual([]);
   });
 
-  it("uses pending text instead of stale parsed ingredients", () => {
+  it("shows an ingredient not yet parsed as its text", () => {
     const root = { ...pie, children: [ref("apples")], components: [] };
     expect(
-      buildCookRecipe([root, { ...apples, pendingName: "6 pears" }], "pie")
-        ?.main.ingredients,
+      buildCookRecipe(
+        [root, { ...apples, name: "6 pears", ingredient: null }],
+        "pie",
+      )?.main.ingredients,
     ).toEqual([{ text: "6 pears" }]);
   });
 

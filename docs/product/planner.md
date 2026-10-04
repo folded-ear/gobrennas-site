@@ -138,8 +138,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - I cooked it is the primary action. I prepped this is a secondary action that
   marks the recipe Acquired, keeps it in the plan, and stays in Cook. Once saved,
   it reads Prepped and can be pressed again to undo prep (mark Needed). Both
-  actions wait while a status change is saving. Viewers see the prep status as
-  text and cannot change it.
+  show their result at once; see [Saving changes](#saving-changes). Viewers
+  see the prep status as text and cannot change it.
 - Marking a recipe cooked goes back, and the item waits out its undo window
   there, with a button to undo it in place of each of its cook links.
 
@@ -150,8 +150,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   screen shows its status: a gray circle when needed, an olive check when
   acquired. The open item itself, in the item screen's walk, shows none.
 - A user who can change the plan can press the status to switch the item
-  between needed and acquired. The change saves at once, and the status
-  shows it is saving until it has.
+  between needed and acquired. The status shows its new value at once; see
+  [Saving changes](#saving-changes).
 - A user who can change the plan can delete any item from the timeline or
   the item screen, whatever its status. Deleting an item removes
   everything below it too.
@@ -160,7 +160,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
   then the item is struck through, in red when deleted and green when
   cooked, and a button to undo it takes the place of the one that asked
   for it. Everything below it fades and can't be changed.
-- Leaving or hiding the page saves any change still waiting.
+- Leaving or hiding the page sends any change still waiting.
 - Anyone who can't change the plan sees each item's status, but can't
   change it.
 
@@ -201,8 +201,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - An item can't be dropped inside itself.
 - An item can't be dragged from the item screen to the timeline or back.
   Moving it in either one updates both.
-- A move shows immediately. If it fails, the item goes back where it was
-  and a message says so.
+- A move shows immediately. If the server refuses it, the item goes back
+  where it was and a message says so; see [Saving changes](#saving-changes).
 - Items can be moved by keyboard; see [Keyboard shortcuts](#keyboard-shortcuts).
 
 ### Adding from the timeline
@@ -221,9 +221,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
   a double batch); no quantity means one batch. Saving waits for current recognition
   if the quantity was just edited. Recipe quantities must be greater than zero.
   A section suggestion still saves a reference only.
-- Cancel discards the draft. A failed save keeps the text. If the item was created
-  but assigning its bucket failed, Retry moves that same item without creating a
-  duplicate; Close leaves it in Unplanned.
+- Cancel discards the draft. A plain item appears in its section at once,
+  bucket included; see [Saving changes](#saving-changes). A failure while
+  making a missing bucket or adding a recipe keeps the text.
 
 ### Editing items
 
@@ -262,7 +262,27 @@ The terms used here are defined in the [domain model](../domain/model.md).
   "Unnamed" wherever its name appears.
 - Deleting the open item from the item screen's heading closes the screen.
 - A new item made beside one of a section's own items joins that section.
-- A name shows as saving until the change is saved.
+
+### Saving changes
+
+- A change to an item (its status, name, bucket or place, or a new item)
+  shows as done the moment it's made, before the server has it.
+- The change is kept on the device until the server answers, and sent as
+  soon as it can be: again after a reload, and once a lost connection
+  returns. A failed connection never discards a change.
+- If the server refuses a change, it is undone and a message says so.
+  Changes made together, like a move and the bucket clearing it causes,
+  are refused together.
+- An item just made can be renamed, moved, and built on before the server
+  has it; those changes are sent once it does.
+- While the planner is open and visible, changes made in other tabs, on
+  other devices, or by other users show within a few seconds, and at once
+  when the page becomes visible again.
+- When the login has expired, changes wait, and the header offers to sign
+  in again. The page after signing in sends them.
+- Logging out with changes still unsent warns first. Those changes stay on
+  the device and are sent when the same user signs in again; another
+  user's sign-in discards them.
 
 ### Keyboard shortcuts
 

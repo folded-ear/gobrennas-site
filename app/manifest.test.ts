@@ -9,6 +9,10 @@ const iconFile = (src: string) => resolve(PUBLIC_DIR, `.${src}`);
 describe("manifest", () => {
   const m = manifest();
 
+  it("keeps the identity installed devices already know it by", () => {
+    expect(m.id).toBe("/shopping");
+  });
+
   it("opens the app on shopping, standalone, in the brand color", () => {
     expect(m.start_url).toBe("/shopping");
     expect(m.display).toBe("standalone");

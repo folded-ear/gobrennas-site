@@ -1,15 +1,11 @@
-import {
-  changeApiClient,
-  ChangeRequest,
-} from "@/features/plan-changes/test/change-api";
+import { fakeApi } from "@/features/page-engine/test/fake-api";
 import {
   seededCache,
   THANKSGIVING,
-} from "@/features/plan-changes/test/status-cache";
+} from "@/features/page-engine/test/status-cache";
 import { buildPlanTree } from "@/features/plan-dnd/moves";
 import { PlanItemNode } from "@/features/plan-timeline/model";
 import { render } from "@/test";
-import { ApolloProvider } from "@apollo/client/react";
 import { DraftRow } from "../draft-row";
 import { buildEntries, TreeEntry, treeOrder } from "../drafts";
 import { EditableName } from "../editable-name";
@@ -121,13 +117,7 @@ export function renderEditHost({
   canEdit = true,
 } = {}) {
   const cache = seededCache();
-  const requests: ChangeRequest[] = [];
-  const client = changeApiClient(cache, requests);
-  render(
-    <ApolloProvider client={client}>
-      <EditHost rows={rows} canEdit={canEdit} />
-    </ApolloProvider>,
-    { cache },
-  );
+  const { client, requests } = fakeApi(cache);
+  render(<EditHost rows={rows} canEdit={canEdit} />, { client });
   return { cache, requests };
 }

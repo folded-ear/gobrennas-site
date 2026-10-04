@@ -43,13 +43,11 @@ export type ZoneData = {
 type DragSessionValue = {
   canMove(itemId: string): boolean;
   readonly dragged: DraggedItem | null;
-  isMoving(itemId: string): boolean;
 };
 
 const DragSessionContext = createContext<DragSessionValue>({
   canMove: () => false,
   dragged: null,
-  isMoving: () => false,
 });
 
 function nameOf(active: Active): string {
@@ -79,14 +77,13 @@ const ANNOUNCEMENTS: Announcements = {
 
 type DragSessionProps = PropsWithChildren<{
   canMove(itemId: string): boolean;
-  isMoving(itemId: string): boolean;
 }>;
 
 /**
  * I hold one view's drag: what's being dragged, whether it may be, and
  * where it lands. Drags never cross from one session to another.
  */
-export function DragSession({ canMove, isMoving, children }: DragSessionProps) {
+export function DragSession({ canMove, children }: DragSessionProps) {
   const id = useId();
   const [dragged, setDragged] = useState<DraggedItem | null>(null);
   useBlockScreenEscape(dragged !== null);
@@ -107,7 +104,7 @@ export function DragSession({ canMove, isMoving, children }: DragSessionProps) {
   }
 
   return (
-    <DragSessionContext value={{ canMove, dragged, isMoving }}>
+    <DragSessionContext value={{ canMove, dragged }}>
       <DndContext
         id={id}
         sensors={sensors}

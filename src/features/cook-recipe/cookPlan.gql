@@ -17,7 +17,6 @@ fragment cookPlan on Plan {
     ... on PlanItem {
       id
       name
-      pendingName @client
       status
       notes
       preparation

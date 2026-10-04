@@ -61,8 +61,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
   its own, which switches just that plan item.
 - A plan item that counts as acquired while marked needed shows the needed
   circle in olive, and its status names it as counting as acquired.
-- A change saves at once, and the status shows it is saving until it has.
-  There is no undo, and no status control deletes anything.
+- A change shows at once; see the planner's
+  [Saving changes](planner.md#saving-changes). There is no undo, and no
+  status control deletes anything.
 
 ### Editing plan items
 
@@ -94,6 +95,17 @@ The terms used here are defined in the [domain model](../domain/model.md).
   dots of every plan behind it, grouped, to the right of its label.
 - A plan item's ancestry then ends with its plan, marked with the plan's
   dot. Ancestor items never carry a dot.
+
+### Without a connection
+
+- Shopping is the one section that opens with no connection, once it has
+  been opened online on the device. The device keeps the last shopping page
+  and the latest shopping data, and a launch that can't reach the server
+  starts from them.
+- Checking items off works offline as it does anywhere else. The changes
+  are sent once the connection returns, and the rest of the list picks up
+  other people's changes then.
+- Logging out forgets the shopping the device keeps.
 
 ## Example
 

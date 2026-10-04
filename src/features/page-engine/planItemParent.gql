@@ -1,0 +1,7 @@
+# Where a moved item's old parent is found.
+fragment planItemParent on PlanItem {
+  id
+  parent {
+    id
+  }
+}

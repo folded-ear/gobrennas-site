@@ -1,4 +1,5 @@
 import { loadEnvConfig } from "@next/env";
+import { withSerwist } from "@serwist/turbopack";
 import type { NextConfig } from "next";
 
 const projectDir = process.cwd();
@@ -26,8 +27,13 @@ if (process.env.AWS_S3_BUCKET_NAME) {
   }
 }
 
+// A build's id is when it was built, in ms since the epoch: a snapshot can
+// tell it's from another build, and the profile page says when this one was.
+const buildId = String(Date.now());
+
 const nextConfig: NextConfig = {
   output: "standalone",
+  env: { NEXT_PUBLIC_BUILD_ID: buildId },
   poweredByHeader: false,
   images: {
     remotePatterns: remoteImagePatterns,
@@ -58,4 +64,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

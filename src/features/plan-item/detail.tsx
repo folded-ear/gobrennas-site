@@ -124,11 +124,5 @@ export function PlanItemDetail({
     />
   );
 
-  return dnd ? (
-    <DragSession canMove={dnd.canMove} isMoving={dnd.moves.isMoving}>
-      {rows}
-    </DragSession>
-  ) : (
-    rows
-  );
+  return dnd ? <DragSession canMove={dnd.canMove}>{rows}</DragSession> : rows;
 }

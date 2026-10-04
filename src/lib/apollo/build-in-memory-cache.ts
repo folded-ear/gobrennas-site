@@ -1,10 +1,17 @@
+import {
+  attachView,
+  makeView,
+  overlayPolicies,
+} from "@/features/page-engine/overlay";
 import { possibleTypes } from "@/lib/apollo/possible-types";
 import { defaultDataIdFromObject, Reference } from "@apollo/client";
 import { InMemoryCache } from "@apollo/client-integration-nextjs";
 import { relayStylePagination } from "@apollo/client/utilities";
 
 export function buildInMemoryCache() {
-  return new InMemoryCache({
+  const view = makeView();
+  const overlay = overlayPolicies(view);
+  const cache = new InMemoryCache({
     possibleTypes,
     typePolicies: {
       Query: {
@@ -26,19 +33,12 @@ export function buildInMemoryCache() {
           suggestRecipesToCook: relayStylePagination(false),
         },
       },
-      // Change state is local (schema-local.graphql); it reads as settled
-      // until the change queue writes otherwise.
+      // Pending plan changes show over server data (page-engine/overlay.ts),
+      // local fields (schema-local.graphql) among them.
+      Plan: overlay.Plan,
       PlanItem: {
         fields: {
-          pendingStatus: {
-            read: (existing) => existing ?? null,
-          },
-          savingStatus: {
-            read: (existing) => existing ?? false,
-          },
-          pendingName: {
-            read: (existing) => existing ?? null,
-          },
+          ...overlay.PlanItem.fields,
           inert: {
             read(_, { readField }) {
               let parent = readField<Reference>("parent");
@@ -72,4 +72,6 @@ export function buildInMemoryCache() {
       }
     },
   });
+  attachView(cache, view);
+  return cache;
 }

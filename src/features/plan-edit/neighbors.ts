@@ -1,5 +1,4 @@
-import { ItemKey } from "@/features/plan-changes/queue";
-import { sameKey } from "./drafts";
+import { ItemKey, sameKey } from "./drafts";
 import { Direction } from "./keymap";
 
 /**
