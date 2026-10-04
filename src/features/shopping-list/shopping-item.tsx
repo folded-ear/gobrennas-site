@@ -5,7 +5,6 @@ import { PlanItemRow } from "@/features/plan-item/row";
 import {
   BulkStatusButton,
   LINE_CONTROL_CLASS_NAME,
-  ToggleStatus,
 } from "@/features/plan-status";
 import { Disclosure } from "@heroui/react";
 import { groupOf, ShoppingRow, ShoppingRows } from "./entries";
@@ -13,8 +12,6 @@ import { formatAmount, ShoppingItem } from "./model";
 
 type ShoppingItemRowProps = {
   readonly item: ShoppingItem;
-  /** The status my plan items show as, together. */
-  readonly status: ToggleStatus;
   /** Every list's rows; left out, my plan items as they are. */
   readonly rows?: ShoppingRows;
 };
@@ -61,7 +58,7 @@ const AMOUNT_SEPARATOR = ", ";
  * I show one ingredient and how much of it is needed, expanding to show
  * every plan item that calls for it.
  */
-export function ShoppingItemRow({ item, status, rows }: ShoppingItemRowProps) {
+export function ShoppingItemRow({ item, rows }: ShoppingItemRowProps) {
   const showsPlans = useShowsPlanIndicators();
   const amounts = item.implicit
     ? ""
@@ -76,7 +73,7 @@ export function ShoppingItemRow({ item, status, rows }: ShoppingItemRowProps) {
             id: it.item.id,
             planId: it.plan.id,
           }))}
-          status={status}
+          status={item.countsAs}
           name={item.ingredient.name}
           canChange={item.sources.every((it) => it.plan.changeable)}
         />

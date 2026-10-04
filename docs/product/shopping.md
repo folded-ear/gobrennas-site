@@ -47,20 +47,36 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - A plan item with a zero quantity counts as acquired, whatever its status.
 - A plan item under an acquired item, or under one with a zero quantity,
   counts as acquired too, whatever its own status. Its status isn't changed.
-- A shopping item is in Needed when any of its plan items is still needed,
-  and its amounts sum only those. Once all are acquired, it moves to
-  Acquired and sums them all.
-- A plan item with no ingredient appears in the region it counts as being
-  in, on its own.
+- A shopping item counts as needed when any of its plan items is still
+  needed, and its amounts sum only those. Once all are acquired, it counts
+  as acquired and sums them all.
+- Each shopping item, and each plan item with no ingredient, shows in the
+  region of what it counts as, except while it's held (see
+  [Sweeping](#sweeping)).
+- A plan item with no ingredient appears in its region on its own.
 - Shopping items in each region are in store order, then by name.
+
+### Sweeping
+
+- When what a shopping item, or a plan item with no ingredient, counts as
+  changes, it's held: it stays in the region it was in until the list is
+  swept. A mistaken check-off is then undone in place. Changed back before
+  a sweep, it's no longer held.
+- Changes are held whoever makes them, and however: a status, an edit, or
+  someone else's change.
+- Anything new to the list shows in the region of what it counts as.
+- The list is swept by the sweep button in the header, when the window
+  loses focus, when Acquired is opened or closed, and when the plans being
+  shopped change. The list starts with nothing held.
 
 ### Checking items off
 
-- Each shopping item, and each plan item with no ingredient, shows its
-  status: a gray circle in Needed, an olive check in Acquired.
+- Each shopping item, and each plan item with no ingredient, shows what it
+  counts as, whichever region it's in: a gray circle when needed, an olive
+  check when acquired.
 - A user who can change the plans behind a shopping item can press its
-  status to mark every one of its plan items acquired, or, in Acquired,
-  needed again. Plan items with a zero quantity are changed too.
+  status to mark every one of its plan items acquired, or, once it counts
+  as acquired, needed again. Plan items with a zero quantity are changed too.
 - Each plan item listed under an expanded shopping item has a status of
   its own, which switches just that plan item.
 - A plan item that counts as acquired while marked needed shows the needed

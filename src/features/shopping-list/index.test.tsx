@@ -12,10 +12,10 @@ import {
 } from "@/test";
 import { ApolloProvider } from "@apollo/client/react";
 import { ReactElement } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { BASIL, plan, seedItem, SUGAR } from "./fixtures";
 import { ShoppingRegions } from "./index";
-import { buildShoppingList, ShoppingList } from "./model";
+import { buildShoppingList, ingredientKey, ShoppingList } from "./model";
 
 const WEEKNIGHTS = {
   id: "7",
@@ -24,7 +24,11 @@ const WEEKNIGHTS = {
   changeable: true,
 };
 
-function renderList(list: ShoppingList, cache = buildInMemoryCache()) {
+function renderList(
+  list: ShoppingList,
+  cache = buildInMemoryCache(),
+  onAcquiredToggle?: () => void,
+) {
   render(
     <PlanDirectoryProvider
       directory={{
@@ -33,7 +37,7 @@ function renderList(list: ShoppingList, cache = buildInMemoryCache()) {
         planOfBucket: new Map(),
       }}
     >
-      <ShoppingRegions list={list} />
+      <ShoppingRegions list={list} onAcquiredToggle={onAcquiredToggle} />
     </PlanDirectoryProvider>,
     { cache },
   );
@@ -166,6 +170,34 @@ describe("ShoppingRegions", () => {
     expect(screen.queryByRole("button", { name: /^sugar/ })).toBeNull();
   });
 
+  it("tells when the acquired region opens or closes", async () => {
+    const cache = buildInMemoryCache();
+    const list = buildShoppingList([
+      plan(
+        WEEKNIGHTS.id,
+        WEEKNIGHTS.name,
+        WEEKNIGHTS.color,
+        ["d"],
+        [
+          seedItem(cache, {
+            id: "d",
+            name: "sugar",
+            parent: "7",
+            pantry: SUGAR,
+            status: PlanItemStatus.ACQUIRED,
+          }),
+        ],
+      ),
+    ]);
+    const onAcquiredToggle = vi.fn();
+    renderList(list, cache, onAcquiredToggle);
+
+    await expandAcquired();
+    await expandAcquired();
+
+    expect(onAcquiredToggle).toHaveBeenCalledTimes(2);
+  });
+
   it("expands one shopping item at a time", async () => {
     const cache = buildInMemoryCache();
     const list = buildShoppingList([
@@ -205,6 +237,48 @@ describe("ShoppingRegions", () => {
     await userEvent.click(sugar);
 
     expect(sugar).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("shows each shopping item's own status, whichever region it's in", async () => {
+    const cache = buildInMemoryCache();
+    const list = buildShoppingList(
+      [
+        plan(
+          WEEKNIGHTS.id,
+          WEEKNIGHTS.name,
+          WEEKNIGHTS.color,
+          ["b", "d"],
+          [
+            seedItem(cache, {
+              id: "b",
+              name: "basil",
+              parent: "7",
+              pantry: BASIL,
+            }),
+            seedItem(cache, {
+              id: "d",
+              name: "sugar",
+              parent: "7",
+              pantry: SUGAR,
+              status: PlanItemStatus.ACQUIRED,
+            }),
+          ],
+        ),
+      ],
+      new Set([ingredientKey(BASIL.id), ingredientKey(SUGAR.id)]),
+    );
+
+    renderList(list, cache);
+    await expandAcquired();
+
+    const needed = screen.getByRole("region", { name: "Needed" });
+    expect(
+      within(needed).getByRole("button", { name: "Mark needed: sugar" }),
+    ).toBeVisible();
+    const acquired = screen.getByRole("region", { name: "Acquired (1)" });
+    expect(
+      within(acquired).getByRole("button", { name: "Mark acquired: basil" }),
+    ).toBeVisible();
   });
 
   it("leaves out a region with nothing in it", () => {

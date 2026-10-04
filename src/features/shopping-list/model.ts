@@ -64,6 +64,8 @@ export type ShoppingItem = {
   readonly plans: readonly DirectoryPlan[];
   /** All my plan items, whatever their status. */
   readonly sources: readonly Source[];
+  /** Needed while any of my plan items counts as needed. */
+  readonly countsAs: ToggleStatus;
 };
 
 export type Region = {
@@ -81,10 +83,11 @@ export type ShoppingList = {
  * I gather the leaves of the given plans, in plan order, into shopping
  * items by ingredient, split between what's still needed and what's been
  * acquired. Everything under an item of nothing, or an acquired one, counts
- * as acquired.
+ * as acquired. A held row (see statusesOf) shows in the other region.
  */
 export function buildShoppingList(
   plans: readonly ShoppingPlan[],
+  held: ReadonlySet<string> = new Set(),
 ): ShoppingList {
   const context = buildPlanContext({ plans });
   const needed: MutableRegion = { items: [], unresolved: [] };
@@ -126,7 +129,8 @@ export function buildShoppingList(
             : PlanItemStatus.ACQUIRED,
       };
       if (ingredient === null) {
-        (isNeeded(source) ? needed : acquired).unresolved.push(source);
+        const showsNeeded = isNeeded(source) !== held.has(item.id);
+        (showsNeeded ? needed : acquired).unresolved.push(source);
         continue;
       }
       const group = byIngredient.get(ingredient.id);
@@ -144,17 +148,63 @@ export function buildShoppingList(
 
   for (const { ingredient, sources } of byIngredient.values()) {
     const anyNeeded = sources.some(isNeeded);
-    (anyNeeded ? needed : acquired).items.push({
+    const showsNeeded = anyNeeded !== held.has(ingredientKey(ingredient.id));
+    (showsNeeded ? needed : acquired).items.push({
       ingredient,
       amounts: sumByUnit(anyNeeded ? sources.filter(isNeeded) : sources),
       implicit: sources.length === 1 && sources[0].item.quantity === null,
       plans: [...new Map(sources.map((it) => [it.plan.id, it.plan])).values()],
       sources,
+      countsAs: anyNeeded ? PlanItemStatus.NEEDED : PlanItemStatus.ACQUIRED,
     });
   }
   needed.items.sort(byStoreOrder);
   acquired.items.sort(byStoreOrder);
   return { needed, acquired };
+}
+
+const INGREDIENT_KEY_PREFIX = "ingredient:";
+
+/** I key a shopping item's row, apart from any plan item's. */
+export function ingredientKey(ingredientId: string): string {
+  return `${INGREDIENT_KEY_PREFIX}${ingredientId}`;
+}
+
+/**
+ * I give the status of every row, keyed as held rows are: a shopping item's
+ * by its ingredient, a loose plan item's by its id.
+ */
+export function statusesOf(
+  list: ShoppingList,
+): ReadonlyMap<string, ToggleStatus> {
+  const statuses = new Map<string, ToggleStatus>();
+  for (const region of [list.needed, list.acquired]) {
+    for (const item of region.items) {
+      statuses.set(ingredientKey(item.ingredient.id), item.countsAs);
+    }
+    for (const source of region.unresolved) {
+      statuses.set(source.item.id, source.countsAs);
+    }
+  }
+  return statuses;
+}
+
+/**
+ * I give the held rows once statuses change: a row whose status flipped
+ * goes in if it wasn't held, and out if it was. A row that's gone goes out.
+ */
+export function toggleFlips(
+  held: ReadonlySet<string>,
+  before: ReadonlyMap<string, ToggleStatus>,
+  after: ReadonlyMap<string, ToggleStatus>,
+): ReadonlySet<string> {
+  const next = new Set<string>();
+  for (const [key, status] of after) {
+    const was = before.get(key);
+    const flipped = was !== undefined && was !== status;
+    if (held.has(key) !== flipped) next.add(key);
+  }
+  return next;
 }
 
 /** I write an amount out: its quantity, then its unit, if it has one. */

@@ -1,12 +1,16 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { ToggleStatus } from "@/features/plan-status";
 import { describe, expect, it } from "vitest";
 import {
   buildShoppingList,
   formatAmount,
+  ingredientKey,
   ShoppingItem,
   ShoppingPlan,
   ShoppingPlanItem,
   Source,
+  statusesOf,
+  toggleFlips,
   Unit,
 } from "./model";
 
@@ -466,6 +470,155 @@ describe("buildShoppingList", () => {
       color: "#F57F17",
       changeable: true,
     });
+  });
+});
+
+describe("buildShoppingList, holding rows", () => {
+  /** Flour and sugar needed, basil acquired, and paper towels and foil. */
+  const PLANS = [
+    plan(
+      "1",
+      ["f", "s1", "s2", "b", "towels", "foil"],
+      [
+        item({ id: "f", quantity: 2, unit: CUP, pantry: FLOUR }),
+        item({ id: "s1", quantity: 1, unit: TSP, pantry: SUGAR }),
+        item({
+          id: "s2",
+          quantity: 2,
+          unit: TBSP,
+          pantry: SUGAR,
+          status: PlanItemStatus.ACQUIRED,
+        }),
+        item({
+          id: "b",
+          quantity: 1,
+          unit: CUP,
+          pantry: BASIL,
+          status: PlanItemStatus.ACQUIRED,
+        }),
+        item({ id: "towels", name: "paper towels" }),
+        item({
+          id: "foil",
+          name: "foil",
+          status: PlanItemStatus.ACQUIRED,
+        }),
+      ],
+    ),
+  ];
+
+  it("tells what each shopping item counts as", () => {
+    const list = buildShoppingList(PLANS);
+
+    expect(
+      list.needed.items.map((it) => [it.ingredient.name, it.countsAs]),
+    ).toEqual([
+      ["sugar", PlanItemStatus.NEEDED],
+      ["flour", PlanItemStatus.NEEDED],
+    ]);
+    expect(only(list.acquired.items).countsAs).toBe(PlanItemStatus.ACQUIRED);
+  });
+
+  it("shows held shopping items opposite their status, in store order", () => {
+    const list = buildShoppingList(
+      PLANS,
+      new Set([ingredientKey(SUGAR.id), ingredientKey(BASIL.id)]),
+    );
+
+    expect(names(list.needed.items)).toEqual(["flour", "basil"]);
+    expect(names(list.acquired.items)).toEqual(["sugar"]);
+    expect(only(list.acquired.items).countsAs).toBe(PlanItemStatus.NEEDED);
+  });
+
+  it("shows held loose plan items opposite their status", () => {
+    const list = buildShoppingList(PLANS, new Set(["towels", "foil"]));
+
+    expect(ids(list.needed.unresolved)).toEqual(["foil"]);
+    expect(ids(list.acquired.unresolved)).toEqual(["towels"]);
+  });
+
+  it("sums by status, wherever a held shopping item shows", () => {
+    const list = buildShoppingList(
+      PLANS,
+      new Set([ingredientKey(SUGAR.id), ingredientKey(BASIL.id)]),
+    );
+
+    const [sugar] = list.acquired.items;
+    expect(sugar.amounts).toEqual([{ quantity: 1, unit: TSP }]);
+    const [, basil] = list.needed.items;
+    expect(basil.amounts).toEqual([{ quantity: 1, unit: CUP }]);
+  });
+
+  it("ignores held keys with no row", () => {
+    const list = buildShoppingList(
+      PLANS,
+      new Set([ingredientKey(EGGS.id), "gone"]),
+    );
+
+    expect(list).toEqual(buildShoppingList(PLANS));
+  });
+});
+
+describe("statusesOf", () => {
+  it("gives every row's status, whichever region it shows in", () => {
+    const list = buildShoppingList(
+      [
+        plan(
+          "1",
+          ["s", "towels"],
+          [
+            item({ id: "s", pantry: SUGAR }),
+            item({
+              id: "towels",
+              name: "paper towels",
+              status: PlanItemStatus.ACQUIRED,
+            }),
+          ],
+        ),
+      ],
+      new Set([ingredientKey(SUGAR.id), "towels"]),
+    );
+
+    expect(statusesOf(list)).toEqual(
+      new Map([
+        [ingredientKey(SUGAR.id), PlanItemStatus.NEEDED],
+        ["towels", PlanItemStatus.ACQUIRED],
+      ]),
+    );
+  });
+});
+
+describe("toggleFlips", () => {
+  const NEEDED: ToggleStatus = PlanItemStatus.NEEDED;
+  const ACQUIRED: ToggleStatus = PlanItemStatus.ACQUIRED;
+
+  it("holds a row whose status flips, and lets it go when it flips back", () => {
+    const before = new Map([["a", NEEDED]]);
+    const after = new Map([["a", ACQUIRED]]);
+
+    const held = toggleFlips(new Set(), before, after);
+
+    expect(held).toEqual(new Set(["a"]));
+    expect(toggleFlips(held, after, before)).toEqual(new Set());
+  });
+
+  it("leaves alone rows that didn't flip, and new rows", () => {
+    const before = new Map([
+      ["a", NEEDED],
+      ["b", ACQUIRED],
+    ]);
+    const after = new Map([
+      ["a", NEEDED],
+      ["b", ACQUIRED],
+      ["c", ACQUIRED],
+    ]);
+
+    expect(toggleFlips(new Set(["b"]), before, after)).toEqual(new Set(["b"]));
+  });
+
+  it("drops held rows that are gone", () => {
+    const before = new Map([["a", NEEDED]]);
+
+    expect(toggleFlips(new Set(["a"]), before, new Map())).toEqual(new Set());
   });
 });
 
