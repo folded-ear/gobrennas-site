@@ -1,17 +1,18 @@
 "use client";
 
-import { OfflineIcon, SignInIcon } from "@/components/icons";
+import { OfflineIcon, SignInIcon, UpdateIcon } from "@/components/icons";
 import { doLogin } from "@/constants";
-import { useSyncStatus } from "@/features/plan-sync";
+import { usePlanSync, useSyncStatus } from "@/features/plan-sync";
 import { Button } from "@heroui/react";
 
 /**
  * I show, beside a section's title, what the page's sync engine knows: that
- * the device is offline, or that the login has expired and changes wait
- * for it to be renewed.
+ * the device is offline, that the login has expired and changes wait for
+ * it to be renewed, or that a new version is waiting.
  */
 export function SyncStatus() {
-  const { online, authorized } = useSyncStatus();
+  const { online, authorized, updateWaiting } = useSyncStatus();
+  const sync = usePlanSync();
   return (
     <>
       {/* Always present, so assistive tech hears the text arrive. */}
@@ -34,6 +35,17 @@ export function SyncStatus() {
           <SignInIcon size="small" aria-hidden />
         </Button>
       )}
+      {updateWaiting ? (
+        <Button
+          isIconOnly
+          size="sm"
+          variant="tertiary"
+          aria-label="Update available"
+          onPress={sync.update}
+        >
+          <UpdateIcon size="small" aria-hidden />
+        </Button>
+      ) : null}
     </>
   );
 }

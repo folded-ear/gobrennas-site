@@ -59,6 +59,7 @@ function start({
     locks: fakeLocks(open),
     toast,
     publish: (view) => views.push(view),
+    worker: null,
   });
   runner.start();
   return { runner, kept, toast };

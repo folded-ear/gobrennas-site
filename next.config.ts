@@ -1,4 +1,5 @@
 import { loadEnvConfig } from "@next/env";
+import { withSerwist } from "@serwist/turbopack";
 import type { NextConfig } from "next";
 
 const projectDir = process.cwd();
@@ -58,4 +59,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

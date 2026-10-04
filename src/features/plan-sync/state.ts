@@ -162,6 +162,8 @@ export type State = {
   readonly pollDueAt: number;
   /** Whether the browser's install prompt is held, ready to show. */
   readonly installable: boolean;
+  /** Whether a new version of the app is installed and waiting. */
+  readonly updateWaiting: boolean;
 };
 
 export type SendOutcome =
@@ -205,6 +207,8 @@ export type Event = At &
     | { readonly type: "storageBlocked" }
     | { readonly type: "installPrompt" }
     | { readonly type: "install" }
+    | { readonly type: "workerWaiting" }
+    | { readonly type: "update" }
     | { readonly type: "stored"; readonly keys: readonly string[] }
     | { readonly type: "storeFailed"; readonly keys: readonly string[] }
     | {
@@ -270,4 +274,5 @@ export type Effect =
   | { readonly kind: "freeze" }
   | { readonly kind: "thaw" }
   | { readonly kind: "closeStorage" }
-  | { readonly kind: "showInstallPrompt" };
+  | { readonly kind: "showInstallPrompt" }
+  | { readonly kind: "activateWorker" };

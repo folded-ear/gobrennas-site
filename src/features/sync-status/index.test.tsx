@@ -1,5 +1,6 @@
-import { usePlanSync } from "@/features/plan-sync";
+import { PlanSync, usePlanSync } from "@/features/plan-sync";
 import { changeMutation } from "@/features/plan-sync/mutation";
+import type { WorkerHost } from "@/features/plan-sync/runner";
 import { act, render, screen, userEvent } from "@/test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SyncStatus } from "./index";
@@ -45,6 +46,31 @@ describe("SyncStatus", () => {
 
     act(() => window.dispatchEvent(new Event("online")));
     expect(screen.getByRole("status")).toHaveTextContent("");
+  });
+
+  it("offers a waiting version, and switches to it when asked", async () => {
+    let waiting = () => {};
+    const worker: WorkerHost = {
+      register: (onWaiting) => {
+        waiting = onWaiting;
+      },
+      activate: vi.fn(),
+    };
+    render(
+      <PlanSync userId={null} renderedAt={0} worker={worker}>
+        <SyncStatus />
+      </PlanSync>,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Update available" }),
+    ).toBeNull();
+
+    act(() => waiting());
+    await userEvent.click(
+      screen.getByRole("button", { name: "Update available" }),
+    );
+
+    expect(worker.activate).toHaveBeenCalledTimes(1);
   });
 
   it("offers to sign in again once the login has expired", async () => {

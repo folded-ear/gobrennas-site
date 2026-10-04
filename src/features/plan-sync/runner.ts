@@ -27,6 +27,16 @@ export type SyncStatus = {
   readonly authorized: boolean;
   /** Whether the browser's install prompt can be shown. */
   readonly installable: boolean;
+  /** Whether a new version of the app is waiting to be switched to. */
+  readonly updateWaiting: boolean;
+};
+
+/** The app's service worker, as the engine registers and updates it. */
+export type WorkerHost = {
+  /** I register the worker, telling onWaiting when a new version waits. */
+  register(onWaiting: () => void): void;
+  /** I switch to the waiting version, reloading once it takes over. */
+  activate(): void;
 };
 
 /** The browser's install prompt, as Chrome gives it. */
@@ -44,6 +54,8 @@ export type RunnerDeps = {
   readonly locks: PageLocks;
   readonly toast: (failed: readonly Change[]) => void;
   readonly publish: (view: View) => void;
+  /** Null where there's no service worker, as in development. */
+  readonly worker: WorkerHost | null;
 };
 
 /** A page's sync engine, with the effects of its steps carried out. */
@@ -77,6 +89,7 @@ export function createRunner({
   locks,
   toast,
   publish,
+  worker,
 }: RunnerDeps): Runner {
   let state: State = initialState({
     pageLoadId,
@@ -99,7 +112,9 @@ export function createRunner({
     online: state.online,
     authorized: true,
     installable: false,
+    updateWaiting: false,
   };
+  let registered = false;
   let installPrompt: InstallPromptEvent | null = null;
 
   function post(event: Posted) {
@@ -126,6 +141,7 @@ export function createRunner({
       online: state.online,
       authorized: state.authorized,
       installable: state.installable,
+      updateWaiting: state.updateWaiting,
     };
     if (
       (Object.keys(next) as (keyof SyncStatus)[]).every(
@@ -252,6 +268,9 @@ export function createRunner({
         void installPrompt?.prompt();
         installPrompt = null;
         return;
+      case "activateWorker":
+        worker?.activate();
+        return;
     }
   }
 
@@ -314,6 +333,10 @@ export function createRunner({
       window.addEventListener("beforeinstallprompt", onInstallPrompt);
       failLost();
       arm();
+      if (!registered) {
+        registered = true;
+        worker?.register(() => post({ type: "workerWaiting" }));
+      }
       if (booted) return;
       booted = true;
       void adopt().then(

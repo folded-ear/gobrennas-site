@@ -4,6 +4,7 @@ import { rand_chars } from "@/lib/entropy";
 import { displayName } from "@/lib/plan-item-name";
 import { useApolloClient } from "@apollo/client/react";
 import { toast } from "@heroui/react";
+import { Serwist } from "@serwist/window";
 import {
   createContext,
   PropsWithChildren,
@@ -15,7 +16,7 @@ import {
 } from "react";
 import { createPageLocks } from "./locks";
 import { publishView } from "./overlay";
-import { createRunner, Runner, SyncStatus } from "./runner";
+import { createRunner, Runner, SyncStatus, WorkerHost } from "./runner";
 import type {
   AssignBucketChange,
   Change,
@@ -27,6 +28,34 @@ import type {
 import { createIdbChangeStore } from "./store";
 
 const PAGE_LOAD_ID_LENGTH = 12;
+const SERVICE_WORKER_URL = "/serwist/sw.js";
+const SERVICE_WORKER_SCOPE = "/";
+
+/** I give the app's service worker, where there is one: production only. */
+function serviceWorker(): WorkerHost | null {
+  if (
+    process.env.NODE_ENV !== "production" ||
+    !("serviceWorker" in navigator)
+  ) {
+    return null;
+  }
+  const serwist = new Serwist(SERVICE_WORKER_URL, {
+    scope: SERVICE_WORKER_SCOPE,
+    type: "module",
+    updateViaCache: "none",
+  });
+  return {
+    register(onWaiting) {
+      serwist.addEventListener("waiting", onWaiting);
+      // One that began waiting before this page loaded fires no event.
+      void serwist.register().then((it) => it?.waiting && onWaiting());
+    },
+    activate() {
+      serwist.addEventListener("controlling", () => window.location.reload());
+      serwist.messageSkipWaiting();
+    },
+  };
+}
 
 /** What a screen asks of its page's sync engine. */
 export type PlanSync = {
@@ -52,6 +81,8 @@ export type PlanSync = {
   unsent(): Promise<number>;
   /** I show the browser's install prompt, if it's held. */
   install(): void;
+  /** I switch to the waiting version of the app, sending held changes first. */
+  update(): void;
 };
 
 const PlanSyncContext = createContext<Runner | null>(null);
@@ -73,6 +104,8 @@ type PlanSyncProps = PropsWithChildren<{
   readonly userId: string | null;
   /** When the server rendered the page. */
   readonly renderedAt: number;
+  /** The app's service worker; left out, the real one, where there is one. */
+  readonly worker?: WorkerHost | null;
 }>;
 
 /**
@@ -80,7 +113,12 @@ type PlanSyncProps = PropsWithChildren<{
  * the client's first render, so screens below can post to it from their
  * own effects, which run before mine; it starts once I mount.
  */
-export function PlanSync({ userId, renderedAt, children }: PlanSyncProps) {
+export function PlanSync({
+  userId,
+  renderedAt,
+  worker,
+  children,
+}: PlanSyncProps) {
   const client = useApolloClient();
   const [runner] = useState(() => {
     if (typeof window === "undefined") return null;
@@ -97,6 +135,7 @@ export function PlanSync({ userId, renderedAt, children }: PlanSyncProps) {
       locks: createPageLocks(navigator.locks, pageLoadId),
       toast: reportFailure,
       publish: (view) => publishView(client.cache, view),
+      worker: worker === undefined ? serviceWorker() : worker,
     });
     return made;
   });
@@ -127,6 +166,7 @@ export function usePlanSync(): PlanSync {
       resolve: (id) => runner?.resolve(id) ?? id,
       unsent: () => runner?.unsent() ?? Promise.resolve(0),
       install: () => post({ type: "install" }),
+      update: () => post({ type: "update" }),
     };
   }, [runner]);
 }
@@ -147,6 +187,7 @@ const SERVER_STATUS: SyncStatus = {
   online: true,
   authorized: true,
   installable: false,
+  updateWaiting: false,
 };
 
 const noSubscription = () => () => {};

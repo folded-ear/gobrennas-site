@@ -662,3 +662,27 @@ describe("installing", () => {
     expect(kinds(e.effects)).toEqual([]);
   });
 });
+
+describe("updating", () => {
+  it("offers a waiting version, and sends held changes before switching", () => {
+    const e = engine();
+    e.boot();
+    e.change(status(PIE, PlanItemStatus.COMPLETED), true);
+    e.post({ type: "workerWaiting" });
+    expect(e.state.updateWaiting).toBe(true);
+
+    e.post({ type: "update" });
+
+    expect(kinds(e.effects)).toEqual(["send", "activateWorker"]);
+    expect(e.lastSend().keepalive).toBe(true);
+  });
+
+  it("does nothing on update with no version waiting", () => {
+    const e = engine();
+    e.boot();
+
+    e.post({ type: "update" });
+
+    expect(e.effects).toEqual([]);
+  });
+});

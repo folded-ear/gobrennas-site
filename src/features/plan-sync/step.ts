@@ -62,6 +62,7 @@ export function initialState({
     renderedAt,
     pollDueAt: 0,
     installable: false,
+    updateWaiting: false,
   };
 }
 
@@ -303,6 +304,16 @@ function handle(s: Stepping, event: Event) {
       if (!w.installable) return;
       w.installable = false;
       s.emit({ kind: "showInstallPrompt" });
+      return;
+    case "workerWaiting":
+      w.updateWaiting = true;
+      return;
+    case "update":
+      if (!w.updateWaiting) return;
+      // Held changes go first; any still unsent are stored for the reload.
+      releaseHeld(s);
+      dispatch(s);
+      s.emit({ kind: "activateWorker" });
       return;
     case "storageBlocked":
       w.storing = false;

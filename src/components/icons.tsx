@@ -16,6 +16,7 @@ import {
   NotebookTabs,
   Pencil,
   Plus,
+  RefreshCw,
   Search,
   ShelvingUnit,
   ShoppingCart,
@@ -67,4 +68,5 @@ export const RecipeViewIcon = createIcon(EyeIcon);
 export const SearchIcon = createIcon(Search);
 export const SendToPlanIcon = createIcon(SquareArrowRightEnter);
 export const SignInIcon = createIcon(LogIn);
+export const UpdateIcon = createIcon(RefreshCw);
 export const ShoppingCartIcon = createIcon(ShoppingCart);
