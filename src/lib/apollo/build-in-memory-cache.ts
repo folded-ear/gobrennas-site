@@ -26,6 +26,10 @@ export function buildInMemoryCache() {
       },
       PlannerQuery: {
         merge: true,
+        fields: {
+          // Each poll's cutoff is new, so only the plan names an answer.
+          updatedSince: { keyArgs: ["planId"] },
+        },
       },
       LibraryQuery: {
         fields: {

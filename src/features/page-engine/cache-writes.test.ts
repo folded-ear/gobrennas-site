@@ -3,12 +3,7 @@ import { gql } from "@apollo/client";
 import { beforeEach, describe, expect, it } from "vitest";
 import { evictDraft, writeDraft, writeSaved } from "./cache-writes";
 import type { CreateChange } from "./state";
-import {
-  childIdsOf,
-  readStatus,
-  seededCache,
-  THANKSGIVING,
-} from "./test/status-cache";
+import { childIdsOf, seededCache, THANKSGIVING } from "./test/status-cache";
 
 const ITEM = gql`
   fragment CacheWritesTestItem on PlanItem {
@@ -97,32 +92,6 @@ describe("drafts", () => {
 });
 
 describe("writeSaved", () => {
-  it("writes a saved status", () => {
-    writeSaved(
-      cache,
-      [
-        {
-          kind: "status",
-          id: "3",
-          planId: THANKSGIVING,
-          name: "Whipped cream",
-          status: PlanItemStatus.ACQUIRED,
-        },
-      ],
-      {
-        planner: {
-          s0: {
-            __typename: "PlanItem",
-            id: "3",
-            status: PlanItemStatus.ACQUIRED,
-          },
-        },
-      },
-    );
-
-    expect(readStatus(cache, "3")?.status).toBe(PlanItemStatus.ACQUIRED);
-  });
-
   it("evicts a completed item with everything under it", () => {
     writeSaved(
       cache,
@@ -153,42 +122,13 @@ describe("writeSaved", () => {
 
   it("lists a created item after its sibling", () => {
     const { bucketId: _, ...sent } = STUFFING;
+    const saved = whole("900", "Stuffing", PLAN_PARENT);
+    // Apollo writes the saved item itself.
+    cache.writeFragment({ fragment: ITEM, data: saved });
 
-    writeSaved(cache, [sent], {
-      planner: { s0: whole("900", "Stuffing", PLAN_PARENT) },
-    });
+    writeSaved(cache, [sent], { planner: { s0: saved } });
 
     expect(childIdsOf(cache, THANKSGIVING)).toEqual(["1", "900", "3"]);
-    expect(read("900")?.name).toBe("Stuffing");
-  });
-
-  it("writes a saved name and bucket", () => {
-    writeSaved(
-      cache,
-      [
-        { kind: "rename", id: "3", planId: THANKSGIVING, name: "Ice cream" },
-        {
-          kind: "assignBucket",
-          id: "3",
-          planId: THANKSGIVING,
-          name: "Ice cream",
-          bucketId: "b1",
-        },
-      ],
-      {
-        planner: {
-          s0: whole("3", "Ice cream", PLAN_PARENT),
-          s1: {
-            __typename: "PlanItem",
-            id: "3",
-            bucket: { __typename: "PlanBucket", id: "b1" },
-          },
-        },
-      },
-    );
-
-    expect(read("3")?.name).toBe("Ice cream");
-    expect(bucketOf("3")?.id).toBe("b1");
   });
 
   it("moves items as the server ordered them", () => {

@@ -203,8 +203,6 @@ export function createRunner({
           .mutate({
             mutation,
             variables,
-            errorPolicy: "all",
-            fetchPolicy: "no-cache",
             context: {
               fetchOptions: {
                 keepalive: effect.keepalive,
