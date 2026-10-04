@@ -20,10 +20,10 @@ const FAILED_SAVE = "Couldn’t save your change";
 /** What the last press's setter call returned. */
 let lastSet: Promise<unknown> | undefined;
 
-function Probe({ quiet }: { quiet?: boolean }) {
+function Probe() {
   const [setPreference] = useSetPreference(PREF);
   return (
-    <button onClick={() => (lastSet = setPreference("new", { quiet }))}>
+    <button onClick={() => (lastSet = setPreference("new"))}>
       {usePreference(PREF)}
     </button>
   );
@@ -31,11 +31,10 @@ function Probe({ quiet }: { quiet?: boolean }) {
 
 type ProbeOptions = {
   seedDeviceKey?: boolean;
-  quiet?: boolean;
   mock?: Partial<MockLink.MockedResponse>;
 };
 
-function renderProbe({ seedDeviceKey = true, quiet, mock }: ProbeOptions = {}) {
+function renderProbe({ seedDeviceKey = true, mock }: ProbeOptions = {}) {
   const cache = buildInMemoryCache();
   if (seedDeviceKey) {
     // this is what apollo-rsc.ts writes, and what reaches the browser cache
@@ -86,7 +85,7 @@ function renderProbe({ seedDeviceKey = true, quiet, mock }: ProbeOptions = {}) {
 
   render(
     <ApolloProvider client={client}>
-      <Probe quiet={quiet} />
+      <Probe />
     </ApolloProvider>,
   );
   return { cache, seen, button: screen.getByRole("button") };
@@ -155,18 +154,6 @@ describe("useSetPreference", () => {
     expect(
       toast.getQueue().visibleToasts.map(({ content }) => content.title),
     ).toEqual([FAILED_SAVE]);
-  });
-
-  it("settles without a word when told to keep quiet", async () => {
-    const { button } = renderProbe({
-      quiet: true,
-      mock: { error: new Error("nope") },
-    });
-
-    button.click();
-
-    await expect(lastSet).resolves.toBeUndefined();
-    expect(toast.getQueue().visibleToasts).toEqual([]);
   });
 
   it("leaves the cached device key alone while guessing", async () => {

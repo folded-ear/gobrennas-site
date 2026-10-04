@@ -118,7 +118,7 @@ describe("usePlanSelection", () => {
     await waitFor(() => expect(storedValue(cache)).toBe(WEEKNIGHTS.id));
   });
 
-  it("tries a fill once, and quietly, when it can't be stored", async () => {
+  it("tries a fill once, and says so, when it can't be stored", async () => {
     const attempt = vi.fn(() => ({ errors: [{ message: "nope" }] }));
     const cache = renderProbe({
       stored: null,
@@ -139,7 +139,7 @@ describe("usePlanSelection", () => {
 
     expect(attempt).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("status")).toHaveTextContent(WEEKNIGHTS.id);
-    expect(screen.queryByText("Couldn’t save your change")).toBeNull();
+    expect(screen.getAllByText("Couldn’t save your change")).toHaveLength(1);
   });
 
   it("stores a new selection", async () => {

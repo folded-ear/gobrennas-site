@@ -17,8 +17,7 @@ function format(ids: readonly string[], mode: SelectionMode) {
  * I keep a plan selection in a preference: an ID preference in single mode,
  * a SET_OF_IDS one in multiple mode. When what's stored selects no plan the
  * user can reach, I select the first one and store that, so a selection is
- * never empty while there's a plan to select. I try to store each fill once,
- * and a failure to store one goes unreported.
+ * never empty while there's a plan to select. I try to store each fill once.
  */
 export function usePlanSelection(
   preferenceName: string,
@@ -38,7 +37,7 @@ export function usePlanSelection(
   useEffect(() => {
     if (filling === null || filling === filled.current) return;
     filled.current = filling;
-    void setPreference(filling, { quiet: true });
+    void setPreference(filling);
   }, [filling, setPreference]);
 
   const setIds = useCallback(
