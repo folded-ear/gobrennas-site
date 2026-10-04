@@ -363,6 +363,20 @@ describe("creating", () => {
     expect(e.state.pending).toEqual([]);
   });
 
+  it("reports each change once when a refused create takes others with it", () => {
+    const e = engine({ online: false });
+    e.boot();
+    e.change(create("draft:g", { afterId: "draft:never" }));
+    e.change(rename("draft:g", "Turkey gravy"));
+
+    e.post({ type: "online" });
+
+    expect(e.of("toast")[0].failed).toEqual([
+      create("draft:g", { afterId: "draft:never" }),
+      rename("draft:g", "Turkey gravy"),
+    ]);
+  });
+
   it("refuses a change naming a draft that no create makes", () => {
     const e = engine();
     e.boot();

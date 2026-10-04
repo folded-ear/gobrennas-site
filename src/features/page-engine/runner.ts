@@ -395,11 +395,18 @@ export function createRunner({
     const flight = state.inFlight;
     if (flight === null || request?.id === flight.id) return;
     const outcome = { kind: "unreachable" } as const;
-    post(
-      flight.kind === "send"
-        ? { type: "sent", requestId: flight.id, outcome }
-        : { type: "polled", requestId: flight.id, outcome },
-    );
+    const requestId = flight.id;
+    switch (flight.kind) {
+      case "send":
+        post({ type: "sent", requestId, outcome });
+        return;
+      case "poll":
+        post({ type: "polled", requestId, outcome });
+        return;
+      case "seed":
+        post({ type: "seeded", requestId, outcome });
+        return;
+    }
   }
 
   return {

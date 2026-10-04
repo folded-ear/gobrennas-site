@@ -320,6 +320,21 @@ describe("the runner", () => {
   });
 });
 
+describe("the runner, stopped and started", () => {
+  it("fetches shopping again when stopped before its first fetch went", async () => {
+    vi.useFakeTimers();
+    const { runner } = start({ snapshot: null });
+    runner.stop();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(api.requests.map((it) => it.operation)).not.toContain("Shopping");
+
+    runner.start();
+    await vi.advanceTimersByTimeAsync(RETRY_BASE_MS);
+
+    expect(api.requests.map((it) => it.operation)).toContain("Shopping");
+  });
+});
+
 describe("the runner's snapshot", () => {
   /** I give a cache like this test's, with whipped cream renamed. */
   function renamedCache() {

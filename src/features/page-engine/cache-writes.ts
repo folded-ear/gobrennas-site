@@ -63,7 +63,6 @@ export function writeDraft(cache: ApolloCache, change: CreateChange): void {
 /** I remove a draft's item. */
 export function evictDraft(cache: ApolloCache, id: string): void {
   cache.evict({ id: cacheIdOf(cache, id) });
-  cache.gc();
 }
 
 /** I write a saved move: the parent's children, and the items' parents. */
@@ -131,7 +130,6 @@ export function writeSaved(
           case "status":
             if (REMOVALS.has(change.status)) {
               evictItem(cache, change.id);
-              cache.gc();
             } else {
               cache.writeFragment({
                 fragment: SetStatusResultFragmentDoc,

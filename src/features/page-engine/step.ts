@@ -151,6 +151,8 @@ class Stepping {
    * every change waiting on a create among them.
    */
   refuse(entry: Pending) {
+    // Already gone with a create it waited on.
+    if (!this.w.pending.some((it) => it.key === entry.key)) return;
     this.w.pending = this.w.pending.filter((it) => it.key !== entry.key);
     this.forget([entry.key]);
     this.failed.push(entry.change);
