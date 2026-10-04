@@ -239,6 +239,46 @@ describe("ShoppingRegions", () => {
     expect(sugar).toHaveAttribute("aria-expanded", "false");
   });
 
+  it("keeps the acquired region open as a shopping item expands", async () => {
+    const cache = buildInMemoryCache();
+    const list = buildShoppingList([
+      plan(
+        WEEKNIGHTS.id,
+        WEEKNIGHTS.name,
+        WEEKNIGHTS.color,
+        ["b", "d"],
+        [
+          seedItem(cache, {
+            id: "b",
+            name: "basil",
+            parent: "7",
+            pantry: BASIL,
+          }),
+          seedItem(cache, {
+            id: "d",
+            name: "sugar",
+            parent: "7",
+            pantry: SUGAR,
+            status: PlanItemStatus.ACQUIRED,
+          }),
+        ],
+      ),
+    ]);
+    renderList(list, cache);
+    await expandAcquired();
+    const toggle = screen.getByRole("button", { name: "Acquired (1)" });
+
+    await userEvent.click(screen.getByRole("button", { name: /^sugar/ }));
+
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: /^sugar/ })).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: /^basil/ }));
+
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: /^sugar/ })).toBeVisible();
+  });
+
   it("shows each shopping item's own status, whichever region it's in", async () => {
     const cache = buildInMemoryCache();
     const list = buildShoppingList(

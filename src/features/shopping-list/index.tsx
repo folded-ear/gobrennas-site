@@ -33,6 +33,9 @@ type RegionSectionProps = {
   readonly loose: readonly ShoppingRow[];
   readonly looseGroup: string;
   readonly rows: ShoppingRows;
+  /** The one shopping item expanded, whichever region it's in. */
+  readonly expandedId: string | null;
+  readonly onExpandedChange: (id: string | null) => void;
 };
 
 function isEmpty({ items }: Region, loose: readonly ShoppingRow[]): boolean {
@@ -49,21 +52,32 @@ function RegionSection({
   loose,
   looseGroup,
   rows,
+  expandedId,
+  onExpandedChange,
 }: RegionSectionProps) {
   const headingId = useId();
   if (isEmpty(region, loose)) return null;
 
   const list = (
-    <ul className="flex flex-col gap-sm">
-      {region.items.map((item) => (
-        <li key={item.ingredient.id}>
-          <ShoppingItemRow item={item} rows={rows} />
-        </li>
-      ))}
-      {loose.map((row) => (
-        <ShoppingRowLine key={rowKey(row)} row={row} group={looseGroup} />
-      ))}
-    </ul>
+    // Only my items join; a group claims every Disclosure inside it.
+    <DisclosureGroup
+      expandedKeys={expandedId === null ? [] : [expandedId]}
+      onExpandedChange={(keys) => {
+        const [key] = keys;
+        onExpandedChange(key === undefined ? null : String(key));
+      }}
+    >
+      <ul className="flex flex-col gap-sm">
+        {region.items.map((item) => (
+          <li key={item.ingredient.id}>
+            <ShoppingItemRow item={item} rows={rows} />
+          </li>
+        ))}
+        {loose.map((row) => (
+          <ShoppingRowLine key={rowKey(row)} row={row} group={looseGroup} />
+        ))}
+      </ul>
+    </DisclosureGroup>
   );
 
   return (
@@ -75,7 +89,6 @@ function RegionSection({
       }
     >
       {collapsible ? (
-        // No id, so I keep my own state rather than joining the item group.
         <Disclosure onExpandedChange={onToggle}>
           <Disclosure.Heading id={headingId} level={2} className="text-lg">
             <Disclosure.Trigger className="flex w-full items-center gap-sm text-left">
@@ -120,15 +133,8 @@ export function ShoppingRegions({
   }
 
   const regions = (
-    // One group spans both regions, so only one item is ever expanded.
-    <DisclosureGroup
-      className="flex flex-col gap-xl"
-      expandedKeys={expandedId === null ? [] : [expandedId]}
-      onExpandedChange={(keys) => {
-        const [key] = keys;
-        setExpandedId(key === undefined ? null : String(key));
-      }}
-    >
+    // Both regions share one expanded item, so only one is ever expanded.
+    <div className="flex flex-col gap-xl">
       <RegionSection
         title="Needed"
         showsTitle={false}
@@ -136,6 +142,8 @@ export function ShoppingRegions({
         loose={neededLoose}
         looseGroup={LOOSE_NEEDED}
         rows={rows}
+        expandedId={expandedId}
+        onExpandedChange={setExpandedId}
       />
       <RegionSection
         title="Acquired"
@@ -146,8 +154,10 @@ export function ShoppingRegions({
         loose={acquiredLoose}
         looseGroup={LOOSE_ACQUIRED}
         rows={rows}
+        expandedId={expandedId}
+        onExpandedChange={setExpandedId}
       />
-    </DisclosureGroup>
+    </div>
   );
 
   if (tree === undefined) return regions;
