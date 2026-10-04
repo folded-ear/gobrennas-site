@@ -1,4 +1,4 @@
-import { usePlanSync } from "@/features/plan-sync";
+import { usePageEngine } from "@/features/page-engine";
 import { displayName } from "@/lib/plan-item-name";
 import { ApolloCache, Reference } from "@apollo/client";
 import { useApolloClient, useMutation } from "@apollo/client/react";
@@ -55,14 +55,14 @@ function reportFailure(name: string) {
 }
 
 /**
- * I make moves through the sync engine, which shows each as done the
+ * I make moves through the page engine, which shows each as done the
  * moment it's asked for, keeps it until the server has it, and undoes it
  * if the server refuses. A bucket an item joins is always one of its own
  * plan's. A bucket that doesn't exist yet is made first, directly.
  */
 export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
   const { cache } = useApolloClient();
-  const sync = usePlanSync();
+  const engine = usePageEngine();
   const [createBucket] = useMutation(DoCreateBucketDocument);
   const planOf = useMemo(
     () =>
@@ -78,7 +78,7 @@ export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
       reportFailure(name);
       return;
     }
-    sync.move({
+    engine.move({
       kind: "move",
       ids: move.ids,
       planId: plan.id,
@@ -144,7 +144,7 @@ export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
           });
         },
       });
-      sync.assignBucket({
+      engine.assignBucket({
         kind: "assignBucket",
         id: itemId,
         planId,
@@ -179,7 +179,7 @@ export function usePlanMoves({ plans, tree }: UsePlanMovesOptions): PlanMoves {
       itemId,
       newBucketId,
     );
-    sync.set([
+    engine.set([
       {
         kind: "assignBucket",
         id: itemId,

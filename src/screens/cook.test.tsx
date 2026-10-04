@@ -8,8 +8,8 @@ import {
   ref,
   savedRecipe,
 } from "@/features/cook-recipe/test/recipe";
-import { readStatus } from "@/features/plan-sync/test/status-cache";
-import { savedStatuses } from "@/features/plan-sync/test/status-mocks";
+import { readStatus } from "@/features/page-engine/test/status-cache";
+import { savedStatuses } from "@/features/page-engine/test/status-mocks";
 import { CookDocument } from "@/screens/__generated__/cook.generated";
 import {
   act,

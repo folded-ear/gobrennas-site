@@ -1,4 +1,4 @@
-import { SyncStatus } from "@/features/sync-status";
+import { PageStatus } from "@/features/page-status";
 import { PropsWithChildren } from "react";
 
 type SectionHeaderProps = PropsWithChildren<{
@@ -15,7 +15,7 @@ export function SectionHeader({ title, children }: SectionHeaderProps) {
     <header className="sticky top-0 z-30 flex items-center justify-between gap-sm border-b border-separator bg-background px-md pb-sm pt-[calc(var(--spacing-sm)+env(safe-area-inset-top))]">
       <div className="flex min-w-0 items-center gap-sm">
         <h1 className="truncate text-xl">{title}</h1>
-        <SyncStatus />
+        <PageStatus />
       </div>
       {children}
     </header>

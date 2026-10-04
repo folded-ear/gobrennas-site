@@ -24,7 +24,7 @@ import { buildView, type View } from "./view";
 import { nextWake } from "./wake";
 
 /** What the page shows of the engine. */
-export type SyncStatus = {
+export type PageStatus = {
   readonly online: boolean;
   readonly authorized: boolean;
   /** Whether the browser's install prompt can be shown. */
@@ -64,7 +64,7 @@ export type RunnerDeps = {
   readonly worker: WorkerHost | null;
 };
 
-/** A page's sync engine, with the effects of its steps carried out. */
+/** A page engine, with the effects of its steps carried out. */
 export type Runner = {
   start(): void;
   stop(): void;
@@ -81,13 +81,13 @@ export type Runner = {
    */
   forget(): Promise<void>;
   subscribe(listener: () => void): () => void;
-  status(): SyncStatus;
+  status(): PageStatus;
 };
 
 const isVisible = () => document.visibilityState === "visible";
 
 /**
- * I make a page's sync engine: I feed its events through step one at a
+ * I make a page engine: I feed its events through step one at a
  * time, carry out the effects, and keep its one timer. I alone listen to
  * the browser's events for it.
  */
@@ -121,7 +121,7 @@ export function createRunner({
   let storing: Promise<unknown> = Promise.resolve();
   const waiting = new Map<string, (id: string | null) => void>();
   const listeners = new Set<() => void>();
-  let status: SyncStatus = {
+  let status: PageStatus = {
     online: state.online,
     authorized: true,
     installable: false,
@@ -150,14 +150,14 @@ export function createRunner({
   }
 
   function announce() {
-    const next: SyncStatus = {
+    const next: PageStatus = {
       online: state.online,
       authorized: state.authorized,
       installable: state.installable,
       updateWaiting: state.updateWaiting,
     };
     if (
-      (Object.keys(next) as (keyof SyncStatus)[]).every(
+      (Object.keys(next) as (keyof PageStatus)[]).every(
         (it) => next[it] === status[it],
       )
     ) {

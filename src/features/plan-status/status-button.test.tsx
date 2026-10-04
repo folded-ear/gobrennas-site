@@ -4,8 +4,8 @@ import {
   readStatus,
   seededCache,
   THANKSGIVING,
-} from "@/features/plan-sync/test/status-cache";
-import { savedStatuses } from "@/features/plan-sync/test/status-mocks";
+} from "@/features/page-engine/test/status-cache";
+import { savedStatuses } from "@/features/page-engine/test/status-mocks";
 import { render, screen, userEvent } from "@/test";
 import { describe, expect, it } from "vitest";
 import { TOGGLE_LOOKS } from "./status";

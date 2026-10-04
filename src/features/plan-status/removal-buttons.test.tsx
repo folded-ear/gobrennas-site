@@ -3,7 +3,7 @@ import {
   readStatus,
   seededCache,
   THANKSGIVING,
-} from "@/features/plan-sync/test/status-cache";
+} from "@/features/page-engine/test/status-cache";
 import { render, screen, userEvent } from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import { CookedItButton, DeleteButton } from "./removal-buttons";

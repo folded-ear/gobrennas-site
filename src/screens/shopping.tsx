@@ -1,6 +1,7 @@
 "use client";
 
 import { SectionHeader } from "@/components/section-header";
+import { useWatchPlans } from "@/features/page-engine";
 import {
   buildPlanDirectory,
   PlanDirectoryProvider,
@@ -8,7 +9,6 @@ import {
 import { buildPlanTree } from "@/features/plan-dnd/moves";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
-import { useWatchPlans } from "@/features/plan-sync";
 import { ShoppingRegions } from "@/features/shopping-list";
 import { buildShoppingList } from "@/features/shopping-list/model";
 import { canChangePlan, orderPlans } from "@/lib/plans";

@@ -1,11 +1,11 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ControlTooltip } from "@/components/control-tooltip";
+import { usePageEngine } from "@/features/page-engine";
 import {
   actionLabel,
   isToggleStatus,
   useItemStatus,
 } from "@/features/plan-status/status";
-import { usePlanSync } from "@/features/plan-sync";
 import { Button } from "@heroui/react";
 
 type Props = {
@@ -16,7 +16,7 @@ type Props = {
 
 /** Preparation uses the planner's acquired status and keeps the recipe in its plan. */
 export function PreppedButton({ itemId, planId, canChange }: Props) {
-  const queue = usePlanSync();
+  const engine = usePageEngine();
   const item = useItemStatus(itemId);
   if (item === null || !isToggleStatus(item.status)) return null;
 
@@ -40,7 +40,7 @@ export function PreppedButton({ itemId, planId, canChange }: Props) {
         variant="tertiary"
         isDisabled={item.inert || item.pendingStatus !== null}
         onPress={() =>
-          queue.set([
+          engine.set([
             {
               kind: "status",
               id: itemId,

@@ -1,6 +1,6 @@
 "use client";
 
-import { usePlanSync, useSyncStatus } from "@/features/plan-sync";
+import { usePageEngine, usePageStatus } from "@/features/page-engine";
 import { Button } from "@heroui/react";
 import { useSyncExternalStore } from "react";
 import { installOffer } from "./install-offer";
@@ -27,8 +27,8 @@ const useMounted = () =>
 /** I offer to install the app on touch devices that haven't yet. */
 export function InstallApp() {
   const mounted = useMounted();
-  const { installable: canPrompt } = useSyncStatus();
-  const sync = usePlanSync();
+  const { installable: canPrompt } = usePageStatus();
+  const engine = usePageEngine();
   if (!mounted) return null;
 
   const offer = installOffer({
@@ -40,7 +40,7 @@ export function InstallApp() {
 
   if (offer === "prompt") {
     return (
-      <Button variant="secondary" onPress={sync.install}>
+      <Button variant="secondary" onPress={engine.install}>
         Install app
       </Button>
     );

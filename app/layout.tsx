@@ -1,7 +1,7 @@
 import { ErrorFallback } from "@/components/error-fallback";
 import { graphqlUri } from "@/constants";
 import { getUserProfile } from "@/data-rsc/get-user-profile";
-import { PlanSync } from "@/features/plan-sync";
+import { PageEngine } from "@/features/page-engine";
 import { ApolloWrapper } from "@/lib/apollo-browser-and-ssr";
 import brand from "@/lib/brand.json";
 import { renderTime } from "@/lib/render-time";
@@ -47,7 +47,7 @@ export default async function RootLayout({
       <body className="bg-background text-foreground h-full">
         <CookiesProvider>
           <ApolloWrapper graphqlUri={gqlUri} profileQuery={profileQuery}>
-            <PlanSync
+            <PageEngine
               userId={profileQuery?.profile.me.id ?? null}
               renderedAt={renderedAt}
             >
@@ -57,7 +57,7 @@ export default async function RootLayout({
                 </ErrorBoundary>
                 <Toast.Provider />
               </ThemeProvider>
-            </PlanSync>
+            </PageEngine>
           </ApolloWrapper>
         </CookiesProvider>
       </body>

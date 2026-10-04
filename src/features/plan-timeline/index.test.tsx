@@ -1,4 +1,5 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { markPending } from "@/features/page-engine/test/status-cache";
 import {
   buildPlanDirectory,
   PlanDirectory,
@@ -15,7 +16,6 @@ import {
 } from "@/features/plan-dnd/test/dnd-harness";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
-import { markPending } from "@/features/plan-sync/test/status-cache";
 import {
   buildInMemoryCache,
   render,

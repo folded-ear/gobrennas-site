@@ -1,9 +1,9 @@
 "use client";
 
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { usePageEngine } from "@/features/page-engine";
+import { newDraftId } from "@/features/page-engine/ids";
 import { PlanTree } from "@/features/plan-dnd/moves";
-import { usePlanSync } from "@/features/plan-sync";
-import { newDraftId } from "@/features/plan-sync/ids";
 import { isBlankName } from "@/lib/plan-item-name";
 import {
   createContext,
@@ -128,7 +128,7 @@ export function EditSurfaceProvider({
   children,
 }: EditSurfaceProviderProps) {
   const { editing, setEditing, drafts, setDrafts } = state;
-  const queue = usePlanSync();
+  const engine = usePageEngine();
   const rows = useRef(new Map<string, RowEntry>());
   const text = useRef<string | null>(null);
   const [focusKey, setFocusKey] = useState<ItemKey | null>(null);
@@ -223,11 +223,11 @@ export function EditSurfaceProvider({
     commitItem({ id, planId, name, hasChildren, onRemoved }, typed) {
       if (typed === name) return;
       if (!isBlankName(typed)) {
-        queue.rename({ kind: "rename", id, planId, name: typed });
+        engine.rename({ kind: "rename", id, planId, name: typed });
       } else if (hasChildren) {
-        queue.rename({ kind: "rename", id, planId, name: "" });
+        engine.rename({ kind: "rename", id, planId, name: "" });
       } else {
-        queue.set([
+        engine.set([
           { kind: "status", id, planId, name, status: PlanItemStatus.DELETED },
         ]);
         onRemoved?.();
@@ -241,7 +241,7 @@ export function EditSurfaceProvider({
       }
       // The item shows at once under its draft id, so its draft row is done.
       setDrafts((prev) => settleDraft(prev, draftId, draftId, createdStayPut));
-      void queue
+      void engine
         .create({
           kind: "create",
           id: draftId,

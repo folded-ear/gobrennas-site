@@ -1,7 +1,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { ApiRequest, fakeApi } from "@/features/page-engine/test/fake-api";
 import { PlanDirectoryProvider } from "@/features/plan-directory";
 import { buildPlanTree } from "@/features/plan-dnd/moves";
-import { ApiRequest, fakeApi } from "@/features/plan-sync/test/fake-api";
 import {
   buildInMemoryCache,
   render,

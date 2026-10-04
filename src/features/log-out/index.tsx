@@ -2,7 +2,7 @@
 
 import { LogoutIcon } from "@/components/icons";
 import { doLogout } from "@/constants";
-import { usePlanSync } from "@/features/plan-sync";
+import { usePageEngine } from "@/features/page-engine";
 import { AlertDialog, Button } from "@heroui/react";
 import { useState } from "react";
 
@@ -15,18 +15,18 @@ const ACCESS_TOKEN_KEY = "accessToken";
  * once the same user signs in again.
  */
 export function LogOutButton() {
-  const sync = usePlanSync();
+  const engine = usePageEngine();
   const [unsent, setUnsent] = useState(0);
 
   async function logOut() {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
-    await sync.forgetDevice();
+    await engine.forgetDevice();
     doLogout();
   }
 
   async function press() {
-    sync.flush();
-    const count = await sync.unsent();
+    engine.flush();
+    const count = await engine.unsent();
     if (count > 0) setUnsent(count);
     else await logOut();
   }

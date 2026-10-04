@@ -1,8 +1,8 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { changeMutation } from "@/features/page-engine/mutation";
+import type { SentChange } from "@/features/page-engine/state";
 import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
 import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
-import { changeMutation } from "@/features/plan-sync/mutation";
-import type { SentChange } from "@/features/plan-sync/state";
 import {
   PlannerDocument,
   PlannerQuery,
@@ -234,7 +234,7 @@ function childrenOf(name: string) {
   return within(list).getByText(new RegExp(`^${name}:`));
 }
 
-/** I give the request the sync engine sends for changes made together. */
+/** I give the request the page engine sends for changes made together. */
 function changesRequest(...changes: SentChange[]) {
   const { mutation, variables } = changeMutation(changes);
   return { query: mutation, variables };

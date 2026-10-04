@@ -1,8 +1,8 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { publishView } from "@/features/page-engine/overlay";
+import { buildView } from "@/features/page-engine/view";
 import { PlanPickerPlanFragmentDoc } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
 import { PlanItemStatusFragmentDoc } from "@/features/plan-status/__generated__/planItemStatus.generated";
-import { publishView } from "@/features/plan-sync/overlay";
-import { buildView } from "@/features/plan-sync/view";
 import { RecipesDocument } from "@/screens/__generated__/recipes.generated";
 import { gql } from "@apollo/client";
 import { describe, expect, it } from "vitest";

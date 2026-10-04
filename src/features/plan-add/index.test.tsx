@@ -8,18 +8,18 @@ import {
   withTextInsertion,
 } from "@/features/morsel/test-helpers";
 import {
+  PlanItemResultFragmentDoc,
+  type PlanItemResultFragment,
+} from "@/features/page-engine/__generated__/planItemResult.generated";
+import {
+  seededCache,
+  THANKSGIVING,
+} from "@/features/page-engine/test/status-cache";
+import {
   buildPlanDirectory,
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
 import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
-import {
-  PlanItemResultFragmentDoc,
-  type PlanItemResultFragment,
-} from "@/features/plan-sync/__generated__/planItemResult.generated";
-import {
-  seededCache,
-  THANKSGIVING,
-} from "@/features/plan-sync/test/status-cache";
 import { PlanTimeline } from "@/features/plan-timeline";
 import { buildPlanContext } from "@/features/plan-timeline/context";
 import type { TimelineSection } from "@/features/plan-timeline/model";
@@ -471,7 +471,7 @@ describe("planner Add", () => {
     ).toHaveLength(1);
   });
 
-  it("shows all suggestion kinds and saves the chosen identity through the sync engine", async () => {
+  it("shows all suggestion kinds and saves the chosen identity through the page engine", async () => {
     const { user, requests } = setup();
     await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
     const input = editableMorsel("Item for Unplanned");

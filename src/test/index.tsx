@@ -1,4 +1,4 @@
-import { PlanSync } from "@/features/plan-sync";
+import { PageEngine } from "@/features/page-engine";
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { ApolloClient, FragmentType } from "@apollo/client";
@@ -68,12 +68,12 @@ export function render(
   function Providers({ children }: { children: ReactNode }) {
     return (
       <ApolloProvider client={client}>
-        <PlanSync userId={null} renderedAt={RENDERED_AT}>
+        <PageEngine userId={null} renderedAt={RENDERED_AT}>
           <ThemeProvider>
             {children}
             <Toast.Provider />
           </ThemeProvider>
-        </PlanSync>
+        </PageEngine>
       </ApolloProvider>
     );
   }

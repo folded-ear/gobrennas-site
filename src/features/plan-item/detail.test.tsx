@@ -1,5 +1,11 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import {
+  ApiRequest,
+  fakeApi,
+  FIRST_CREATED_ID,
+} from "@/features/page-engine/test/fake-api";
+import { markPending } from "@/features/page-engine/test/status-cache";
+import {
   buildPlanDirectory,
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
@@ -21,12 +27,6 @@ import {
   treeOrder,
   useEditState,
 } from "@/features/plan-edit";
-import {
-  ApiRequest,
-  fakeApi,
-  FIRST_CREATED_ID,
-} from "@/features/plan-sync/test/fake-api";
-import { markPending } from "@/features/plan-sync/test/status-cache";
 import {
   buildPlanContext,
   PlanContext,

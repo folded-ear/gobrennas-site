@@ -1,9 +1,9 @@
-import { PlanSync, usePlanSync } from "@/features/plan-sync";
-import { changeMutation } from "@/features/plan-sync/mutation";
-import type { WorkerHost } from "@/features/plan-sync/runner";
+import { PageEngine, usePageEngine } from "@/features/page-engine";
+import { changeMutation } from "@/features/page-engine/mutation";
+import type { WorkerHost } from "@/features/page-engine/runner";
 import { act, render, screen, userEvent } from "@/test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SyncStatus } from "./index";
+import { PageStatus } from "./index";
 
 const { doLogin } = vi.hoisted(() => ({ doLogin: vi.fn() }));
 
@@ -18,9 +18,9 @@ const RENAME = {
 
 /** I make a change, for the server to answer. */
 function Renamer() {
-  const sync = usePlanSync();
+  const engine = usePageEngine();
   return (
-    <button type="button" onClick={() => sync.rename(RENAME)}>
+    <button type="button" onClick={() => engine.rename(RENAME)}>
       Rename
     </button>
   );
@@ -30,16 +30,16 @@ beforeEach(() => {
   doLogin.mockClear();
 });
 
-describe("SyncStatus", () => {
+describe("PageStatus", () => {
   it("says nothing while all is well", () => {
-    render(<SyncStatus />);
+    render(<PageStatus />);
 
     expect(screen.getByRole("status")).toHaveTextContent("");
     expect(screen.queryByRole("button")).toBeNull();
   });
 
   it("says when the device is offline, and when it's back", () => {
-    render(<SyncStatus />);
+    render(<PageStatus />);
 
     act(() => window.dispatchEvent(new Event("offline")));
     expect(screen.getByRole("status")).toHaveTextContent("Offline");
@@ -57,9 +57,9 @@ describe("SyncStatus", () => {
       activate: vi.fn(),
     };
     render(
-      <PlanSync userId={null} renderedAt={0} worker={worker}>
-        <SyncStatus />
-      </PlanSync>,
+      <PageEngine userId={null} renderedAt={0} worker={worker}>
+        <PageStatus />
+      </PageEngine>,
     );
     expect(
       screen.queryByRole("button", { name: "Update available" }),
@@ -78,7 +78,7 @@ describe("SyncStatus", () => {
     render(
       <>
         <Renamer />
-        <SyncStatus />
+        <PageStatus />
       </>,
       {
         mocks: [

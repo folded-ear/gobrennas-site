@@ -1,6 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { publishView } from "@/features/plan-sync/overlay";
-import { buildView } from "@/features/plan-sync/view";
+import { publishView } from "@/features/page-engine/overlay";
+import { buildView } from "@/features/page-engine/view";
 import {
   buildInMemoryCache,
   render,

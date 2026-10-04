@@ -16,7 +16,7 @@ import {
 } from "react";
 import { createPageLocks } from "./locks";
 import { publishView } from "./overlay";
-import { createRunner, Runner, SyncStatus, WorkerHost } from "./runner";
+import { createRunner, PageStatus, Runner, WorkerHost } from "./runner";
 import type {
   AssignBucketChange,
   Change,
@@ -57,8 +57,8 @@ function serviceWorker(): WorkerHost | null {
   };
 }
 
-/** What a screen asks of its page's sync engine. */
-export type PlanSync = {
+/** What a screen asks of the page engine. */
+export type PageEngineApi = {
   /** I send changes together, as soon as I can. */
   set(changes: readonly Change[]): void;
   /** I hold a COMPLETED or DELETED change for its undo window, then send it. */
@@ -87,7 +87,7 @@ export type PlanSync = {
   forgetDevice(): Promise<void>;
 };
 
-const PlanSyncContext = createContext<Runner | null>(null);
+const PageEngineContext = createContext<Runner | null>(null);
 
 const MOVES: ReadonlySet<Change["kind"]> = new Set(["move", "assignBucket"]);
 
@@ -101,7 +101,7 @@ function reportFailure(failed: readonly Change[]) {
   toast.danger(`Couldn't ${verb} ${displayName(failed[0].name)}`);
 }
 
-type PlanSyncProps = PropsWithChildren<{
+type PageEngineProps = PropsWithChildren<{
   /** The signed-in user, whose changes are kept; none when signed out. */
   readonly userId: string | null;
   /** When the server rendered the page. */
@@ -111,16 +111,16 @@ type PlanSyncProps = PropsWithChildren<{
 }>;
 
 /**
- * I run the page's sync engine for the plans shown under me. It is made on
+ * I run the page engine for whatever's shown under me. It is made on
  * the client's first render, so screens below can post to it from their
  * own effects, which run before mine; it starts once I mount.
  */
-export function PlanSync({
+export function PageEngine({
   userId,
   renderedAt,
   worker,
   children,
-}: PlanSyncProps) {
+}: PageEngineProps) {
   const client = useApolloClient();
   const [runner] = useState(() => {
     if (typeof window === "undefined") return null;
@@ -148,15 +148,15 @@ export function PlanSync({
     runner?.start();
     return () => runner?.stop();
   }, [runner]);
-  return <PlanSyncContext value={runner}>{children}</PlanSyncContext>;
+  return <PageEngineContext value={runner}>{children}</PageEngineContext>;
 }
 
 /**
- * I give the sync engine of the page I'm rendered in. Asking anything of it
+ * I give the page engine I'm rendered under. Asking anything of it
  * on the server does nothing.
  */
-export function usePlanSync(): PlanSync {
-  const runner = useContext(PlanSyncContext);
+export function usePageEngine(): PageEngineApi {
+  const runner = useContext(PageEngineContext);
   return useMemo(() => {
     const post: Runner["post"] = (event) => runner?.post(event);
     return {
@@ -179,7 +179,7 @@ export function usePlanSync(): PlanSync {
 
 /** I keep the given plans current while the caller is mounted. */
 export function useWatchPlans(planIds: readonly string[]): void {
-  const runner = useContext(PlanSyncContext);
+  const runner = useContext(PageEngineContext);
   const key = planIds.join(",");
   useEffect(() => {
     const watched = key === "" ? [] : key.split(",");
@@ -189,7 +189,7 @@ export function useWatchPlans(planIds: readonly string[]): void {
 }
 
 /** What the server renders, before the engine has said anything. */
-const SERVER_STATUS: SyncStatus = {
+const SERVER_STATUS: PageStatus = {
   online: true,
   authorized: true,
   installable: false,
@@ -199,8 +199,8 @@ const SERVER_STATUS: SyncStatus = {
 const noSubscription = () => () => {};
 
 /** I give the page's sync status, following it as it changes. */
-export function useSyncStatus(): SyncStatus {
-  const runner = useContext(PlanSyncContext);
+export function usePageStatus(): PageStatus {
+  const runner = useContext(PageEngineContext);
   return useSyncExternalStore(
     runner?.subscribe ?? noSubscription,
     () => runner?.status() ?? SERVER_STATUS,

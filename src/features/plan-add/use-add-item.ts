@@ -1,7 +1,7 @@
+import { usePageEngine } from "@/features/page-engine";
+import { newDraftId } from "@/features/page-engine/ids";
+import { insertCreated } from "@/features/page-engine/insert";
 import { DoCreateBucketDocument } from "@/features/plan-dnd/__generated__/doCreateBucket.generated";
-import { usePlanSync } from "@/features/plan-sync";
-import { newDraftId } from "@/features/plan-sync/ids";
-import { insertCreated } from "@/features/plan-sync/insert";
 import type { TimelineSection } from "@/features/plan-timeline/model";
 import type { IngredientDraft } from "@/features/recipe-form/ingredient-draft";
 import { recognizedParts } from "@/features/recipe-form/ingredient-recognition";
@@ -23,7 +23,7 @@ import {
  */
 export function useAddItem(section: TimelineSection) {
   const client = useApolloClient();
-  const changes = usePlanSync();
+  const engine = usePageEngine();
   const recognize = useRecognizeIngredient();
   const busy = useRef(false);
   const madeBucket = useRef<{ planId: string; id: string } | undefined>(
@@ -138,7 +138,7 @@ export function useAddItem(section: TimelineSection) {
         const itemId = await addRecipe(plan, choice.food.id, scale);
         if (!itemId) throw new Error("No item returned");
         if (bucketId) {
-          changes.assignBucket({
+          engine.assignBucket({
             kind: "assignBucket",
             id: itemId,
             planId: plan.id,
@@ -148,7 +148,7 @@ export function useAddItem(section: TimelineSection) {
         }
         return true;
       }
-      void changes.create({
+      void engine.create({
         kind: "create",
         id: newDraftId(),
         planId: plan.id,

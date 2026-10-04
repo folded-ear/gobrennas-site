@@ -3,7 +3,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ControlTooltip } from "@/components/control-tooltip";
 import { CookedItIcon, DeleteIcon } from "@/components/icons";
-import { usePlanSync } from "@/features/plan-sync";
+import { usePageEngine } from "@/features/page-engine";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
 import {
@@ -34,7 +34,7 @@ export function CancelPendingButton({
   itemId,
   status,
 }: CancelPendingButtonProps) {
-  const queue = usePlanSync();
+  const engine = usePageEngine();
   const item = useItemStatus(itemId);
   if (item?.pendingStatus !== status) return null;
 
@@ -44,7 +44,7 @@ export function CancelPendingButton({
       // What it says leads what it's called, so it can be asked for by sight.
       aria-label={`${CANCEL_TEXT} ${actionLabel(look.undo, item.name)}`}
       className={clsx("h-xl shrink-0", look.pendingClassName)}
-      onPress={() => queue.cancel(itemId)}
+      onPress={() => engine.cancel(itemId)}
       size="sm"
     >
       {CANCEL_TEXT}
@@ -54,7 +54,7 @@ export function CancelPendingButton({
 
 /** I delete an item, after a window in which it can be undone. */
 export function DeleteButton({ itemId, planId }: RemovalButtonProps) {
-  const queue = usePlanSync();
+  const engine = usePageEngine();
   const item = useItemStatus(itemId);
   if (item === null) return null;
   if (item.pendingStatus === PlanItemStatus.DELETED) {
@@ -75,7 +75,7 @@ export function DeleteButton({ itemId, planId }: RemovalButtonProps) {
         isDisabled={item.inert || item.pendingStatus !== null}
         isIconOnly
         onPress={() =>
-          queue.hold({
+          engine.hold({
             kind: "status",
             id: itemId,
             planId,
@@ -103,7 +103,7 @@ export function CookedItButton({
   planId,
   onCooked,
 }: CookedItButtonProps) {
-  const queue = usePlanSync();
+  const engine = usePageEngine();
   const item = useItemStatus(itemId);
   if (item === null) return null;
   if (item.pendingStatus === PlanItemStatus.COMPLETED) {
@@ -119,7 +119,7 @@ export function CookedItButton({
       className="bg-status-completed text-status-completed-foreground"
       isDisabled={item.inert || item.pendingStatus !== null}
       onPress={() => {
-        queue.hold({
+        engine.hold({
           kind: "status",
           id: itemId,
           planId,

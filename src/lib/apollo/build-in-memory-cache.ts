@@ -2,7 +2,7 @@ import {
   attachView,
   makeView,
   overlayPolicies,
-} from "@/features/plan-sync/overlay";
+} from "@/features/page-engine/overlay";
 import { possibleTypes } from "@/lib/apollo/possible-types";
 import { defaultDataIdFromObject, Reference } from "@apollo/client";
 import { InMemoryCache } from "@apollo/client-integration-nextjs";
@@ -33,7 +33,7 @@ export function buildInMemoryCache() {
           suggestRecipesToCook: relayStylePagination(false),
         },
       },
-      // Pending plan changes show over server data (plan-sync/overlay.ts),
+      // Pending plan changes show over server data (page-engine/overlay.ts),
       // local fields (schema-local.graphql) among them.
       Plan: overlay.Plan,
       PlanItem: {

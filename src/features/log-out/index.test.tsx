@@ -1,4 +1,4 @@
-import { usePlanSync } from "@/features/plan-sync";
+import { usePageEngine } from "@/features/page-engine";
 import { render, screen, userEvent, waitFor } from "@/test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LogOutButton } from "./index";
@@ -9,12 +9,17 @@ vi.mock("@/constants", () => ({ doLogout }));
 
 /** I make a change the server never answers, so it stays unsent. */
 function Renamer() {
-  const sync = usePlanSync();
+  const engine = usePageEngine();
   return (
     <button
       type="button"
       onClick={() =>
-        sync.rename({ kind: "rename", id: "3", planId: "7", name: "Ice cream" })
+        engine.rename({
+          kind: "rename",
+          id: "3",
+          planId: "7",
+          name: "Ice cream",
+        })
       }
     >
       Rename

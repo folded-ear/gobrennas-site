@@ -47,7 +47,7 @@ interface SyncDb extends DBSchema {
   snapshots: { key: string; value: Snapshot };
 }
 
-const DB_NAME = "plan-sync";
+const DB_NAME = "page-engine";
 const DB_VERSION = 2;
 const STORE = "changes";
 const SNAPSHOTS = "snapshots";
