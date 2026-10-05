@@ -142,6 +142,11 @@ The terms used here are defined in the [domain model](../domain/model.md).
   see the prep status as text and cannot change it.
 - Marking a recipe cooked goes back, and the item waits out its undo window
   there, with a button to undo it in place of each of its cook links.
+- I cooked it records today. Its adjacent date dropdown offers today and the
+  previous six days, labeled with weekday, month, and day (for example,
+  Mon, Oct 5). Choosing a date records when the recipe was actually cooked,
+  with the same return and undo behavior. The chosen date is kept even when
+  saving is delayed or the device is offline.
 
 ### Status
 

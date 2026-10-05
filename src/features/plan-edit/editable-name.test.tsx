@@ -153,7 +153,7 @@ describe("EditableName", () => {
 
     await waitFor(() =>
       expect(requests.map((it) => it.variables)).toEqual([
-        { id0: "3", status0: PlanItemStatus.DELETED },
+        { id0: "3", status0: PlanItemStatus.DELETED, doneAt0: null },
       ]),
     );
     expect(editor()).toHaveValue("Pumpkin");
@@ -190,7 +190,7 @@ describe("EditableName", () => {
 
     await waitFor(() =>
       expect(requests.map((it) => it.variables)).toEqual([
-        { id0: "3", status0: PlanItemStatus.DELETED },
+        { id0: "3", status0: PlanItemStatus.DELETED, doneAt0: null },
       ]),
     );
   });

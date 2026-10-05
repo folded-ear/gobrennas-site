@@ -19,6 +19,8 @@ export type StatusChange = {
   readonly planId: string;
   readonly name: string;
   readonly status: PlanItemStatus;
+  /** Cooking time chosen by the user, preserved across delayed sends. */
+  readonly doneAt?: string;
 };
 
 /** One item's new name. */

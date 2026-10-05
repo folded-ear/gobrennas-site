@@ -23,10 +23,18 @@ function fieldFor(change: SentChange, i: number): Field {
   switch (change.kind) {
     case "status":
       return {
-        declarations: { [`id${i}`]: "ID!", [`status${i}`]: "PlanItemStatus!" },
-        values: { [`id${i}`]: change.id, [`status${i}`]: change.status },
+        declarations: {
+          [`id${i}`]: "ID!",
+          [`status${i}`]: "PlanItemStatus!",
+          [`doneAt${i}`]: "DateTime",
+        },
+        values: {
+          [`id${i}`]: change.id,
+          [`status${i}`]: change.status,
+          [`doneAt${i}`]: change.doneAt ?? null,
+        },
         selection:
-          `setStatus(id: $id${i}, status: $status${i})` +
+          `setStatus(id: $id${i}, status: $status${i}, doneAt: $doneAt${i})` +
           ` { ...setStatusResult }`,
         fragment: SetStatusResultFragmentDoc,
       };
