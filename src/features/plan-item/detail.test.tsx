@@ -726,7 +726,7 @@ describe("PlanItemDetail, editing", () => {
     expect(screen.getByRole("textbox")).toHaveValue("Pumpkin pie");
     await waitFor(() =>
       expect(sent(requests)).toEqual([
-        { id0: CRUST.id, status0: PlanItemStatus.DELETED },
+        { id0: CRUST.id, status0: PlanItemStatus.DELETED, doneAt0: null },
       ]),
     );
   });
@@ -741,7 +741,7 @@ describe("PlanItemDetail, editing", () => {
     expect(onRemoved).toHaveBeenCalled();
     await waitFor(() =>
       expect(sent(requests)).toEqual([
-        { id0: CRUST.id, status0: PlanItemStatus.DELETED },
+        { id0: CRUST.id, status0: PlanItemStatus.DELETED, doneAt0: null },
       ]),
     );
   });
