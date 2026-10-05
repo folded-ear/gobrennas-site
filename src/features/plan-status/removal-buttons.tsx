@@ -2,10 +2,11 @@
 
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ControlTooltip } from "@/components/control-tooltip";
-import { CookedItIcon, DeleteIcon } from "@/components/icons";
+import { CookedItIcon, DeleteIcon, MenuOpenIcon } from "@/components/icons";
 import { usePageEngine } from "@/features/page-engine";
-import { Button } from "@heroui/react";
+import { Button, Dropdown, Label } from "@heroui/react";
 import clsx from "clsx";
+import { useState } from "react";
 import {
   actionLabel,
   LINE_CONTROL_CLASS_NAME,
@@ -97,6 +98,12 @@ type CookedItButtonProps = RemovalButtonProps & {
   readonly onCooked?: () => void;
 };
 
+const cookingDateFormat = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+});
+
 /** I mark an item cooked, after a window in which it can be undone. */
 export function CookedItButton({
   itemId,
@@ -105,6 +112,7 @@ export function CookedItButton({
 }: CookedItButtonProps) {
   const engine = usePageEngine();
   const item = useItemStatus(itemId);
+  const [dates, setDates] = useState<Date[]>([]);
   if (item === null) return null;
   if (item.pendingStatus === PlanItemStatus.COMPLETED) {
     return (
@@ -113,25 +121,73 @@ export function CookedItButton({
   }
 
   const look = REMOVAL_LOOKS[PlanItemStatus.COMPLETED];
+  const disabled = item.inert || item.pendingStatus !== null;
+  const markCooked = (date: Date) => {
+    engine.hold({
+      kind: "status",
+      id: itemId,
+      planId,
+      name: item.name,
+      status: PlanItemStatus.COMPLETED,
+      doneAt: date.toISOString(),
+    });
+    onCooked?.();
+  };
+
   return (
-    <Button
-      aria-label={actionLabel(look.action, item.name)}
-      className="bg-status-completed text-status-completed-foreground"
-      isDisabled={item.inert || item.pendingStatus !== null}
-      onPress={() => {
-        engine.hold({
-          kind: "status",
-          id: itemId,
-          planId,
-          name: item.name,
-          status: PlanItemStatus.COMPLETED,
-        });
-        onCooked?.();
-      }}
-      variant="primary"
-    >
-      <CookedItIcon size="small" aria-hidden="true" />
-      {look.action}
-    </Button>
+    <div className="inline-flex shrink-0">
+      <Button
+        aria-label={actionLabel(look.action, item.name)}
+        className="rounded-r-none bg-status-completed text-status-completed-foreground"
+        isDisabled={disabled}
+        onPress={() => markCooked(new Date())}
+        variant="primary"
+      >
+        <CookedItIcon size="small" aria-hidden="true" />
+        {look.action}
+      </Button>
+      <Dropdown
+        onOpenChange={(open) => {
+          if (!open) return;
+          // Refresh on opening, even if Cook has been left open overnight.
+          const today = new Date();
+          setDates(
+            Array.from({ length: 7 }, (_, daysAgo) => {
+              const date = new Date(today);
+              date.setDate(date.getDate() - daysAgo);
+              return date;
+            }),
+          );
+        }}
+      >
+        <Button
+          aria-label={actionLabel("Choose cooking date", item.name)}
+          className="rounded-l-none border-l border-status-completed-foreground/30 bg-status-completed text-status-completed-foreground"
+          isDisabled={disabled}
+          isIconOnly
+          variant="primary"
+        >
+          <MenuOpenIcon size="small" aria-hidden="true" />
+        </Button>
+        <Dropdown.Popover>
+          <Dropdown.Menu aria-label="Cooking date">
+            {dates.map((date) => {
+              const label = cookingDateFormat.format(date);
+              return (
+                <Dropdown.Item
+                  key={date.toISOString()}
+                  id={date.toISOString()}
+                  isDisabled={disabled}
+                  textValue={label}
+                  onAction={() => markCooked(date)}
+                >
+                  <Label>{label}</Label>
+                </Dropdown.Item>
+              );
+            })}
+          </Dropdown.Menu>
+        </Dropdown.Popover>
+      </Dropdown>
+    </div>
   );
 }

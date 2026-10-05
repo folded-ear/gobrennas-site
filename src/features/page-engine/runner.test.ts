@@ -62,6 +62,7 @@ const OLD_SNAPSHOT: Snapshot = {
 };
 
 function start({
+  pageLoadId = THIS_PAGE,
   records = [] as readonly ChangeRecord[],
   open = [] as readonly string[],
   userId = ME as string | null,
@@ -72,7 +73,7 @@ function start({
   const toast = vi.fn();
   runner = createRunner({
     client: api.client,
-    pageLoadId: THIS_PAGE,
+    pageLoadId,
     userId,
     renderedAt,
     store: userId === null ? null : memory.store,
@@ -311,6 +312,41 @@ describe("the runner", () => {
     await vi.advanceTimersByTimeAsync(1);
 
     expect(mutations()).toHaveLength(1);
+  });
+
+  it("keeps a cooking date while offline and sends it after a reload", async () => {
+    vi.useFakeTimers();
+    const doneAt = "2026-10-04T03:00:00.000Z";
+    const first = start({ pageLoadId: "page-a" });
+    first.runner.post({ type: "offline" });
+    first.runner.post({
+      type: "change",
+      hold: true,
+      change: {
+        kind: "status",
+        id: "3",
+        planId: THANKSGIVING,
+        name: "Whipped cream",
+        status: PlanItemStatus.COMPLETED,
+        doneAt,
+      },
+    });
+    await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS + 1);
+    expect(mutations()).toHaveLength(0);
+    const records = [...first.kept.values()];
+    expect(records).toHaveLength(1);
+    expect(records[0].change).toMatchObject({ doneAt });
+    first.runner.stop();
+
+    start({ records });
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(mutations()).toHaveLength(1);
+    expect(mutations()[0].variables).toEqual({
+      id0: "3",
+      status0: PlanItemStatus.COMPLETED,
+      doneAt0: doneAt,
+    });
   });
 
   it("adopts a closed page's changes and sends them", async () => {
