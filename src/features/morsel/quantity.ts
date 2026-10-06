@@ -1,19 +1,16 @@
-import { FRACTIONS, type FractionRow } from "./fractions";
+import { FRACTIONS } from "./fractions";
 
 const DECIMAL = /^(\d*)\.(\d+)$/;
 const FRACTION = /^(?:(\d+) +)?(\d+)\/(\d+)$/;
 
 type Parts = { whole: number; fraction: number };
 
-/** I show a written quantity's fractional part as a fraction from fractions, or return it as written. */
-export function displayQuantity(
-  written: string | number,
-  fractions: readonly FractionRow[] = FRACTIONS,
-): string {
+/** I show a written quantity's fractional part as a fraction from FRACTIONS, or return it as written. */
+export function displayQuantity(written: string | number): string {
   const text = String(written);
   const parts = split(text);
   if (!parts) return text;
-  const row = fractions.find(
+  const row = FRACTIONS.find(
     ([low, high]) => low <= parts.fraction && parts.fraction <= (high ?? low),
   );
   if (!row) return text;

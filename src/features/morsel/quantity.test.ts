@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { FRACTIONS, type FractionRow } from "./fractions";
+import { FRACTIONS } from "./fractions";
 import { displayQuantity } from "./quantity";
-
-const fractions: readonly FractionRow[] = [
-  [0.06, 0.063, "1/16"],
-  [0.33, 0.334, "⅓"],
-  [0.5, null, "½"],
-  [0.66, 0.67, "⅔"],
-];
 
 describe("displayQuantity", () => {
   it.each([
@@ -25,7 +18,7 @@ describe("displayQuantity", () => {
     ["0.063", "1/16"],
     ["1/16", "1/16"],
   ])("shows %s as %s", (written, shown) => {
-    expect(displayQuantity(written, fractions)).toBe(shown);
+    expect(displayQuantity(written)).toBe(shown);
   });
 
   it.each([
@@ -37,7 +30,7 @@ describe("displayQuantity", () => {
     ["1 1/16", "1 1/16"],
     ["17/16", "1 1/16"],
   ])("puts the whole number of %s in front: %s", (written, shown) => {
-    expect(displayQuantity(written, fractions)).toBe(shown);
+    expect(displayQuantity(written)).toBe(shown);
   });
 
   it.each([
@@ -56,23 +49,23 @@ describe("displayQuantity", () => {
     [" 1/2 "],
     ["1/0"],
   ])("leaves %j as written", (written) => {
-    expect(displayQuantity(written, fractions)).toBe(written);
+    expect(displayQuantity(written)).toBe(written);
   });
 
   it("covers exactly low when a row's high is null", () => {
-    expect(displayQuantity("0.5", fractions)).toBe("½");
-    expect(displayQuantity("0.500001", fractions)).toBe("0.500001");
-    expect(displayQuantity("0.499999", fractions)).toBe("0.499999");
+    expect(displayQuantity("0.5")).toBe("½");
+    expect(displayQuantity("0.500001")).toBe("0.500001");
+    expect(displayQuantity("0.499999")).toBe("0.499999");
   });
 
   it("matches numbers the same way as their text", () => {
-    expect(displayQuantity(0.5, fractions)).toBe("½");
-    expect(displayQuantity(1 / 3, fractions)).toBe("⅓");
-    expect(displayQuantity(2 / 3, fractions)).toBe("⅔");
-    expect(displayQuantity(1.0625, fractions)).toBe("1 1/16");
-    expect(displayQuantity(1 / 12, fractions)).toBe(String(1 / 12));
-    expect(displayQuantity(2, fractions)).toBe("2");
-    expect(displayQuantity(0, fractions)).toBe("0");
+    expect(displayQuantity(0.5)).toBe("½");
+    expect(displayQuantity(1 / 3)).toBe("⅓");
+    expect(displayQuantity(2 / 3)).toBe("⅔");
+    expect(displayQuantity(1.0625)).toBe("1 1/16");
+    expect(displayQuantity(1 / 12)).toBe(String(1 / 12));
+    expect(displayQuantity(2)).toBe("2");
+    expect(displayQuantity(0)).toBe("0");
   });
 
   it("matches each bound exactly, whatever the whole number", () => {
