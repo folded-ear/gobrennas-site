@@ -1,6 +1,6 @@
 import type { CookBucketQuery } from "@/screens/__generated__/cook-bucket.generated";
 import type { Unmasked } from "@apollo/client";
-import type { CookBucket, MealPlan } from "../meal";
+import type { CookBucketsPlan, CookPlanBucket } from "../buckets";
 import { ingredients, item, Item, pie, ref } from "./recipe";
 
 const HOLIDAYS_PLAN = { __typename: "Plan", id: "7" } as const;
@@ -8,19 +8,19 @@ const WEEKNIGHTS_PLAN = { __typename: "Plan", id: "9" } as const;
 
 const bucketRef = (id: string) => ({ __typename: "PlanBucket" as const, id });
 
-export const holidayDinner: CookBucket = {
+export const holidayDinner: CookPlanBucket = {
   __typename: "PlanBucket",
   id: "hDinner",
   name: "Dinner",
   date: "2026-10-06",
 };
-export const holidayLunch: CookBucket = {
+export const holidayLunch: CookPlanBucket = {
   __typename: "PlanBucket",
   id: "hLunch",
   name: "Lunch",
   date: "2026-10-06",
 };
-export const weeknightDinner: CookBucket = {
+export const weeknightDinner: CookPlanBucket = {
   __typename: "PlanBucket",
   id: "wDinner",
   name: " dinner ",
@@ -59,24 +59,24 @@ export const weeknightItems: Item[] = [
   }),
 ];
 
-function rootIdsOf(items: readonly Item[]): string[] {
+function childIdsOf(items: readonly Item[]): string[] {
   return items
     .filter((entry) => entry.parent?.__typename === "Plan")
     .map((entry) => entry.id);
 }
 
-export function mealPlan(
+export function bucketsPlan(
   items: readonly Item[],
-  buckets: readonly CookBucket[],
-): MealPlan {
-  return { rootIds: rootIdsOf(items), items, buckets };
+  buckets: readonly CookPlanBucket[],
+): CookBucketsPlan {
+  return { childIds: childIdsOf(items), items, buckets };
 }
 
 export function cookBucketData(
   id: string,
   name: string,
   items: Item[],
-  buckets: CookBucket[],
+  buckets: CookPlanBucket[],
   mine = true,
 ): Unmasked<CookBucketQuery> {
   return {
@@ -88,7 +88,7 @@ export function cookBucketData(
         name,
         mine,
         grants: [],
-        children: rootIdsOf(items).map(ref),
+        children: childIdsOf(items).map(ref),
         buckets,
         updatedSince: items,
       },

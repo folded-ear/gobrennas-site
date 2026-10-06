@@ -149,23 +149,22 @@ The terms used here are defined in the [domain model](../domain/model.md).
   with the same return and undo behavior. The chosen date is kept even when
   saving is delayed or the device is offline.
 
-#### Cooking a meal
+#### Cooking a bucket
 
-- A day or named bucket with anything in it links to cooking it as one
-  meal: on the timeline, just after its heading and any plan dots, and in
+- A day or named bucket with anything in it links to cooking it as a
+  whole: on the timeline, just after its heading and any plan dots, and in
   its section screen's heading. Unplanned can't be cooked.
-- A meal gathers what its buckets, in every plan the section spans, hold
-  directly — its courses — with everything below each, read as Cook reads
-  one recipe. An item already below a course is part of that course, not
-  one of its own.
-- The meal is headed by its section's label. Its courses are listed as what
-  it's made of, and each course worth a section of its own follows, with
-  its subrecipes and preparation after it.
-- Each course's section carries its own I prepped this and I cooked it;
-  nothing below a course does. Marking a course cooked stays in the meal,
-  with a button to undo it in its place while it waits out its undo window.
-- A meal whose buckets no longer hold anything offers a way back to the
-  planner.
+- Cooking a bucket gathers what its buckets, in every plan the section
+  spans, hold directly — its roots — with everything below each, read as
+  Cook reads one recipe. An item already below a root is part of that
+  root, not one of its own.
+- The view is headed by its section's label. Its roots are listed as what
+  it's made of, and each root worth a section of its own follows, with its
+  subrecipes and preparation after it.
+- Each root's section carries its own I prepped this and I cooked it;
+  nothing below a root does. Marking a root cooked stays in the view, with
+  a button to undo it in its place while it waits out its undo window.
+- Buckets that no longer hold anything offer a way back to the planner.
 
 ### Status
 

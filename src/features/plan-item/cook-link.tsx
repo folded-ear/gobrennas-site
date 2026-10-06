@@ -53,7 +53,7 @@ function bucketLabelOf(name: string | null, date: string | null): string {
 }
 
 /**
- * I give the path to cooking some buckets as one meal. Their name and date
+ * I give the path to cooking some buckets as one. Their name and date
  * only label the path; the plans and buckets identify what's cooked.
  */
 export function bucketCookHref(
@@ -120,7 +120,7 @@ type BucketCookLinkProps = {
 
 /**
  * I link to cooking everything in a day or bucket section, across every
- * plan it spans, as one meal. A section holding nothing has nothing to cook,
+ * plan it spans, as one. A section holding nothing has nothing to cook,
  * and one whose plans I can't find has nowhere to cook it.
  */
 export function BucketCookLink({ section }: BucketCookLinkProps) {

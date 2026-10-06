@@ -6,7 +6,7 @@ import {
   holidayItems,
   weeknightDinner,
   weeknightItems,
-} from "@/features/cook-recipe/test/meal";
+} from "@/features/cook-recipe/test/buckets";
 import { readStatus } from "@/features/page-engine/test/status-cache";
 import { CookBucketDocument } from "@/screens/__generated__/cook-bucket.generated";
 import {
@@ -75,7 +75,7 @@ function section(name: string) {
 }
 
 describe("CookBucket", () => {
-  it("heads the meal with its buckets' label", async () => {
+  it("heads the page with its buckets' label", async () => {
     await show();
 
     expect(
@@ -83,7 +83,7 @@ describe("CookBucket", () => {
     ).toBeVisible();
   });
 
-  it("shows every plan's courses, each with what's below it", async () => {
+  it("shows every plan's roots, each with what's below it", async () => {
     await show();
 
     expect(section("Holiday apple pie")).toBeVisible();
@@ -91,7 +91,7 @@ describe("CookBucket", () => {
     expect(section("Tacos")).toBeVisible();
   });
 
-  it("offers prep and cooking on each course's section only", async () => {
+  it("offers prep and cooking on each root's section only", async () => {
     await show();
 
     expect(
@@ -111,7 +111,7 @@ describe("CookBucket", () => {
     ).toBeNull();
   });
 
-  it("stays put when a course is cooked, with its undo at hand", async () => {
+  it("stays put when a root is cooked, with its undo at hand", async () => {
     const cache = await show();
 
     await userEvent.click(
@@ -130,7 +130,7 @@ describe("CookBucket", () => {
     expect(readStatus(cache, "pie")).toMatchObject({ pendingStatus: null });
   });
 
-  it("lets a viewer of a course's plan read it without changing it", async () => {
+  it("lets a viewer of a root's plan read it without changing it", async () => {
     await show({ weeknightsMine: false });
 
     const tacos = section("Tacos");

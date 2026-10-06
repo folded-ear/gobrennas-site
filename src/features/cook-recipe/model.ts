@@ -17,7 +17,7 @@ export type CookSection = {
 
 /** What Cook shows: what heads it, then each section below. */
 export type CookRecipeContent = {
-  /** A meal has no item of its own heading it. */
+  /** Lacks an item when no one item heads the content. */
   main: Omit<CookSection, "item"> & { item?: CookItem };
   sections: CookSection[];
 };
