@@ -1,4 +1,5 @@
 import { RecipePhoto } from "@/features/recipe-photo";
+import { humanQuantity } from "@/lib/quantity";
 import { Button, Modal } from "@heroui/react";
 import type { buildCookRecipe } from "./model";
 
@@ -55,7 +56,9 @@ export function CookRecipeTitle({ recipe: { main }, planName }: Props) {
         <p className="text-sm text-muted">{planName}</p>
         <h1 className="break-words">{main.title}</h1>
         {source?.yield != null ? (
-          <p className="text-sm text-muted">{source.yield * scale} servings</p>
+          <p className="text-sm text-muted">
+            {humanQuantity(source.yield * scale)} servings
+          </p>
         ) : null}
       </div>
     </div>
