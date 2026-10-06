@@ -2,24 +2,13 @@ import { Screen } from "@/components/screen";
 import { render, screen, userEvent, waitFor } from "@/test";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  ACTIVATION_DISTANCE,
-  DragSession,
-  useDragSession,
-} from "./drag-session";
+import { DragSession, useDragSession } from "./drag-session";
 import { ItemRow } from "./item-row";
 import {
-  getDropZone,
   keyboardCancel,
   keyboardDrag,
   keyboardDrop,
-  keyboardMoveTo,
-  pointerDrag,
-  pointerDrop,
-  pointerRelease,
-  queryAllDropZones,
-  queryDropZone,
-} from "./test/dnd-harness";
+} from "./test/keyboard-drag";
 import { TREE_ZONES } from "./zones";
 
 const back = vi.fn();
@@ -31,6 +20,8 @@ vi.mock("next/navigation", () => ({
 beforeEach(() => {
   back.mockReset();
 });
+
+const DRAG_TYPE = "application/x.gobrennas.test-item";
 
 const ITEMS = [
   { id: "2", name: "Pumpkin pie" },
@@ -79,7 +70,7 @@ function Harness({
 }) {
   const [dropped, setDropped] = useState("nothing dropped");
   return (
-    <DragSession canMove={canMove}>
+    <DragSession dragType={DRAG_TYPE} canMove={canMove}>
       {ITEMS.map((it) => (
         <Row key={it.id} {...it} offer={offer} onDropped={setDropped} />
       ))}
@@ -90,8 +81,8 @@ function Harness({
 
 // The indicator is decorative and hidden from assistive tech, so nothing
 // accessible can find it.
-function indicators(kind: string) {
-  return document.querySelectorAll(`[data-drop-indicator="${kind}"]`);
+function indicators() {
+  return document.querySelectorAll("[data-drop-indicator]");
 }
 
 describe("ItemRow", () => {
@@ -135,40 +126,34 @@ describe("ItemRow", () => {
   it("offers no drop zones until something is dragged", () => {
     render(<Harness />);
 
-    expect(queryAllDropZones(/^Put /)).toHaveLength(0);
+    expect(screen.queryByRole("button", { name: /^Put after/ })).toBeNull();
   });
 
   it("drops an item on another by keyboard", async () => {
     render(<Harness />);
 
     await keyboardDrag("Move Pumpkin pie");
-    expect(queryDropZone("Put after Pumpkin pie")).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Put after Pumpkin pie" }),
+    ).toBeNull();
     await keyboardDrop("Put after Roast turkey");
 
     expect(
       await screen.findByText("Pumpkin pie went after Roast turkey"),
     ).toBeVisible();
-    expect(queryAllDropZones(/^Put /)).toHaveLength(0);
+    expect(screen.queryByRole("button", { name: /^Put after/ })).toBeNull();
   });
 
-  it("drops an item on another by pointer", async () => {
+  it("starts no drag when its handle is clicked with a mouse", async () => {
     render(<Harness />);
 
-    await pointerDrag("Move Pumpkin pie");
-    await pointerDrop("Put after Roast turkey");
-
-    expect(
-      await screen.findByText("Pumpkin pie went after Roast turkey"),
-    ).toBeVisible();
-    expect(queryAllDropZones(/^Put /)).toHaveLength(0);
-  });
-
-  it("starts no drag until a pressed handle moves far enough", async () => {
-    render(<Harness />);
-
-    await pointerDrag("Move Pumpkin pie", ACTIVATION_DISTANCE);
-    const zones = queryAllDropZones(/^Put /);
-    await pointerRelease();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Move Pumpkin pie" }),
+    );
+    const zones = screen.queryAllByRole("button", { name: /^Put / });
+    // A drag listens for Escape only from the frame after it starts.
+    await new Promise(requestAnimationFrame);
+    await keyboardCancel();
 
     expect(zones).toHaveLength(0);
   });
@@ -177,34 +162,19 @@ describe("ItemRow", () => {
     const { rerender } = render(<Harness />);
 
     await keyboardDrag("Move Pumpkin pie");
-    await keyboardMoveTo("Put after Roast turkey");
-    await waitFor(() => expect(indicators("after")).toHaveLength(1));
+    await waitFor(() => expect(indicators()).toHaveLength(1));
     rerender(<Harness offer="before" />);
 
-    expect(getDropZone("Put before Roast turkey")).toBeInTheDocument();
-    expect(indicators("after")).toHaveLength(0);
+    expect(
+      screen.getByRole("button", { name: "Put before Roast turkey" }),
+    ).toBeInTheDocument();
+    expect(indicators()).toHaveLength(0);
 
     await keyboardCancel();
   });
 });
 
 describe("ItemRow, inside a Screen", () => {
-  it("calls off a pointer drag on Escape, leaving its Screen open", async () => {
-    render(
-      <Screen label="Thanksgiving">
-        <Harness />
-      </Screen>,
-    );
-
-    await pointerDrag("Move Pumpkin pie");
-    expect(getDropZone("Put after Roast turkey")).toBeInTheDocument();
-    await userEvent.keyboard("{Escape}");
-
-    expect(queryAllDropZones(/^Put /)).toHaveLength(0);
-    expect(back).not.toHaveBeenCalled();
-    await pointerRelease();
-  });
-
   it("calls off a keyboard drag on Escape, leaving its Screen open", async () => {
     render(
       <Screen label="Thanksgiving">
@@ -215,7 +185,7 @@ describe("ItemRow, inside a Screen", () => {
     await keyboardDrag("Move Pumpkin pie");
     await keyboardCancel();
 
-    expect(queryAllDropZones(/^Put /)).toHaveLength(0);
+    expect(screen.queryByRole("button", { name: /^Put / })).toBeNull();
     expect(back).not.toHaveBeenCalled();
   });
 
@@ -226,9 +196,15 @@ describe("ItemRow, inside a Screen", () => {
       </Screen>,
     );
 
-    await pointerDrag("Move Pumpkin pie");
-    await pointerDrop("Put after Roast turkey");
+    await keyboardDrag("Move Pumpkin pie");
+    await keyboardDrop("Put after Roast turkey");
     await screen.findByText("Pumpkin pie went after Roast turkey");
+    // A drop ends its drag a moment later, handing focus back to the handle.
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Move Pumpkin pie" }),
+      ).toHaveFocus(),
+    );
     await userEvent.keyboard("{Escape}");
 
     expect(back).toHaveBeenCalledTimes(1);

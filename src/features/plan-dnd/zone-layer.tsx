@@ -25,11 +25,23 @@ const INDICATOR_CLASSES: Readonly<Record<ZoneIndicator, string>> = {
 
 function Indicator({ kind }: { kind: ZoneIndicator }) {
   return (
-    <div
-      aria-hidden
-      data-drop-indicator={kind}
-      className={clsx("pointer-events-none absolute", INDICATOR_CLASSES[kind])}
-    />
+    <>
+      <div
+        aria-hidden
+        data-drop-indicator={kind}
+        className={clsx(
+          "pointer-events-none absolute",
+          INDICATOR_CLASSES[kind],
+        )}
+      />
+      {kind === "nest" ? (
+        // The line a first child would sit on, indented as one.
+        <div
+          aria-hidden
+          className="pointer-events-none absolute start-xl end-0 bottom-0 h-xxs translate-y-1/2 bg-accent"
+        />
+      ) : null}
+    </>
   );
 }
 

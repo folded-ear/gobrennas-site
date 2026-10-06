@@ -306,9 +306,8 @@ On an item's handle:
 
 | Key | Does |
 | --- | --- |
-| Space or Enter | Picks the item up. |
-| Arrow keys | Move it. |
-| Space, Enter, or Tab | Drops it. |
+| Enter | Picks the item up, or drops it on the place Tab reached. |
+| Tab | Moves between the places it can go. |
 | Escape | Cancels the move. |
 
 ## Example
