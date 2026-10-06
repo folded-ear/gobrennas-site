@@ -87,7 +87,7 @@ export function RecipeSection({
   children,
 }: {
   title: string;
-  /** Set beside my heading. */
+  /** Set at the far end of my heading's row. */
   actions?: ReactNode;
   children: ReactNode;
 }) {
@@ -97,7 +97,7 @@ export function RecipeSection({
       {actions ? (
         <div className="mb-md flex flex-wrap items-center gap-sm">
           <h2 id={id}>{title}</h2>
-          {actions}
+          <div className="ms-auto flex items-center gap-sm">{actions}</div>
         </div>
       ) : (
         <h2 id={id} className="mb-md">

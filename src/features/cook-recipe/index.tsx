@@ -10,7 +10,7 @@ import type { CookRecipeContent, CookSection } from "./model";
 
 type Props = {
   recipe: CookRecipeContent;
-  /** Set beside a section's heading. Left out, sections carry none. */
+  /** Set at the far end of a section's heading row. Left out, sections carry none. */
   sectionActions?: (section: CookSection) => ReactNode;
 };
 

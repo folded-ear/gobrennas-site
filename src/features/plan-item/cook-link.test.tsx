@@ -57,6 +57,10 @@ describe("parseBucketCookIds", () => {
     expect(parseBucketCookIds(planIds)).toEqual(["7", "9"]);
     expect(parseBucketCookIds(bucketIds)).toEqual(["30", "44"]);
   });
+
+  it("reads ids whose separator arrived encoded", () => {
+    expect(parseBucketCookIds(encodeURIComponent("7,9"))).toEqual(["7", "9"]);
+  });
 });
 
 const TACOS: PlanItemNode = {
