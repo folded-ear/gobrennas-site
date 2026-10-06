@@ -3,6 +3,7 @@ import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "@/features/plan-item/__generated__/planItem.generated";
+import { PlanItemTextFragmentDoc } from "@/features/plan-item/__generated__/planItemText.generated";
 import { buildInMemoryCache, seedFragment } from "@/test";
 import { ShoppingPlan, ShoppingPlanItem, Unit } from "./model";
 
@@ -60,6 +61,14 @@ export function seedItem(
     bucket: null,
   };
   const ref = seedFragment(cache, PlanItemFragmentDoc, "planItem", data);
+  seedFragment(cache, PlanItemTextFragmentDoc, "planItemText", {
+    __typename: "PlanItem",
+    id,
+    name,
+    preparation: data.preparation,
+    quantity: data.quantity,
+    ingredient: pantry ? { __typename: "PantryItem", ...pantry } : null,
+  });
   return {
     ...ref,
     __typename: "PlanItem",

@@ -13,7 +13,7 @@ import {
 import { ApolloProvider } from "@apollo/client/react";
 import { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { BASIL, plan, seedItem, SUGAR } from "./fixtures";
+import { BASIL, plan, seedItem, SUGAR, TBSP, TSP } from "./fixtures";
 import { ShoppingRegions } from "./index";
 import { buildShoppingList, ingredientKey, ShoppingList } from "./model";
 
@@ -379,12 +379,16 @@ describe("ShoppingRegions, editing", () => {
               id: "a",
               name: "1 tsp sugar",
               parent: "s",
+              quantity: 1,
+              unit: TSP,
               pantry: SUGAR,
             }),
             seedItem(cache, {
               id: "b",
               name: "2 Tbsp sugar",
               parent: "t",
+              quantity: 2,
+              unit: TBSP,
               pantry: SUGAR,
             }),
           ]

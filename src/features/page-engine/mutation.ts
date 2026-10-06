@@ -1,6 +1,7 @@
 import { DocumentNode, gql } from "@apollo/client";
 import { print } from "@apollo/client/utilities";
 import { PlanItemFragmentDoc } from "../plan-item/__generated__/planItem.generated";
+import { PlanItemTextFragmentDoc } from "../plan-item/__generated__/planItemText.generated";
 import { TimelineItemFragmentDoc } from "../plan-timeline/__generated__/timelineItem.generated";
 import { ShoppingPlanItemFragmentDoc } from "../shopping-list/__generated__/shoppingPlanItem.generated";
 import { AssignBucketResultFragmentDoc } from "./__generated__/assignBucketResult.generated";
@@ -145,7 +146,7 @@ export function pollQuery(requests: readonly PollRequest[]) {
         ` ... on Plan { ...pollPlan @unmask }` +
         ` ... on PlanItem {` +
         ` ...timelineItem @unmask ...planItem @unmask` +
-        ` ...shoppingPlanItem @unmask }` +
+        ` ...planItemText @unmask ...shoppingPlanItem @unmask }` +
         ` }`,
     )
     .join("\n");
@@ -156,6 +157,7 @@ export function pollQuery(requests: readonly PollRequest[]) {
           PollPlanFragmentDoc,
           TimelineItemFragmentDoc,
           PlanItemFragmentDoc,
+          PlanItemTextFragmentDoc,
           ShoppingPlanItemFragmentDoc,
         ]),
     ),

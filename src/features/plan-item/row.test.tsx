@@ -11,6 +11,7 @@ import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
+import { PlanItemTextFragmentDoc } from "./__generated__/planItemText.generated";
 import { PlanItemRow, RowAncestor } from "./row";
 
 const WEEKNIGHTS: DirectoryPlan = {
@@ -45,6 +46,17 @@ const SUGAR: PlanItemFragment = {
   bucket: null,
 };
 
+const HALF_CUP: PlanItemFragment = {
+  ...SUGAR,
+  name: "1/2 cup sugar, sifted",
+  preparation: "sifted",
+  quantity: {
+    __typename: "Quantity",
+    quantity: 0.5,
+    units: { __typename: "UnitOfMeasure", id: "u1", name: "cup" },
+  },
+};
+
 const ANCESTORS: readonly RowAncestor[] = [
   { id: "41", name: "Spag sauce", acquired: false },
   { id: "40", name: "Dinner", acquired: false },
@@ -62,6 +74,14 @@ function renderRow(
 ) {
   const cache = buildInMemoryCache();
   const item = seedFragment(cache, PlanItemFragmentDoc, "planItem", data);
+  seedFragment(cache, PlanItemTextFragmentDoc, "planItemText", {
+    __typename: "PlanItem",
+    id: data.id,
+    name: data.name,
+    preparation: data.preparation,
+    quantity: data.quantity,
+    ingredient: data.ingredient && { ...data.ingredient, name: "sugar" },
+  });
   render(
     <PlanDirectoryProvider directory={directoryOf(plans)}>
       <PlanItemRow
@@ -79,8 +99,21 @@ describe("PlanItemRow", () => {
   it("shows the item, then its ancestors nearest first", () => {
     renderRow(SUGAR);
 
-    expect(screen.getByText("1 tsp sugar")).toBeVisible();
+    expect(screen.getByText("sugar").parentElement).toHaveTextContent(
+      "1 tsp sugar",
+    );
     expect(screen.getByText("Spag sauce / Dinner")).toBeVisible();
+  });
+
+  it("shows its item as its saved parts", () => {
+    renderRow(HALF_CUP);
+
+    expect(screen.getByText("½")).toHaveClass("morsel-quantity");
+    expect(screen.getByText("cup")).toHaveClass("morsel-unit");
+    expect(screen.getByText("sugar")).toHaveClass("morsel-ingredient");
+    expect(screen.getByText("sugar").parentElement).toHaveTextContent(
+      "½ cup sugar, sifted",
+    );
   });
 
   it("shows a blank ancestor as Unnamed", () => {

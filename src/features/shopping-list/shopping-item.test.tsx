@@ -199,12 +199,18 @@ describe("ShoppingItemRow", () => {
     const cache = buildInMemoryCache();
     renderRow(cache, sugar(cache), [WEEKNIGHTS, PARTY]);
 
-    expect(screen.queryByText("1 tsp sugar")).not.toBeVisible();
+    const item = (text: string) =>
+      screen.getByText(
+        (_, element) =>
+          element?.classList.contains("morsel-text") === true &&
+          element.textContent === text,
+      );
+    expect(item("1 tsp sugar")).not.toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: /^sugar/ }));
 
-    expect(screen.getByText("1 tsp sugar")).toBeVisible();
-    expect(screen.getByText("2 T sugar")).toBeVisible();
+    expect(item("1 tsp sugar")).toBeVisible();
+    expect(item("2 Tbsp sugar")).toBeVisible();
     expect(screen.getByText("Spag sauce / Weeknights")).toBeVisible();
     expect(screen.getByText("Iced tea / Party")).toBeVisible();
   });

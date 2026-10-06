@@ -19,7 +19,8 @@ import {
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
 import { NoChip } from "./chips";
-import { ItemName, NameText } from "./item-name";
+import { NameText } from "./item-name";
+import { ItemText } from "./item-text";
 
 /** One step of the ancestry beneath a plan item. */
 export type RowAncestor = {
@@ -106,7 +107,7 @@ export function PlanItemRow({
       >
         {data.quantity?.quantity === 0 ? <NoChip /> : null}
         <span>
-          <ItemName itemId={data.id} />
+          <ItemText itemId={data.id} />
         </span>
       </RowName>
     </div>

@@ -1,0 +1,17 @@
+fragment planItemText on PlanItem {
+  id
+  name
+  preparation
+  quantity {
+    quantity
+    units {
+      id
+      name
+    }
+  }
+  ingredient {
+    __typename
+    id
+    name
+  }
+}

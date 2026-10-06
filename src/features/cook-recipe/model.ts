@@ -1,5 +1,5 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import type { IngredientParts } from "@/lib/ingredient-parts";
+import { planItemParts, type IngredientParts } from "@/lib/ingredient-parts";
 import { displayName } from "@/lib/plan-item-name";
 import type { CookPlanFragment } from "./__generated__/cookPlan.generated";
 
@@ -50,19 +50,7 @@ export function buildCookRecipe(items: readonly CookItem[], itemId: string) {
               sectionIds.has(child.ingredient.id)
             ),
         )
-        .map((child): IngredientParts => {
-          if (!child.ingredient) return { text: displayName(child.name) };
-          return {
-            text: displayName(child.name),
-            quantity: child.quantity?.quantity,
-            unit: child.quantity?.units?.name,
-            name:
-              child.ingredient.__typename === "Recipe"
-                ? displayName(child.name)
-                : child.ingredient.name,
-            preparation: child.preparation ?? undefined,
-          };
-        }),
+        .map(planItemParts),
     };
   }
 

@@ -4,5 +4,6 @@ fragment planItemResult on PlanItem {
   id
   ...timelineItem @unmask
   ...planItem
+  ...planItemText
   ...shoppingPlanItem @unmask
 }
