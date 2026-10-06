@@ -1,6 +1,6 @@
 "use client";
 
-import { asFraction } from "@/features/morsel/quantity";
+import { humanQuantity } from "@/features/morsel/quantity";
 import { RecognizeIngredientDocument } from "@/features/recipe-form/__generated__/recognizeIngredient.generated";
 import {
   ingredientRecognitionSchema,
@@ -39,7 +39,7 @@ export function IngredientName({ name }: { name: string }) {
         {name.slice(cursor, range.start)}
         <span className={`morsel-${range.type}`}>
           {range.type === "quantity"
-            ? (asFraction(range.quantity) ?? text)
+            ? humanQuantity(range.quantity, text)
             : text}
         </span>
       </Fragment>,
