@@ -109,7 +109,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   preparation, with the same read-only treatment as Cook, or its text when it
   has no ingredient.
 - An ancestor that is acquired, or has a zero quantity, is named in olive.
-- A plan item with a zero quantity is marked "NO".
+- A plan item with an ingredient and a zero quantity shows "NO" in place of
+  its quantity and unit.
 - Plan items with no ingredient appear the same way.
 
 ### Several plans

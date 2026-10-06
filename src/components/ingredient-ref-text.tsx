@@ -1,3 +1,4 @@
+import { NoChip } from "@/components/no-chip";
 import type { IngredientParts } from "@/lib/ingredient-parts";
 import { humanQuantity } from "@/lib/quantity";
 
@@ -11,18 +12,26 @@ export function IngredientRefText({
 }: IngredientParts) {
   return (
     <span className="morsel-text">
-      {quantity !== undefined ? (
+      {quantity === 0 ? (
         <>
-          <span className="morsel-quantity">
-            {humanQuantity(quantity)}
-          </span>{" "}
+          <NoChip />{" "}
         </>
-      ) : null}
-      {unit ? (
+      ) : (
         <>
-          <span className="morsel-unit">{unit}</span>{" "}
+          {quantity !== undefined ? (
+            <>
+              <span className="morsel-quantity">
+                {humanQuantity(quantity)}
+              </span>{" "}
+            </>
+          ) : null}
+          {unit ? (
+            <>
+              <span className="morsel-unit">{unit}</span>{" "}
+            </>
+          ) : null}
         </>
-      ) : null}
+      )}
       {name ? <span className="morsel-ingredient">{name}</span> : text}
       {name && preparation ? `, ${preparation}` : null}
     </span>

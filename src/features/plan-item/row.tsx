@@ -19,7 +19,6 @@ import {
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
 import { PlanItemTextFragment } from "./__generated__/planItemText.generated";
-import { NoChip } from "./chips";
 import { NameText } from "./item-name";
 import { ItemText } from "./item-text";
 
@@ -107,7 +106,6 @@ export function PlanItemRow({
           ) : null
         }
       >
-        {data.quantity?.quantity === 0 ? <NoChip /> : null}
         <span>
           <ItemText item={item} />
         </span>

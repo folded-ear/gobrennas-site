@@ -140,7 +140,8 @@ is required.
 - Read-only ingredient text shows a quantity's fractional part as a fraction
   (`0.5` and `1/2` show as `½`, `1.0625` as `1 1/16`) when it falls in a range
   listed in `src/lib/fractions.ts`. Other quantities show as
-  written. Editable Morsel text always shows exactly as entered.
+  written. A zero quantity shows as a "NO" badge in place of the quantity and
+  unit. Editable Morsel text always shows exactly as entered.
 - Preparation is the text left after removing recognized quantity, unit, and
   ingredient ranges. Normalize its whitespace and redundant commas for saving,
   leaving the original raw text unchanged.
