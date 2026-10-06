@@ -1,6 +1,6 @@
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useToday } from "./use-today";
+import { TODAY_CHECK_INTERVAL_MS, useToday } from "./use-today";
 
 afterEach(() => {
   vi.useRealTimers();
@@ -16,7 +16,7 @@ describe("useToday", () => {
     expect(result.current).toBe("2026-09-09");
   });
 
-  it("holds its value once mounted, so a re-render can't shift the anchor", () => {
+  it("holds its value between checks, so a re-render can't shift it", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 8, 9, 23, 59));
 
@@ -25,5 +25,17 @@ describe("useToday", () => {
     rerender();
 
     expect(result.current).toBe("2026-09-09");
+  });
+
+  it("moves to the new date once the day changes", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 9, 23, 59));
+
+    const { result } = renderHook(() => useToday());
+    act(() => {
+      vi.advanceTimersByTime(TODAY_CHECK_INTERVAL_MS);
+    });
+
+    expect(result.current).toBe("2026-09-10");
   });
 });
