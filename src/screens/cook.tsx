@@ -38,7 +38,7 @@ export function Cook({ planId, itemId }: CookProps) {
       <div className="p-xl">
         <h1>Recipe unavailable</h1>
         <p className="my-md">This recipe is no longer in this plan.</p>
-        <Button onPress={() => router.replace("/plan")}>Back to planner</Button>
+        <Button onPress={() => router.replace("/planner")}>Back to planner</Button>
       </div>
     );
   const canChange = canChangePlan(plan);

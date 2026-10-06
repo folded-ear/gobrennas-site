@@ -280,6 +280,6 @@ describe("Cook", () => {
     await userEvent.click(
       screen.getByRole("button", { name: "Back to planner" }),
     );
-    expect(replace).toHaveBeenCalledWith("/plan");
+    expect(replace).toHaveBeenCalledWith("/planner");
   });
 });
