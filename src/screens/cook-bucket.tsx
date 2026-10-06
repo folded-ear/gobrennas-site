@@ -14,6 +14,7 @@ import { CookBucketDocument } from "@/screens/__generated__/cook-bucket.generate
 import { useFragment, useSuspenseQuery } from "@apollo/client/react";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 
 type CookBucketProps = {
   planIds: readonly string[];
@@ -42,10 +43,14 @@ function LoadPlan({ planId }: { planId: string }) {
 
 function CookMeal({ planIds, bucketIds }: CookBucketProps) {
   const router = useRouter();
+  const from = useMemo(
+    () => planIds.map((id) => ({ __typename: "Plan", id })),
+    [planIds],
+  );
   const { data: plans, complete } = useFragment({
     fragment: CookPlanFragmentDoc,
     fragmentName: "cookPlan",
-    from: planIds.map((id) => ({ __typename: "Plan", id })),
+    from,
   });
   if (!complete) return <CookLoading />;
   const mealPlans: MealPlan[] = plans.map((plan) => ({
@@ -92,9 +97,7 @@ function CookMeal({ planIds, bucketIds }: CookBucketProps) {
       <RecipeActionBar
         title={<h1 className="break-words">{meal.label}</h1>}
         onClose={() => router.back()}
-      >
-        {null}
-      </RecipeActionBar>
+      />
       <article
         aria-label={meal.label}
         className="min-h-0 flex-1 overflow-y-auto py-md"
