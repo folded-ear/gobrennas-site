@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { FRACTIONS } from "./fractions";
 import { humanQuantity } from "./quantity";
 
+const MISS = "no fraction";
+
 describe("humanQuantity", () => {
   it.each([
     [0.5, "½"],
@@ -23,29 +25,45 @@ describe("humanQuantity", () => {
     [2.33, "2⅓"],
     [1.063, "1 1/16"],
     [17 / 16, "1 1/16"],
+    [1500.5, "1,500½"],
+    [1000.0625, "1,000 1/16"],
   ])("puts the whole number of %s in front: %s", (quantity, shown) => {
     expect(humanQuantity(quantity)).toBe(shown);
   });
 
-  it.each([[0.3], [0.51], [0.335], [0.0631], [0.2], [1 / 12], [2], [0]])(
-    "shows %s as itself when no fraction covers it",
-    (quantity) => {
-      expect(humanQuantity(quantity)).toBe(String(quantity));
+  it.each([
+    [0.3, "0.3"],
+    [0.51, "0.51"],
+    [0.335, "0.335"],
+    [0.0631, "0.063"],
+    [0.2, "0.2"],
+    [1 / 12, "0.083"],
+    [2, "2"],
+    [0, "0"],
+    [1500, "1,500"],
+    [1500 + 1 / 12, "1,500.083"],
+  ])(
+    "shows %s to at most three decimal places when no fraction covers it",
+    (quantity, shown) => {
+      expect(humanQuantity(quantity)).toBe(shown);
     },
   );
 
   it.each([
-    [0.2, "1/5", "1/5"],
     [0.2, 7, "7"],
+    [0.2, 1 / 12, "0.083"],
+    [0.2, 1500, "1,500"],
+    [0.2, "1/5", "1/5"],
+    [1 / 12, String(1 / 12), String(1 / 12)],
     [0.5, "a half", "½"],
   ])("shows %s with fallback %j as %s", (quantity, fallback, shown) => {
     expect(humanQuantity(quantity, fallback)).toBe(shown);
   });
 
   it("covers exactly low when a row's high is null", () => {
-    expect(humanQuantity(0.5)).toBe("½");
-    expect(humanQuantity(0.500001)).toBe("0.500001");
-    expect(humanQuantity(0.499999)).toBe("0.499999");
+    expect(humanQuantity(0.5, MISS)).toBe("½");
+    expect(humanQuantity(0.500001, MISS)).toBe(MISS);
+    expect(humanQuantity(0.499999, MISS)).toBe(MISS);
   });
 
   it("matches each bound exactly, whatever the whole number", () => {
