@@ -70,18 +70,22 @@ export type IngredientRecognition = z.infer<typeof ingredientRecognitionSchema>;
 export function toMorselRecognition(
   result: IngredientRecognition,
 ): MorselRecognition {
-  const ranges: MorselRecognition["ranges"] = result.ranges.flatMap((range) => {
+  const ranges = result.ranges.flatMap((range): MorselRecognition["ranges"] => {
+    const { start, end, quantity } = range;
+    if (range.type === RecognizedRangeType.QUANTITY) {
+      return quantity === null
+        ? []
+        : [{ start, end, type: "quantity", quantity }];
+    }
     const type =
-      range.type === RecognizedRangeType.QUANTITY
-        ? "quantity"
-        : range.type === RecognizedRangeType.UNIT ||
-            range.type === RecognizedRangeType.NEW_UNIT
-          ? "unit"
-          : range.type === RecognizedRangeType.ITEM ||
-              range.type === RecognizedRangeType.NEW_ITEM
-            ? "ingredient"
-            : undefined;
-    return type ? [{ start: range.start, end: range.end, type }] : [];
+      range.type === RecognizedRangeType.UNIT ||
+      range.type === RecognizedRangeType.NEW_UNIT
+        ? "unit"
+        : range.type === RecognizedRangeType.ITEM ||
+            range.type === RecognizedRangeType.NEW_ITEM
+          ? "ingredient"
+          : undefined;
+    return type ? [{ start, end, type }] : [];
   });
   return { raw: result.raw, ranges };
 }

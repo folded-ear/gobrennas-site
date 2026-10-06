@@ -16,7 +16,10 @@ export type MorselSuggestion = {
 };
 export type MorselRecognition = {
   raw: string;
-  ranges: (TextRange & { type: "quantity" | "unit" | "ingredient" })[];
+  ranges: (TextRange &
+    (
+      { type: "quantity"; quantity: number } | { type: "unit" | "ingredient" }
+    ))[];
 };
 export type MorselSuggestions = {
   raw: string;

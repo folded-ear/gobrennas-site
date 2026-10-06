@@ -1,4 +1,4 @@
-import { displayQuantity } from "@/features/morsel/quantity";
+import { asFraction } from "@/features/morsel/quantity";
 import { useId, type ReactNode } from "react";
 
 export type RecipeIngredient = {
@@ -22,7 +22,7 @@ export function IngredientRefText({
       {quantity !== undefined ? (
         <>
           <span className="morsel-quantity">
-            {displayQuantity(quantity)}
+            {asFraction(quantity) ?? quantity}
           </span>{" "}
         </>
       ) : null}
