@@ -15,6 +15,15 @@ export type CookSection = {
   directions: string | null;
 };
 
+/** I give the plan items that belong to the plan itself. */
+export function cookItemsOf(
+  plan: Pick<CookPlanFragment, "id" | "updatedSince">,
+): CookItem[] {
+  return plan.updatedSince
+    .filter((item) => item.__typename === "PlanItem")
+    .filter((item) => item.plan.id === plan.id);
+}
+
 /** What Cook shows: what heads it, then each section below. */
 export type CookRecipeContent = {
   /** Lacks an item when no one item heads the content. */
