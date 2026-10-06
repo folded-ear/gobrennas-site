@@ -10,6 +10,8 @@ type SectionShellProps = {
   label: string;
   /** Set after my label in my heading. */
   marker?: ReactNode;
+  /** Set right after my heading, outside the heading itself. */
+  action?: ReactNode;
   /** The accent styling a day gets for being today. */
   emphasized?: boolean;
   ariaCurrent?: "date";
@@ -31,6 +33,7 @@ type SectionShellProps = {
 export function SectionShell({
   label,
   marker,
+  action,
   emphasized = false,
   ariaCurrent,
   roots,
@@ -52,26 +55,32 @@ export function SectionShell({
 
   return (
     <li aria-current={ariaCurrent} className="relative py-xxs">
-      <h3
+      <div
         className={clsx(
-          "border-b py-xxs text-sm",
-          emphasized
-            ? "border-accent font-semibold text-accent"
-            : "border-separator font-normal text-muted",
+          "flex items-center gap-xs border-b",
+          emphasized ? "border-accent" : "border-separator",
         )}
       >
-        {onOpenSection && roots.length > 0 ? (
-          <button
-            type="button"
-            className="cursor-pointer text-left"
-            onClick={() => onOpenSection(sectionKey)}
-          >
-            {title}
-          </button>
-        ) : (
-          title
-        )}
-      </h3>
+        <h3
+          className={clsx(
+            "min-w-0 py-xxs text-sm",
+            emphasized ? "font-semibold text-accent" : "font-normal text-muted",
+          )}
+        >
+          {onOpenSection && roots.length > 0 ? (
+            <button
+              type="button"
+              className="cursor-pointer text-left"
+              onClick={() => onOpenSection(sectionKey)}
+            >
+              {title}
+            </button>
+          ) : (
+            title
+          )}
+        </h3>
+        {action}
+      </div>
       {roots.length === 0 ? (
         // Room to read the section as somewhere an item could go.
         footer ? null : (

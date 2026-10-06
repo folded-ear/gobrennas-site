@@ -541,6 +541,13 @@ describe("several plans", () => {
     ]);
   });
 
+  it("gives a shared day every plan's unnamed buckets on it, in plan order", () => {
+    const entries = buildBoth();
+
+    expect(dayOn(entries, "2026-09-12").bucketIds).toEqual(["hSat", "wSat"]);
+    expect(dayOn(entries, "2026-09-11").bucketIds).toEqual([]);
+  });
+
   it("shares a bucket section across plans, in plan order", () => {
     const entries = buildBoth();
 
@@ -585,7 +592,11 @@ describe("buildSection", () => {
   it("gives a day and what every plan roots in it", () => {
     const section = buildSection(PLANS, "2026-09-12");
 
-    expect(section).toMatchObject({ kind: "day", date: "2026-09-12" });
+    expect(section).toMatchObject({
+      kind: "day",
+      date: "2026-09-12",
+      bucketIds: ["hSat", "wSat"],
+    });
     expect(names(section!.roots)).toEqual(["Thanksgiving dinner", "Tacos"]);
   });
 
@@ -593,6 +604,7 @@ describe("buildSection", () => {
     expect(buildSection(PLANS, "2026-09-20")).toEqual({
       kind: "day",
       date: "2026-09-20",
+      bucketIds: [],
       roots: [],
     });
   });

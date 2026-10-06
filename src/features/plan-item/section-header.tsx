@@ -5,6 +5,7 @@ import {
 } from "@/features/plan-directory";
 import { TimelineSection } from "@/features/plan-timeline/model";
 import { sectionLabel } from "@/features/plan-timeline/section-label";
+import { BucketCookLink } from "./cook-link";
 
 const NO_BUCKETS: readonly string[] = [];
 
@@ -24,14 +25,19 @@ export function PlanSectionHeader({ section }: PlanSectionHeaderProps) {
 
   return (
     <div className="flex flex-col gap-sm pb-sm">
-      <h2 className="text-xl font-semibold text-foreground">
-        {sectionLabel(section)}
-        {showsPlans && plans.length > 0 ? (
-          <span className="ms-xs">
-            <PlanDotStack plans={plans} />
-          </span>
-        ) : null}
-      </h2>
+      <div className="flex items-center gap-xs">
+        <h2 className="min-w-0 text-xl font-semibold text-foreground">
+          {sectionLabel(section)}
+          {showsPlans && plans.length > 0 ? (
+            <span className="ms-xs">
+              <PlanDotStack plans={plans} />
+            </span>
+          ) : null}
+        </h2>
+        {section.kind === "unplanned" ? null : (
+          <BucketCookLink section={section} />
+        )}
+      </div>
       {section.roots.length > 0 ? (
         // Where the section's own heading stops and its contents start.
         <hr className="border-separator" />

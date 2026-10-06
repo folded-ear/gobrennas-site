@@ -3,15 +3,34 @@ import {
   PlanDirectoryProvider,
 } from "@/features/plan-directory";
 import {
+  PlanItemNode,
   TimelineBucketSection,
   TimelineDay,
+  TimelineUnplanned,
 } from "@/features/plan-timeline/model";
 import { render, screen, within } from "@/test";
 import { ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 import { PlanSectionHeader } from "./section-header";
 
-const SATURDAY: TimelineDay = { kind: "day", date: "2026-09-12", roots: [] };
+const TACOS: PlanItemNode = {
+  item: {
+    __typename: "PlanItem",
+    id: "1",
+    name: "Tacos",
+    bucket: null,
+    children: [],
+  },
+  children: [],
+};
+
+const SATURDAY: TimelineDay = {
+  kind: "day",
+  date: "2026-09-12",
+  bucketIds: ["hSat"],
+  roots: [],
+};
+const UNPLANNED: TimelineUnplanned = { kind: "unplanned", roots: [TACOS] };
 const PREP: TimelineBucketSection = {
   kind: "bucket",
   key: "bucket:prep@2026-09-11",
@@ -32,7 +51,7 @@ function withPlans(ui: ReactElement) {
           mine: true,
           grants: [],
           descendants: [],
-          buckets: [{ id: "hPrep" }],
+          buckets: [{ id: "hPrep" }, { id: "hSat" }],
         },
         {
           id: "9",
@@ -69,5 +88,33 @@ describe("PlanSectionHeader", () => {
         .getAllByRole("img")
         .map((dot) => dot.getAttribute("aria-label")),
     ).toEqual(["Holidays", "Weeknights"]);
+  });
+
+  it("links to cooking a bucket with anything in it", () => {
+    render(
+      withPlans(<PlanSectionHeader section={{ ...PREP, roots: [TACOS] }} />),
+    );
+
+    expect(
+      screen.getByRole("link", { name: /^Cook Prep – Fri, Sep 11/ }),
+    ).toBeVisible();
+  });
+
+  it("links to cooking a day with anything in it", () => {
+    render(
+      withPlans(
+        <PlanSectionHeader section={{ ...SATURDAY, roots: [TACOS] }} />,
+      ),
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Cook Sat, Sep 12" }),
+    ).toBeVisible();
+  });
+
+  it("offers no cooking for Unplanned", () => {
+    render(withPlans(<PlanSectionHeader section={UNPLANNED} />));
+
+    expect(screen.queryByRole("link", { name: /^Cook / })).toBeNull();
   });
 });

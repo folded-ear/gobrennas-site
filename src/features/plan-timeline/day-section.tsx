@@ -1,6 +1,7 @@
 import { useDragSession } from "@/features/plan-dnd/drag-session";
 import { ZoneSpec } from "@/features/plan-dnd/zone-layer";
 import { WHOLE_ZONE } from "@/features/plan-dnd/zones";
+import { BucketCookLink } from "@/features/plan-item/cook-link";
 import type { ReactNode } from "react";
 import { PlanContext } from "./context";
 import { TimelineDay } from "./model";
@@ -51,6 +52,7 @@ export function DaySection({
   return (
     <SectionShell
       label={label}
+      action={<BucketCookLink section={day} />}
       emphasized={isToday}
       ariaCurrent={isToday ? "date" : undefined}
       roots={day.roots}

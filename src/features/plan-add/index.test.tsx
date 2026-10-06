@@ -47,7 +47,12 @@ const plan: AddPlan = {
   buckets: [],
 };
 const unplanned: TimelineSection = { kind: "unplanned", roots: [] };
-const day: TimelineSection = { kind: "day", date: "2026-10-02", roots: [] };
+const day: TimelineSection = {
+  kind: "day",
+  date: "2026-10-02",
+  bucketIds: [],
+  roots: [],
+};
 
 const ingredient = {
   __typename: "PlanItem" as const,
