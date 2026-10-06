@@ -1,7 +1,6 @@
 "use client";
 
 import { SendToPlanIcon } from "@/components/icons";
-import { useBlockScreenEscape } from "@/components/screen";
 import { useSendRecipeToPlan } from "@/features/send-to-plan/use-send-recipe-to-plan";
 import { canChangePlan, orderPlans } from "@/lib/plans";
 import { useQuery } from "@apollo/client/react";
@@ -12,20 +11,16 @@ import { RecipePlanChoicesDocument } from "./__generated__/recipePlanChoices.gen
 
 export function AddRecipeToPlan({ recipeId }: { recipeId: string }) {
   const [requested, setRequested] = useState(false);
-  const [open, setOpen] = useState(false);
   const { data, loading, error, refetch } = useQuery(
     RecipePlanChoicesDocument,
     { skip: !requested },
   );
   const { send, sending } = useSendRecipeToPlan();
-  useBlockScreenEscape(open);
   const plans = orderPlans(data?.planner.plans ?? []).filter(canChangePlan);
 
   return (
     <Dropdown
-      isOpen={open}
       onOpenChange={(next) => {
-        setOpen(next);
         if (next) setRequested(true);
       }}
     >
