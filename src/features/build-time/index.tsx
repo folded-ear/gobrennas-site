@@ -33,7 +33,7 @@ export function BuildTime() {
     <p className="text-sm text-muted">
       Built{" "}
       <time dateTime={built.toISOString()}>
-        {built.toLocaleString(undefined, FORMAT)}
+        {built.toLocaleString("en-US", FORMAT)}
       </time>
     </p>
   );
