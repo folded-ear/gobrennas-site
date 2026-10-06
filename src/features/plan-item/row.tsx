@@ -18,6 +18,7 @@ import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
+import { PlanItemTextFragment } from "./__generated__/planItemText.generated";
 import { NoChip } from "./chips";
 import { NameText } from "./item-name";
 import { ItemText } from "./item-text";
@@ -31,7 +32,8 @@ export type RowAncestor = {
 };
 
 type PlanItemRowProps = {
-  readonly item: FragmentType<PlanItemFragment>;
+  readonly item: FragmentType<PlanItemFragment> &
+    FragmentType<PlanItemTextFragment>;
   /** Nearest first, the plan itself left out. */
   readonly ancestors: readonly RowAncestor[];
   readonly plan: DirectoryPlan;
@@ -107,7 +109,7 @@ export function PlanItemRow({
       >
         {data.quantity?.quantity === 0 ? <NoChip /> : null}
         <span>
-          <ItemText itemId={data.id} />
+          <ItemText item={item} />
         </span>
       </RowName>
     </div>

@@ -74,7 +74,7 @@ function renderRow(
 ) {
   const cache = buildInMemoryCache();
   const item = seedFragment(cache, PlanItemFragmentDoc, "planItem", data);
-  seedFragment(cache, PlanItemTextFragmentDoc, "planItemText", {
+  const text = seedFragment(cache, PlanItemTextFragmentDoc, "planItemText", {
     __typename: "PlanItem",
     id: data.id,
     name: data.name,
@@ -85,7 +85,8 @@ function renderRow(
   render(
     <PlanDirectoryProvider directory={directoryOf(plans)}>
       <PlanItemRow
-        item={item}
+        // Both seeds name the same cached item, which carries both fragments.
+        item={item as typeof item & typeof text}
         ancestors={ancestors}
         plan={WEEKNIGHTS}
         countsAs={countsAs}

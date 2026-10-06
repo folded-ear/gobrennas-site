@@ -1,17 +1,22 @@
 import { IngredientRefText } from "@/components/ingredient-ref-text";
 import { planItemParts } from "@/lib/ingredient-parts";
+import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
-import { PlanItemTextFragmentDoc } from "./__generated__/planItemText.generated";
+import {
+  PlanItemTextFragment,
+  PlanItemTextFragmentDoc,
+} from "./__generated__/planItemText.generated";
 
 type ItemTextProps = {
-  readonly itemId: string;
+  readonly item: FragmentType<PlanItemTextFragment>;
 };
 
 /** I show a plan item as its saved parts. */
-export function ItemText({ itemId }: ItemTextProps) {
+export function ItemText({ item }: ItemTextProps) {
   const { data, complete } = useFragment({
     fragment: PlanItemTextFragmentDoc,
-    from: { __typename: "PlanItem", id: itemId },
+    fragmentName: "planItemText",
+    from: item,
   });
   if (!complete) return null;
   return <IngredientRefText {...planItemParts(data)} />;

@@ -61,7 +61,7 @@ export function seedItem(
     bucket: null,
   };
   const ref = seedFragment(cache, PlanItemFragmentDoc, "planItem", data);
-  seedFragment(cache, PlanItemTextFragmentDoc, "planItemText", {
+  const text = seedFragment(cache, PlanItemTextFragmentDoc, "planItemText", {
     __typename: "PlanItem",
     id,
     name,
@@ -70,7 +70,8 @@ export function seedItem(
     ingredient: pantry ? { __typename: "PantryItem", ...pantry } : null,
   });
   return {
-    ...ref,
+    // Both seeds name the same cached item, which carries both fragments.
+    ...(ref as typeof ref & typeof text),
     __typename: "PlanItem",
     id,
     name,
