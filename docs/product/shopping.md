@@ -28,7 +28,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   whatever their text, recipe, or plan. A shopping item is labeled with its
   ingredient's name, and its text can't be edited.
 - A shopping item sums its quantities per unit. Different units show as
-  separate amounts on the same line.
+  separate amounts on the same line. Quantities show as fractions (see
+  [Text conventions](ingredient-recognition.md#text-conventions-and-saving)).
 - A plan item with no quantity counts as one. A plan item with a zero
   quantity adds nothing.
 - A shopping item from a single plan item with no quantity shows no amount.
