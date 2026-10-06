@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { preparePhoto } from "./prepare-photo";
+import { preparePhoto } from "@/lib/recipe-photo/prepare-photo";
 import {
   PhotoUploadError,
   validatePhoto,
   type PhotoFocus,
   type SavedPhoto,
   type UploadPhoto,
-} from "./types";
+} from "@/lib/recipe-photo/types";
+import { useEffect, useRef, useState } from "react";
 
 type UploadState =
   | { status: "empty" }

@@ -2,7 +2,6 @@
 
 import { RecipeActionBar } from "@/components/recipe-action-bar";
 import { formatLastCooked } from "@/features/recipe-card/utils";
-import { RecipePhoto } from "@/features/recipe-photo";
 import { SendToPlan } from "@/features/send-to-plan";
 import { OtherUserAvatar } from "@/features/user-avatar";
 import { usePreference } from "@/hooks/use-preference";
@@ -16,6 +15,7 @@ import {
   RecipeCardFragment,
   RecipeCardFragmentDoc,
 } from "./__generated__/recipeCard.generated";
+import { CardPhoto } from "./photo";
 
 type RecipeCardProps = {
   recipe: FragmentType<RecipeCardFragment>;
@@ -43,11 +43,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
         <Bookmark
           className={`absolute right-2 bottom-2 bg-gray-900/80 rounded-full p-xs size-6 text-white ${data.favorite ? "fill-white" : "transparent"}`}
         />
-        {/* A quarter of each card, accounting for the library padding and grid gaps. */}
-        <RecipePhoto
-          recipe={data}
-          sizes="(min-width: 64rem) calc((100vw - 56px) / 12), (min-width: 48rem) calc((100vw - 40px) / 8), calc((100vw - 24px) / 4)"
-        />
+        <CardPhoto recipe={data} />
       </div>
       <div className="flex-1 flex flex-col gap-sm p-sm">
         <Card.Header>
