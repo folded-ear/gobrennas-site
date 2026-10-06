@@ -4,11 +4,9 @@ import { usePageEngine } from "@/features/page-engine";
 import {
   actionLabel,
   isToggleStatus,
-  TOGGLE_LOOKS,
   useItemStatus,
 } from "@/features/plan-status/status";
 import { Button } from "@heroui/react";
-import clsx from "clsx";
 
 type Props = {
   itemId: string;
@@ -23,10 +21,9 @@ export function PreppedButton({ itemId, planId, canChange }: Props) {
   if (item === null || !isToggleStatus(item.status)) return null;
 
   const prepped = item.status === PlanItemStatus.ACQUIRED;
-  const look = TOGGLE_LOOKS[item.status];
   if (!canChange) {
     return (
-      <span className={clsx("text-sm", look.className)}>
+      <span className="text-sm text-muted">
         {prepped ? "Prepped" : "Needs prep"}
       </span>
     );
@@ -41,7 +38,6 @@ export function PreppedButton({ itemId, planId, canChange }: Props) {
         )}
         aria-pressed={prepped}
         variant="tertiary"
-        className={clsx(look.className, look.buttonClassName)}
         isDisabled={item.inert || item.pendingStatus !== null}
         onPress={() =>
           engine.set([

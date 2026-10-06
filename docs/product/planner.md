@@ -136,9 +136,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   scrolling content. Close returns to where Cook was opened. The view loads current plan
   data on entry; a missing or deleted occurrence offers a way back to the planner.
 - I cooked it is the primary action. I prepped this is a secondary action that
-  marks the recipe Acquired, keeps it in the plan, and stays in Cook. It takes
-  the color of the recipe's status, as the planner's status indicators do.
-  Once saved, it reads Prepped and can be pressed again to undo prep (mark
+  marks the recipe Acquired, keeps it in the plan, and stays in Cook. Once
+  saved, it reads Prepped and can be pressed again to undo prep (mark
   Needed). Both
   show their result at once; see [Saving changes](#saving-changes). Viewers
   see the prep status as text and cannot change it.
