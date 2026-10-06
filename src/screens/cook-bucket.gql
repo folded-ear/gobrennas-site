@@ -1,0 +1,8 @@
+query CookBucket($planId: ID!) {
+  planner {
+    plan(id: $planId) {
+      id
+      ...cookPlan
+    }
+  }
+}

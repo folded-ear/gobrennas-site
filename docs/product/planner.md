@@ -112,7 +112,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
   to where it was opened from, with the item screen still open if it was.
 - Cook is a readable view of one planned recipe and its sections, subrecipes,
   and preparation. Opening a recipe in the planner still opens the existing
-  editable item screen. Cooking a whole day or bucket is deferred.
+  editable item screen.
 - The planned name, quantities, preparations, and ingredient choices are shown.
   Unrecognized rows keep their wording; recognized rows use the same read-only
   quantity, unit, and ingredient treatment as library recipes. Cook offers no
@@ -136,8 +136,10 @@ The terms used here are defined in the [domain model](../domain/model.md).
   scrolling content. Close returns to where Cook was opened. The view loads current plan
   data on entry; a missing or deleted occurrence offers a way back to the planner.
 - I cooked it is the primary action. I prepped this is a secondary action that
-  marks the recipe Acquired, keeps it in the plan, and stays in Cook. Once saved,
-  it reads Prepped and can be pressed again to undo prep (mark Needed). Both
+  marks the recipe Acquired, keeps it in the plan, and stays in Cook. It takes
+  the color of the recipe's status, as the planner's status indicators do.
+  Once saved, it reads Prepped and can be pressed again to undo prep (mark
+  Needed). Both
   show their result at once; see [Saving changes](#saving-changes). Viewers
   see the prep status as text and cannot change it.
 - Marking a recipe cooked goes back, and the item waits out its undo window
@@ -147,6 +149,24 @@ The terms used here are defined in the [domain model](../domain/model.md).
   Mon, Oct 5). Choosing a date records when the recipe was actually cooked,
   with the same return and undo behavior. The chosen date is kept even when
   saving is delayed or the device is offline.
+
+#### Cooking a meal
+
+- A day or named bucket with anything in it links to cooking it as one
+  meal: on the timeline, just after its heading and any plan dots, and in
+  its section screen's heading. Unplanned can't be cooked.
+- A meal gathers what its buckets, in every plan the section spans, hold
+  directly — its courses — with everything below each, read as Cook reads
+  one recipe. An item already below a course is part of that course, not
+  one of its own.
+- The meal is headed by its section's label. Its courses are listed as what
+  it's made of, and each course worth a section of its own follows, with
+  its subrecipes and preparation after it.
+- Each course's section carries its own I prepped this and I cooked it;
+  nothing below a course does. Marking a course cooked stays in the meal,
+  with a button to undo it in its place while it waits out its undo window.
+- A meal whose buckets no longer hold anything offers a way back to the
+  planner.
 
 ### Status
 

@@ -71,6 +71,11 @@ export function bucketCookHref(
   ].join("/");
 }
 
+/** I give the ids listed in one of a bucket cook path's segments. */
+export function parseBucketCookIds(segment: string): readonly string[] {
+  return segment.split(ID_SEPARATOR);
+}
+
 type CookIconLinkProps = {
   href: string;
   /** What the link cooks, so it can say so. */

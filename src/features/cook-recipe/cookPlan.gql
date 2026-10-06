@@ -9,6 +9,14 @@ fragment cookPlan on Plan {
       me
     }
   }
+  children {
+    id
+  }
+  buckets {
+    id
+    name
+    date
+  }
   # Includes linked prep even after it moves or is completed. Descendants
   # alone only follows the active scheduling tree.
   updatedSince(cutoff: 0) {
@@ -28,6 +36,9 @@ fragment cookPlan on Plan {
         id
       }
       plan {
+        id
+      }
+      bucket {
         id
       }
       children {

@@ -9,7 +9,12 @@ import {
 } from "@/features/plan-timeline/model";
 import { render, screen } from "@/test";
 import { describe, expect, it } from "vitest";
-import { bucketCookHref, BucketCookLink, CookLink } from "./cook-link";
+import {
+  bucketCookHref,
+  BucketCookLink,
+  CookLink,
+  parseBucketCookIds,
+} from "./cook-link";
 
 describe("CookLink", () => {
   it("links to the item's cook view, naming the item", () => {
@@ -37,6 +42,20 @@ describe("bucketCookHref", () => {
     expect(bucketCookHref("Dinner", null, ["7", "9"], ["30", "44"])).toBe(
       "/planner/cook/dinner/7,9/30,44",
     );
+  });
+});
+
+describe("parseBucketCookIds", () => {
+  it("reads back the ids a bucket cook path lists", () => {
+    const [, , , , planIds, bucketIds] = bucketCookHref(
+      "Dinner",
+      null,
+      ["7", "9"],
+      ["30", "44"],
+    ).split("/");
+
+    expect(parseBucketCookIds(planIds)).toEqual(["7", "9"]);
+    expect(parseBucketCookIds(bucketIds)).toEqual(["30", "44"]);
   });
 });
 
