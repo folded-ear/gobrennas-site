@@ -3,7 +3,7 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { readSelection } from "./editor-dom";
 import { Morsel, type MorselProps } from "./index";
-import { editableMorsel, withTextInsertion } from "./test-helpers";
+import { editableMorsel, withTextInsertion } from "./test/editing";
 import type { MorselSuggestions } from "./types";
 
 const suggestions: MorselSuggestions = {

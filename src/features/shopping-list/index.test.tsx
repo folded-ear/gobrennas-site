@@ -13,9 +13,9 @@ import {
 import { ApolloProvider } from "@apollo/client/react";
 import { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { BASIL, plan, seedItem, SUGAR, TBSP, TSP } from "./fixtures";
 import { ShoppingRegions } from "./index";
 import { buildShoppingList, ingredientKey, ShoppingList } from "./model";
+import { BASIL, plan, seedItem, SUGAR, TBSP, TSP } from "./test/fixtures";
 
 const WEEKNIGHTS = {
   id: "7",

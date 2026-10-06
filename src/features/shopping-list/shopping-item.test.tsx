@@ -6,9 +6,9 @@ import {
 } from "@/features/plan-directory";
 import { buildInMemoryCache, render, screen, userEvent, within } from "@/test";
 import { describe, expect, it } from "vitest";
-import { BASIL, plan, seedItem, SUGAR, TBSP, TSP } from "./fixtures";
 import { buildShoppingList, ShoppingItem, Unit } from "./model";
 import { ShoppingItemRow } from "./shopping-item";
+import { BASIL, plan, seedItem, SUGAR, TBSP, TSP } from "./test/fixtures";
 
 const WEEKNIGHTS: DirectoryPlan = {
   id: "7",

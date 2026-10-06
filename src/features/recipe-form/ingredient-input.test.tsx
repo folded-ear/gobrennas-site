@@ -6,7 +6,7 @@ import { readSelection } from "@/features/morsel/editor-dom";
 import {
   editableMorsel,
   withTextInsertion,
-} from "@/features/morsel/test-helpers";
+} from "@/features/morsel/test/editing";
 import {
   act,
   cleanup,

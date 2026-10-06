@@ -5,7 +5,7 @@ import {
 } from "@/features/plan-item/__generated__/planItem.generated";
 import { PlanItemTextFragmentDoc } from "@/features/plan-item/__generated__/planItemText.generated";
 import { buildInMemoryCache, seedFragment } from "@/test";
-import { ShoppingPlan, ShoppingPlanItem, Unit } from "./model";
+import { ShoppingPlan, ShoppingPlanItem, Unit } from "../model";
 
 type Cache = ReturnType<typeof buildInMemoryCache>;
 

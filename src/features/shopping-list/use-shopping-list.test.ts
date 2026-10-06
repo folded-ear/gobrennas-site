@@ -1,8 +1,8 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { act, buildInMemoryCache, renderHook } from "@/test";
 import { describe, expect, it } from "vitest";
-import { BASIL, plan, seedItem, SUGAR } from "./fixtures";
 import { ShoppingItem, ShoppingPlan } from "./model";
+import { BASIL, plan, seedItem, SUGAR } from "./test/fixtures";
 import { useShoppingList } from "./use-shopping-list";
 
 const { NEEDED, ACQUIRED } = PlanItemStatus;
