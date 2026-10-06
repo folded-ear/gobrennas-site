@@ -15,7 +15,7 @@ source of truth for exact versions.
 | Styling | Tailwind CSS with Tailwind Variants | `app/globals.css` |
 | Theme | CSS variables using OKLCh colors; light and dark modes through `next-themes` | `app/globals.css`, `src/providers/theme-provider.tsx` |
 | Icons | Lucide | `package.json` |
-| Drag and drop | dnd-kit | `src/features/plan-dnd/` |
+| Drag and drop | React Aria | `src/features/plan-dnd/` |
 | Service worker | Serwist, through its Turbopack route | `app/serwist/[path]/route.ts`, `src/worker/` |
 | Browser storage | IndexedDB through `idb` | `src/features/page-engine/store.ts` |
 | Tests | Vitest, jsdom, and Testing Library | `vitest.config.ts`, `src/test/setup.ts` |

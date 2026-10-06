@@ -1,3 +1,4 @@
+import { displayName } from "@/lib/plan-item-name";
 import { DraggedItem } from "./drag-session";
 import { PlanTree, TreeMove, treeMove, TreeZone } from "./moves";
 import { ZoneIndicator, ZoneSpec } from "./zone-layer";
@@ -43,7 +44,7 @@ export function treeZones({
       {
         rect,
         indicator: INDICATORS[zone],
-        label: LABELS[zone](target.name),
+        label: LABELS[zone](displayName(target.name)),
         onDrop: () => onMove(move),
       },
     ];

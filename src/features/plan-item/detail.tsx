@@ -15,6 +15,8 @@ import { DrawerRow } from "./drawer-row";
 import { Ladder } from "./ladder";
 import { PlanItemEntryTree } from "./tree";
 
+const DRAWER_DRAG_TYPE = "application/x.gobrennas.drawer-item";
+
 type PlanItemHeaderProps = {
   item: FragmentType<PlanItemFragment>;
   /** Where every item in the plan sits, for the walk down to this one. */
@@ -124,5 +126,11 @@ export function PlanItemDetail({
     />
   );
 
-  return dnd ? <DragSession canMove={dnd.canMove}>{rows}</DragSession> : rows;
+  return dnd ? (
+    <DragSession dragType={DRAWER_DRAG_TYPE} canMove={dnd.canMove}>
+      {rows}
+    </DragSession>
+  ) : (
+    rows
+  );
 }

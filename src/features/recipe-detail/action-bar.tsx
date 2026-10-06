@@ -1,6 +1,5 @@
 "use client";
 
-import { useBlockScreenEscape } from "@/components/screen";
 import { AddRecipeToPlan } from "@/features/add-recipe-to-plan";
 import { DeleteRecipeDialog } from "@/features/recipe-form/delete-recipe-button";
 import { Button, Dropdown, Label, Separator } from "@heroui/react";
@@ -48,16 +47,14 @@ export function LibraryRecipeActions({
   onDelete: () => Promise<void>;
 }) {
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const more = useRef<HTMLButtonElement>(null);
-  useBlockScreenEscape(menuOpen || deleteOpen);
   return (
     <>
       <AddRecipeToPlan recipeId={recipe.id} />
       {recipe.mine ? (
         <>
-          <Dropdown isOpen={menuOpen} onOpenChange={setMenuOpen}>
+          <Dropdown>
             <Button
               ref={more}
               isIconOnly

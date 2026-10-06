@@ -125,7 +125,7 @@ convention.
 Test-only infrastructure that isn't itself a test module — helpers,
 harnesses, stubs — lives in a directory named exactly `test`: `src/test/`
 for what every feature shares, or a feature's own `test/` directory (e.g.
-`src/features/plan-dnd/test/dnd-harness.ts`).
+`src/features/plan-dnd/test/keyboard-drag.ts`).
 
 ## Coverage threshold
 
