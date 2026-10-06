@@ -1,11 +1,11 @@
 "use client";
 
-import { humanQuantity } from "@/features/morsel/quantity";
 import { RecognizeIngredientDocument } from "@/features/recipe-form/__generated__/recognizeIngredient.generated";
 import {
   ingredientRecognitionSchema,
   toMorselRecognition,
 } from "@/features/recipe-form/ingredient-recognition";
+import { humanQuantity } from "@/lib/quantity";
 import { useQuery } from "@apollo/client/react";
 import { Fragment, type ReactNode } from "react";
 

@@ -1,4 +1,4 @@
-import { humanQuantity } from "@/features/morsel/quantity";
+import { humanQuantity } from "@/lib/quantity";
 import { useId, type ReactNode } from "react";
 
 export type RecipeIngredient = {
