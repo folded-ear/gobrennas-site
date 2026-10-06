@@ -1,5 +1,5 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import type { RecipeIngredient } from "@/features/recipe-ingredients-and-directions/content";
+import type { IngredientParts } from "@/lib/ingredient-parts";
 import { displayName } from "@/lib/plan-item-name";
 import type { CookPlanFragment } from "./__generated__/cookPlan.generated";
 
@@ -11,7 +11,7 @@ export type CookItem = Extract<
 export type CookSection = {
   item: CookItem;
   title: string;
-  ingredients: RecipeIngredient[];
+  ingredients: IngredientParts[];
   directions: string | null;
 };
 
@@ -50,7 +50,7 @@ export function buildCookRecipe(items: readonly CookItem[], itemId: string) {
               sectionIds.has(child.ingredient.id)
             ),
         )
-        .map((child): RecipeIngredient => {
+        .map((child): IngredientParts => {
           if (!child.ingredient) return { text: displayName(child.name) };
           return {
             text: displayName(child.name),
