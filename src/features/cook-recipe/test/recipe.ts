@@ -26,6 +26,7 @@ export function item(
         ? { __typename: "Plan", id: "7" }
         : { __typename: "PlanItem", id: "pie" },
     plan: { __typename: "Plan", id: "7" },
+    bucket: null,
     children: [],
     components: [],
     ...overrides,
@@ -105,6 +106,10 @@ export function cookData(
         name: "Holiday dinner",
         mine,
         grants: [],
+        children: items
+          .filter((entry) => entry.parent?.__typename === "Plan")
+          .map((entry) => ref(entry.id)),
+        buckets: [],
         updatedSince: items,
       },
     },

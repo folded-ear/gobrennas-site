@@ -6,9 +6,9 @@ import { TimelineEntry } from "./model";
 const TODAY = "2026-09-09";
 
 const ENTRIES: readonly TimelineEntry[] = [
-  { kind: "day", date: "2026-09-03", roots: [] },
+  { kind: "day", date: "2026-09-03", bucketIds: [], roots: [] },
   { kind: "gap", after: "2026-09-03", before: "2026-09-09", days: 5 },
-  { kind: "day", date: TODAY, roots: [] },
+  { kind: "day", date: TODAY, bucketIds: [], roots: [] },
   {
     kind: "bucket",
     key: "bucket:lunch@2026-09-09",
@@ -18,7 +18,7 @@ const ENTRIES: readonly TimelineEntry[] = [
     roots: [],
   },
   { kind: "unplanned", roots: [] },
-  { kind: "day", date: "2026-09-10", roots: [] },
+  { kind: "day", date: "2026-09-10", bucketIds: [], roots: [] },
 ];
 
 describe("DayList", () => {

@@ -1,4 +1,4 @@
-import { formatGapLabel } from "./dates";
+import { formatGapLabel } from "@/lib/dates";
 import { TimelineGap } from "./model";
 
 type GapRowProps = {

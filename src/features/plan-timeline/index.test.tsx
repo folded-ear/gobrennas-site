@@ -230,7 +230,11 @@ describe("PlanTimeline, cooking", () => {
     expect(
       screen.getByRole("link", { name: "Cook Thanksgiving dinner" }),
     ).toHaveAttribute("href", "/plan/7/recipe/1");
-    expect(screen.getAllByRole("link", { name: /^Cook / })).toHaveLength(1);
+    expect(
+      screen
+        .getAllByRole("link", { name: /^Cook / })
+        .map((link) => link.getAttribute("href")),
+    ).toEqual(["/planner/cook/2026-09-12/7/bSep12", "/plan/7/recipe/1"]);
   });
 
   it("offers to cook nothing without knowing the plan", () => {

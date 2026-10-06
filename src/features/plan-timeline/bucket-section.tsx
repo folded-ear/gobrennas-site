@@ -7,6 +7,7 @@ import { useDragSession } from "@/features/plan-dnd/drag-session";
 import { ZoneSpec } from "@/features/plan-dnd/zone-layer";
 import { WHOLE_ZONE } from "@/features/plan-dnd/zones";
 import type { ReactNode } from "react";
+import { BucketCookLink } from "./bucket-cook-link";
 import { PlanContext } from "./context";
 import {
   TimelineBucketSection,
@@ -70,6 +71,12 @@ export function BucketSection({
       label={label}
       marker={
         showsPlans && plans.length > 0 ? <PlanDotStack plans={plans} /> : null
+      }
+      action={
+        <BucketCookLink
+          section={bucket}
+          planIds={plans.map((plan) => plan.id)}
+        />
       }
       roots={bucket.roots}
       zones={zones}

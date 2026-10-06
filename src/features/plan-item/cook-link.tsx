@@ -1,13 +1,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { CookIcon } from "@/components/icons";
-import {
-  CancelPendingButton,
-  LINE_CONTROL_CLASS_NAME,
-  useItemStatus,
-} from "@/features/plan-status";
+import { CookIconLink } from "@/components/cook-icon-link";
+import { CancelPendingButton, useItemStatus } from "@/features/plan-status";
 import { displayName } from "@/lib/plan-item-name";
-import clsx from "clsx";
-import Link from "next/link";
 
 type CookLinkProps = {
   planId: string;
@@ -33,15 +27,6 @@ export function CookLink({ planId, itemId, name }: CookLinkProps) {
     );
   }
   return (
-    <Link
-      href={cookHref(planId, itemId)}
-      className={clsx(
-        "flex items-center justify-center rounded-sm text-primary hover:bg-default",
-        LINE_CONTROL_CLASS_NAME,
-      )}
-    >
-      <CookIcon size="small" aria-hidden="true" />
-      <span className="sr-only">Cook {displayName(name)}</span>
-    </Link>
+    <CookIconLink href={cookHref(planId, itemId)} label={displayName(name)} />
   );
 }

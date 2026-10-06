@@ -13,7 +13,7 @@ export function RecipeActionBar({
   onClose,
 }: {
   title: ReactNode;
-  children: ReactNode;
+  children?: ReactNode;
   onClose: () => void;
 }) {
   return (

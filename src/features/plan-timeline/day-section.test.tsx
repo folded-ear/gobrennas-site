@@ -1,5 +1,9 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import {
+  buildPlanDirectory,
+  PlanDirectoryProvider,
+} from "@/features/plan-directory";
+import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "@/features/plan-item/__generated__/planItem.generated";
@@ -16,6 +20,18 @@ import { DaySection } from "./day-section";
 import { PlanItemNode, TimelineDay, TimelineItem } from "./model";
 
 const PIE = { id: "42", name: "Pumpkin pie" };
+
+const DIRECTORY = buildPlanDirectory([
+  {
+    id: "7",
+    name: "Holidays",
+    color: "#F57F17",
+    mine: true,
+    grants: [],
+    descendants: [],
+    buckets: [{ id: "b1" }],
+  },
+]);
 
 function node({ id, name }: { id: string; name: string }): PlanItemNode {
   const item: TimelineItem = {
@@ -52,7 +68,7 @@ function fragment({
 }
 
 function day(roots: readonly PlanItemNode[]): TimelineDay {
-  return { kind: "day", date: "2026-09-09", roots };
+  return { kind: "day", date: "2026-09-09", bucketIds: ["b1"], roots };
 }
 
 function renderDay(
@@ -63,14 +79,16 @@ function renderDay(
   const cache = buildInMemoryCache();
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(PIE));
   return render(
-    <ol>
-      <DaySection
-        day={day(roots)}
-        isToday={isToday}
-        context={new Map()}
-        onSelect={onSelect}
-      />
-    </ol>,
+    <PlanDirectoryProvider directory={DIRECTORY}>
+      <ol>
+        <DaySection
+          day={day(roots)}
+          isToday={isToday}
+          context={new Map()}
+          onSelect={onSelect}
+        />
+      </ol>
+    </PlanDirectoryProvider>,
     { cache },
   );
 }
@@ -123,5 +141,17 @@ describe("DaySection", () => {
     await userEvent.click(screen.getByRole("button", { name: "Pumpkin pie" }));
 
     expect(onSelect).toHaveBeenCalledWith("42");
+  });
+
+  it("links to cooking everything it holds", () => {
+    renderDay([node(PIE)]);
+
+    expect(screen.getByRole("link", { name: /^Cook .*Sep 9/ })).toBeVisible();
+  });
+
+  it("offers nothing to cook when it holds nothing", () => {
+    renderDay([]);
+
+    expect(screen.queryByRole("link", { name: /^Cook / })).toBeNull();
   });
 });

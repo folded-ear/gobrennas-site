@@ -1,18 +1,14 @@
-import { formatDayLabel } from "./dates";
+import { bucketLabel } from "@/lib/buckets";
 import { TimelineSection } from "./model";
-
-const UNPLANNED_LABEL = "Unplanned";
 
 /** I give the words a section is headed by, on the timeline or its screen. */
 export function sectionLabel(section: TimelineSection): string {
   switch (section.kind) {
     case "day":
-      return formatDayLabel(section.date);
+      return bucketLabel(null, section.date);
     case "bucket":
-      return section.date !== null
-        ? `${section.name} – ${formatDayLabel(section.date)}`
-        : section.name;
+      return bucketLabel(section.name, section.date);
     case "unplanned":
-      return UNPLANNED_LABEL;
+      return bucketLabel(null, null);
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { ControlTooltip } from "@/components/control-tooltip";
+import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import { usePageEngine } from "@/features/page-engine";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
@@ -8,7 +9,6 @@ import {
   actionLabel,
   countedLabel,
   isToggleStatus,
-  LINE_CONTROL_CLASS_NAME,
   TOGGLE_LOOKS,
   ToggleStatus,
   useItemStatus,

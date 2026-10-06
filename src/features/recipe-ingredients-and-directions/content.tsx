@@ -83,17 +83,27 @@ export function Directions({
 
 export function RecipeSection({
   title,
+  actions,
   children,
 }: {
   title: string;
+  /** Set at the far end of my heading's row. */
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   const id = useId();
   return (
     <section aria-labelledby={id} className="border-t border-separator pt-lg">
-      <h2 id={id} className="mb-md">
-        {title}
-      </h2>
+      {actions ? (
+        <div className="mb-md flex flex-wrap items-center gap-sm">
+          <h2 id={id}>{title}</h2>
+          <div className="ms-auto flex items-center gap-sm">{actions}</div>
+        </div>
+      ) : (
+        <h2 id={id} className="mb-md">
+          {title}
+        </h2>
+      )}
       {children}
     </section>
   );

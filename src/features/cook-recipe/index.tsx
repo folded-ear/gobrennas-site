@@ -5,13 +5,21 @@ import {
   RecipeSection,
 } from "@/features/recipe-ingredients-and-directions/content";
 import { Button, Disclosure } from "@heroui/react";
-import type { buildCookRecipe } from "./model";
+import type { ReactNode } from "react";
+import type { CookRecipeContent, CookSection } from "./model";
 
-type Props = { recipe: NonNullable<ReturnType<typeof buildCookRecipe>> };
+type Props = {
+  recipe: CookRecipeContent;
+  /** Set at the far end of a section's heading row. Left out, sections carry none. */
+  sectionActions?: (section: CookSection) => ReactNode;
+};
 
-export function CookRecipe({ recipe: { main, sections } }: Props) {
+export function CookRecipe({
+  recipe: { main, sections },
+  sectionActions,
+}: Props) {
   const source =
-    main.item.ingredient?.__typename === "Recipe"
+    main.item?.ingredient?.__typename === "Recipe"
       ? main.item.ingredient
       : undefined;
   const hasDetails =
@@ -37,7 +45,7 @@ export function CookRecipe({ recipe: { main, sections } }: Props) {
           </Disclosure.Content>
         </Disclosure>
       ) : null}
-      {main.item.status === PlanItemStatus.COMPLETED ? (
+      {main.item?.status === PlanItemStatus.COMPLETED ? (
         <p className="text-muted">Already cooked</p>
       ) : null}
       <RecipeContent
@@ -45,7 +53,11 @@ export function CookRecipe({ recipe: { main, sections } }: Props) {
         directions={main.directions}
       />
       {sections.map((section) => (
-        <RecipeSection key={section.item.id} title={section.title}>
+        <RecipeSection
+          key={section.item.id}
+          title={section.title}
+          actions={sectionActions?.(section)}
+        >
           {section.item.status === PlanItemStatus.COMPLETED ? (
             <p className="mb-md text-muted">Already prepared</p>
           ) : null}

@@ -1,5 +1,9 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import {
+  buildPlanDirectory,
+  PlanDirectoryProvider,
+} from "@/features/plan-directory";
+import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "@/features/plan-item/__generated__/planItem.generated";
@@ -21,6 +25,18 @@ import {
 } from "./model";
 
 const PIE = { id: "42", name: "Pumpkin pie" };
+
+const DIRECTORY = buildPlanDirectory([
+  {
+    id: "7",
+    name: "Holidays",
+    color: "#F57F17",
+    mine: true,
+    grants: [],
+    descendants: [],
+    buckets: [{ id: "b1" }],
+  },
+]);
 
 function node({ id, name }: { id: string; name: string }): PlanItemNode {
   const item: TimelineItem = {
@@ -77,13 +93,15 @@ function renderBucket(
   const cache = buildInMemoryCache();
   seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(PIE));
   return render(
-    <ol>
-      <BucketSection
-        bucket={bucket(overrides)}
-        context={new Map()}
-        onSelect={onSelect}
-      />
-    </ol>,
+    <PlanDirectoryProvider directory={DIRECTORY}>
+      <ol>
+        <BucketSection
+          bucket={bucket(overrides)}
+          context={new Map()}
+          onSelect={onSelect}
+        />
+      </ol>
+    </PlanDirectoryProvider>,
     { cache },
   );
 }
@@ -123,6 +141,18 @@ describe("BucketSection", () => {
     await userEvent.click(screen.getByRole("button", { name: "Pumpkin pie" }));
 
     expect(onSelect).toHaveBeenCalledWith("42");
+  });
+
+  it("links to cooking everything it holds", () => {
+    renderBucket({ roots: [node(PIE)] });
+
+    expect(screen.getByRole("link", { name: "Cook Lunch" })).toBeVisible();
+  });
+
+  it("offers nothing to cook when it holds nothing", () => {
+    renderBucket();
+
+    expect(screen.queryByRole("link", { name: "Cook Lunch" })).toBeNull();
   });
 });
 
@@ -175,5 +205,11 @@ describe("UnplannedSection", () => {
     await userEvent.click(screen.getByRole("button", { name: "Pumpkin pie" }));
 
     expect(onSelect).toHaveBeenCalledWith("42");
+  });
+
+  it("offers nothing to cook", () => {
+    renderUnplanned([node(PIE)]);
+
+    expect(screen.queryByRole("link", { name: /^Cook / })).toBeNull();
   });
 });

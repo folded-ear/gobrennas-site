@@ -1,5 +1,5 @@
 import { Separation } from "@/features/plan-timeline/context";
-import { formatDayLabel } from "@/features/plan-timeline/dates";
+import { formatDayLabel } from "@/lib/dates";
 import { Chip } from "@heroui/react";
 import { NameText } from "./item-name";
 

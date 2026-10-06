@@ -1,8 +1,9 @@
-import { canonBucketName, isNamedBucket } from "@/features/plan-dnd/moves";
+import { canonBucketName } from "@/features/plan-dnd/moves";
 import { PlanItemFragment } from "@/features/plan-item/__generated__/planItem.generated";
+import { isNamedBucket } from "@/lib/buckets";
+import { addDays, diffDays } from "@/lib/dates";
 import { FragmentType } from "@apollo/client";
 import { TimelineItemFragment } from "./__generated__/timelineItem.generated";
-import { addDays, diffDays } from "./dates";
 
 /**
  * A plan item as the timeline sees it: the fields the timeline reads,
@@ -28,6 +29,8 @@ export type PlanItemNode = {
 export type TimelineDay = {
   readonly kind: "day";
   readonly date: string;
+  /** Every unnamed bucket on my date, in the order they came. */
+  readonly bucketIds: readonly string[];
   readonly roots: readonly PlanItemNode[];
 };
 
@@ -101,9 +104,26 @@ export function buildSection(
   const bySection = groupRootsBySection(plans);
   const roots = bySection.get(key) ?? [];
   if (key === UNPLANNED_SECTION) return { kind: "unplanned", roots };
-  if (isDateKey(key)) return { kind: "day", date: key, roots };
   const buckets = plans.flatMap((plan) => plan.buckets);
+  if (isDateKey(key)) {
+    const bucketIds = dayBucketIdsOf(buckets).get(key) ?? [];
+    return { kind: "day", date: key, bucketIds, roots };
+  }
   return bucketSectionsOf(buckets, bySection).get(key) ?? null;
+}
+
+/** I gather unnamed dated buckets' ids by the day they put items on. */
+function dayBucketIdsOf(
+  buckets: readonly TimelineBucket[],
+): ReadonlyMap<string, readonly string[]> {
+  const idsByDate = new Map<string, string[]>();
+  for (const bucket of buckets) {
+    if (isNamedBucket(bucket) || bucket.date === null) continue;
+    const onDate = idsByDate.get(bucket.date) ?? [];
+    onDate.push(bucket.id);
+    idsByDate.set(bucket.date, onDate);
+  }
+  return idsByDate;
 }
 
 /** I gather named buckets sharing a name and date into their sections. */
@@ -234,6 +254,7 @@ function layOutTimeline(
     datedByDate.set(section.date, onDate);
   }
   const undatedSections = bucketSections.filter((b) => b.date === null);
+  const dayBucketIds = dayBucketIdsOf(buckets);
 
   const dayDates = [...bySection.keys()].filter(isDateKey);
   const bucketDates = [...datedByDate.keys()];
@@ -256,6 +277,7 @@ function layOutTimeline(
       entries.push({
         kind: "day",
         date,
+        bucketIds: dayBucketIds.get(date) ?? [],
         roots: bySection.get(date) ?? [],
       });
       entries.push(...(datedByDate.get(date) ?? []));

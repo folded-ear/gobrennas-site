@@ -7,7 +7,12 @@ import {
   type AddPlan,
 } from "./destination";
 
-const day: TimelineSection = { kind: "day", date: "2026-10-02", roots: [] };
+const day: TimelineSection = {
+  kind: "day",
+  date: "2026-10-02",
+  bucketIds: [],
+  roots: [],
+};
 const named: TimelineSection = {
   kind: "bucket",
   key: "bucket:lunch@2026-10-02",

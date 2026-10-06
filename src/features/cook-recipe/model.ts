@@ -15,11 +15,25 @@ export type CookSection = {
   directions: string | null;
 };
 
-/** Read the cooking relationships, which can differ from the scheduling tree. */
-export function buildCookRecipe(items: readonly CookItem[], itemId: string) {
+/** I give the plan items that belong to the plan itself. */
+export function cookItemsOf(
+  plan: Pick<CookPlanFragment, "id" | "updatedSince">,
+): CookItem[] {
+  return plan.updatedSince
+    .filter((item) => item.__typename === "PlanItem")
+    .filter((item) => item.plan.id === plan.id);
+}
+
+/** What Cook shows: what heads it, then each section below. */
+export type CookRecipeContent = {
+  /** Lacks an item when no one item heads the content. */
+  main: Omit<CookSection, "item"> & { item?: CookItem };
+  sections: CookSection[];
+};
+
+/** I read the cooking relationships among some items. */
+export function cookReader(items: readonly CookItem[]) {
   const byId = new Map(items.map((item) => [item.id, item]));
-  const root = byId.get(itemId);
-  if (!root || root.status === PlanItemStatus.DELETED) return undefined;
 
   function children(item: CookItem) {
     const ids = new Set(
@@ -54,23 +68,41 @@ export function buildCookRecipe(items: readonly CookItem[], itemId: string) {
     };
   }
 
-  const main = content(root);
-  const sections: CookSection[] = [];
-  const seen = new Set([root.id]);
-  const pending = children(root).reverse();
-  while (pending.length > 0) {
-    const item = pending.pop();
-    if (!item || seen.has(item.id)) continue;
-    seen.add(item.id);
-    const nested = children(item);
-    if (
-      nested.length > 0 ||
-      item.ingredient?.__typename === "Recipe" ||
-      item.notes?.trim()
-    ) {
-      sections.push(content(item));
-      pending.push(...nested.reverse());
+  /** I give a section for each start worth one, and each below it, depth first. */
+  function sectionsFrom(
+    starts: readonly CookItem[],
+    seen: ReadonlySet<string> = new Set(),
+  ): CookSection[] {
+    const sections: CookSection[] = [];
+    const visited = new Set(seen);
+    const pending = [...starts].reverse();
+    while (pending.length > 0) {
+      const item = pending.pop();
+      if (!item || visited.has(item.id)) continue;
+      visited.add(item.id);
+      const nested = children(item);
+      if (
+        nested.length > 0 ||
+        item.ingredient?.__typename === "Recipe" ||
+        item.notes?.trim()
+      ) {
+        sections.push(content(item));
+        pending.push(...nested.reverse());
+      }
     }
+    return sections;
   }
-  return { main, sections };
+
+  return { byId, children, content, sectionsFrom };
+}
+
+/** Read the cooking relationships, which can differ from the scheduling tree. */
+export function buildCookRecipe(items: readonly CookItem[], itemId: string) {
+  const reader = cookReader(items);
+  const root = reader.byId.get(itemId);
+  if (!root || root.status === PlanItemStatus.DELETED) return undefined;
+  return {
+    main: reader.content(root),
+    sections: reader.sectionsFrom(reader.children(root), new Set([root.id])),
+  };
 }

@@ -1,10 +1,11 @@
 import { AccessLevel } from "@/__generated__/graphql";
-import { bucketForName, isNamedBucket } from "@/features/plan-dnd/moves";
+import { bucketForName } from "@/features/plan-dnd/moves";
 import type { PlanPickerPlanFragment } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
 import type {
   TimelineBucket,
   TimelineSection,
 } from "@/features/plan-timeline/model";
+import { isNamedBucket } from "@/lib/buckets";
 import { canChangePlan, type PlanAccess } from "@/lib/plans";
 
 export type AddPlan = PlanPickerPlanFragment &

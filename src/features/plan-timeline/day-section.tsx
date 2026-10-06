@@ -1,7 +1,9 @@
+import { useBucketPlans } from "@/features/plan-directory";
 import { useDragSession } from "@/features/plan-dnd/drag-session";
 import { ZoneSpec } from "@/features/plan-dnd/zone-layer";
 import { WHOLE_ZONE } from "@/features/plan-dnd/zones";
 import type { ReactNode } from "react";
+import { BucketCookLink } from "./bucket-cook-link";
 import { PlanContext } from "./context";
 import { TimelineDay } from "./model";
 import { sectionLabel } from "./section-label";
@@ -35,6 +37,7 @@ export function DaySection({
 }: DaySectionProps) {
   const { dragged } = useDragSession();
   const label = sectionLabel(day);
+  const plans = useBucketPlans(day.bucketIds);
   const zones: readonly ZoneSpec[] =
     dnd && dragged && dnd.sectionOf.get(dragged.id) !== day.date
       ? [
@@ -51,6 +54,9 @@ export function DaySection({
   return (
     <SectionShell
       label={label}
+      action={
+        <BucketCookLink section={day} planIds={plans.map((plan) => plan.id)} />
+      }
       emphasized={isToday}
       ariaCurrent={isToday ? "date" : undefined}
       roots={day.roots}
