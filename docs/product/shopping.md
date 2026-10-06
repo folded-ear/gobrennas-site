@@ -106,12 +106,12 @@ The terms used here are defined in the [domain model](../domain/model.md).
   behind it, whatever their status. Expanding one collapses any other.
 - Each plan item shows first, with where it sits beneath: its ancestors,
   nearest first. It shows its saved quantity, unit, ingredient, and
-  preparation, with the same read-only treatment as Cook, or its text when it
-  has no ingredient.
+  preparation as read-only ingredient text (see
+  [Text conventions](ingredient-recognition.md#text-conventions-and-saving)),
+  so a zero quantity shows "NO".
 - An ancestor that is acquired, or has a zero quantity, is named in olive.
-- A plan item with an ingredient and a zero quantity shows "NO" in place of
-  its quantity and unit.
-- Plan items with no ingredient appear the same way.
+- Plan items with no ingredient appear the same way, but show their text,
+  with no "NO" for a zero quantity.
 
 ### Several plans
 
