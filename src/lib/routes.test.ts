@@ -36,4 +36,16 @@ describe("parseBucketCookIds", () => {
   it("reads ids whose separator arrived encoded", () => {
     expect(parseBucketCookIds(encodeURIComponent("7,9"))).toEqual(["7", "9"]);
   });
+
+  it("reads each id once, in the order it first came", () => {
+    expect(parseBucketCookIds("9,7,9")).toEqual(["9", "7"]);
+  });
+
+  it("reads no empty ids", () => {
+    expect(parseBucketCookIds(",7,,9,")).toEqual(["7", "9"]);
+  });
+
+  it("reads no ids from a segment that won't decode", () => {
+    expect(parseBucketCookIds("7%E0")).toEqual([]);
+  });
 });

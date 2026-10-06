@@ -32,13 +32,18 @@ beforeEach(() => {
 
 async function show({
   weeknightsMine = true,
+  planIds = ["7", "9"],
   bucketIds = DINNER_BUCKET_IDS,
-}: { weeknightsMine?: boolean; bucketIds?: readonly string[] } = {}) {
+}: {
+  weeknightsMine?: boolean;
+  planIds?: readonly string[];
+  bucketIds?: readonly string[];
+} = {}) {
   const cache = buildInMemoryCache();
   await act(async () => {
     render(
       <Suspense>
-        <CookBucket planIds={["7", "9"]} bucketIds={bucketIds} />
+        <CookBucket planIds={planIds} bucketIds={bucketIds} />
       </Suspense>,
       {
         cache,
@@ -154,6 +159,16 @@ describe("CookBucket", () => {
 
   it("offers a way back when its buckets hold nothing", async () => {
     await show({ bucketIds: ["gone"] });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Back to planner" }),
+    );
+
+    expect(replace).toHaveBeenCalledWith(PLANNER_PATH);
+  });
+
+  it("offers a way back when it has no plans to cook from", async () => {
+    await show({ planIds: [] });
 
     await userEvent.click(
       screen.getByRole("button", { name: "Back to planner" }),

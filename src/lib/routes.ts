@@ -43,7 +43,16 @@ export function bucketCookHref(
   ].join("/");
 }
 
-/** I give the ids listed in one of a bucket cook path's segments. */
+/**
+ * I give the ids listed in one of a bucket cook path's segments, each once
+ * and none empty. A segment that won't decode lists none.
+ */
 export function parseBucketCookIds(segment: string): readonly string[] {
-  return decodeURIComponent(segment).split(ID_SEPARATOR);
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(segment);
+  } catch {
+    return [];
+  }
+  return [...new Set(decoded.split(ID_SEPARATOR))].filter((id) => id !== "");
 }
