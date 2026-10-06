@@ -10,6 +10,7 @@ import { CookRecipeTitle } from "@/features/cook-recipe/title";
 import { CookedItButton } from "@/features/plan-status";
 import { RecipeActionBar } from "@/features/recipe-detail/action-bar";
 import { canChangePlan } from "@/lib/plans";
+import { PLANNER_PATH } from "@/lib/routes";
 import { CookDocument } from "@/screens/__generated__/cook.generated";
 import { useFragment, useSuspenseQuery } from "@apollo/client/react";
 import { Button } from "@heroui/react";
@@ -38,7 +39,7 @@ export function Cook({ planId, itemId }: CookProps) {
       <div className="p-xl">
         <h1>Recipe unavailable</h1>
         <p className="my-md">This recipe is no longer in this plan.</p>
-        <Button onPress={() => router.replace("/planner")}>
+        <Button onPress={() => router.replace(PLANNER_PATH)}>
           Back to planner
         </Button>
       </div>

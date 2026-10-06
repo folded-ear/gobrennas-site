@@ -3,9 +3,9 @@ import {
   useBucketPlans,
   useShowsPlanIndicators,
 } from "@/features/plan-directory";
+import { BucketCookLink } from "@/features/plan-timeline/bucket-cook-link";
 import { TimelineSection } from "@/features/plan-timeline/model";
 import { sectionLabel } from "@/features/plan-timeline/section-label";
-import { BucketCookLink } from "./cook-link";
 
 const NO_BUCKETS: readonly string[] = [];
 
@@ -19,7 +19,7 @@ type PlanSectionHeaderProps = {
  */
 export function PlanSectionHeader({ section }: PlanSectionHeaderProps) {
   const plans = useBucketPlans(
-    section.kind === "bucket" ? section.bucketIds : NO_BUCKETS,
+    section.kind === "unplanned" ? NO_BUCKETS : section.bucketIds,
   );
   const showsPlans = useShowsPlanIndicators();
 
@@ -28,14 +28,17 @@ export function PlanSectionHeader({ section }: PlanSectionHeaderProps) {
       <div className="flex items-center gap-xs">
         <h2 className="min-w-0 text-xl font-semibold text-foreground">
           {sectionLabel(section)}
-          {showsPlans && plans.length > 0 ? (
+          {showsPlans && section.kind === "bucket" && plans.length > 0 ? (
             <span className="ms-xs">
               <PlanDotStack plans={plans} />
             </span>
           ) : null}
         </h2>
         {section.kind === "unplanned" ? null : (
-          <BucketCookLink section={section} />
+          <BucketCookLink
+            section={section}
+            planIds={plans.map((plan) => plan.id)}
+          />
         )}
       </div>
       {section.roots.length > 0 ? (

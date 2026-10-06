@@ -1,7 +1,7 @@
 "use client";
 
+import { localDate } from "@/lib/dates";
 import { useState } from "react";
-import { localDate } from "./dates";
 
 /**
  * I am the viewer's local calendar date, fixed when my caller mounts. The

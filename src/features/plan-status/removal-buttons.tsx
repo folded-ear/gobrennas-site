@@ -3,13 +3,13 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ControlTooltip } from "@/components/control-tooltip";
 import { CookedItIcon, DeleteIcon, MenuOpenIcon } from "@/components/icons";
+import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import { usePageEngine } from "@/features/page-engine";
 import { Button, Dropdown, Label } from "@heroui/react";
 import clsx from "clsx";
 import { useState } from "react";
 import {
   actionLabel,
-  LINE_CONTROL_CLASS_NAME,
   REMOVAL_LOOKS,
   RemovalStatus,
   useItemStatus,

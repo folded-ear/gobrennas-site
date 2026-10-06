@@ -1,4 +1,4 @@
-import { parseBucketCookIds } from "@/features/plan-item/cook-link";
+import { parseBucketCookIds } from "@/lib/routes";
 import { CookBucket } from "@/screens/cook-bucket";
 
 type PageProps = {

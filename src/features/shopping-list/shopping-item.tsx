@@ -1,11 +1,9 @@
+import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import { PlanDotStack } from "@/components/plan-dot";
 import { useShowsPlanIndicators } from "@/features/plan-directory";
 import { DraftRow } from "@/features/plan-edit";
 import { PlanItemRow } from "@/features/plan-item/row";
-import {
-  BulkStatusButton,
-  LINE_CONTROL_CLASS_NAME,
-} from "@/features/plan-status";
+import { BulkStatusButton } from "@/features/plan-status";
 import { humanQuantity } from "@/lib/quantity";
 import { Disclosure } from "@heroui/react";
 import { groupOf, ShoppingRow, ShoppingRows } from "./entries";

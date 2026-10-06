@@ -10,6 +10,7 @@ import {
 } from "@/features/cook-recipe/test/recipe";
 import { readStatus } from "@/features/page-engine/test/status-cache";
 import { savedStatuses } from "@/features/page-engine/test/status-mocks";
+import { PLANNER_PATH } from "@/lib/routes";
 import { CookDocument } from "@/screens/__generated__/cook.generated";
 import {
   act,
@@ -280,6 +281,6 @@ describe("Cook", () => {
     await userEvent.click(
       screen.getByRole("button", { name: "Back to planner" }),
     );
-    expect(replace).toHaveBeenCalledWith("/planner");
+    expect(replace).toHaveBeenCalledWith(PLANNER_PATH);
   });
 });

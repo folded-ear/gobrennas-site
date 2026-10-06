@@ -8,6 +8,7 @@ import {
   weeknightItems,
 } from "@/features/cook-recipe/test/buckets";
 import { readStatus } from "@/features/page-engine/test/status-cache";
+import { PLANNER_PATH } from "@/lib/routes";
 import { CookBucketDocument } from "@/screens/__generated__/cook-bucket.generated";
 import {
   act,
@@ -158,6 +159,6 @@ describe("CookBucket", () => {
       screen.getByRole("button", { name: "Back to planner" }),
     );
 
-    expect(replace).toHaveBeenCalledWith("/planner");
+    expect(replace).toHaveBeenCalledWith(PLANNER_PATH);
   });
 });

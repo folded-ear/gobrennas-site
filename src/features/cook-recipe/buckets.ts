@@ -1,6 +1,5 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
-import { isNamedBucket } from "@/features/plan-dnd/moves";
-import { bucketLabel } from "@/features/plan-timeline/section-label";
+import { bucketLabel, isNamedBucket } from "@/lib/buckets";
 import { planItemParts } from "@/lib/ingredient-parts";
 import type { CookPlanFragment } from "./__generated__/cookPlan.generated";
 import { cookReader, type CookItem, type CookRecipeContent } from "./model";

@@ -1,3 +1,5 @@
+import { isNamedBucket } from "@/lib/buckets";
+
 /** Anything with an id and ordered child ids: a plan, or one of its items. */
 export type TreeSource = {
   readonly id: string;
@@ -172,13 +174,6 @@ export function bucketForName(
 /** I give a bucket name as it compares: case and spacing aside. */
 export function canonBucketName(name: string): string {
   return name.trim().replace(/\s+/g, " ").toLowerCase();
-}
-
-/** I say whether a bucket is named: its name has more than whitespace. */
-export function isNamedBucket<B extends BucketSummary>(
-  bucket: B,
-): bucket is B & { readonly name: string } {
-  return bucket.name !== null && bucket.name.trim() !== "";
 }
 
 /** What a bucket assignment really touches, once redundant copies fold away. */

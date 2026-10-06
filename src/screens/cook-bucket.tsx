@@ -13,6 +13,7 @@ import { PreppedButton } from "@/features/cook-recipe/prepped-button";
 import { CookedItButton } from "@/features/plan-status";
 import { RecipeActionBar } from "@/features/recipe-detail/action-bar";
 import { canChangePlan } from "@/lib/plans";
+import { PLANNER_PATH } from "@/lib/routes";
 import { CookBucketDocument } from "@/screens/__generated__/cook-bucket.generated";
 import { useFragment, useSuspenseQuery } from "@apollo/client/react";
 import { Button } from "@heroui/react";
@@ -69,7 +70,7 @@ function CookBucketsView({ planIds, bucketIds }: CookBucketProps) {
       <div className="p-xl">
         <h1>Nothing to cook</h1>
         <p className="my-md">These buckets no longer hold anything.</p>
-        <Button onPress={() => router.replace("/planner")}>
+        <Button onPress={() => router.replace(PLANNER_PATH)}>
           Back to planner
         </Button>
       </div>
