@@ -19,7 +19,7 @@ const YEAR_DIGITS = 4;
 const MONTH_DIGITS = 2;
 const DAY_DIGITS = 2;
 
-const dayLabelFormat = new Intl.DateTimeFormat(undefined, {
+const dayLabelFormat = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
   month: "short",
   day: "numeric",

@@ -1,5 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { DirectoryPlan } from "@/features/plan-directory";
+import { PlanItemTextFragment } from "@/features/plan-item/__generated__/planItemText.generated";
 import { ToggleStatus } from "@/features/plan-status";
 import {
   ancestorsOf,
@@ -7,10 +8,13 @@ import {
   ItemRef,
 } from "@/features/plan-timeline/context";
 import { TimelineBucket, TimelineItem } from "@/features/plan-timeline/model";
+import { FragmentType } from "@apollo/client";
 import { ShoppingPlanItemFragment } from "./__generated__/shoppingPlanItem.generated";
 
 /** A plan item, as the shopping list gathers it. */
-export type ShoppingPlanItem = TimelineItem & ShoppingPlanItemFragment;
+export type ShoppingPlanItem = TimelineItem &
+  ShoppingPlanItemFragment &
+  FragmentType<PlanItemTextFragment>;
 
 /** A plan being shopped, and everything in it. */
 export type ShoppingPlan = DirectoryPlan & {
@@ -205,12 +209,6 @@ export function toggleFlips(
     if (held.has(key) !== flipped) next.add(key);
   }
   return next;
-}
-
-/** I write an amount out: its quantity, then its unit, if it has one. */
-export function formatAmount({ quantity, unit }: Amount): string {
-  const rounded = String(Math.round(quantity * 100) / 100);
-  return unit === null ? rounded : `${rounded} ${unit.name}`;
 }
 
 type MutableRegion = {

@@ -1,4 +1,4 @@
-import { editableMorsel } from "@/features/morsel/test-helpers";
+import { editableMorsel } from "@/features/morsel/test/editing";
 import { render, screen, userEvent, waitFor } from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeForm } from "./index";

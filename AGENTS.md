@@ -48,6 +48,8 @@
 - Route pages under `app/` stay thin — they render a screen from `src/screens/`, which composes feature components from
   `src/features/`.
 - Keep feature-specific components, GraphQL operations, and tests together under `src/features/<feature-name>/`.
+  Features should use fragments which are spread into their owning screens' query. Features should not import resources
+  from other features - abstract and reference, don't duplicate.
 - Do not edit `__generated__/` files. Change the schema or `.gql` operation and run `pnpm run generate`.
 - Add request middleware by implementing the `Filter` type in `src/filters/` and registering it in the root `proxy.ts`
   chain.
@@ -90,6 +92,7 @@ Ask for approval before taking any of the actions below. Do not take the action 
 
 - Add or upgrade a production or runtime dependency.
 - Hand-edit `schema.graphql`, or change GraphQL codegen configuration (`codegen.ts`).
+- Using `@unmask` in a GraphQL query/fragment.
 - Delete a tracked file (moves/renames are fine) or begin a broad refactor.
 - Publish, send, or change information that people outside the current task rely on (release notes, tickets, messages).
 - Run an action against a remote, production, or other shared environment.

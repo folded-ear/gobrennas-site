@@ -28,6 +28,7 @@ query Shopping {
         ...timelineItem @unmask
         ...shoppingPlanItem @unmask
         ...planItem
+        ...planItemText
       }
     }
   }

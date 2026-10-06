@@ -60,6 +60,42 @@ function recognized(
   };
 }
 
+function recognizedQuantity(
+  raw: string,
+  end: number,
+  quantity: number,
+): MockLink.MockedResponse<RecognizeIngredientQuery> {
+  return {
+    request: {
+      query: RecognizeIngredientDocument,
+      variables: { raw, cursor: raw.length, choice: null, suggest: false },
+    },
+    delay: 0,
+    result: {
+      data: {
+        library: {
+          __typename: "LibraryQuery",
+          recognizeItem: {
+            __typename: "RecognizedItem",
+            raw,
+            cursor: raw.length,
+            ranges: [
+              {
+                __typename: "RecognizedRange",
+                start: 0,
+                end,
+                type: RecognizedRangeType.QUANTITY,
+                quantity,
+                id: null,
+              },
+            ],
+          },
+        },
+      },
+    },
+  };
+}
+
 describe("IngredientName", () => {
   it("shows the quantity as a fraction and highlights units and quoted ingredient, keeping the rest as typed", async () => {
     render(
@@ -76,6 +112,24 @@ describe("IngredientName", () => {
     expect(screen.getByRole("paragraph").textContent).toBe(
       '1½ cups "flour", sifted',
     );
+  });
+
+  it("shows the recognized quantity, not the wording it came from", async () => {
+    const raw = "half a lemon";
+    render(<IngredientName name={raw} />, {
+      mocks: [recognizedQuantity(raw, 4, 0.5)],
+    });
+
+    expect(await screen.findByText("½")).toHaveClass("morsel-quantity");
+  });
+
+  it("keeps a quantity's wording when no fraction shows it", async () => {
+    const raw = "1/5 lemon";
+    render(<IngredientName name={raw} />, {
+      mocks: [recognizedQuantity(raw, 3, 0.2)],
+    });
+
+    expect(await screen.findByText("1/5")).toHaveClass("morsel-quantity");
   });
 
   it("shows a renamed row immediately while its new recognition is pending", async () => {

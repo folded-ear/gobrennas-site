@@ -6,9 +6,9 @@ import {
 } from "@/features/plan-directory";
 import { buildInMemoryCache, render, screen, userEvent, within } from "@/test";
 import { describe, expect, it } from "vitest";
-import { BASIL, plan, seedItem, SUGAR, TBSP, TSP } from "./fixtures";
-import { buildShoppingList, ShoppingItem } from "./model";
+import { buildShoppingList, ShoppingItem, Unit } from "./model";
 import { ShoppingItemRow } from "./shopping-item";
+import { BASIL, plan, seedItem, SUGAR, TBSP, TSP } from "./test/fixtures";
 
 const WEEKNIGHTS: DirectoryPlan = {
   id: "7",
@@ -101,6 +101,33 @@ function basil(cache: Cache): ShoppingItem {
   return list.needed.items[0];
 }
 
+/** Sugar for two weeknight plan items, each calling for some amount. */
+function weeknightSugar(
+  cache: Cache,
+  amounts: readonly { quantity: number; unit: Unit | null }[],
+): ShoppingItem {
+  const ids = amounts.map((_, i) => `s${i}`);
+  const list = buildShoppingList([
+    plan(
+      WEEKNIGHTS.id,
+      WEEKNIGHTS.name,
+      WEEKNIGHTS.color,
+      ids,
+      amounts.map(({ quantity, unit }, i) =>
+        seedItem(cache, {
+          id: ids[i],
+          name: "sugar",
+          parent: WEEKNIGHTS.id,
+          quantity,
+          unit,
+          pantry: SUGAR,
+        }),
+      ),
+    ),
+  ]);
+  return list.needed.items[0];
+}
+
 function renderRow(
   cache: Cache,
   item: ShoppingItem,
@@ -123,6 +150,25 @@ describe("ShoppingItemRow", () => {
     expect(within(trigger).getByText("sugar")).toBeVisible();
     expect(within(trigger).getByText("(1 tsp)")).toBeVisible();
     expect(within(trigger).queryByText(/Tbsp/)).toBeNull();
+  });
+
+  it("shows a summed quantity prettily", () => {
+    const cache = buildInMemoryCache();
+    const item = weeknightSugar(cache, [
+      { quantity: 1 / 3, unit: TSP },
+      { quantity: 1 / 3, unit: TSP },
+    ]);
+    renderRow(cache, item, [WEEKNIGHTS]);
+
+    expect(screen.getByText("(⅔ tsp)")).toBeVisible();
+  });
+
+  it("shows a quantity with no unit bare", () => {
+    const cache = buildInMemoryCache();
+    const item = weeknightSugar(cache, [{ quantity: 3, unit: null }]);
+    renderRow(cache, item, [WEEKNIGHTS]);
+
+    expect(screen.getByText("(3)")).toBeVisible();
   });
 
   it("offers to acquire every plan item behind it at once", () => {
@@ -153,12 +199,18 @@ describe("ShoppingItemRow", () => {
     const cache = buildInMemoryCache();
     renderRow(cache, sugar(cache), [WEEKNIGHTS, PARTY]);
 
-    expect(screen.queryByText("1 tsp sugar")).not.toBeVisible();
+    const item = (text: string) =>
+      screen.getByText(
+        (_, element) =>
+          element?.classList.contains("morsel-text") === true &&
+          element.textContent === text,
+      );
+    expect(item("1 tsp sugar")).not.toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: /^sugar/ }));
 
-    expect(screen.getByText("1 tsp sugar")).toBeVisible();
-    expect(screen.getByText("2 T sugar")).toBeVisible();
+    expect(item("1 tsp sugar")).toBeVisible();
+    expect(item("2 Tbsp sugar")).toBeVisible();
     expect(screen.getByText("Spag sauce / Weeknights")).toBeVisible();
     expect(screen.getByText("Iced tea / Party")).toBeVisible();
   });

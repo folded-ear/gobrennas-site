@@ -28,7 +28,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   whatever their text, recipe, or plan. A shopping item is labeled with its
   ingredient's name, and its text can't be edited.
 - A shopping item sums its quantities per unit. Different units show as
-  separate amounts on the same line.
+  separate amounts on the same line. Quantities show as fractions (see
+  [Text conventions](ingredient-recognition.md#text-conventions-and-saving)).
 - A plan item with no quantity counts as one. A plan item with a zero
   quantity adds nothing.
 - A shopping item from a single plan item with no quantity shows no amount.
@@ -103,11 +104,14 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 - Choosing a shopping item expands it in place, listing every plan item
   behind it, whatever their status. Expanding one collapses any other.
-- Each plan item shows its text first, with where it sits beneath: its
-  ancestors, nearest first.
+- Each plan item shows first, with where it sits beneath: its ancestors,
+  nearest first. It shows its saved quantity, unit, ingredient, and
+  preparation as read-only ingredient text (see
+  [Text conventions](ingredient-recognition.md#text-conventions-and-saving)),
+  so a zero quantity shows "NO".
 - An ancestor that is acquired, or has a zero quantity, is named in olive.
-- A plan item with a zero quantity is marked "NO".
-- Plan items with no ingredient appear the same way.
+- Plan items with no ingredient appear the same way, but show their text,
+  with no "NO" for a zero quantity.
 
 ### Several plans
 

@@ -1,6 +1,6 @@
 import { screen } from "@/test";
 import { afterEach, beforeEach, vi } from "vitest";
-import { selectRange } from "./editor-dom";
+import { selectRange } from "../editor-dom";
 
 /** user-event 14 recognizes rich contenteditables but not plaintext-only yet. */
 export function editableMorsel(name: string) {

@@ -1,44 +1,9 @@
-import { displayQuantity } from "@/features/morsel/quantity";
+import { IngredientRefText } from "@/components/ingredient-ref-text";
+import type { IngredientParts } from "@/lib/ingredient-parts";
 import { useId, type ReactNode } from "react";
 
-export type RecipeIngredient = {
-  text: string;
-  quantity?: number;
-  unit?: string;
-  name?: string;
-  preparation?: string;
-};
-
-/** Morsel's text treatment, without editor behavior or focus targets. */
-export function IngredientRefText({
-  text,
-  quantity,
-  unit,
-  name,
-  preparation,
-}: RecipeIngredient) {
-  return (
-    <span className="morsel-text">
-      {quantity !== undefined ? (
-        <>
-          <span className="morsel-quantity">
-            {displayQuantity(quantity)}
-          </span>{" "}
-        </>
-      ) : null}
-      {unit ? (
-        <>
-          <span className="morsel-unit">{unit}</span>{" "}
-        </>
-      ) : null}
-      {name ? <span className="morsel-ingredient">{name}</span> : text}
-      {name && preparation ? `, ${preparation}` : null}
-    </span>
-  );
-}
-
 type ContentProps = {
-  ingredients: readonly RecipeIngredient[];
+  ingredients: readonly IngredientParts[];
   directions?: string | null;
   headingLevel?: 2 | 3;
   ingredientHeader?: ReactNode;

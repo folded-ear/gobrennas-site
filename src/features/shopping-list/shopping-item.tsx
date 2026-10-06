@@ -6,9 +6,10 @@ import {
   BulkStatusButton,
   LINE_CONTROL_CLASS_NAME,
 } from "@/features/plan-status";
+import { humanQuantity } from "@/lib/quantity";
 import { Disclosure } from "@heroui/react";
 import { groupOf, ShoppingRow, ShoppingRows } from "./entries";
-import { formatAmount, ShoppingItem } from "./model";
+import { ShoppingItem } from "./model";
 
 type ShoppingItemRowProps = {
   readonly item: ShoppingItem;
@@ -62,7 +63,13 @@ export function ShoppingItemRow({ item, rows }: ShoppingItemRowProps) {
   const showsPlans = useShowsPlanIndicators();
   const amounts = item.implicit
     ? ""
-    : item.amounts.map(formatAmount).join(AMOUNT_SEPARATOR);
+    : item.amounts
+        .map(({ quantity, unit }) =>
+          unit === null
+            ? humanQuantity(quantity)
+            : `${humanQuantity(quantity)} ${unit.name}`,
+        )
+        .join(AMOUNT_SEPARATOR);
 
   return (
     <Disclosure id={item.ingredient.id}>

@@ -1,6 +1,6 @@
 import { render, screen, within } from "@/test";
 import { describe, expect, it } from "vitest";
-import { IngredientRefText, RecipeContent, RecipeSection } from "./content";
+import { RecipeContent, RecipeSection } from "./content";
 
 describe("RecipeContent", () => {
   it("renders plain content without a library recipe or plan", () => {
@@ -65,21 +65,5 @@ describe("RecipeContent", () => {
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
-  });
-
-  it("keeps zero quantities and omits absent units", () => {
-    render(<IngredientRefText text="" quantity={0} name="salt" />);
-    expect(screen.getByText("0")).toHaveClass("morsel-quantity");
-    expect(screen.getByText("salt")).toHaveClass("morsel-ingredient");
-  });
-
-  it("keeps unrecognized wording as ordinary text", () => {
-    render(<IngredientRefText text="a pinch of mystery spice" />);
-    expect(screen.getByText("a pinch of mystery spice")).toHaveClass(
-      "morsel-text",
-    );
-    expect(screen.getByText("a pinch of mystery spice")).not.toHaveClass(
-      "morsel-ingredient",
-    );
   });
 });

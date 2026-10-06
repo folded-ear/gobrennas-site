@@ -1,7 +1,7 @@
 import {
   editableMorsel,
   withTextInsertion,
-} from "@/features/morsel/test-helpers";
+} from "@/features/morsel/test/editing";
 import { act, render, screen, userEvent } from "@/test";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";

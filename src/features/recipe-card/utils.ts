@@ -5,5 +5,5 @@ export function formatLastCooked(dateStr: string): string {
   if (diffDays === 0) return "today";
   if (diffDays === 1) return "yesterday";
   if (diffDays < 14) return `${diffDays} days ago`;
-  return new Date(dateStr).toLocaleDateString();
+  return new Date(dateStr).toLocaleDateString("en-US");
 }

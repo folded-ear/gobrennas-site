@@ -6,7 +6,7 @@ import {
 import {
   editableMorsel,
   withTextInsertion,
-} from "@/features/morsel/test-helpers";
+} from "@/features/morsel/test/editing";
 import {
   PlanItemResultFragmentDoc,
   type PlanItemResultFragment,

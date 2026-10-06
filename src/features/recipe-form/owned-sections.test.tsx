@@ -1,5 +1,5 @@
 import { RecognizedRangeType } from "@/__generated__/graphql";
-import { withTextInsertion } from "@/features/morsel/test-helpers";
+import { withTextInsertion } from "@/features/morsel/test/editing";
 import { act, render, screen, userEvent, waitFor, within } from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeForm } from "./index";

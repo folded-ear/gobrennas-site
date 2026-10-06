@@ -1,6 +1,6 @@
 import { render, screen } from "@/test";
 import { describe, expect, it } from "vitest";
-import { DateChip, NoChip, ParentChip } from "./chips";
+import { DateChip, ParentChip } from "./chips";
 
 const WEDNESDAY = "2026-11-25";
 const THURSDAY = "2026-11-26";
@@ -44,13 +44,5 @@ describe("ParentChip", () => {
     render(<ParentChip name="" />);
 
     expect(screen.getByText("Unnamed")).toBeVisible();
-  });
-});
-
-describe("NoChip", () => {
-  it("says none is called for", () => {
-    render(<NoChip />);
-
-    expect(screen.getByText("NO")).toBeVisible();
   });
 });

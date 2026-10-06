@@ -1,11 +1,11 @@
 "use client";
 
-import { displayQuantity } from "@/features/morsel/quantity";
 import { RecognizeIngredientDocument } from "@/features/recipe-form/__generated__/recognizeIngredient.generated";
 import {
   ingredientRecognitionSchema,
   toMorselRecognition,
 } from "@/features/recipe-form/ingredient-recognition";
+import { humanQuantity } from "@/lib/quantity";
 import { useQuery } from "@apollo/client/react";
 import { Fragment, type ReactNode } from "react";
 
@@ -38,7 +38,9 @@ export function IngredientName({ name }: { name: string }) {
       <Fragment key={`${range.start}-${range.end}`}>
         {name.slice(cursor, range.start)}
         <span className={`morsel-${range.type}`}>
-          {range.type === "quantity" ? displayQuantity(text) : text}
+          {range.type === "quantity"
+            ? humanQuantity(range.quantity, text)
+            : text}
         </span>
       </Fragment>,
     );

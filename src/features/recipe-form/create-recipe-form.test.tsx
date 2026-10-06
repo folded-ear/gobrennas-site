@@ -3,7 +3,7 @@ import {
   type IngredientRefInfo,
   type SectionInfo,
 } from "@/__generated__/graphql";
-import { editableMorsel } from "@/features/morsel/test-helpers";
+import { editableMorsel } from "@/features/morsel/test/editing";
 import { buildInMemoryCache, render, screen, userEvent, waitFor } from "@/test";
 import { MockLink } from "@apollo/client/testing";
 import { describe, expect, it, vi } from "vitest";

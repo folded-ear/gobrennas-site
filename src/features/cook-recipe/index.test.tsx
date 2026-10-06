@@ -23,4 +23,21 @@ describe("CookRecipe", () => {
     expect(screen.getByText("4")).toHaveClass("morsel-quantity");
     expect(screen.getByText("Chill the dough.")).toBeVisible();
   });
+
+  it("shows scaled servings prettily", () => {
+    const recipe = buildCookRecipe(
+      [
+        {
+          ...pie,
+          quantity: { __typename: "Quantity", quantity: 1 / 6, units: null },
+        },
+        ...ingredients,
+      ],
+      "pie",
+    );
+    if (!recipe)
+      throw new Error("The fixture must contain the planned recipe.");
+    render(<CookRecipeTitle recipe={recipe} planName="Dinner" />);
+    expect(screen.getByText("1⅓ servings")).toBeVisible();
+  });
 });

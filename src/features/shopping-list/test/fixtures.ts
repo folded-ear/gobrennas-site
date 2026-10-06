@@ -3,8 +3,9 @@ import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "@/features/plan-item/__generated__/planItem.generated";
+import { PlanItemTextFragmentDoc } from "@/features/plan-item/__generated__/planItemText.generated";
 import { buildInMemoryCache, seedFragment } from "@/test";
-import { ShoppingPlan, ShoppingPlanItem, Unit } from "./model";
+import { ShoppingPlan, ShoppingPlanItem, Unit } from "../model";
 
 type Cache = ReturnType<typeof buildInMemoryCache>;
 
@@ -60,8 +61,17 @@ export function seedItem(
     bucket: null,
   };
   const ref = seedFragment(cache, PlanItemFragmentDoc, "planItem", data);
+  const text = seedFragment(cache, PlanItemTextFragmentDoc, "planItemText", {
+    __typename: "PlanItem",
+    id,
+    name,
+    preparation: data.preparation,
+    quantity: data.quantity,
+    ingredient: pantry ? { __typename: "PantryItem", ...pantry } : null,
+  });
   return {
-    ...ref,
+    // Both seeds name the same cached item, which carries both fragments.
+    ...(ref as typeof ref & typeof text),
     __typename: "PlanItem",
     id,
     name,
