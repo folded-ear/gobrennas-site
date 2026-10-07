@@ -1,5 +1,6 @@
 "use client";
 
+import { RecipeEditIcon, RecipeViewIcon } from "@/components/icons";
 import { RecipeActionBar } from "@/components/recipe-action-bar";
 import { formatLastCooked } from "@/features/recipe-card/utils";
 import { SendToPlan } from "@/features/send-to-plan";
@@ -10,11 +11,13 @@ import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Button, Card, Chip } from "@heroui/react";
 import Link from "next/link";
-import { RecipeCardFragment, RecipeCardFragmentDoc } from "./__generated__/recipeCard.generated";
+import { useRouter } from "next/navigation";
+import {
+  RecipeCardFragment,
+  RecipeCardFragmentDoc,
+} from "./__generated__/recipeCard.generated";
 import { CardFavorite } from "./favorite";
 import { CardPhoto } from "./photo";
-import { RecipeEditIcon, RecipeViewIcon } from "@/components/icons";
-import { useRouter } from "next/navigation";
 
 type RecipeCardProps = {
   recipe: FragmentType<RecipeCardFragment>;
