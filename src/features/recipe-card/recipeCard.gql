@@ -2,7 +2,7 @@ fragment recipeCard on Recipe {
   id
   name
   labels
-  favorite
+  ...cardFavorite
   ownedBy {
     id
     ...userAvatar

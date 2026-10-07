@@ -266,13 +266,6 @@
     text-shadow: var(--morsel-ingredient-shadow);
   }
 
-  .button--sm {
-    @apply h-5 rounded-sm;
-  }
-  .button--sm.button--icon-only {
-    @apply w-5 p-2;
-  }
-
   .card {
     padding: 0;
   }
