@@ -14,8 +14,6 @@ const PLAN_CONTENTS = [
   "bucketCount",
 ];
 
-const RECIPE_PLANNING = ["plannedCount", "plannedHistory"];
-
 /**
  * I send a recipe to a plan, one send at a time, and drop what that makes
  * stale from the cache. A toast reports how each send went; `send` never
@@ -37,9 +35,7 @@ export function useSendRecipeToPlan() {
         update(cache) {
           const id = cache.identify({ __typename: "Plan", id: plan.id });
           for (const fieldName of PLAN_CONTENTS) cache.evict({ id, fieldName });
-          const recipe = cache.identify({ __typename: "Recipe", id: recipeId });
-          for (const fieldName of RECIPE_PLANNING)
-            cache.evict({ id: recipe, fieldName });
+          // Recipe history changes on completion/deletion, not when adding to a plan.
         },
       });
       toast.success(`Added to ${plan.name}`);

@@ -32,7 +32,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
     from: recipe,
   });
 
-  if (!complete) return <h1>Ain&apos;t got no data, yo!</h1>;
+  if (!complete) return null;
 
   const lastCook = data.plannedHistory?.[0] ?? null;
   const lastCooked = lastCook?.doneAt
