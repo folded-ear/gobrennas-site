@@ -1,0 +1,19 @@
+fragment cardFavorite on Recipe {
+  id
+  name
+  favorite
+}
+
+mutation markCardFavorite($id: ID!) {
+  favorite {
+    markFavorite(objectType: "Recipe", objectId: $id) {
+      id
+    }
+  }
+}
+
+mutation removeCardFavorite($id: ID!) {
+  favorite {
+    removeFavorite(objectType: "Recipe", objectId: $id)
+  }
+}

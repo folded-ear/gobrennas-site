@@ -2,15 +2,12 @@ fragment recipeCard on Recipe {
   id
   name
   labels
-  favorite
+  ...cardFavorite
   ownedBy {
     id
     ...userAvatar
   }
-  photo {
-    url
-  }
-  ...recipePhoto
+  ...cardPhoto
   plannedHistory(last: 1, status: COMPLETED) {
     doneAt
     ratingInt

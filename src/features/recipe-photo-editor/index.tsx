@@ -1,8 +1,12 @@
 "use client";
 
+import {
+  clampFocus,
+  PHOTO_ACCEPT,
+  type PhotoFocus,
+} from "@/lib/recipe-photo/types";
 import { Button, Label, ProgressBar } from "@heroui/react";
 import { type PointerEvent, useId, useRef } from "react";
-import { clampFocus, PHOTO_ACCEPT, type PhotoFocus } from "./types";
 import type { usePhotoUpload } from "./use-photo-upload";
 
 type PhotoEditorProps = {

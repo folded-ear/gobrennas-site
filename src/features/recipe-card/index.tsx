@@ -1,21 +1,23 @@
 "use client";
 
+import { RecipeEditIcon, RecipeViewIcon } from "@/components/icons";
 import { RecipeActionBar } from "@/components/recipe-action-bar";
 import { formatLastCooked } from "@/features/recipe-card/utils";
-import { RecipePhoto } from "@/features/recipe-photo";
 import { SendToPlan } from "@/features/send-to-plan";
 import { OtherUserAvatar } from "@/features/user-avatar";
 import { usePreference } from "@/hooks/use-preference";
 import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
-import { Card, Chip } from "@heroui/react";
-import { Bookmark } from "lucide-react";
+import { Button, Card, Chip } from "@heroui/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   RecipeCardFragment,
   RecipeCardFragmentDoc,
 } from "./__generated__/recipeCard.generated";
+import { CardFavorite } from "./favorite";
+import { CardPhoto } from "./photo";
 
 type RecipeCardProps = {
   recipe: FragmentType<RecipeCardFragment>;
@@ -23,6 +25,7 @@ type RecipeCardProps = {
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
   const activePlanId = usePreference(PREF_ACTIVE_PLAN)!;
+  const router = useRouter();
   const { data, complete } = useFragment({
     fragment: RecipeCardFragmentDoc,
     fragmentName: "recipeCard",
@@ -40,14 +43,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
   return (
     <Card className="flex flex-row overflow-hidden min-w-24 rounded-sm">
       <div className="relative w-1/4">
-        <Bookmark
-          className={`absolute right-2 bottom-2 bg-gray-900/80 rounded-full p-xs size-6 text-white ${data.favorite ? "fill-white" : "transparent"}`}
-        />
-        {/* A quarter of each card, accounting for the library padding and grid gaps. */}
-        <RecipePhoto
-          recipe={data}
-          sizes="(min-width: 64rem) calc((100vw - 56px) / 12), (min-width: 48rem) calc((100vw - 40px) / 8), calc((100vw - 24px) / 4)"
-        />
+        <CardPhoto recipe={data} />
       </div>
       <div className="flex-1 flex flex-col gap-sm p-sm">
         <Card.Header>
@@ -62,9 +58,9 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           </Card.Title>
         </Card.Header>
         <Card.Content>
-          {lastCooked && (
-            <p className="text-xs text-muted">Last cooked {lastCooked}</p>
-          )}
+          <p className="text-xs text-muted">
+            {lastCooked ? `Last cooked ${lastCooked}` : "Never cooked"}
+          </p>
 
           {data.labels && data.labels.length > 0 && (
             <div className="flex flex-wrap gap-1">
@@ -78,7 +74,25 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
         </Card.Content>
 
         <Card.Footer>
-          <RecipeActionBar id={data.id} />
+          <RecipeActionBar id={data.id}>
+            <CardFavorite recipe={data} />
+            <Button
+              isIconOnly
+              size="sm"
+              variant="tertiary"
+              onClick={() => router.push(`/recipes/${data.id}/edit`)}
+            >
+              <RecipeEditIcon />
+            </Button>
+            <Button
+              isIconOnly
+              size="sm"
+              variant="tertiary"
+              onClick={() => router.push(`/recipes/${data.id}`)}
+            >
+              <RecipeViewIcon />
+            </Button>
+          </RecipeActionBar>
           <SendToPlan
             variant="tertiary"
             size="sm"

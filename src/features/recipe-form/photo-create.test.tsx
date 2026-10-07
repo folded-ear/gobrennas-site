@@ -1,12 +1,9 @@
-import {
-  soupPhoto,
-  stubPhotoBrowser,
-} from "@/features/recipe-photo-editor/test/browser";
+import { RecipePhotoUploadDocument } from "@/lib/recipe-photo/__generated__/recipePhotoUpload.generated";
+import { soupPhoto, stubPhotoBrowser } from "@/lib/recipe-photo/test/browser";
 import { act, cleanup, render, screen, userEvent, waitFor } from "@/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateRecipeDocument } from "./__generated__/createRecipe.generated";
 import { RecipeLabelSuggestionsDocument } from "./__generated__/recipeLabelSuggestions.generated";
-import { RecipePhotoUploadDocument } from "./__generated__/recipePhotoUpload.generated";
 import { CreateRecipeForm } from "./create-recipe-form";
 
 const labels = {

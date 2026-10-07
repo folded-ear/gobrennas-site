@@ -1,7 +1,5 @@
-import {
-  soupPhoto,
-  stubPhotoBrowser,
-} from "@/features/recipe-photo-editor/test/browser";
+import { RecipePhotoUploadDocument } from "@/lib/recipe-photo/__generated__/recipePhotoUpload.generated";
+import { soupPhoto, stubPhotoBrowser } from "@/lib/recipe-photo/test/browser";
 import { RecipeEdit } from "@/screens/recipe-edit";
 import {
   act,
@@ -19,7 +17,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { DeleteRecipeDocument } from "./__generated__/deleteRecipe.generated";
 import { GetRecipeForEditDocument } from "./__generated__/getRecipeForEdit.generated";
 import { RecipeLabelSuggestionsDocument } from "./__generated__/recipeLabelSuggestions.generated";
-import { RecipePhotoUploadDocument } from "./__generated__/recipePhotoUpload.generated";
 import { RecognizeIngredientDocument } from "./__generated__/recognizeIngredient.generated";
 import { UpdateRecipeDocument } from "./__generated__/updateRecipe.generated";
 import { EditRecipeForm } from "./edit-recipe-form";

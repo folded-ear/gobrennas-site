@@ -21,6 +21,17 @@ without leaving the Library behind.
 - Each Library card has a button named for the active plan. It adds the recipe
   to that plan the same way detail's Add to plan does: one add at a time, a
   toast confirming the destination on success, and a toast reporting failure.
+- Each Library card has a favorite toggle beside Edit. Its bookmark is filled
+  when selected. Saving disables the toggle; a failed save keeps the previous
+  state and reports an error so the person can try again.
+- Library cards show the most recent recorded cooking date, or “Never cooked”
+  when there is no completed cooking history.
+- On an owned recipe without a photo, the Library card's placeholder accepts a
+  dropped image or opens a file picker when pressed. It uses the editor's image
+  validation, resizing, and upload flow, and saves immediately with centered
+  focus. The saved photo replaces the placeholder without opening the editor.
+  Progress appears in the placeholder; errors leave it available to try again.
+  Existing photos and other people's recipes do not offer this shortcut.
 
 ### Reading a library recipe
 

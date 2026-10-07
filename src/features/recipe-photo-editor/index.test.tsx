@@ -1,8 +1,12 @@
+import {
+  deferred,
+  soupPhoto,
+  stubPhotoBrowser,
+} from "@/lib/recipe-photo/test/browser";
+import { MAX_PHOTO_BYTES, type UploadPhoto } from "@/lib/recipe-photo/types";
 import { act, cleanup, render, screen, userEvent, waitFor } from "@/test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PhotoEditor } from "./index";
-import { deferred, soupPhoto, stubPhotoBrowser } from "./test/browser";
-import { MAX_PHOTO_BYTES, type UploadPhoto } from "./types";
 import { usePhotoUpload } from "./use-photo-upload";
 
 function Editor({

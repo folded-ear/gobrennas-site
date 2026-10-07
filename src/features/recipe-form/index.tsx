@@ -4,11 +4,8 @@ import { FormTextField } from "@/components/form-text-field";
 import { SectionHeader } from "@/components/section-header";
 import { LabelEditor, type LabelSuggestions } from "@/features/label-editor";
 import { PhotoEditor } from "@/features/recipe-photo-editor";
-import type {
-  SavedPhoto,
-  UploadPhoto,
-} from "@/features/recipe-photo-editor/types";
 import { usePhotoUpload } from "@/features/recipe-photo-editor/use-photo-upload";
+import type { SavedPhoto, UploadPhoto } from "@/lib/recipe-photo/types";
 import { Alert, Button, Form, Spinner } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState, type FormEvent } from "react";

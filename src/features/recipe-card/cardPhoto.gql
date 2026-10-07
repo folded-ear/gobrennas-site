@@ -1,0 +1,9 @@
+fragment cardPhoto on Recipe {
+  id
+  name
+  mine
+  photo {
+    url
+  }
+  ...recipePhoto
+}
