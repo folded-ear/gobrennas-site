@@ -9,9 +9,10 @@ import { PreppedButton } from "@/features/cook-recipe/prepped-button";
 import { CookedItButton } from "@/features/plan-status";
 import { canChangePlan } from "@/lib/plans";
 import { CookBucketDocument } from "@/screens/__generated__/cook-bucket.generated";
-import { useFragment, useSuspenseQuery } from "@apollo/client/react";
-import { useMemo } from "react";
+import { skipToken, useFragment, useSuspenseQuery } from "@apollo/client/react";
 import { CookShell, CookUnavailable } from "./cook-shell";
+
+const NO_PLANS: never[] = [];
 
 type CookBucketProps = {
   planIds: readonly string[];
@@ -19,34 +20,16 @@ type CookBucketProps = {
 };
 
 export function CookBucket({ planIds, bucketIds }: CookBucketProps) {
-  return (
-    <>
-      {planIds.map((planId) => (
-        <LoadPlan key={planId} planId={planId} />
-      ))}
-      <CookBucketsView planIds={planIds} bucketIds={bucketIds} />
-    </>
-  );
-}
-
-// Suspends until its plan is in the cache, where the buckets are read from it.
-function LoadPlan({ planId }: { planId: string }) {
-  useSuspenseQuery(CookBucketDocument, {
-    variables: { planId },
-    fetchPolicy: "network-only",
-  });
-  return null;
-}
-
-function CookBucketsView({ planIds, bucketIds }: CookBucketProps) {
-  const from = useMemo(
-    () => planIds.map((id) => ({ __typename: "Plan", id })),
-    [planIds],
+  const { data } = useSuspenseQuery(
+    CookBucketDocument,
+    planIds.length === 0
+      ? skipToken
+      : { variables: { planIds: [...planIds] }, fetchPolicy: "network-only" },
   );
   const { data: plans, complete } = useFragment({
     fragment: CookPlanFragmentDoc,
     fragmentName: "cookPlan",
-    from,
+    from: data?.planner.plans ?? NO_PLANS,
   });
   if (!complete) return <CookLoading />;
   const cooked = buildCookBuckets(

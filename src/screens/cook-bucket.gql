@@ -1,6 +1,6 @@
-query CookBucket($planId: ID!) {
+query CookBucket($planIds: [ID!]!) {
   planner {
-    plan(id: $planId) {
+    plans(ids: $planIds) {
       id
       ...cookPlan
     }

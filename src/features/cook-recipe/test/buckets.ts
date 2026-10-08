@@ -72,26 +72,29 @@ export function bucketsPlan(
   return { childIds: childIdsOf(items), items, buckets };
 }
 
-export function cookBucketData(
+type CookBucketPlanData = Unmasked<CookBucketQuery>["planner"]["plans"][number];
+
+export function cookBucketPlan(
   id: string,
   name: string,
   items: Item[],
   buckets: CookPlanBucket[],
   mine = true,
-): Unmasked<CookBucketQuery> {
+): CookBucketPlanData {
   return {
-    planner: {
-      __typename: "PlannerQuery",
-      plan: {
-        __typename: "Plan",
-        id,
-        name,
-        mine,
-        grants: [],
-        children: childIdsOf(items).map(ref),
-        buckets,
-        updatedSince: items,
-      },
-    },
+    __typename: "Plan",
+    id,
+    name,
+    mine,
+    grants: [],
+    children: childIdsOf(items).map(ref),
+    buckets,
+    updatedSince: items,
   };
+}
+
+export function cookBucketData(
+  plans: CookBucketPlanData[],
+): Unmasked<CookBucketQuery> {
+  return { planner: { __typename: "PlannerQuery", plans } };
 }

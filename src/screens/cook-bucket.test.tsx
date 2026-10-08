@@ -1,6 +1,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import {
   cookBucketData,
+  cookBucketPlan,
   DINNER_BUCKET_IDS,
   holidayDinner,
   holidayItems,
@@ -49,23 +50,21 @@ async function show({
         cache,
         mocks: [
           {
-            request: { query: CookBucketDocument, variables: { planId: "7" } },
-            result: {
-              data: cookBucketData("7", "Holidays", holidayItems, [
-                holidayDinner,
-              ]),
+            request: {
+              query: CookBucketDocument,
+              variables: { planIds: ["7", "9"] },
             },
-          },
-          {
-            request: { query: CookBucketDocument, variables: { planId: "9" } },
             result: {
-              data: cookBucketData(
-                "9",
-                "Weeknights",
-                weeknightItems,
-                [weeknightDinner],
-                weeknightsMine,
-              ),
+              data: cookBucketData([
+                cookBucketPlan("7", "Holidays", holidayItems, [holidayDinner]),
+                cookBucketPlan(
+                  "9",
+                  "Weeknights",
+                  weeknightItems,
+                  [weeknightDinner],
+                  weeknightsMine,
+                ),
+              ]),
             },
           },
         ],
