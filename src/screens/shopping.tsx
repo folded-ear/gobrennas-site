@@ -12,6 +12,7 @@ import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { ShoppingRegions } from "@/features/shopping-list";
 import { SweepButton } from "@/features/shopping-list/sweep-button";
 import { useShoppingList } from "@/features/shopping-list/use-shopping-list";
+import { useStoreMoves } from "@/features/shopping-list/use-store-moves";
 import { canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_SHOPPING_PLANS } from "@/lib/preferences";
 import { ShoppingDocument } from "@/screens/__generated__/shopping.generated";
@@ -49,6 +50,7 @@ export function Shopping() {
     [shownPlans],
   );
   const { list, sweep } = useShoppingList(shoppingPlans);
+  const storeMoves = useStoreMoves(list);
 
   const tree = useMemo(
     () =>
@@ -71,7 +73,12 @@ export function Shopping() {
         </div>
       </SectionHeader>
       <div className="p-md bg-surface">
-        <ShoppingRegions list={list} tree={tree} onAcquiredToggle={sweep} />
+        <ShoppingRegions
+          list={list}
+          tree={tree}
+          onAcquiredToggle={sweep}
+          storeMoves={storeMoves}
+        />
       </div>
     </PlanDirectoryProvider>
   );

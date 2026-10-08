@@ -151,3 +151,6 @@ default are used. Favorites point to their target by object type and ID.
 - An ingredient reference may remain as raw text when it has not been matched
   to an ingredient.
 - A user's access grant is unique within a plan.
+- A pantry item's store order is its place along a walk through the store.
+  It is currently shared by all users; this will change. A store order of
+  0 means the pantry item has yet to be placed.

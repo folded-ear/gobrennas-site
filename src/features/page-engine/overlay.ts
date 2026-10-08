@@ -137,5 +137,13 @@ export function overlayPolicies(view: ReactiveVar<View>): TypePolicies {
         descendants,
       },
     },
+    PantryItem: {
+      fields: {
+        storeOrder(existing, options) {
+          const { v, id } = shown(options);
+          return v.storeOrder.get(id) ?? existing;
+        },
+      },
+    },
   };
 }

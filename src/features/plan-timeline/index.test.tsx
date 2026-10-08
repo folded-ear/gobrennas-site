@@ -7,13 +7,13 @@ import {
 } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree } from "@/features/plan-dnd/moves";
+import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
+import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
 import {
   keyboardCancel,
   keyboardDrag,
   keyboardDrop,
-} from "@/features/plan-dnd/test/keyboard-drag";
-import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
-import { PlanItemFragmentDoc } from "@/features/plan-item/__generated__/planItem.generated";
+} from "@/lib/dnd/test/keyboard-drag";
 import {
   buildInMemoryCache,
   render,

@@ -57,6 +57,32 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - A plan item with no ingredient appears in its region on its own.
 - Shopping items in each region are in store order, then by name.
 
+### Store order
+
+- Each ingredient has a store order: its place along a walk through the
+  store. It belongs to the ingredient, so it carries to every later list.
+  It's currently shared by all users (see the
+  [domain model](../domain/model.md#rules-not-shown-in-the-diagrams)).
+- Anyone who can see the list sees a handle on the left edge of each
+  shopping item. Loose plan items, and plan items under an expanded
+  shopping item, have none; loose items leave room for one, so statuses line
+  up.
+- Dragging a shopping item by its handle and dropping it on the top or
+  bottom half of another puts it before or after that one. It can only be
+  dropped among the shopping items of its own region. A drop that would
+  change nothing isn't offered.
+- An ingredient with no store order yet shows a crossed-out map pin after
+  its plan dots, which asks "Where should this go?". Such ingredients come
+  first in each region. Dropping one anywhere gives it a store order.
+  Dropping anything on one gives both a store order, and they move to just
+  after the ingredients still without one.
+- A move shows at once, and is saved as the planner's changes are (see
+  [Saving changes](planner.md#saving-changes)), offline included. If the
+  server refuses it, it goes back and a message says so.
+- Another user's or device's moves show the next time the page loads.
+- Items can be moved by keyboard, with the
+  [planner's handle keys](planner.md#keyboard-shortcuts).
+
 ### Sweeping
 
 - When what a shopping item, or a plan item with no ingredient, counts as
@@ -140,7 +166,6 @@ and "2 Tbsp sugar" under the iced tea.
 
 ## Not included
 
-- Reordering ingredients to set their store order.
 - Adding items that aren't on a plan.
 
 ## Open questions

@@ -3,6 +3,7 @@ import {
   CombinedProtocolErrors,
   ServerError,
 } from "@apollo/client";
+import { CHANGE_ROOTS } from "./roots";
 import type { PollOutcome, SendOutcome } from "./state";
 
 /** What a request came to: its result, or what it threw. */
@@ -19,12 +20,17 @@ type Failure =
 const UNAUTHORIZED_CLASSIFICATION = "UNAUTHORIZED";
 const HTTP_UNAUTHORIZED = 401;
 const HTTP_SERVER_ERROR = 500;
-const MUTATION_ROOT = "planner";
 const ALIASED_FIELD = /^s(\d+)$/;
 
 /** I give the aliased field an error's path names, if it names one. */
 function fieldOf(path: readonly (string | number)[] | undefined) {
-  if (path?.[0] !== MUTATION_ROOT || typeof path[1] !== "string") return;
+  const root = path?.[0];
+  if (
+    !CHANGE_ROOTS.some((it) => it === root) ||
+    typeof path?.[1] !== "string"
+  ) {
+    return;
+  }
   const match = ALIASED_FIELD.exec(path[1]);
   return match ? Number(match[1]) : undefined;
 }

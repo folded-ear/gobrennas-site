@@ -1,5 +1,5 @@
-import { ZoneLayer, ZoneSpec } from "@/features/plan-dnd/zone-layer";
 import { PlanItemTree } from "@/features/plan-item/tree";
+import { ZoneLayer, ZoneSpec } from "@/lib/dnd/zone-layer";
 import clsx from "clsx";
 import { ReactNode } from "react";
 import { PlanContext } from "./context";

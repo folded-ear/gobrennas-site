@@ -1,5 +1,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { isDraftId, mapIds, namedIds } from "./ids";
+import { fieldResult } from "./roots";
 import {
   AssignBucketChange,
   Change,
@@ -526,9 +527,7 @@ function answered(s: Stepping, flight: InFlight, outcome: SendOutcome) {
 
 /** I give the id a saved field answered with, if it did. */
 function answeredId(data: unknown, i: number): string | undefined {
-  const planner = (data as { planner?: Record<string, { id?: string }> })
-    ?.planner;
-  return planner?.[`s${i}`]?.id ?? undefined;
+  return fieldResult<{ id?: string }>(data, i)?.id ?? undefined;
 }
 
 function saved(
@@ -544,6 +543,11 @@ function saved(
   s.forget(batch.map((it) => it.key));
   batch.forEach((entry, i) => {
     const sent = flight.changes[i];
+    // No poll covers pantry items, so nothing would retire it once answered.
+    if (entry.change.kind === "storeOrder") {
+      w.pending = w.pending.filter((it) => it.key !== entry.key);
+      return;
+    }
     if (entry.change.kind !== "create" || sent.kind !== "create") {
       s.replace({ ...entry, phase: "answered", change: sent as Change });
       return;
@@ -698,7 +702,12 @@ function poll(s: Stepping) {
     planIds,
     startedAt: at,
     retiring: w.pending
-      .filter((it) => it.phase === "answered" && polled.has(it.change.planId))
+      .filter(
+        (it) =>
+          it.phase === "answered" &&
+          it.change.kind !== "storeOrder" &&
+          polled.has(it.change.planId),
+      )
       .map((it) => it.key),
   };
   s.emit({

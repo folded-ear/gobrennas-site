@@ -22,6 +22,8 @@ export type View = {
   readonly inserts: ReadonlyMap<string, readonly Insert[]>;
   /** Items created in each plan. */
   readonly created: ReadonlyMap<string, readonly string[]>;
+  /** Pantry items' store orders. */
+  readonly storeOrder: ReadonlyMap<string, number>;
 };
 
 export const EMPTY_VIEW: View = {
@@ -33,6 +35,7 @@ export const EMPTY_VIEW: View = {
   parent: new Map(),
   inserts: new Map(),
   created: new Map(),
+  storeOrder: new Map(),
 };
 
 const REMOVALS: ReadonlySet<PlanItemStatus> = new Set([
@@ -51,6 +54,7 @@ export function buildView(pending: readonly Pending[]): View {
   const parent = new Map<string, string>();
   const inserts = new Map<string, Insert[]>();
   const created = new Map<string, string[]>();
+  const storeOrder = new Map<string, number>();
   const place = (parentId: string, insert: Insert) => {
     inserts.set(parentId, [...(inserts.get(parentId) ?? []), insert]);
     insert.ids.forEach((id) => parent.set(id, parentId));
@@ -81,6 +85,11 @@ export function buildView(pending: readonly Pending[]): View {
       case "move":
         place(change.parentId, { ids: change.ids, afterId: change.afterId });
         break;
+      case "storeOrder":
+        for (const [id, value] of Object.entries(change.storeOrders)) {
+          storeOrder.set(id, value);
+        }
+        break;
     }
   }
   return {
@@ -92,6 +101,7 @@ export function buildView(pending: readonly Pending[]): View {
     parent,
     inserts,
     created,
+    storeOrder,
   };
 }
 

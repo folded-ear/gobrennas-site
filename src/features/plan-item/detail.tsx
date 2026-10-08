@@ -1,10 +1,10 @@
 import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import { useItemPlanLookup } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
-import { DragSession } from "@/features/plan-dnd/drag-session";
 import { buildEntries, DraftRow, useEditDrafts } from "@/features/plan-edit";
 import { PlanContext } from "@/features/plan-timeline/context";
 import { PlanItemNode } from "@/features/plan-timeline/model";
+import { DragSession } from "@/lib/dnd/drag-session";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import {

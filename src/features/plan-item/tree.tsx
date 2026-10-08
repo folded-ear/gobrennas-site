@@ -13,7 +13,9 @@ export function PlanItemTree({ nodes, renderItem }: PlanItemTreeProps) {
   if (nodes.length === 0) return null;
 
   return (
-    <ul className="flex flex-col gap-xxs">
+    // Rows pad themselves rather than the list gapping them, so their drop
+    // zones meet.
+    <ul className="flex flex-col">
       {nodes.map((node) => (
         <li key={node.item.id}>
           {renderItem(node)}
@@ -45,10 +47,14 @@ export function PlanItemEntryTree({
   if (entries.length === 0) return null;
 
   return (
-    <ul className="flex flex-col gap-xxs">
+    // Rows pad themselves rather than the list gapping them, so their drop
+    // zones meet.
+    <ul className="flex flex-col">
       {entries.map((entry) =>
         entry.kind === "draft" ? (
-          <li key={entry.draft.draftId}>{renderDraft(entry.draft)}</li>
+          <li key={entry.draft.draftId} className="py-px">
+            {renderDraft(entry.draft)}
+          </li>
         ) : (
           <li key={entry.node.item.id}>
             {renderItem(entry.node)}

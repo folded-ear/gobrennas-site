@@ -43,6 +43,15 @@ describe("sendOutcome", () => {
     });
   });
 
+  it("blames a field under pantry as it does one under planner", () => {
+    const error = graphqlErrors({ path: ["pantry", "s1"] });
+
+    expect(sendOutcome({ data: null, error })).toEqual({
+      kind: "refused",
+      fields: [1],
+    });
+  });
+
   it("blames no field when an error names none", () => {
     const error = graphqlErrors({ path: ["planner", "s1"] }, {});
 

@@ -10,6 +10,7 @@ import {
 import { TimelineBucket, TimelineItem } from "@/features/plan-timeline/model";
 import { FragmentType } from "@apollo/client";
 import { ShoppingPlanItemFragment } from "./__generated__/shoppingPlanItem.generated";
+import { byStoreOrder } from "./store-order";
 
 /** A plan item, as the shopping list gathers it. */
 export type ShoppingPlanItem = TimelineItem &
@@ -162,8 +163,8 @@ export function buildShoppingList(
       countsAs: anyNeeded ? PlanItemStatus.NEEDED : PlanItemStatus.ACQUIRED,
     });
   }
-  needed.items.sort(byStoreOrder);
-  acquired.items.sort(byStoreOrder);
+  needed.items.sort(byIngredientStoreOrder);
+  acquired.items.sort(byIngredientStoreOrder);
   return { needed, acquired };
 }
 
@@ -246,9 +247,6 @@ function sumByUnit(sources: readonly Source[]): Amount[] {
   return [...byUnit.values()];
 }
 
-function byStoreOrder(a: ShoppingItem, b: ShoppingItem): number {
-  return (
-    a.ingredient.storeOrder - b.ingredient.storeOrder ||
-    a.ingredient.name.localeCompare(b.ingredient.name)
-  );
+function byIngredientStoreOrder(a: ShoppingItem, b: ShoppingItem): number {
+  return byStoreOrder(a.ingredient, b.ingredient);
 }

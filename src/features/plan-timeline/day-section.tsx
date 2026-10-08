@@ -1,7 +1,7 @@
 import { useBucketPlans } from "@/features/plan-directory";
-import { useDragSession } from "@/features/plan-dnd/drag-session";
-import { ZoneSpec } from "@/features/plan-dnd/zone-layer";
-import { WHOLE_ZONE } from "@/features/plan-dnd/zones";
+import { useDragSession } from "@/lib/dnd/drag-session";
+import { ZoneSpec } from "@/lib/dnd/zone-layer";
+import { WHOLE_ZONE } from "@/lib/dnd/zones";
 import type { ReactNode } from "react";
 import { BucketCookLink } from "./bucket-cook-link";
 import { PlanContext } from "./context";

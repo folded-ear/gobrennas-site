@@ -1,8 +1,15 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
+import { gql } from "@apollo/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PageLocks } from "./locks";
 import { createRunner, Runner } from "./runner";
-import { ChangeRecord, RETRY_BASE_MS, UNDO_WINDOW_MS } from "./state";
+import {
+  Change,
+  ChangeRecord,
+  RenameChange,
+  RETRY_BASE_MS,
+  UNDO_WINDOW_MS,
+} from "./state";
 import type { Snapshot } from "./store";
 import {
   fakeApi,
@@ -71,6 +78,7 @@ function start({
 } = {}) {
   const memory = memoryStore(records, snapshot);
   const toast = vi.fn();
+  const onStale = vi.fn();
   runner = createRunner({
     client: api.client,
     pageLoadId,
@@ -81,12 +89,16 @@ function start({
     buildId: BUILD,
     locks: fakeLocks(open),
     toast,
+    onStale,
     publish: (view) => views.push(view),
     worker: null,
   });
   runner.start();
-  return { runner, kept: memory.records, memory, toast };
+  return { runner, kept: memory.records, memory, toast, onStale };
 }
+
+const isRename = (change: Change): change is RenameChange =>
+  change.kind === "rename";
 
 const mutations = () =>
   api.requests.filter((it) => it.operation === "doChanges");
@@ -424,6 +436,81 @@ describe("the runner", () => {
 
     expect(mutations()).toHaveLength(0);
     expect(kept.size).toBe(0);
+  });
+});
+
+describe("the runner's store moves", () => {
+  const storeOrderOf = (id: string) =>
+    (cache.extract() as Record<string, Record<string, unknown>>)[
+      cache.identify({ __typename: "PantryItem", id })!
+    ]?.storeOrder;
+
+  it("saves a store move, keeping the store orders it showed", async () => {
+    cache.writeFragment({
+      fragment: gql`
+        fragment RunnerTestPantryItem on PantryItem {
+          id
+          storeOrder
+        }
+      `,
+      data: { __typename: "PantryItem", id: "p2", storeOrder: 30 },
+    });
+    const { runner, kept } = start();
+
+    runner.post({
+      type: "change",
+      change: {
+        kind: "storeOrder",
+        id: "p2",
+        targetId: "p1",
+        after: true,
+        name: "sugar",
+        storeOrders: { p2: 20.5 },
+      },
+    });
+
+    await vi.waitFor(() => expect(storeOrderOf("p2")).toBe(20.5));
+    expect(mutations()[0].variables).toEqual({
+      id0: "p2",
+      targetId0: "p1",
+      after0: true,
+    });
+    expect(views.at(-1)?.storeOrder.size).toBe(0);
+    await vi.waitFor(() => expect(kept.size).toBe(0));
+  });
+});
+
+describe("the runner, given a change it doesn't know", () => {
+  const TELEPORT = {
+    key: "page-a-1",
+    userId: ME,
+    pageLoadId: "page-a",
+    seq: 1,
+    change: { kind: "teleport", id: "3" },
+  } as unknown as ChangeRecord;
+
+  it("stops, asks once for a relaunch, and keeps what's made after", async () => {
+    vi.useFakeTimers();
+    const { runner, kept, onStale } = start({ records: [TELEPORT] });
+    await vi.advanceTimersByTimeAsync(1000);
+
+    runner.post({
+      type: "change",
+      change: {
+        kind: "rename",
+        id: "3",
+        planId: THANKSGIVING,
+        name: "Ice cream",
+      },
+    });
+    await vi.advanceTimersByTimeAsync(RETRY_BASE_MS * 4);
+
+    expect(onStale).toHaveBeenCalledTimes(1);
+    expect(mutations()).toHaveLength(0);
+    expect(kept.get(TELEPORT.key)?.change).toEqual(TELEPORT.change);
+    expect([...kept.values()].map((it) => it.change).filter(isRename)).toEqual([
+      { kind: "rename", id: "3", planId: THANKSGIVING, name: "Ice cream" },
+    ]);
   });
 });
 

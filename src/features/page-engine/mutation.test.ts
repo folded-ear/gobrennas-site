@@ -43,3 +43,46 @@ describe("status mutation dates", () => {
     });
   });
 });
+
+describe("store moves", () => {
+  const sugarAfterFlour = {
+    kind: "storeOrder",
+    id: "p2",
+    targetId: "p1",
+    after: true,
+    name: "sugar",
+    storeOrders: { p2: 20.5 },
+  } as const;
+
+  it("puts a store move under pantry, beside the planner's changes", () => {
+    const { mutation, variables } = changeMutation([
+      {
+        kind: "status",
+        id: "cream",
+        name: "Whipped cream",
+        planId: "7",
+        status: PlanItemStatus.ACQUIRED,
+      },
+      sugarAfterFlour,
+    ]);
+    const query = print(mutation);
+
+    expect(query).toMatch(/planner \{\s+s0: setStatus\(/);
+    expect(query).toMatch(
+      /pantry \{\s+s1: orderForStore\(id: \$id1, targetId: \$targetId1, after: \$after1\)/,
+    );
+    expect(variables).toMatchObject({
+      id0: "cream",
+      id1: "p2",
+      targetId1: "p1",
+      after1: true,
+    });
+  });
+
+  it("asks nothing of the planner when there's only a store move", () => {
+    const query = print(changeMutation([sugarAfterFlour]).mutation);
+
+    expect(query).not.toContain("planner");
+    expect(query).toContain("s0: orderForStore(");
+  });
+});

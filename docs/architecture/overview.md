@@ -77,8 +77,8 @@ fragment masking, and the device key is in the project [README](../../README.md#
 ## The page engine and offline use
 
 Each page load runs one page engine (`src/features/page-engine/`). It owns
-the page's asynchronous state: plan changes and polling, the connection and
-login status, the install prompt, service worker updates, and what the page
+the page's asynchronous state: changes (to plans, and to pantry items' store
+order) and polling, the connection and login status, the install prompt, service worker updates, and what the page
 load keeps in IndexedDB. Plan sync is its main use, but nothing else in it
 is plan-specific. Its state changes only in a pure `step` function, one
 event at a time; a runner carries out what each step asks for, keeps the
@@ -89,9 +89,15 @@ engine's one timer, and alone listens to the browser's events for it.
   one.
 - Changes are kept in IndexedDB until the server answers, and each page
   load sends only its own, adopting a closed page's through a Web Lock.
+  A page load that adopts a kind of change its build doesn't know stops
+  its engine, leaves what it adopted for a newer page load, and asks to be
+  relaunched.
+- Each change is a field of one mutation, under its own root (`planner` or
+  `pantry`, `roots.ts`).
 - At most one request is out at a time, send or poll, so a poll never
   straddles a save's answer; an answered change stays shown until a later
-  poll covers its plan.
+  poll covers its plan. No poll covers pantry items, so a saved store-order
+  change writes the store orders it showed into the cache instead.
 - Mounted screens tell the engine which plans to poll (`useWatchPlans`).
 - The section header's status (`src/features/page-status/`) reads the
   engine.
