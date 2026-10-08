@@ -105,7 +105,9 @@ function RegionSection({
         onExpandedChange(key === undefined ? null : String(key));
       }}
     >
-      <ul className="flex flex-col gap-sm">
+      {/* Rows pad themselves rather than the list gapping them, so their
+          drop zones meet. */}
+      <ul className="flex flex-col">
         {region.items.map((item) => (
           <li key={item.ingredient.id}>
             <ShoppingItemRow
@@ -121,6 +123,7 @@ function RegionSection({
             row={row}
             group={looseGroup}
             handleSpace={storeMoves !== undefined}
+            className="py-xs"
           />
         ))}
       </ul>

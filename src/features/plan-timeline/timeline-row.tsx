@@ -90,7 +90,7 @@ export function TimelineRow({
         openId === id && "-mx-0.5 border-x-2 border-accent",
       )}
     >
-      <ItemRow itemId={id} name={name} zones={zones}>
+      <ItemRow itemId={id} name={name} zones={zones} className="py-px">
         {sectionRoot && showsPlan && plan ? (
           <PlanDot plan={plan} className="me-xxs" />
         ) : null}

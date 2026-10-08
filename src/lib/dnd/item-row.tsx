@@ -12,6 +12,8 @@ type ItemRowProps = PropsWithChildren<{
   zones: readonly ZoneSpec[];
   /** What leads my line. Left out, a handle when my item can be moved. */
   lead?: ReactNode;
+  /** Spacing inside my box, which my drop zones cover. */
+  className?: string;
 }>;
 
 /**
@@ -19,13 +21,21 @@ type ItemRowProps = PropsWithChildren<{
  * default when my item can be moved, then my content, with whatever drop
  * zones I'm given laid over the top.
  */
-export function ItemRow({ itemId, name, zones, lead, children }: ItemRowProps) {
+export function ItemRow({
+  itemId,
+  name,
+  zones,
+  lead,
+  className,
+  children,
+}: ItemRowProps) {
   const { canMove, dragged } = useDragSession();
   return (
     <div
       className={clsx(
         "relative flex items-start gap-xxs",
         dragged?.id === itemId && "opacity-40",
+        className,
       )}
     >
       {lead !== undefined ? (

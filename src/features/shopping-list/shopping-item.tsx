@@ -27,6 +27,7 @@ type ShoppingRowLineProps = {
   readonly group: string;
   /** Whether I leave a handle's room, lining up with shopping items. */
   readonly handleSpace?: boolean;
+  readonly className?: string;
 };
 
 export function rowKey(row: ShoppingRow): string {
@@ -38,6 +39,7 @@ export function ShoppingRowLine({
   row,
   group,
   handleSpace = false,
+  className,
 }: ShoppingRowLineProps) {
   const line =
     row.kind === "draft" ? (
@@ -56,7 +58,7 @@ export function ShoppingRowLine({
       />
     );
   return (
-    <li>
+    <li className={className}>
       {handleSpace ? (
         // spaced as a handle is, so statuses line up
         <div className="flex items-start gap-xxs">
@@ -100,6 +102,7 @@ export function ShoppingItemRow({
         itemId={item.ingredient.id}
         name={item.ingredient.name}
         zones={zones}
+        className="py-xs"
       >
         <div className="flex min-w-0 flex-1 items-start gap-xs">
           <BulkStatusButton

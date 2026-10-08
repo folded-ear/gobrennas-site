@@ -97,7 +97,13 @@ export function DrawerRow({
     own && own.separation !== null && own.date !== null ? own.date : null;
 
   return (
-    <ItemRow itemId={id} name={name} zones={zones} lead={lead}>
+    <ItemRow
+      itemId={id}
+      name={name}
+      zones={zones}
+      lead={lead}
+      className="py-px"
+    >
       {plan !== undefined ? (
         <StatusButton
           itemId={id}
