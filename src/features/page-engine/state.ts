@@ -68,8 +68,40 @@ export type MoveChange = {
   readonly name: string;
 };
 
+/** A pantry item put before or after another in store order. */
+export type StoreOrderChange = {
+  readonly kind: "storeOrder";
+  readonly id: string;
+  readonly targetId: string;
+  readonly after: boolean;
+  /** What to call the move, should it fail. */
+  readonly name: string;
+  /** The store orders the move shows, by pantry item id. */
+  readonly storeOrders: Readonly<Record<string, number>>;
+};
+
 export type Change =
-  StatusChange | RenameChange | CreateChange | AssignBucketChange | MoveChange;
+  | StatusChange
+  | RenameChange
+  | CreateChange
+  | AssignBucketChange
+  | MoveChange
+  | StoreOrderChange;
+
+/** Every kind of change this build can make. */
+const CHANGE_KINDS: Readonly<Record<Change["kind"], true>> = {
+  status: true,
+  rename: true,
+  create: true,
+  assignBucket: true,
+  move: true,
+  storeOrder: true,
+};
+
+/** I tell whether this build can make a change, as one kept by another may not be. */
+export function isKnownChange(change: { readonly kind: string }): boolean {
+  return Object.hasOwn(CHANGE_KINDS, change.kind);
+}
 
 /** A change as it is sent: naming only items the server has. */
 export type SentChange =

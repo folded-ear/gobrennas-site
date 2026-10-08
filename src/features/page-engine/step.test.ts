@@ -225,6 +225,36 @@ describe("sending", () => {
   });
 });
 
+describe("store moves", () => {
+  const sugarAfterFlour: Change = {
+    kind: "storeOrder",
+    id: "p2",
+    targetId: "p1",
+    after: true,
+    name: "sugar",
+    storeOrders: { p2: 20.5 },
+  };
+
+  it("drops a saved store move at once, as no poll covers pantry items", () => {
+    const e = engine();
+    e.boot();
+    e.post({ type: "change", change: sugarAfterFlour });
+    const key = e.of("store")[0].put[0].key;
+    e.storeAll();
+    const sent = e.lastSend();
+
+    e.post({
+      type: "sent",
+      requestId: sent.requestId,
+      outcome: { kind: "saved", data: { pantry: { s0: { id: "p2" } } } },
+    });
+
+    expect(e.of("writeSaved")[0].changes).toEqual([sugarAfterFlour]);
+    expect(e.of("store").flatMap((it) => it.remove)).toEqual([key]);
+    expect(e.state.pending).toEqual([]);
+  });
+});
+
 describe("holding removals", () => {
   it("sends a held removal once its undo window passes", () => {
     const e = engine();

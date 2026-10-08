@@ -8,9 +8,11 @@ import { AssignBucketResultFragmentDoc } from "./__generated__/assignBucketResul
 import { PlanItemResultFragmentDoc } from "./__generated__/planItemResult.generated";
 import { PollPlanFragmentDoc } from "./__generated__/pollPlan.generated";
 import { SetStatusResultFragmentDoc } from "./__generated__/setStatusResult.generated";
+import { CHANGE_ROOTS, Root } from "./roots";
 import type { PollRequest, SentChange } from "./state";
 
 type Field = {
+  readonly root: Root;
   /** Each variable's declaration, by name. */
   readonly declarations: Record<string, string>;
   readonly values: Record<string, unknown>;
@@ -24,6 +26,7 @@ function fieldFor(change: SentChange, i: number): Field {
   switch (change.kind) {
     case "status":
       return {
+        root: "planner",
         declarations: {
           [`id${i}`]: "ID!",
           [`status${i}`]: "PlanItemStatus!",
@@ -41,6 +44,7 @@ function fieldFor(change: SentChange, i: number): Field {
       };
     case "rename":
       return {
+        root: "planner",
         declarations: { [`id${i}`]: "ID!", [`name${i}`]: "String!" },
         values: { [`id${i}`]: change.id, [`name${i}`]: change.name },
         // A plan can be renamed too, so the result is only an interface.
@@ -51,6 +55,7 @@ function fieldFor(change: SentChange, i: number): Field {
       };
     case "create":
       return {
+        root: "planner",
         declarations: {
           [`parentId${i}`]: "ID!",
           [`afterId${i}`]: "ID",
@@ -72,6 +77,7 @@ function fieldFor(change: SentChange, i: number): Field {
       };
     case "assignBucket":
       return {
+        root: "planner",
         declarations: { [`id${i}`]: "ID!", [`bucketId${i}`]: "ID" },
         values: { [`id${i}`]: change.id, [`bucketId${i}`]: change.bucketId },
         selection:
@@ -81,6 +87,7 @@ function fieldFor(change: SentChange, i: number): Field {
       };
     case "move":
       return {
+        root: "planner",
         declarations: { [`spec${i}`]: "MutatePlanTree!" },
         values: {
           [`spec${i}`]: {
@@ -92,6 +99,25 @@ function fieldFor(change: SentChange, i: number): Field {
         // No ids of parents: a parent may be a plan, and writing it back as
         // a PlanItem would retype it in the cache.
         selection: `mutateTree(spec: $spec${i}) { children { id } }`,
+      };
+    case "storeOrder":
+      return {
+        root: "pantry",
+        declarations: {
+          [`id${i}`]: "ID!",
+          [`targetId${i}`]: "ID!",
+          [`after${i}`]: "Boolean!",
+        },
+        values: {
+          [`id${i}`]: change.id,
+          [`targetId${i}`]: change.targetId,
+          [`after${i}`]: change.after,
+        },
+        // The server renumbers every pantry item, so its number for this
+        // one alone would sort among stale ones; the change's own are kept.
+        selection:
+          `orderForStore(id: $id${i}, targetId: $targetId${i},` +
+          ` after: $after${i}) { id }`,
       };
   }
 }
@@ -110,8 +136,9 @@ function uniqueDefinitions(documents: readonly DocumentNode[]): string {
 
 /**
  * I build a mutation making each change in a field of its own, aliased by
- * position, with its variables. Codegen can't know how many there will be,
- * or of what kind, so only each field's selection comes from it.
+ * position under its own root, with its variables. Codegen can't know how
+ * many there will be, or of what kind, so only each field's selection
+ * comes from it.
  */
 export function changeMutation(changes: readonly SentChange[]) {
   const fields = changes.map(fieldFor);
@@ -119,10 +146,17 @@ export function changeMutation(changes: readonly SentChange[]) {
     .flatMap((it) => Object.entries(it.declarations))
     .map(([name, type]) => `$${name}: ${type}`)
     .join(", ");
-  const selections = fields.map((it, i) => `s${i}: ${it.selection}`).join("\n");
+  const roots = CHANGE_ROOTS.flatMap((root) => {
+    const selections = fields
+      .map((it, i) => (it.root === root ? `s${i}: ${it.selection}` : null))
+      .filter((it) => it !== null);
+    return selections.length === 0
+      ? []
+      : [`${root} { ${selections.join("\n")} }`];
+  });
   return {
     mutation: gql(
-      `mutation doChanges(${declared}) { planner { ${selections} } }\n` +
+      `mutation doChanges(${declared}) { ${roots.join(" ")} }\n` +
         uniqueDefinitions(fields.flatMap((it) => it.fragment ?? [])),
     ),
     variables: Object.assign({}, ...fields.map((it) => it.values)),

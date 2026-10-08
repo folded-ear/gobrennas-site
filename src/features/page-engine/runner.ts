@@ -18,6 +18,7 @@ import type {
   Posted,
   State,
 } from "./state";
+import { isKnownChange } from "./state";
 import { initialState, step } from "./step";
 import type { ChangeStore, SnapshotStore } from "./store";
 import { buildView, type View } from "./view";
@@ -59,6 +60,8 @@ export type RunnerDeps = {
   readonly buildId: string;
   readonly locks: PageLocks;
   readonly toast: (failed: readonly Change[]) => void;
+  /** I'm told once, should this build be too old for a change it adopts. */
+  readonly onStale: () => void;
   readonly publish: (view: View) => void;
   /** Null where there's no service worker, as in development. */
   readonly worker: WorkerHost | null;
@@ -101,6 +104,7 @@ export function createRunner({
   buildId,
   locks,
   toast,
+  onStale,
   publish,
   worker,
 }: RunnerDeps): Runner {
@@ -115,6 +119,8 @@ export function createRunner({
   let stepping = false;
   let running = false;
   let booted = false;
+  /** Whether this build is too old for a change it adopted. */
+  let stale = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   /** The request out, and which of the engine's it is. */
   let request: { id: number; controller: AbortController } | null = null;
@@ -407,9 +413,35 @@ export function createRunner({
     }
   }
 
+  function stop() {
+    if (!running) return;
+    running = false;
+    clearTimeout(timer);
+    request?.controller.abort();
+    request = null;
+    window.removeEventListener("online", onOnline);
+    window.removeEventListener("offline", onOffline);
+    document.removeEventListener("visibilitychange", onVisibility);
+    window.removeEventListener("pagehide", onPageHide);
+    window.removeEventListener("pageshow", onPageShow);
+    window.removeEventListener("beforeinstallprompt", onInstallPrompt);
+    locks.release();
+    store?.close();
+  }
+
+  /**
+   * I stop for good on adopting a change this build can't make, and say
+   * so once. What I adopted stays kept for a newer page load.
+   */
+  function goStale() {
+    stale = true;
+    stop();
+    onStale();
+  }
+
   return {
     start() {
-      if (running) return;
+      if (running || stale) return;
       running = true;
       locks.hold();
       window.addEventListener("online", onOnline);
@@ -427,7 +459,10 @@ export function createRunner({
       if (booted) return;
       booted = true;
       void Promise.all([adopt(), restore()]).then(
-        ([adopted, restored]) => post({ type: "boot", adopted, ...restored }),
+        ([adopted, restored]) =>
+          adopted.every((it) => isKnownChange(it.change))
+            ? post({ type: "boot", adopted, ...restored })
+            : goStale(),
         () => {
           post({
             type: "boot",
@@ -440,21 +475,7 @@ export function createRunner({
         },
       );
     },
-    stop() {
-      if (!running) return;
-      running = false;
-      clearTimeout(timer);
-      request?.controller.abort();
-      request = null;
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener("offline", onOffline);
-      document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("pagehide", onPageHide);
-      window.removeEventListener("pageshow", onPageShow);
-      window.removeEventListener("beforeinstallprompt", onInstallPrompt);
-      locks.release();
-      store?.close();
-    },
+    stop,
     post,
     create(change) {
       const created = new Promise<string | null>((resolve) =>

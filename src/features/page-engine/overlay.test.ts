@@ -105,6 +105,13 @@ beforeEach(() => {
   });
 });
 
+const PANTRY_ITEM = gql`
+  fragment OverlayTestPantryItem on PantryItem {
+    id
+    storeOrder
+  }
+`;
+
 let seq = 0;
 const show = (...changes: (Change | [Change, Phase])[]) =>
   publishView(
@@ -249,5 +256,32 @@ describe("the overlay", () => {
     show({ kind: "rename", id: "3", planId: PLAN, name: "Ice cream" });
 
     expect(seen).toContain("Ice cream");
+  });
+
+  it("shows a store move's orders, then the server's once it's gone", () => {
+    const id = cache.identify({ __typename: "PantryItem", id: "p2" });
+    cache.writeFragment({
+      fragment: PANTRY_ITEM,
+      id,
+      data: { __typename: "PantryItem", id: "p2", storeOrder: 10 },
+    });
+    const storeOrder = () =>
+      cache.readFragment<{ storeOrder: number }>({ fragment: PANTRY_ITEM, id })
+        ?.storeOrder;
+
+    show({
+      kind: "storeOrder",
+      id: "p2",
+      targetId: "p1",
+      after: true,
+      name: "sugar",
+      storeOrders: { p2: 20.5 },
+    });
+
+    expect(storeOrder()).toBe(20.5);
+
+    publishView(cache, EMPTY_VIEW);
+
+    expect(storeOrder()).toBe(10);
   });
 });

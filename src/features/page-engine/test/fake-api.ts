@@ -154,6 +154,9 @@ export function fakeApi(cache: ApolloCache) {
               ? "PlannerMutation"
               : "PlannerQuery",
         };
+        const pantry: Record<string, unknown> = {
+          __typename: "PantryMutation",
+        };
         if (operation.operationName === "Shopping") {
           planner.plans = api.shopping;
         } else if (operation.operationName === "pollPlans") {
@@ -163,12 +166,19 @@ export function fakeApi(cache: ApolloCache) {
         } else {
           const count = fieldCount(variables);
           for (let i = 0; i < count; i++) {
+            if (`targetId${i}` in variables) {
+              pantry[`s${i}`] = {
+                __typename: "PantryItem",
+                id: variables[`id${i}`],
+              };
+              continue;
+            }
             planner[`s${i}`] = answerField(cache, variables, i, () =>
               String(created++),
             );
           }
         }
-        observer.next({ data: { planner } });
+        observer.next({ data: { planner, pantry } });
         observer.complete();
       }),
   );

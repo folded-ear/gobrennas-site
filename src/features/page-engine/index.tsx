@@ -24,6 +24,7 @@ import type {
   MoveChange,
   RenameChange,
   StatusChange,
+  StoreOrderChange,
 } from "./state";
 import { createIdbStore } from "./store";
 
@@ -69,6 +70,7 @@ export type PageEngineApi = {
   flush(): void;
   rename(change: RenameChange): void;
   move(change: MoveChange): void;
+  orderForStore(change: StoreOrderChange): void;
   assignBucket(change: AssignBucketChange): void;
   /**
    * I create an item, shown at once under its draft id. I resolve with its
@@ -89,7 +91,15 @@ export type PageEngineApi = {
 
 const PageEngineContext = createContext<Runner | null>(null);
 
-const MOVES: ReadonlySet<Change["kind"]> = new Set(["move", "assignBucket"]);
+const MOVES: ReadonlySet<Change["kind"]> = new Set([
+  "move",
+  "assignBucket",
+  "storeOrder",
+]);
+
+const STALE_MESSAGE = "BFS needs an update. Please relaunch to keep working.";
+/** A toast that stays until it's dismissed. */
+const PERMANENT = 0;
 
 /** I say what couldn't be saved, by name when it's all one item. */
 function reportFailure(failed: readonly Change[]) {
@@ -139,6 +149,7 @@ export function PageEngine({
       buildId: process.env.NEXT_PUBLIC_BUILD_ID ?? "",
       locks: createPageLocks(navigator.locks, pageLoadId),
       toast: reportFailure,
+      onStale: () => toast.danger(STALE_MESSAGE, { timeout: PERMANENT }),
       publish: (view) => publishView(client.cache, view),
       worker: worker === undefined ? serviceWorker() : worker,
     });
@@ -166,6 +177,7 @@ export function usePageEngine(): PageEngineApi {
       flush: () => post({ type: "flush" }),
       rename: (change) => post({ type: "change", change }),
       move: (change) => post({ type: "change", change }),
+      orderForStore: (change) => post({ type: "change", change }),
       assignBucket: (change) => post({ type: "change", change }),
       create: (change) => runner?.create(change) ?? Promise.resolve(null),
       resolve: (id) => runner?.resolve(id) ?? id,

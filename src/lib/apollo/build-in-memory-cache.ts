@@ -37,9 +37,10 @@ export function buildInMemoryCache() {
           suggestRecipesToCook: relayStylePagination(false),
         },
       },
-      // Pending plan changes show over server data (page-engine/overlay.ts),
+      // Pending changes show over server data (page-engine/overlay.ts),
       // local fields (schema-local.graphql) among them.
       Plan: overlay.Plan,
+      PantryItem: overlay.PantryItem,
       PlanItem: {
         fields: {
           ...overlay.PlanItem.fields,

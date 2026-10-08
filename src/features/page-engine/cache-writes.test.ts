@@ -27,6 +27,13 @@ const BUCKET = gql`
   }
 `;
 
+const PANTRY_ITEM = gql`
+  fragment CacheWritesTestPantryItem on PantryItem {
+    id
+    storeOrder
+  }
+`;
+
 type Item = {
   id: string;
   name: string;
@@ -154,5 +161,40 @@ describe("writeSaved", () => {
     expect(read("3")?.children.map((it) => it.id)).toEqual(["2"]);
     expect(read("2")?.parent?.id).toBe("3");
     expect(read("1")?.children).toEqual([]);
+  });
+
+  it("writes the store orders a saved store move showed", () => {
+    const storeOrderOf = (id: string) =>
+      cache.readFragment<{ storeOrder: number }>({
+        fragment: PANTRY_ITEM,
+        id: cache.identify({ __typename: "PantryItem", id }),
+      })?.storeOrder;
+    for (const [id, storeOrder] of [
+      ["p1", 0],
+      ["p2", 30],
+    ] as const) {
+      cache.writeFragment({
+        fragment: PANTRY_ITEM,
+        data: { __typename: "PantryItem", id, storeOrder },
+      });
+    }
+
+    writeSaved(
+      cache,
+      [
+        {
+          kind: "storeOrder",
+          id: "p2",
+          targetId: "p1",
+          after: true,
+          name: "sugar",
+          storeOrders: { p1: 1 / 3, p2: 2 / 3 },
+        },
+      ],
+      { pantry: { s0: { __typename: "PantryItem", id: "p2" } } },
+    );
+
+    expect(storeOrderOf("p1")).toBe(1 / 3);
+    expect(storeOrderOf("p2")).toBe(2 / 3);
   });
 });

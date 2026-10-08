@@ -26,6 +26,9 @@ export function namedIds(change: Change): string[] {
       return change.afterId === null
         ? [...change.ids, change.parentId]
         : [...change.ids, change.parentId, change.afterId];
+    // It names pantry items, never plan items.
+    case "storeOrder":
+      return [];
   }
 }
 
@@ -51,5 +54,7 @@ export function mapIds(change: Change, map: (id: string) => string): Change {
         parentId: map(change.parentId),
         afterId: after(change.afterId),
       };
+    case "storeOrder":
+      return change;
   }
 }

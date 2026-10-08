@@ -6,6 +6,7 @@ import { CorePlanItemChildrenFragmentDoc } from "./__generated__/pollPlan.genera
 import { evictItem } from "./evict";
 import { insertCreated } from "./insert";
 import { mergePoll, PolledNode } from "./merge";
+import { fieldResult } from "./roots";
 import type { CreateChange, MoveChange, SentChange } from "./state";
 
 const REMOVALS: ReadonlySet<PlanItemStatus> = new Set([
@@ -104,27 +105,37 @@ function writeMove(
   }
 }
 
+/** I write the store orders a saved store move showed. */
+function writeStoreOrders(
+  cache: ApolloCache,
+  storeOrders: Readonly<Record<string, number>>,
+) {
+  for (const [id, storeOrder] of Object.entries(storeOrders)) {
+    cache.modify<{ storeOrder: number }>({
+      id: cache.identify({ __typename: "PantryItem", id }),
+      fields: { storeOrder: () => storeOrder },
+    });
+  }
+}
+
 type Answered = {
   readonly id?: string;
   readonly children?: readonly { id: string }[];
 };
 
 /**
- * I place what a saved batch moved, created, or removed; Apollo has
- * written the saved items themselves.
+ * I place what a saved batch moved, created, removed, or put in store
+ * order; Apollo has written the saved items themselves.
  */
 export function writeSaved(
   cache: ApolloCache,
   changes: readonly SentChange[],
   data: unknown,
 ): void {
-  const planner =
-    (data as { planner?: Record<string, Answered | null> } | null)?.planner ??
-    {};
   cache.batch({
     update: () =>
       changes.forEach((change, i) => {
-        const result = planner[`s${i}`];
+        const result = fieldResult<Answered>(data, i);
         if (!result) return;
         switch (change.kind) {
           case "status":
@@ -140,6 +151,9 @@ export function writeSaved(
             return;
           case "move":
             writeMove(cache, change, result.children ?? []);
+            return;
+          case "storeOrder":
+            writeStoreOrders(cache, change.storeOrders);
             return;
         }
       }),

@@ -80,6 +80,30 @@ describe("buildView", () => {
 
     expect(view.name.get("1")).toBe("Apple pie");
   });
+
+  it("shows each store move's orders, a later move's winning", () => {
+    const view = buildView([
+      pending({
+        kind: "storeOrder",
+        id: "sugar",
+        targetId: "flour",
+        after: true,
+        name: "sugar",
+        storeOrders: { sugar: 2.5, flour: 2 },
+      }),
+      pending({
+        kind: "storeOrder",
+        id: "sugar",
+        targetId: "basil",
+        after: false,
+        name: "sugar",
+        storeOrders: { sugar: 6.5 },
+      }),
+    ]);
+
+    expect(view.storeOrder.get("sugar")).toBe(6.5);
+    expect(view.storeOrder.get("flour")).toBe(2);
+  });
 });
 
 describe("overlayChildren", () => {
