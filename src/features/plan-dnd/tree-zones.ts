@@ -1,8 +1,8 @@
+import { DraggedItem } from "@/lib/dnd/drag-session";
+import { ZoneIndicator, ZoneSpec } from "@/lib/dnd/zone-layer";
+import { ZoneRect } from "@/lib/dnd/zones";
 import { displayName } from "@/lib/plan-item-name";
-import { DraggedItem } from "./drag-session";
 import { PlanTree, TreeMove, treeMove, TreeZone } from "./moves";
-import { ZoneIndicator, ZoneSpec } from "./zone-layer";
-import { ZoneRect } from "./zones";
 
 const INDICATORS: Readonly<Record<TreeZone, ZoneIndicator>> = {
   child: "nest",

@@ -11,11 +11,6 @@ import {
 } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildPlanTree } from "@/features/plan-dnd/moves";
-import {
-  keyboardCancel,
-  keyboardDrag,
-  keyboardDrop,
-} from "@/features/plan-dnd/test/keyboard-drag";
 import { PlanMoves } from "@/features/plan-dnd/use-plan-moves";
 import {
   buildEntries,
@@ -28,6 +23,11 @@ import {
   PlanContext,
 } from "@/features/plan-timeline/context";
 import { PlanItemNode, TimelineItem } from "@/features/plan-timeline/model";
+import {
+  keyboardCancel,
+  keyboardDrag,
+  keyboardDrop,
+} from "@/lib/dnd/test/keyboard-drag";
 import {
   buildInMemoryCache,
   render,

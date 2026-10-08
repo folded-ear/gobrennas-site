@@ -3,10 +3,7 @@
 import { PlanDot } from "@/components/plan-dot";
 import { useItemPlan, useShowsPlanIndicators } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
-import { useDragSession } from "@/features/plan-dnd/drag-session";
-import { ItemRow } from "@/features/plan-dnd/item-row";
 import { treeZones } from "@/features/plan-dnd/tree-zones";
-import { REORDER_ZONES } from "@/features/plan-dnd/zones";
 import { PlanItem } from "@/features/plan-item";
 import { DateChip, ParentChip } from "@/features/plan-item/chips";
 import { CookLink } from "@/features/plan-item/cook-link";
@@ -15,6 +12,9 @@ import {
   StatusButton,
   useItemStatusClassName,
 } from "@/features/plan-status";
+import { useDragSession } from "@/lib/dnd/drag-session";
+import { ItemRow } from "@/lib/dnd/item-row";
+import { REORDER_ZONES } from "@/lib/dnd/zones";
 import clsx from "clsx";
 import { PlanContext } from "./context";
 import { PlanItemNode } from "./model";

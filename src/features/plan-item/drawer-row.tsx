@@ -2,9 +2,6 @@
 
 import { PlanDot } from "@/components/plan-dot";
 import { useItemPlanLookup } from "@/features/plan-directory";
-import { DragHandle } from "@/features/plan-dnd/drag-handle";
-import { useDragSession } from "@/features/plan-dnd/drag-session";
-import { ItemRow } from "@/features/plan-dnd/item-row";
 import { PlanTree, TreeMove } from "@/features/plan-dnd/moves";
 import { treeZones } from "@/features/plan-dnd/tree-zones";
 import { TREE_ZONES } from "@/features/plan-dnd/zones";
@@ -18,6 +15,9 @@ import {
 } from "@/features/plan-status";
 import { PlanContext } from "@/features/plan-timeline/context";
 import { PlanItemNode } from "@/features/plan-timeline/model";
+import { DragHandle } from "@/lib/dnd/drag-handle";
+import { useDragSession } from "@/lib/dnd/drag-session";
+import { ItemRow } from "@/lib/dnd/item-row";
 import clsx from "clsx";
 import { DateChip } from "./chips";
 import { CookLink } from "./cook-link";

@@ -9,7 +9,7 @@ import {
   keyboardDrag,
   keyboardDrop,
 } from "./test/keyboard-drag";
-import { TREE_ZONES } from "./zones";
+import { REORDER_ZONES } from "./zones";
 
 const back = vi.fn();
 
@@ -47,7 +47,7 @@ function Row({
     dragged && dragged.id !== id
       ? [
           {
-            rect: TREE_ZONES[offer],
+            rect: REORDER_ZONES[offer],
             indicator: offer,
             label: `Put ${offer} ${name}`,
             onDrop: () => onDropped(`${dragged.name} went ${offer} ${name}`),

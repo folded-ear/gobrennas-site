@@ -1,7 +1,7 @@
 "use client";
 
 import { PlanDnd } from "@/features/plan-dnd";
-import { DragSession } from "@/features/plan-dnd/drag-session";
+import { DragSession } from "@/lib/dnd/drag-session";
 import { useMemo, type ReactNode } from "react";
 import { buildPlanContext } from "./context";
 import { DayList } from "./day-list";
