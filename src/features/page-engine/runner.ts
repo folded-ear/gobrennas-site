@@ -10,15 +10,15 @@ import {
 import type { PageLocks } from "./locks";
 import { changeMutation, pollQuery } from "./mutation";
 import { pollOutcome, sendOutcome } from "./outcome";
-import type {
-  Change,
-  ChangeRecord,
-  CreateChange,
-  Effect,
-  Posted,
-  State,
+import {
+  isKnownChange,
+  type Change,
+  type ChangeRecord,
+  type CreateChange,
+  type Effect,
+  type Posted,
+  type State,
 } from "./state";
-import { isKnownChange } from "./state";
 import { initialState, step } from "./step";
 import type { ChangeStore, SnapshotStore } from "./store";
 import { buildView, type View } from "./view";

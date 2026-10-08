@@ -14,7 +14,8 @@ export type ZoneRect = {
 /** Where on a row a drop that only reorders lands. */
 export type ReorderZone = "before" | "after";
 
-const AFTER_ZONE_HEIGHT = 1 - BEFORE_ZONE_HEIGHT;
+/** Share of a row's height, measured from its bottom, where a drop goes after it. */
+export const AFTER_ZONE_HEIGHT = 1 - BEFORE_ZONE_HEIGHT;
 
 /** Where on a row that can only be reordered, not nested into, each zone sits. */
 export const REORDER_ZONES: Readonly<Record<ReorderZone, ZoneRect>> = {

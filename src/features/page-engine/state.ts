@@ -98,7 +98,10 @@ const CHANGE_KINDS: Readonly<Record<Change["kind"], true>> = {
   storeOrder: true,
 };
 
-/** I tell whether this build can make a change, as one kept by another may not be. */
+/**
+ * I tell whether this build can make a change. One kept by a page load from
+ * a newer build may be of a kind it doesn't know.
+ */
 export function isKnownChange(change: { readonly kind: string }): boolean {
   return Object.hasOwn(CHANGE_KINDS, change.kind);
 }

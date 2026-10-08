@@ -65,7 +65,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
   [domain model](../domain/model.md#rules-not-shown-in-the-diagrams)).
 - Anyone who can see the list sees a handle on the left edge of each
   shopping item. Loose plan items, and plan items under an expanded
-  shopping item, have none; loose items leave its room, so statuses line
+  shopping item, have none; loose items leave room for one, so statuses line
   up.
 - Dragging a shopping item by its handle and dropping it on the top or
   bottom half of another puts it before or after that one. It can only be

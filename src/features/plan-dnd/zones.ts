@@ -1,4 +1,8 @@
-import { BEFORE_ZONE_HEIGHT, ZoneRect } from "@/lib/dnd/zones";
+import {
+  AFTER_ZONE_HEIGHT,
+  BEFORE_ZONE_HEIGHT,
+  ZoneRect,
+} from "@/lib/dnd/zones";
 import { TreeZone } from "./moves";
 
 /**
@@ -8,7 +12,6 @@ import { TreeZone } from "./moves";
 export const NEST_ZONE_WIDTH = 0.75;
 
 const GUTTER_WIDTH = 1 - NEST_ZONE_WIDTH;
-const AFTER_ZONE_HEIGHT = 1 - BEFORE_ZONE_HEIGHT;
 
 /** Where on a tree row each zone sits, in the order a keyboard visits them. */
 export const TREE_ZONES: Readonly<Record<TreeZone, ZoneRect>> = {
