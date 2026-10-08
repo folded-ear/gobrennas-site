@@ -183,11 +183,21 @@ type LibraryMutation {
   """
 
   Set the photo for a recipe in your library, without changing any other
-  info about the recipe. A photo may be set during create and/or update.
+  info about the recipe. A photo may be set during create and/or update. A
+  photo can be replaced, but not removed.
   """
   setRecipePhoto(
-    "Filename of a scratch upload."
+    """
+
+    Filename of a scratch upload. If null, nothing is changed, including
+    focus.
+    """
     filename: String,
+    """
+
+    The photo's focal point, as `[left, top]`. Ignored unless exactly
+    two elements are supplied.
+    """
     focus: [Float!],
     id: ID!
   ): Recipe!
@@ -241,24 +251,27 @@ type LibraryQuery {
     search: LibrarySearch
   ): RecipeConnection!
   """
-Recognize quantity, unit, and/or ingredient in a raw ingredient ref (aka
-item) string, and describe that structure. By default, also provide
-suggestions based on partial matches.
-"""
-recognizeItem(
-  """The raw string to recognize."""
-  raw: String!
+
+  Recognize quantity, unit, and/or ingredient in a raw ingredient ref (aka
+  item) string, and describe that structure. By default, also provide
+  suggestions based on partial matches.
   """
-  The position of the cursor in the raw string, used to make contextual
-  suggestions. If not specified, the end of the raw string is assumed.
-  """
-  cursor: NonNegativeInt
-  """
-  Keep an explicitly selected ingredient while recognizing the surrounding text.
-  The range uses UTF-16 offsets and must contain that ingredient's name.
-  """
-  choice: RecognitionChoice
-): RecognizedItem!
+  recognizeItem(
+    """
+
+    Keep an explicitly selected ingredient while recognizing the surrounding text.
+    The range uses UTF-16 offsets and must contain that ingredient's name.
+    """
+    choice: RecognitionChoice,
+    """
+
+    The position of the cursor in the raw string, used to make contextual
+    suggestions. If not specified, the end of the raw string is assumed.
+    """
+    cursor: NonNegativeInt,
+    "The raw string to recognize."
+    raw: String!
+  ): RecognizedItem!
   "Search for sections of recipes."
   sections(search: LibrarySearch!): SectionConnection!
   suggestRecipesToCook(
@@ -282,17 +295,9 @@ type Mutation {
 type PageInfo {
   "The last cursor returned in this page's edges."
   endCursor: Cursor
-  """
-
-  Whether this connection has a next page, or null if included in the
-  result of a backward paging operation.
-  """
+  "Whether this connection has a next page."
   hasNextPage: Boolean!
-  """
-
-  Whether this connection has a previous page, or null if included in the
-  result of a forward paging operation.
-  """
+  "Whether this connection has a previous page."
   hasPreviousPage: Boolean!
   "The first cursor returned in this page's edges."
   startCursor: Cursor
@@ -372,7 +377,7 @@ type PantryQuery {
   Retrieve ingredients in bulk, regardless of type. Invalid IDs will be
   silently ignored, and no result returned for them. Duplicate IDs will only
   have a single result returned. The order of results is unspecified.
-  Identical to the query of the same name in 'pantry'.
+  Identical to the query of the same name in 'library'.
   """
   bulkIngredients(ids: [ID!]): [Ingredient!]!
   pantryItems(search: PantrySearch!): PantryItemConnection!
@@ -404,10 +409,20 @@ type PantryQuery {
     "Direction to sort the result, ascending by default."
     sortDir: SortDir = ASC
   ): PantryItemConnection!
+  """
+
+  Retrieve all pantry items which have been updated since the passed
+  cutoff (expressed in milliseconds since the UNIX epoch).
+  """
   updatedSince(cutoff: Long!): [PantryItem!]!
 }
 
 type Photo {
+  """
+
+  The photo's focal point, as a two-element `[left, top]` list, or null
+  if not set.
+  """
   focus: [Float!]
   url: String!
 }
@@ -507,18 +522,19 @@ type PlannerMutation {
   """
 
   Create a new item under the specified parent (which may be a plan, for
-  top-level items), after the specified peer item (null means 'first'), and with
-  the specified name.
+  top-level items), after the specified peer item (null means 'first'), and
+  with the specified name.
   """
   createItem(
-    afterId: ID
+    afterId: ID,
     """
+
     An explicitly selected ingredient and its range in name. Omitted or
     null keeps automatic name recognition unchanged. A leading ! in name
     still disables recognition, including an explicit choice.
     """
-    choice: RecognitionChoice
-    name: String!
+    choice: RecognitionChoice,
+    name: String!,
     parentId: ID!
   ): PlanItem!
   "Create a new empty plan, optionally duplicating the specified source plan."
@@ -571,7 +587,7 @@ type PlannerMutation {
   """
 
   Sets the status of the given item. This will always return the updated
-  item, though it may immediately moved to the trash (in the background).
+  item, though it may immediately be moved to the trash (in the background).
   """
   setStatus(doneAt: DateTime, id: ID!, status: PlanItemStatus!): PlanItem!
   "Update a bucket w/in a plan, by setting or clearing its name and date."
@@ -583,7 +599,12 @@ type PlannerQuery {
   plan(id: ID!): Plan!
   planItem(id: ID!): PlanItem!
   planOrItem(id: ID!): CorePlanItem!
-  plans: [Plan!]!
+  """
+
+  Retrieve the plans with the given IDs, in the same order, or all plans
+  visible to the current user if omitted.
+  """
+  plans(ids: [ID!]): [Plan!]!
   """
 
   Retrieve all items on the given plan which have been updated since the
@@ -681,7 +702,12 @@ type Recipe implements Ingredient & IngredientCollection & Node & Owned {
   of those subrecipes _are_ included.
   """
   subrecipes: [Recipe!]!
-  totalTime(unit: ChronoUnit = MINUTES): Int
+  """
+
+  Total time to make the recipe, in the requested unit, truncated to a
+  whole number.
+  """
+  totalTime(unit: ChronoUnit! = MINUTES): Int
   yield: Int
 }
 
@@ -708,17 +734,16 @@ type RecipeHistoryMutation {
 }
 
 """
+
 A suggestion for what might come next at the cursor position, along with the
 target range of the raw string it would replace.
 """
 type RecognitionSuggestion {
+  "Optional disambiguating context; sections return their parent recipe name."
+  detail: String
+  kind: RecognitionKind!
   name: String!
   target: RecognizedRange!
-  kind: RecognitionKind!
-  """
-  Optional disambiguating context; sections return their parent recipe name.
-  """
-  detail: String
 }
 
 "The result of recognizing a raw ingredient ref item."
@@ -730,13 +755,15 @@ type RecognizedItem {
   "The raw string which was recognized."
   raw: String!
   """
+
   Suggestions of what the user might wish to insert at the current cursor
   position. If more than 'count' suggestions are available, the returned
   subset is unspecified, other than pantry items are preferred to recipes.
   """
   suggestions(
-    count: PositiveInt! = 10
+    count: PositiveInt! = 10,
     """
+
     Opt in to candidates for a grouped picker: include owned sections and
     keep distinct ingredient IDs even when names match. By default, exclude
     owned sections and deduplicate by name for existing text-only clients.
@@ -747,7 +774,7 @@ type RecognizedItem {
 
 """
 
-A recognized quantity in the raw string. The type indicates which of the id
+A recognized range of the raw string. The type indicates which of the id
 or quantity fields will be non-null, if either.
 """
 type RecognizedRange {
@@ -832,7 +859,7 @@ type TextractLine {
 type TextractMutation {
   """
 
-  Create a new job from a pre-uploaded file. Use the `profile.photoUpload`
+  Create a new job from a pre-uploaded file. Use the `profile.scratchFile`
   field to obtain a pre-signed upload URL, and pass its filename here when done.
   """
   createPreUploadedJob(filename: String!): TextractJob!
@@ -869,7 +896,7 @@ type User implements Node {
 
   A value for every preference is returned. If a deviceKey is provided,
   that device's values will be used. Otherwise, the user's global preferences
-  are used, if they exists. If not, the static default is returned.
+  are used, if they exist. If not, the static default is returned.
   """
   preferences(deviceKey: String): [UserPreference!]!
   provider: String!
@@ -959,6 +986,12 @@ enum Rating {
   TWO_STARS
 }
 
+enum RecognitionKind {
+  PANTRY_ITEM
+  RECIPE
+  SECTION
+}
+
 enum RecognizedRangeType {
   ITEM
   NEW_ITEM
@@ -1004,22 +1037,32 @@ input IngredientInfo {
   name: String!
   "Filename of a scratch upload to set as this recipe's photo."
   photo: String
+  """
+
+  The photo's focal point, as `[left, top]`. Ignored unless exactly two
+  elements are supplied.
+  """
   photoFocus: [Float!]
   sections: [SectionInfo!]
   storeOrder: Int
+  """
+
+  Total time to make the recipe, in milliseconds. Note that
+  `Recipe.totalTime` returns minutes by default.
+  """
   totalTime: Int
   type: String!
   yield: Int
 }
 
 input IngredientRefInfo {
-  raw: String!
-  quantity: Float
-  units: String
-  uomId: ID
   ingredient: String
   ingredientId: ID
   preparation: String
+  quantity: Float
+  raw: String!
+  units: String
+  uomId: ID
 }
 
 input LibrarySearch {
@@ -1088,6 +1131,12 @@ input PantrySearch {
   sortDir: SortDir = ASC
 }
 
+input RecognitionChoice {
+  end: NonNegativeInt!
+  id: ID!
+  start: NonNegativeInt!
+}
+
 input SectionInfo {
   directions: String
   """
@@ -1111,16 +1160,4 @@ input SuggestionSearch {
 input UnsavedBucket {
   date: Date
   name: String
-}
-
-enum RecognitionKind {
-  PANTRY_ITEM
-  RECIPE
-  SECTION
-}
-
-input RecognitionChoice {
-  id: ID!
-  start: NonNegativeInt!
-  end: NonNegativeInt!
 }
