@@ -13,6 +13,7 @@ import {
   LogOut,
   LucideIcon,
   LucideProps,
+  MapPinOff,
   NotebookTabs,
   PackagePlus,
   Pencil,
@@ -58,6 +59,7 @@ export const ExpandDownIcon = createIcon(ChevronDown);
 export const ExpandUpIcon = createIcon(ChevronUp);
 export const LibraryIcon = createIcon(BookOpen);
 export const LogoutIcon = createIcon(LogOut);
+export const NoStoreOrderIcon = createIcon(MapPinOff);
 export const MenuOpenIcon = createIcon(ChevronDown);
 export const NeededIcon = createIcon(Circle);
 export const OfflineIcon = createIcon(CloudOff);

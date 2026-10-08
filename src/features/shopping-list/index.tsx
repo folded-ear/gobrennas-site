@@ -1,5 +1,6 @@
 import { PlanTree } from "@/features/plan-dnd/moves";
 import { EditSurfaceProvider, useEditState } from "@/features/plan-edit";
+import { DragSession, useDragSession } from "@/lib/dnd/drag-session";
 import { Disclosure, DisclosureGroup } from "@heroui/react";
 import { useId, useState } from "react";
 import {
@@ -9,8 +10,10 @@ import {
   ShoppingRows,
   shoppingRows,
 } from "./entries";
-import { Region, ShoppingList } from "./model";
+import { Region, ShoppingIngredient, ShoppingList } from "./model";
 import { rowKey, ShoppingItemRow, ShoppingRowLine } from "./shopping-item";
+import { storeZones } from "./store-zones";
+import { StoreMoves } from "./use-store-moves";
 
 type ShoppingRegionsProps = {
   readonly list: ShoppingList;
@@ -18,6 +21,8 @@ type ShoppingRegionsProps = {
   readonly tree?: PlanTree;
   /** Called as Acquired opens or closes. */
   readonly onAcquiredToggle?: () => void;
+  /** Left out, nothing can be put in store order. */
+  readonly storeMoves?: StoreMoves;
 };
 
 type RegionSectionProps = {
@@ -36,7 +41,14 @@ type RegionSectionProps = {
   /** The one shopping item expanded, whichever region it's in. */
   readonly expandedId: string | null;
   readonly onExpandedChange: (id: string | null) => void;
+  /** Left out, nothing can be put in store order. */
+  readonly storeMoves?: StoreMoves;
 };
+
+const STORE_ITEM_DRAG_TYPE = "application/x.gobrennas.store-item";
+
+/** Only shopping items have handles, and any of them can be moved. */
+const anyIngredient = () => true;
 
 function isEmpty({ items }: Region, loose: readonly ShoppingRow[]): boolean {
   return items.length === 0 && loose.length === 0;
@@ -54,9 +66,35 @@ function RegionSection({
   rows,
   expandedId,
   onExpandedChange,
+  storeMoves,
 }: RegionSectionProps) {
   const headingId = useId();
+  const { dragged } = useDragSession();
   if (isEmpty(region, loose)) return null;
+
+  const ingredients = region.items.map((it) => it.ingredient);
+  // Only an ingredient shown here can be put among the ones shown here.
+  const moving =
+    storeMoves !== undefined &&
+    dragged !== null &&
+    ingredients.some((it) => it.id === dragged.id)
+      ? { storeMoves, dragged }
+      : null;
+  const zonesOn = (target: ShoppingIngredient) =>
+    moving === null
+      ? []
+      : storeZones({
+          ingredients,
+          dragged: moving.dragged,
+          target,
+          onMove: (after) =>
+            moving.storeMoves.move(
+              moving.dragged.id,
+              target.id,
+              after,
+              moving.dragged.name,
+            ),
+        });
 
   const list = (
     // Only my items join; a group claims every Disclosure inside it.
@@ -70,11 +108,20 @@ function RegionSection({
       <ul className="flex flex-col gap-sm">
         {region.items.map((item) => (
           <li key={item.ingredient.id}>
-            <ShoppingItemRow item={item} rows={rows} />
+            <ShoppingItemRow
+              item={item}
+              rows={rows}
+              zones={zonesOn(item.ingredient)}
+            />
           </li>
         ))}
         {loose.map((row) => (
-          <ShoppingRowLine key={rowKey(row)} row={row} group={looseGroup} />
+          <ShoppingRowLine
+            key={rowKey(row)}
+            row={row}
+            group={looseGroup}
+            handleSpace={storeMoves !== undefined}
+          />
         ))}
       </ul>
     </DisclosureGroup>
@@ -119,6 +166,7 @@ export function ShoppingRegions({
   list,
   tree,
   onAcquiredToggle,
+  storeMoves,
 }: ShoppingRegionsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const edit = useEditState();
@@ -144,6 +192,7 @@ export function ShoppingRegions({
         rows={rows}
         expandedId={expandedId}
         onExpandedChange={setExpandedId}
+        storeMoves={storeMoves}
       />
       <RegionSection
         title="Acquired"
@@ -156,11 +205,20 @@ export function ShoppingRegions({
         rows={rows}
         expandedId={expandedId}
         onExpandedChange={setExpandedId}
+        storeMoves={storeMoves}
       />
     </div>
   );
+  const movable =
+    storeMoves === undefined ? (
+      regions
+    ) : (
+      <DragSession dragType={STORE_ITEM_DRAG_TYPE} canMove={anyIngredient}>
+        {regions}
+      </DragSession>
+    );
 
-  if (tree === undefined) return regions;
+  if (tree === undefined) return movable;
   return (
     <EditSurfaceProvider
       state={edit}
@@ -168,7 +226,7 @@ export function ShoppingRegions({
       tree={tree}
       createdStayPut={false}
     >
-      {regions}
+      {movable}
     </EditSurfaceProvider>
   );
 }

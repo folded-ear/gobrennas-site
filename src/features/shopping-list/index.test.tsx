@@ -3,6 +3,11 @@ import { ApiRequest, fakeApi } from "@/features/page-engine/test/fake-api";
 import { PlanDirectoryProvider } from "@/features/plan-directory";
 import { buildPlanTree } from "@/features/plan-dnd/moves";
 import {
+  keyboardCancel,
+  keyboardDrag,
+  keyboardDrop,
+} from "@/lib/dnd/test/keyboard-drag";
+import {
   buildInMemoryCache,
   render,
   screen,
@@ -10,12 +15,19 @@ import {
   waitFor,
   within,
 } from "@/test";
-import { ApolloProvider } from "@apollo/client/react";
+import { gql } from "@apollo/client";
+import { ApolloProvider, useFragment } from "@apollo/client/react";
 import { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { ShoppingRegions } from "./index";
-import { buildShoppingList, ingredientKey, ShoppingList } from "./model";
+import {
+  buildShoppingList,
+  ingredientKey,
+  ShoppingList,
+  ShoppingPlan,
+} from "./model";
 import { BASIL, plan, seedItem, SUGAR, TBSP, TSP } from "./test/fixtures";
+import { useStoreMoves } from "./use-store-moves";
 
 const WEEKNIGHTS = {
   id: "7",
@@ -534,5 +546,219 @@ describe("ShoppingRegions, editing", () => {
       .getAllByRole("listitem")
       .at(-1);
     expect(loose).toContainElement(field);
+  });
+});
+
+describe("ShoppingRegions' store order", () => {
+  const CUMIN = { id: "p6", name: "cumin", storeOrder: 0 };
+  const FLOUR = { id: "p4", name: "flour", storeOrder: 20 };
+  const EGGS = { id: "p5", name: "eggs", storeOrder: 25 };
+  const PANTRY = [SUGAR, CUMIN, FLOUR, BASIL, EGGS];
+
+  const STORE_ORDER = gql`
+    fragment ShoppingTestStoreOrder on PantryItem {
+      id
+      storeOrder
+    }
+  `;
+
+  /** I list the plan as the cache now orders its pantry items. */
+  function Live({ plans }: { plans: readonly ShoppingPlan[] }) {
+    const { data } = useFragment({
+      fragment: STORE_ORDER,
+      from: PANTRY.map((it) => ({ __typename: "PantryItem", id: it.id })),
+    });
+    const orders = new Map(
+      (data as { id?: string; storeOrder?: number }[]).map((it) => [
+        it.id,
+        it.storeOrder,
+      ]),
+    );
+    const list = buildShoppingList(
+      plans.map((it) => ({
+        ...it,
+        items: it.items.map((item) =>
+          item.ingredient?.__typename === "PantryItem"
+            ? {
+                ...item,
+                ingredient: {
+                  ...item.ingredient,
+                  storeOrder:
+                    orders.get(item.ingredient.id) ??
+                    item.ingredient.storeOrder,
+                },
+              }
+            : item,
+        ),
+      })),
+    );
+    const storeMoves = useStoreMoves(list);
+    return (
+      <PlanDirectoryProvider
+        directory={{
+          plans: [WEEKNIGHTS],
+          planOfItem: new Map(),
+          planOfBucket: new Map(),
+        }}
+      >
+        <ShoppingRegions list={list} storeMoves={storeMoves} />
+      </PlanDirectoryProvider>
+    );
+  }
+
+  function renderOrdered() {
+    const cache = buildInMemoryCache();
+    for (const pantry of PANTRY) {
+      cache.writeFragment({
+        fragment: STORE_ORDER,
+        data: { __typename: "PantryItem", ...pantry },
+      });
+    }
+    const api = fakeApi(cache);
+    const leaf = (id: string, pantry?: (typeof PANTRY)[number]) =>
+      seedItem(cache, {
+        id,
+        name: pantry?.name ?? "paper towels",
+        parent: "7",
+        pantry,
+      });
+    const items = [
+      leaf("a", SUGAR),
+      leaf("b", CUMIN),
+      leaf("c", FLOUR),
+      leaf("d", BASIL),
+      seedItem(cache, {
+        id: "e",
+        name: "eggs",
+        parent: "7",
+        status: PlanItemStatus.ACQUIRED,
+        pantry: EGGS,
+      }),
+      leaf("f"),
+    ];
+    const plans = [
+      plan(
+        WEEKNIGHTS.id,
+        WEEKNIGHTS.name,
+        WEEKNIGHTS.color,
+        items.map((it) => it.id),
+        items,
+      ),
+    ];
+    render(<Live plans={plans} />, { client: api.client });
+    return api;
+  }
+
+  const NAMES = ["sugar", "cumin", "flour", "basil", "eggs", "paper towels"];
+
+  function shownIn(region: string): string[] {
+    return within(screen.getByRole("region", { name: region }))
+      .getAllByRole("listitem")
+      .map((it) => NAMES.find((name) => it.textContent?.includes(name))!);
+  }
+
+  it("asks where an ingredient with no store order should go", () => {
+    renderOrdered();
+
+    const asks = screen.getAllByRole("img", { name: "Where should this go?" });
+
+    expect(asks).toHaveLength(1);
+    expect(asks[0].closest("li")).toHaveTextContent("cumin");
+  });
+
+  it("gives each shopping item a handle, and loose items none", () => {
+    renderOrdered();
+
+    expect(
+      screen
+        .getAllByRole("button", { name: /^Move / })
+        .map((it) => it.getAttribute("aria-label")),
+    ).toEqual(["Move cumin", "Move sugar", "Move flour", "Move basil"]);
+  });
+
+  it("moves an ingredient by keyboard, at once, and saves it", async () => {
+    const api = renderOrdered();
+
+    await keyboardDrag("Move basil");
+    await keyboardDrop("Put before sugar");
+
+    expect(shownIn("Needed")).toEqual([
+      "cumin",
+      "basil",
+      "sugar",
+      "flour",
+      "paper towels",
+    ]);
+    await waitFor(() =>
+      expect(api.requests.map((it) => it.variables)).toEqual([
+        { id0: BASIL.id, targetId0: SUGAR.id, after0: false },
+      ]),
+    );
+    expect(shownIn("Needed")[1]).toBe("basil");
+  });
+
+  it("places an ingredient with no store order once it's moved", async () => {
+    renderOrdered();
+
+    await keyboardDrag("Move cumin");
+    await keyboardDrop("Put after flour");
+
+    expect(shownIn("Needed")).toEqual([
+      "sugar",
+      "flour",
+      "cumin",
+      "basil",
+      "paper towels",
+    ]);
+    expect(
+      screen.queryByRole("img", { name: "Where should this go?" }),
+    ).toBeNull();
+  });
+
+  it("offers places only in the dragged item's own region", async () => {
+    renderOrdered();
+    await expandAcquired();
+
+    await keyboardDrag("Move basil");
+
+    expect(
+      screen.getByRole("button", { name: "Put before sugar" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^Put .* eggs$/ })).toBeNull();
+    await keyboardCancel();
+  });
+
+  it("offers no place that would change nothing", async () => {
+    renderOrdered();
+
+    await keyboardDrag("Move flour");
+
+    expect(
+      screen.getByRole("button", { name: "Put before sugar" }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Put after sugar" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Put before basil" }),
+    ).toBeNull();
+    await keyboardCancel();
+  });
+
+  it("puts it back and says so when the save is refused", async () => {
+    const api = renderOrdered();
+    api.mode = "refuse";
+
+    await keyboardDrag("Move basil");
+    await keyboardDrop("Put before sugar");
+
+    expect(await screen.findByText("Couldn't move basil")).toBeTruthy();
+    expect(shownIn("Needed")).toEqual([
+      "cumin",
+      "sugar",
+      "flour",
+      "basil",
+      "paper towels",
+    ]);
   });
 });

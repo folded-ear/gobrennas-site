@@ -9,7 +9,7 @@ export function byStoreOrder(
 }
 
 /** Store order 0 means an ingredient has yet to be placed. */
-const UNPLACED = 0;
+export const UNPLACED = 0;
 
 /** What lies past the last placed ingredient, for a drop after it. */
 const PAST_LAST = 1;
