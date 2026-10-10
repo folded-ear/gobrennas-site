@@ -12,7 +12,7 @@ import {
 } from "./__generated__/planItem.generated";
 import { DrawerRow } from "./drawer-row";
 import { Ladder } from "./ladder";
-import { PlanItemEntryTree } from "./tree";
+import { PlanItemTree } from "./tree";
 
 const DRAWER_DRAG_TYPE = "application/x.gobrennas.drawer-item";
 
@@ -101,7 +101,7 @@ export function PlanItemDetail({
   // One way of drawing a row, whether or not the plan can be changed:
   // a row says where its item has been moved to either way.
   const rows = (
-    <PlanItemEntryTree
+    <PlanItemTree
       entries={buildEntries(descendants, drafts, parentId ?? null)}
       renderDraft={(draft) => (
         // Spaced as a row's handle and status are, so its name lines up.
