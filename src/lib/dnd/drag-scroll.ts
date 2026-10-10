@@ -71,7 +71,7 @@ function scrollUnderDrag(scroller: Element): () => void {
     }
     if (lastFrame !== null) {
       owed += (speed * (now - lastFrame)) / MS_PER_S;
-      // A scroll of under a pixel can be dropped, so I only ask for whole ones.
+      // Whole pixels only, the rest carried, so a slow scroll still adds up.
       const whole = Math.trunc(owed);
       if (whole !== 0) scroller.scrollBy({ top: whole, behavior: "instant" });
       owed -= whole;
