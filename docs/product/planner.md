@@ -192,6 +192,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - A user who can change a plan sees a handle on the left edge of each of
   its items. Anyone else sees no handles.
 - Dragging an item by its handle moves everything below it too.
+- A drag by pointer or touch that nears the top or bottom of the page, or
+  of the item or section screen, scrolls it, faster the nearer the edge.
 - An item only ever joins a bucket of its own plan.
 - On the timeline, dropping an item on another day puts it on that day.
   - The item joins a bucket its plan already has on that day, preferring an

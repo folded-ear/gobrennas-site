@@ -70,6 +70,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   bottom half of another puts it before or after that one. It can only be
   dropped among the shopping items of its own region. A drop that would
   change nothing isn't offered.
+- The list scrolls under a drag as the planner's pages do (see
+  [Moving items](planner.md#moving-items)).
 - An ingredient with no store order yet shows a crossed-out map pin after
   its plan dots, which asks "Where should this go?". Such ingredients come
   first in each region. Dropping one anywhere gives it a store order.
