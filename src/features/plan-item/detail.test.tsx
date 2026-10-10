@@ -577,6 +577,16 @@ describe("PlanItemDetail, a section's items", () => {
     expect(screen.getByRole("button", { name: "Move Salsa" })).toBeVisible();
   });
 
+  it("sets a section item's plan after its name", () => {
+    renderSection([pieNode, tacosNode]);
+
+    const name = screen.getByText("Pumpkin pie");
+    const dot = screen.getByRole("img", { name: "Holidays" });
+    expect(
+      name.compareDocumentPosition(dot) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("offers a section's own items only to nest under", async () => {
     renderSection([pieNode]);
 

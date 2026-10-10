@@ -15,7 +15,6 @@ import {
 } from "@/features/plan-status";
 import { PlanContext } from "@/features/plan-timeline/context";
 import { PlanItemNode } from "@/features/plan-timeline/model";
-import { DragHandle } from "@/lib/dnd/drag-handle";
 import { useDragSession } from "@/lib/dnd/drag-session";
 import { ItemRow } from "@/lib/dnd/item-row";
 import clsx from "clsx";
@@ -50,7 +49,7 @@ export function DrawerRow({
   tree,
   onMove,
 }: DrawerRowProps) {
-  const { dragged, canMove } = useDragSession();
+  const { dragged } = useDragSession();
   const { id, name } = node.item;
   const planOf = useItemPlanLookup();
   const plan = planOf(id);
@@ -64,14 +63,12 @@ export function DrawerRow({
           onMove: (move) => onMove(move, dragged.name),
         })
       : [];
-  const lead = !sectionRoot ? undefined : spansPlans && plan ? (
-    // In the handle's place, so every row's content lines up.
-    <span className="flex size-xl shrink-0 items-center justify-center">
-      <PlanDot plan={plan} />
-    </span>
-  ) : canMove(id) ? (
-    <DragHandle itemId={id} name={name} isFixed />
-  ) : null;
+  const showsPlan = sectionRoot && spansPlans && plan !== undefined;
+  const handle = !sectionRoot
+    ? undefined
+    : showsPlan
+      ? "placeholder"
+      : "disabled";
 
   const statusClassName = useItemStatusClassName(id);
   const status = useItemStatus(id);
@@ -101,7 +98,7 @@ export function DrawerRow({
       itemId={id}
       name={name}
       zones={zones}
-      lead={lead}
+      handle={handle}
       className="py-px"
     >
       {plan !== undefined ? (
@@ -136,6 +133,7 @@ export function DrawerRow({
           />
         </span>
       )}
+      {showsPlan ? <PlanDot plan={plan} className="ms-xxs" /> : null}
       {plan !== undefined && node.item.children.length > 0 ? (
         <CookLink planId={plan.id} itemId={id} name={name} />
       ) : null}

@@ -89,7 +89,7 @@ export function ladderLines(
 function OpenName({ line, plan, hasChildren, onRemoved }: OpenNameProps) {
   const status = useItemStatus(line.id);
   return (
-    <h2 className="flex min-w-0 flex-1 text-xl font-semibold text-foreground">
+    <h2 className="flex min-w-0 text-xl font-semibold text-foreground">
       {plan !== undefined ? (
         <EditableName
           itemId={line.id}
@@ -178,10 +178,7 @@ export function Ladder({
           style={{ paddingInlineStart: `calc(${STEP_INDENT} * ${line.depth})` }}
         >
           {index === lastIndex ? (
-            <span className="flex min-w-0 flex-1 items-start gap-xxs">
-              {showsPlan && plan ? (
-                <PlanDot plan={plan} className="me-xxs" />
-              ) : null}
+            <span className="flex min-w-0 items-start gap-xxs">
               {plan !== undefined ? (
                 <OnLine>
                   <StatusButton
@@ -197,6 +194,9 @@ export function Ladder({
                 hasChildren={openHasChildren}
                 onRemoved={onRemoved}
               />
+              {showsPlan && plan ? (
+                <PlanDot plan={plan} className="ms-xxs" />
+              ) : null}
             </span>
           ) : (
             <LadderName line={line} onSelect={onSelect} />

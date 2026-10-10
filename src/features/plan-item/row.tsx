@@ -98,8 +98,8 @@ export function PlanItemRow({
               {ancestors.length > 0 && showsPlan ? STEP_SEPARATOR : null}
               {showsPlan ? (
                 <>
-                  <PlanDot plan={plan} className="me-xxs" />
                   {plan.name}
+                  <PlanDot plan={plan} className="ms-xxs" />
                 </>
               ) : null}
             </small>

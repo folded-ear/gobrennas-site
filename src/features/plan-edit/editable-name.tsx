@@ -131,7 +131,7 @@ export function EditableName({
     // A convenience for pointers; the name's own button serves everyone.
     <span
       className={clsx(
-        "flex min-w-0 flex-1 cursor-text",
+        "flex min-w-0 cursor-text",
         below === undefined && className,
       )}
       onClick={() => surface.start(key)}

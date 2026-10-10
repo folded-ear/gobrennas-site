@@ -1,7 +1,8 @@
 "use client";
 
+import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import clsx from "clsx";
-import { PropsWithChildren, ReactNode } from "react";
+import { PropsWithChildren } from "react";
 import { DragHandle } from "./drag-handle";
 import { useDragSession } from "./drag-session";
 import { ZoneLayer, ZoneSpec } from "./zone-layer";
@@ -10,22 +11,25 @@ type ItemRowProps = PropsWithChildren<{
   itemId: string;
   name: string;
   zones: readonly ZoneSpec[];
-  /** What leads my line. Left out, a handle when my item can be moved. */
-  lead?: ReactNode;
+  /**
+   * How my handle shows: "disabled" never drags, and "placeholder" only
+   * takes a handle's room. Left out, it drags.
+   */
+  handle?: "disabled" | "placeholder";
   /** Spacing inside my box, which my drop zones cover. */
   className?: string;
 }>;
 
 /**
- * I am one item's line: whatever leads it on my left edge, a handle by
- * default when my item can be moved, then my content, with whatever drop
- * zones I'm given laid over the top.
+ * I am one item's line: a handle on my left edge when my item can be
+ * moved, then my content, with whatever drop zones I'm given laid over the
+ * top.
  */
 export function ItemRow({
   itemId,
   name,
   zones,
-  lead,
+  handle,
   className,
   children,
 }: ItemRowProps) {
@@ -38,11 +42,15 @@ export function ItemRow({
         className,
       )}
     >
-      {lead !== undefined ? (
-        lead
-      ) : canMove(itemId) ? (
-        <DragHandle itemId={itemId} name={name} />
-      ) : null}
+      {!canMove(itemId) ? null : handle === "placeholder" ? (
+        <span aria-hidden className={LINE_CONTROL_CLASS_NAME} />
+      ) : (
+        <DragHandle
+          itemId={itemId}
+          name={name}
+          isFixed={handle === "disabled"}
+        />
+      )}
       {children}
       <ZoneLayer zones={zones} />
     </div>

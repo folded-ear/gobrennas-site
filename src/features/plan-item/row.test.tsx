@@ -153,6 +153,19 @@ describe("PlanItemRow", () => {
     expect(screen.getByRole("img", { name: "Weeknights" })).toBeVisible();
   });
 
+  it("sets its plan's dot after the plan's name", () => {
+    renderRow(SUGAR, [WEEKNIGHTS, PARTY]);
+
+    const ancestry = screen.getByText("Spag sauce / Dinner / Weeknights");
+    const planName = [...ancestry.childNodes].find(
+      (it) => it.textContent === "Weeknights",
+    );
+    const dot = screen.getByRole("img", { name: "Weeknights" });
+    expect(
+      planName!.compareDocumentPosition(dot) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("shows an item counted as acquired in acquired's color, and why", () => {
     renderRow(
       SUGAR,
