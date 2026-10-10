@@ -9,7 +9,7 @@ import {
   StatusButton,
   TOGGLE_LOOKS,
   ToggleStatus,
-  useItemStatus,
+  useItemSettled,
 } from "@/features/plan-status";
 import { ItemRow } from "@/lib/dnd/item-row";
 import { FragmentType } from "@apollo/client";
@@ -127,7 +127,7 @@ type RowNameProps = {
 
 /** I am a row's name and where it sits, edited in place when it can be. */
 function RowName({ itemId, name, plan, group, below, children }: RowNameProps) {
-  const status = useItemStatus(itemId);
+  const settled = useItemSettled(itemId);
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       <EditableName
@@ -136,12 +136,7 @@ function RowName({ itemId, name, plan, group, below, children }: RowNameProps) {
         name={name}
         // The shopping list is made of leaves.
         hasChildren={false}
-        canEdit={
-          plan.changeable &&
-          status !== null &&
-          !status.inert &&
-          status.pendingStatus === null
-        }
+        canEdit={plan.changeable && settled}
         group={group}
       >
         {children}

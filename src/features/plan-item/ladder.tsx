@@ -5,7 +5,7 @@ import {
   useShowsPlanIndicators,
 } from "@/features/plan-directory";
 import { EditableName } from "@/features/plan-edit";
-import { StatusButton, useItemStatus } from "@/features/plan-status";
+import { StatusButton, useItemSettled } from "@/features/plan-status";
 import {
   ancestorsOf,
   PlanContext,
@@ -86,7 +86,7 @@ export function ladderLines(
 
 /** I head the item screen with the open item, its name edited in place. */
 function OpenName({ line, plan, hasChildren, onRemoved }: OpenNameProps) {
-  const status = useItemStatus(line.id);
+  const settled = useItemSettled(line.id);
   return (
     <h2 className="flex min-w-0 text-xl font-semibold text-foreground">
       {plan !== undefined ? (
@@ -95,12 +95,7 @@ function OpenName({ line, plan, hasChildren, onRemoved }: OpenNameProps) {
           planId={plan.id}
           name={line.name}
           hasChildren={hasChildren}
-          canEdit={
-            plan.changeable &&
-            status !== null &&
-            !status.inert &&
-            status.pendingStatus === null
-          }
+          canEdit={plan.changeable && settled}
           keys="heading"
           onRemoved={onRemoved}
         >

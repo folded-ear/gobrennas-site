@@ -94,6 +94,15 @@ export function useItemStatus(itemId: string) {
   return complete ? data : null;
 }
 
+/**
+ * I tell whether an item is there to work on: known, with neither it nor
+ * anything above it waiting to be removed.
+ */
+export function useItemSettled(itemId: string): boolean {
+  const item = useItemStatus(itemId);
+  return item !== null && !item.inert && item.pendingStatus === null;
+}
+
 /** I tell whether a status is one an item is switched to and from. */
 export function isToggleStatus(status: PlanItemStatus): status is ToggleStatus {
   return status === PlanItemStatus.NEEDED || status === PlanItemStatus.ACQUIRED;
