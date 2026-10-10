@@ -11,6 +11,7 @@ import {
   ToggleStatus,
   useItemStatus,
 } from "@/features/plan-status";
+import { ItemRow } from "@/lib/dnd/item-row";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Fragment, ReactNode } from "react";
@@ -49,6 +50,7 @@ const ACQUIRED_CLASS_NAME = TOGGLE_LOOKS[PlanItemStatus.ACQUIRED].className;
  * I show a plan item first, then, beneath it, where it sits: its ancestors,
  * nearest first, and its plan when there are plans to tell apart. Its
  * status takes the color of the one it counts as, as do acquired ancestors.
+ * My line leaves a handle's room.
  */
 export function PlanItemRow({
   item,
@@ -79,7 +81,7 @@ export function PlanItemRow({
     </Fragment>
   ));
   return (
-    <div className="flex items-center gap-xs">
+    <ItemRow handle="placeholder">
       <StatusButton
         itemId={data.id}
         planId={plan.id}
@@ -110,7 +112,7 @@ export function PlanItemRow({
           <ItemText item={item} />
         </span>
       </RowName>
-    </div>
+    </ItemRow>
   );
 }
 

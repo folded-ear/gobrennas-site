@@ -18,16 +18,12 @@ type ShoppingItemRowProps = {
   readonly rows?: ShoppingRows;
   /** Where a dragged ingredient can land on my line. */
   readonly zones?: readonly ZoneSpec[];
-  /** Whether my plan items leave a handle's room, lining up with me. */
-  readonly handleSpace?: boolean;
 };
 
 type ShoppingRowLineProps = {
   readonly row: ShoppingRow;
   /** The list I'm shown in. */
   readonly group: string;
-  /** Whether I leave a handle's room, lining up with shopping items. */
-  readonly handleSpace?: boolean;
   readonly className?: string;
 };
 
@@ -35,39 +31,31 @@ export function rowKey(row: ShoppingRow): string {
   return row.kind === "item" ? row.source.item.id : row.draft.draftId;
 }
 
-/** I am one line of a list: a plan item, or a new one being made. */
+/**
+ * I am one line of a list: a plan item, or a new one being made. Either
+ * leaves a handle's room, so its status lines up with shopping items'.
+ */
 export function ShoppingRowLine({
   row,
   group,
-  handleSpace = false,
   className,
 }: ShoppingRowLineProps) {
-  const line =
-    row.kind === "draft" ? (
-      // spaced as a status is, so names line up
-      <div className="flex items-center gap-xs">
-        <span className="item-button" />
-        <DraftRow draft={row.draft} />
-      </div>
-    ) : (
-      <PlanItemRow
-        item={row.source.item}
-        ancestors={row.source.ancestors}
-        plan={row.source.plan}
-        countsAs={row.source.countsAs}
-        group={group}
-      />
-    );
   return (
     <li className={className}>
-      {handleSpace ? (
-        // spaced as a handle is, so statuses line up
-        <div className="flex items-center gap-xxs">
+      {row.kind === "draft" ? (
+        <ItemRow handle="placeholder">
+          {/* spaced as a status is, so names line up */}
           <span className="item-button" />
-          <div className="min-w-0 flex-1">{line}</div>
-        </div>
+          <DraftRow draft={row.draft} />
+        </ItemRow>
       ) : (
-        line
+        <PlanItemRow
+          item={row.source.item}
+          ancestors={row.source.ancestors}
+          plan={row.source.plan}
+          countsAs={row.source.countsAs}
+          group={group}
+        />
       )}
     </li>
   );
@@ -84,7 +72,6 @@ export function ShoppingItemRow({
   item,
   rows,
   zones = [],
-  handleSpace = false,
 }: ShoppingItemRowProps) {
   const showsPlans = useShowsPlanIndicators();
   const amounts = item.implicit
@@ -106,32 +93,30 @@ export function ShoppingItemRow({
         zones={zones}
         className="py-xs"
       >
-        <div className="flex min-w-0 flex-1 items-center gap-xs">
-          <BulkStatusButton
-            items={item.sources.map((it) => ({
-              id: it.item.id,
-              planId: it.plan.id,
-            }))}
-            status={item.countsAs}
-            name={item.ingredient.name}
-            canChange={item.sources.every((it) => it.plan.changeable)}
-          />
-          <Disclosure.Trigger className="flex min-w-0 flex-1 items-center gap-sm text-left">
-            <span>{item.ingredient.name}</span>
-            {amounts ? <span className="text-muted">({amounts})</span> : null}
-            {showsPlans ? <PlanDotStack plans={item.plans} /> : null}
-            {item.ingredient.storeOrder === UNPLACED ? (
-              <span
-                role="img"
-                aria-label={NO_STORE_ORDER_LABEL}
-                className="inline-flex h-[1lh] shrink-0 items-center text-muted"
-              >
-                <NoStoreOrderIcon aria-hidden />
-              </span>
-            ) : null}
-            <Disclosure.Indicator className="ms-auto" />
-          </Disclosure.Trigger>
-        </div>
+        <BulkStatusButton
+          items={item.sources.map((it) => ({
+            id: it.item.id,
+            planId: it.plan.id,
+          }))}
+          status={item.countsAs}
+          name={item.ingredient.name}
+          canChange={item.sources.every((it) => it.plan.changeable)}
+        />
+        <Disclosure.Trigger className="flex min-w-0 flex-1 items-center gap-sm text-left">
+          <span>{item.ingredient.name}</span>
+          {amounts ? <span className="text-muted">({amounts})</span> : null}
+          {showsPlans ? <PlanDotStack plans={item.plans} /> : null}
+          {item.ingredient.storeOrder === UNPLACED ? (
+            <span
+              role="img"
+              aria-label={NO_STORE_ORDER_LABEL}
+              className="inline-flex h-[1lh] shrink-0 items-center text-muted"
+            >
+              <NoStoreOrderIcon aria-hidden />
+            </span>
+          ) : null}
+          <Disclosure.Indicator className="ms-auto" />
+        </Disclosure.Trigger>
       </ItemRow>
       <Disclosure.Content>
         {/* Padded as a disclosure body is, but for the side statuses line up on. */}
@@ -147,7 +132,6 @@ export function ShoppingItemRow({
               key={rowKey(row)}
               row={row}
               group={groupOf(item)}
-              handleSpace={handleSpace}
             />
           ))}
         </ul>

@@ -27,7 +27,7 @@ import {
   ShoppingPlan,
 } from "./model";
 import { BASIL, plan, seedItem, SUGAR, TBSP, TSP } from "./test/fixtures";
-import { useStoreMoves } from "./use-store-moves";
+import { StoreMoves, useStoreMoves } from "./use-store-moves";
 
 const WEEKNIGHTS = {
   id: "7",
@@ -35,6 +35,9 @@ const WEEKNIGHTS = {
   color: "#F57F17",
   changeable: true,
 };
+
+/** Store moves for tests that make none. */
+const NO_STORE_MOVES: StoreMoves = { move: () => {} };
 
 function renderList(
   list: ShoppingList,
@@ -49,7 +52,11 @@ function renderList(
         planOfBucket: new Map(),
       }}
     >
-      <ShoppingRegions list={list} onAcquiredToggle={onAcquiredToggle} />
+      <ShoppingRegions
+        list={list}
+        onAcquiredToggle={onAcquiredToggle}
+        storeMoves={NO_STORE_MOVES}
+      />
     </PlanDirectoryProvider>,
     { cache },
   );
@@ -437,7 +444,7 @@ describe("ShoppingRegions, editing", () => {
           planOfBucket: new Map(),
         }}
       >
-        <ShoppingRegions list={list} tree={TREE} />
+        <ShoppingRegions list={list} tree={TREE} storeMoves={NO_STORE_MOVES} />
       </PlanDirectoryProvider>
     );
     const { rerender } = render(wrap(weeknights(cache)), { client });
