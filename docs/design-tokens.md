@@ -118,6 +118,9 @@ Use it for whatever sits beside buttons on a line and has to match them: a
 raw `<button>`, a link, a read-only icon, or an empty spacer holding a
 button's room. Real buttons get all of this from HeroUI and don't need it.
 
+`.item-icon` gives an icon that sits beside buttons, outside any box, the
+size their icons have.
+
 ## Border radius
 
 `--radius` (0.5rem) is the base HeroUI uses to derive `--radius-xs` through

@@ -112,7 +112,7 @@ export function ShoppingItemRow({
               aria-label={NO_STORE_ORDER_LABEL}
               className="inline-flex h-[1lh] shrink-0 items-center text-muted"
             >
-              <NoStoreOrderIcon aria-hidden />
+              <NoStoreOrderIcon className="item-icon" aria-hidden />
             </span>
           ) : null}
           <Disclosure.Indicator className="ms-auto" />
