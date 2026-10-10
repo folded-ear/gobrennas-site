@@ -1,7 +1,6 @@
 "use client";
 
 import PlanAvatar from "@/components/plan-avatar";
-import { PlanDot } from "@/components/plan-dot";
 import { orderPlans } from "@/lib/plans";
 import { Header, Key, Label, ListBox, Select, Separator } from "@heroui/react";
 import clsx from "clsx";
@@ -92,8 +91,9 @@ export function PlanPicker({
   selectionMode,
   selectedIds,
   onChange,
-  hideSingleName,
   compact = false,
+  // if not specified, default to compact
+  hideSingleName = compact,
 }: PlanPickerProps) {
   if (plans.length < 2) return null;
 
@@ -122,12 +122,12 @@ export function PlanPicker({
         if (keys.length > 0) onChange(keys.map(String));
       }}
     >
-      <Select.Trigger className={compact ? "min-h-10 gap-sm px-sm" : undefined}>
+      <Select.Trigger className={compact ? "gap-sm" : undefined}>
         <Select.Value>
           <span className="flex min-w-0 items-center gap-xs">
             {compact && selected.length === 1 ? (
               <span aria-hidden className="inline-flex">
-                <PlanDot plan={selected[0]} />
+                <AvatarGroup label="My Plans" plans={selected} />
               </span>
             ) : (
               <>
