@@ -10,6 +10,7 @@ import {
   useDrag,
   usePress,
 } from "react-aria";
+import { useDragScroll } from "./drag-scroll";
 import { useDragSession } from "./drag-session";
 
 type DragHandleProps = {
@@ -26,8 +27,10 @@ const MOVE_ONLY = ["move" as const];
  * keyboard.
  */
 export function DragHandle({ itemId, name, isFixed = false }: DragHandleProps) {
-  const { dragType, setDragged } = useDragSession();
+  const { dragType, dragged, setDragged } = useDragSession();
+  const handle = useRef<HTMLButtonElement>(null);
   const preview = useRef<DragPreviewRenderer>(null);
+  useDragScroll(handle, dragged?.id === itemId);
   // With its own drag button, useDrag leaves pointer presses alone; left to
   // guess, it takes a press dead centre for a screen reader's.
   const { dragProps, dragButtonProps } = useDrag({
@@ -45,6 +48,7 @@ export function DragHandle({ itemId, name, isFixed = false }: DragHandleProps) {
   return (
     <>
       <button
+        ref={handle}
         type="button"
         aria-label={`Move ${displayName(name)}`}
         aria-disabled={isFixed || undefined}
