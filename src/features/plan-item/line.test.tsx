@@ -1,4 +1,3 @@
-import { PlanItemStatus } from "@/__generated__/graphql";
 import {
   buildPlanDirectory,
   PlanDirectoryProvider,
@@ -7,31 +6,12 @@ import { PlanItemNode } from "@/features/plan-timeline/model";
 import { buildInMemoryCache, render, screen, seedFragment } from "@/test";
 import { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
-import {
-  PlanItemFragment,
-  PlanItemFragmentDoc,
-} from "./__generated__/planItem.generated";
+import { PlanItemFragmentDoc } from "./__generated__/planItem.generated";
 import { PlanItemLine } from "./line";
+import { planItemFragment } from "./test/fixtures";
 
 const PIE = { id: "42", name: "Pumpkin pie" };
 const CRUST = { id: "43", name: "Pie crust" };
-
-function fragment({ id, name }: typeof PIE): PlanItemFragment {
-  return {
-    __typename: "PlanItem",
-    id,
-    name,
-    status: PlanItemStatus.NEEDED,
-    notes: null,
-    preparation: null,
-    parent: { __typename: "Plan", id: "7" },
-    aggregate: null,
-    ingredient: null,
-    quantity: null,
-    components: [],
-    bucket: null,
-  };
-}
 
 function pieNode(childIds: readonly string[]): PlanItemNode {
   return {
@@ -61,7 +41,7 @@ function renderLine({
   chips,
 }: LineOptions = {}) {
   const cache = buildInMemoryCache();
-  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(PIE));
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", planItemFragment(PIE));
   const directory = buildPlanDirectory([
     {
       id: "7",

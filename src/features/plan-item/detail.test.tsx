@@ -44,29 +44,13 @@ import {
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
 import { PlanItemDetail, PlanItemHeader } from "./detail";
+import { planItemFragment } from "./test/fixtures";
 
 const PIE = { id: "42", name: "Pumpkin pie" };
 const CRUST = { id: "43", name: "Pie crust" };
 const FILLING = { id: "44", name: "Pie filling" };
 
 type Spec = { readonly id: string; readonly name: string };
-
-function fragment({ id, name }: Spec, notes: string | null): PlanItemFragment {
-  return {
-    __typename: "PlanItem",
-    id,
-    name,
-    status: PlanItemStatus.NEEDED,
-    notes,
-    preparation: null,
-    parent: { __typename: "Plan", id: "7" },
-    aggregate: null,
-    ingredient: null,
-    quantity: null,
-    components: [],
-    bucket: null,
-  };
-}
 
 function timelineItem(
   { id, name }: Spec,
@@ -159,9 +143,9 @@ function renderDetail(
     cache,
     PlanItemFragmentDoc,
     "planItem",
-    fragment(PIE, notes),
+    planItemFragment(PIE, notes),
   );
-  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", planItemFragment(CRUST));
   return render(
     <Detail
       item={pie}
@@ -180,7 +164,7 @@ function renderCrustOpen(onSelect?: (id: string) => void) {
     cache,
     PlanItemFragmentDoc,
     "planItem",
-    fragment(CRUST, null),
+    planItemFragment(CRUST),
   );
   return render(
     <Detail
@@ -199,10 +183,15 @@ function renderPieInDirectory(cookedIds: readonly string[] = []) {
     cache,
     PlanItemFragmentDoc,
     "planItem",
-    fragment(PIE, null),
+    planItemFragment(PIE),
   );
-  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
-  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(FILLING, null));
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", planItemFragment(CRUST));
+  seedFragment(
+    cache,
+    PlanItemFragmentDoc,
+    "planItem",
+    planItemFragment(FILLING),
+  );
   for (const id of cookedIds) {
     markPending(cache, id, PlanItemStatus.COMPLETED);
   }
@@ -331,9 +320,14 @@ describe("PlanItemDetail", () => {
       cache,
       PlanItemFragmentDoc,
       "planItem",
-      fragment(PIE, null),
+      planItemFragment(PIE),
     );
-    seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
+    seedFragment(
+      cache,
+      PlanItemFragmentDoc,
+      "planItem",
+      planItemFragment(CRUST),
+    );
     render(
       <Detail
         item={pie}
@@ -387,10 +381,15 @@ function renderMovable(dnd: Partial<PlanDnd> = {}) {
     cache,
     PlanItemFragmentDoc,
     "planItem",
-    fragment(PIE, null),
+    planItemFragment(PIE),
   );
-  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(CRUST, null));
-  seedFragment(cache, PlanItemFragmentDoc, "planItem", fragment(FILLING, null));
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", planItemFragment(CRUST));
+  seedFragment(
+    cache,
+    PlanItemFragmentDoc,
+    "planItem",
+    planItemFragment(FILLING),
+  );
   return render(
     <Detail
       item={pie}
@@ -510,7 +509,7 @@ describe("PlanItemDetail, a section's items", () => {
         cache,
         PlanItemFragmentDoc,
         "planItem",
-        fragment(spec, null),
+        planItemFragment(spec),
       );
     }
     const tree = buildPlanTree([
@@ -687,7 +686,7 @@ describe("PlanItemDetail, editing", () => {
         cache,
         PlanItemFragmentDoc,
         "planItem",
-        fragment(spec, null),
+        planItemFragment(spec),
       );
     }
     for (const id of pendingIds) {
