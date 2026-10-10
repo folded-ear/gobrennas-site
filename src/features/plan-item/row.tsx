@@ -9,8 +9,9 @@ import {
   StatusButton,
   TOGGLE_LOOKS,
   ToggleStatus,
-  useItemStatus,
+  useItemSettled,
 } from "@/features/plan-status";
+import { ItemRow } from "@/lib/dnd/item-row";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Fragment, ReactNode } from "react";
@@ -49,6 +50,7 @@ const ACQUIRED_CLASS_NAME = TOGGLE_LOOKS[PlanItemStatus.ACQUIRED].className;
  * I show a plan item first, then, beneath it, where it sits: its ancestors,
  * nearest first, and its plan when there are plans to tell apart. Its
  * status takes the color of the one it counts as, as do acquired ancestors.
+ * My line leaves a handle's room.
  */
 export function PlanItemRow({
   item,
@@ -79,7 +81,7 @@ export function PlanItemRow({
     </Fragment>
   ));
   return (
-    <div className="flex items-center gap-xs">
+    <ItemRow handle="placeholder">
       <StatusButton
         itemId={data.id}
         planId={plan.id}
@@ -110,7 +112,7 @@ export function PlanItemRow({
           <ItemText item={item} />
         </span>
       </RowName>
-    </div>
+    </ItemRow>
   );
 }
 
@@ -125,7 +127,7 @@ type RowNameProps = {
 
 /** I am a row's name and where it sits, edited in place when it can be. */
 function RowName({ itemId, name, plan, group, below, children }: RowNameProps) {
-  const status = useItemStatus(itemId);
+  const settled = useItemSettled(itemId);
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       <EditableName
@@ -134,12 +136,7 @@ function RowName({ itemId, name, plan, group, below, children }: RowNameProps) {
         name={name}
         // The shopping list is made of leaves.
         hasChildren={false}
-        canEdit={
-          plan.changeable &&
-          status !== null &&
-          !status.inert &&
-          status.pendingStatus === null
-        }
+        canEdit={plan.changeable && settled}
         group={group}
       >
         {children}

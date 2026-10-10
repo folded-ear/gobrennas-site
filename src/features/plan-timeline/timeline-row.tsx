@@ -1,19 +1,13 @@
 "use client";
 
-import { PlanDot } from "@/components/plan-dot";
-import { useItemPlan, useShowsPlanIndicators } from "@/features/plan-directory";
+import { useShowsPlanIndicators } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { treeZones } from "@/features/plan-dnd/tree-zones";
 import { PlanItem } from "@/features/plan-item";
 import { DateChip, ParentChip } from "@/features/plan-item/chips";
-import { CookLink } from "@/features/plan-item/cook-link";
-import {
-  DeleteButton,
-  StatusButton,
-  useItemStatusClassName,
-} from "@/features/plan-status";
+import { PlanItemLine } from "@/features/plan-item/line";
+import { useItemStatusClassName } from "@/features/plan-status";
 import { useDragSession } from "@/lib/dnd/drag-session";
-import { ItemRow } from "@/lib/dnd/item-row";
 import { REORDER_ZONES } from "@/lib/dnd/zones";
 import clsx from "clsx";
 import { PlanContext } from "./context";
@@ -75,7 +69,6 @@ export function TimelineRow({
         })
       : [];
 
-  const plan = useItemPlan(id);
   const showsPlan = useShowsPlanIndicators();
   const statusClassName = useItemStatusClassName(id);
 
@@ -90,30 +83,12 @@ export function TimelineRow({
         openId === id && "-mx-0.5 border-x-2 border-accent",
       )}
     >
-      <ItemRow itemId={id} name={name} zones={zones} className="py-px">
-        {plan !== undefined ? (
-          <StatusButton
-            itemId={id}
-            planId={plan.id}
-            canChange={plan.changeable}
-          />
-        ) : null}
-        {/* Names and chips give way before a row runs off its edge. */}
-        <span className={clsx("min-w-0", statusClassName)}>
-          <PlanItem item={node.item} onSelect={onSelect} />
-        </span>
-        {openId === id ? (
-          // The bars say this to everyone who can see them.
-          <span className="sr-only">, open in its screen</span>
-        ) : null}
-        {sectionRoot && showsPlan && plan ? (
-          <PlanDot plan={plan} className="ms-xxs" />
-        ) : null}
-        {plan !== undefined && node.item.children.length > 0 ? (
-          <CookLink planId={plan.id} itemId={id} name={name} />
-        ) : null}
-        <span className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-xs">
-          {apart?.parent ? (
+      <PlanItemLine
+        node={node}
+        zones={zones}
+        showsPlan={sectionRoot && showsPlan}
+        chips={
+          apart?.parent ? (
             <>
               <ParentChip name={apart.parent.name} />
               {apart.parent.date !== null && apart.separation !== null ? (
@@ -123,12 +98,17 @@ export function TimelineRow({
                 />
               ) : null}
             </>
-          ) : null}
+          ) : null
+        }
+      >
+        <span className={clsx("min-w-0", statusClassName)}>
+          <PlanItem item={node.item} onSelect={onSelect} />
         </span>
-        {plan?.changeable ? (
-          <DeleteButton itemId={id} planId={plan.id} />
+        {openId === id ? (
+          // The bars say this to everyone who can see them.
+          <span className="sr-only">, open in its screen</span>
         ) : null}
-      </ItemRow>
+      </PlanItemLine>
     </div>
   );
 }

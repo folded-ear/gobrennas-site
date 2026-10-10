@@ -1,3 +1,4 @@
+import { buildEntries } from "@/features/plan-edit";
 import { PlanItemTree } from "@/features/plan-item/tree";
 import { ZoneLayer, ZoneSpec } from "@/lib/dnd/zone-layer";
 import clsx from "clsx";
@@ -89,7 +90,7 @@ export function SectionShell({
       ) : (
         <div className="py-xs">
           <PlanItemTree
-            nodes={roots}
+            entries={buildEntries(roots, [], null)}
             renderItem={(node) => (
               <TimelineRow
                 node={node}

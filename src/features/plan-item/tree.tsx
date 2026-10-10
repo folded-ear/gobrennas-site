@@ -3,47 +3,19 @@ import { PlanItemNode } from "@/features/plan-timeline/model";
 import { ReactNode } from "react";
 
 type PlanItemTreeProps = {
-  nodes: readonly PlanItemNode[];
-  /** Draws one item's own line. */
-  renderItem: (node: PlanItemNode) => ReactNode;
-};
-
-/** I show a list of plan items, each above its own descendants. */
-export function PlanItemTree({ nodes, renderItem }: PlanItemTreeProps) {
-  if (nodes.length === 0) return null;
-
-  return (
-    // Rows pad themselves rather than the list gapping them, so their drop
-    // zones meet.
-    <ul className="flex flex-col">
-      {nodes.map((node) => (
-        <li key={node.item.id}>
-          {renderItem(node)}
-          {node.children.length > 0 ? (
-            <div className="ps-md">
-              <PlanItemTree nodes={node.children} renderItem={renderItem} />
-            </div>
-          ) : null}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-type PlanItemEntryTreeProps = {
   entries: readonly TreeEntry[];
   /** Draws one item's own line. */
   renderItem: (node: PlanItemNode) => ReactNode;
-  /** Draws a new item's line. */
-  renderDraft: (draft: Draft) => ReactNode;
+  /** Draws a new item's line. Left out, new items don't show. */
+  renderDraft?: (draft: Draft) => ReactNode;
 };
 
 /** I show a list of plan items and new ones, each above its own rows. */
-export function PlanItemEntryTree({
+export function PlanItemTree({
   entries,
   renderItem,
   renderDraft,
-}: PlanItemEntryTreeProps) {
+}: PlanItemTreeProps) {
   if (entries.length === 0) return null;
 
   return (
@@ -51,16 +23,12 @@ export function PlanItemEntryTree({
     // zones meet.
     <ul className="flex flex-col">
       {entries.map((entry) =>
-        entry.kind === "draft" ? (
-          <li key={entry.draft.draftId} className="py-px">
-            {renderDraft(entry.draft)}
-          </li>
-        ) : (
+        entry.kind === "item" ? (
           <li key={entry.node.item.id}>
             {renderItem(entry.node)}
             {entry.children.length > 0 ? (
               <div className="ps-md">
-                <PlanItemEntryTree
+                <PlanItemTree
                   entries={entry.children}
                   renderItem={renderItem}
                   renderDraft={renderDraft}
@@ -68,7 +36,11 @@ export function PlanItemEntryTree({
               </div>
             ) : null}
           </li>
-        ),
+        ) : renderDraft ? (
+          <li key={entry.draft.draftId} className="py-px">
+            {renderDraft(entry.draft)}
+          </li>
+        ) : null,
       )}
     </ul>
   );

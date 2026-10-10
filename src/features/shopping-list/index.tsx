@@ -21,8 +21,7 @@ type ShoppingRegionsProps = {
   readonly tree?: PlanTree;
   /** Called as Acquired opens or closes. */
   readonly onAcquiredToggle?: () => void;
-  /** Left out, nothing can be put in store order. */
-  readonly storeMoves?: StoreMoves;
+  readonly storeMoves: StoreMoves;
 };
 
 type RegionSectionProps = {
@@ -41,8 +40,7 @@ type RegionSectionProps = {
   /** The one shopping item expanded, whichever region it's in. */
   readonly expandedId: string | null;
   readonly onExpandedChange: (id: string | null) => void;
-  /** Left out, nothing can be put in store order. */
-  readonly storeMoves?: StoreMoves;
+  readonly storeMoves: StoreMoves;
 };
 
 const STORE_ITEM_DRAG_TYPE = "application/x.gobrennas.store-item";
@@ -75,25 +73,18 @@ function RegionSection({
   const ingredients = region.items.map((it) => it.ingredient);
   // Only an ingredient shown here can be put among the ones shown here.
   const moving =
-    storeMoves !== undefined &&
-    dragged !== null &&
-    ingredients.some((it) => it.id === dragged.id)
-      ? { storeMoves, dragged }
+    dragged !== null && ingredients.some((it) => it.id === dragged.id)
+      ? dragged
       : null;
   const zonesOn = (target: ShoppingIngredient) =>
     moving === null
       ? []
       : storeZones({
           ingredients,
-          dragged: moving.dragged,
+          dragged: moving,
           target,
           onMove: (after) =>
-            moving.storeMoves.move(
-              moving.dragged.id,
-              target.id,
-              after,
-              moving.dragged.name,
-            ),
+            storeMoves.move(moving.id, target.id, after, moving.name),
         });
 
   const list = (
@@ -114,7 +105,6 @@ function RegionSection({
               item={item}
               rows={rows}
               zones={zonesOn(item.ingredient)}
-              handleSpace={storeMoves !== undefined}
             />
           </li>
         ))}
@@ -123,7 +113,6 @@ function RegionSection({
             key={rowKey(row)}
             row={row}
             group={looseGroup}
-            handleSpace={storeMoves !== undefined}
             className="py-xs"
           />
         ))}
@@ -213,14 +202,11 @@ export function ShoppingRegions({
       />
     </div>
   );
-  const movable =
-    storeMoves === undefined ? (
-      regions
-    ) : (
-      <DragSession dragType={STORE_ITEM_DRAG_TYPE} canMove={anyIngredient}>
-        {regions}
-      </DragSession>
-    );
+  const movable = (
+    <DragSession dragType={STORE_ITEM_DRAG_TYPE} canMove={anyIngredient}>
+      {regions}
+    </DragSession>
+  );
 
   if (tree === undefined) return movable;
   return (

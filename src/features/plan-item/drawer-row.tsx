@@ -1,25 +1,18 @@
 "use client";
 
-import { PlanDot } from "@/components/plan-dot";
 import { useItemPlanLookup } from "@/features/plan-directory";
 import { PlanTree, TreeMove } from "@/features/plan-dnd/moves";
 import { treeZones } from "@/features/plan-dnd/tree-zones";
 import { TREE_ZONES } from "@/features/plan-dnd/zones";
 import { EditableName } from "@/features/plan-edit";
 import { PlanItem } from "@/features/plan-item";
-import {
-  DeleteButton,
-  StatusButton,
-  useItemStatus,
-  useItemStatusClassName,
-} from "@/features/plan-status";
+import { useItemSettled, useItemStatusClassName } from "@/features/plan-status";
 import { PlanContext } from "@/features/plan-timeline/context";
 import { PlanItemNode } from "@/features/plan-timeline/model";
 import { useDragSession } from "@/lib/dnd/drag-session";
-import { ItemRow } from "@/lib/dnd/item-row";
 import clsx from "clsx";
 import { DateChip } from "./chips";
-import { CookLink } from "./cook-link";
+import { PlanItemLine } from "./line";
 
 type DrawerRowProps = {
   node: PlanItemNode;
@@ -71,18 +64,9 @@ export function DrawerRow({
       : "disabled";
 
   const statusClassName = useItemStatusClassName(id);
-  const status = useItemStatus(id);
+  const settled = useItemSettled(id);
   const isIngredient = recognizeIngredients && node.item.children.length === 0;
-  const highlightIngredient =
-    isIngredient &&
-    status !== null &&
-    !status.inert &&
-    status.pendingStatus === null;
-  const canEdit =
-    plan?.changeable === true &&
-    status !== null &&
-    !status.inert &&
-    status.pendingStatus === null;
+  const highlightIngredient = isIngredient && settled;
   // A section's own item is there by its own bucket, so a new item beside
   // it takes that bucket to stay in the section.
   const bucketId =
@@ -94,28 +78,24 @@ export function DrawerRow({
     own && own.separation !== null && own.date !== null ? own.date : null;
 
   return (
-    <ItemRow
-      itemId={id}
-      name={name}
+    <PlanItemLine
+      node={node}
       zones={zones}
       handle={handle}
-      className="py-px"
+      showsPlan={showsPlan}
+      chips={
+        apartOn !== null ? (
+          <DateChip date={apartOn} separation={own?.separation} />
+        ) : null
+      }
     >
-      {plan !== undefined ? (
-        <StatusButton
-          itemId={id}
-          planId={plan.id}
-          canChange={plan.changeable}
-        />
-      ) : null}
-      {/* Names and chips give way before a row runs off its edge. */}
       {plan !== undefined ? (
         <EditableName
           itemId={id}
           planId={plan.id}
           name={name}
           hasChildren={node.item.children.length > 0}
-          canEdit={canEdit}
+          canEdit={plan.changeable && settled}
           recognizeIngredient={isIngredient}
           bucketId={bucketId}
           className={statusClassName}
@@ -133,16 +113,6 @@ export function DrawerRow({
           />
         </span>
       )}
-      {showsPlan ? <PlanDot plan={plan} className="ms-xxs" /> : null}
-      {plan !== undefined && node.item.children.length > 0 ? (
-        <CookLink planId={plan.id} itemId={id} name={name} />
-      ) : null}
-      <span className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-xs">
-        {apartOn !== null ? (
-          <DateChip date={apartOn} separation={own?.separation} />
-        ) : null}
-      </span>
-      {plan?.changeable ? <DeleteButton itemId={id} planId={plan.id} /> : null}
-    </ItemRow>
+    </PlanItemLine>
   );
 }

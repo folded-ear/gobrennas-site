@@ -5,13 +5,13 @@ import {
   useShowsPlanIndicators,
 } from "@/features/plan-directory";
 import { EditableName } from "@/features/plan-edit";
-import { StatusButton, useItemStatus } from "@/features/plan-status";
+import { StatusButton, useItemSettled } from "@/features/plan-status";
 import {
   ancestorsOf,
   PlanContext,
   Separation,
 } from "@/features/plan-timeline/context";
-import clsx from "clsx";
+import { ItemRow } from "@/lib/dnd/item-row";
 import { DateChip } from "./chips";
 import { CookLink } from "./cook-link";
 import { NameText } from "./item-name";
@@ -86,7 +86,7 @@ export function ladderLines(
 
 /** I head the item screen with the open item, its name edited in place. */
 function OpenName({ line, plan, hasChildren, onRemoved }: OpenNameProps) {
-  const status = useItemStatus(line.id);
+  const settled = useItemSettled(line.id);
   return (
     <h2 className="flex min-w-0 text-xl font-semibold text-foreground">
       {plan !== undefined ? (
@@ -95,12 +95,7 @@ function OpenName({ line, plan, hasChildren, onRemoved }: OpenNameProps) {
           planId={plan.id}
           name={line.name}
           hasChildren={hasChildren}
-          canEdit={
-            plan.changeable &&
-            status !== null &&
-            !status.inert &&
-            status.pendingStatus === null
-          }
+          canEdit={plan.changeable && settled}
           keys="heading"
           onRemoved={onRemoved}
         >
@@ -155,43 +150,42 @@ export function Ladder({
       {lines.map((line, index) => (
         <li
           key={line.id}
-          className={clsx(
-            "flex items-center gap-sm",
-            index === lastIndex ? "text-xl" : "text-sm",
-          )}
+          className={index === lastIndex ? "text-xl" : "text-sm"}
           style={{ paddingInlineStart: `calc(${STEP_INDENT} * ${line.depth})` }}
         >
-          {index === lastIndex ? (
-            <span className="flex min-w-0 items-center gap-xxs">
-              {plan !== undefined ? (
-                <StatusButton
-                  itemId={line.id}
-                  planId={plan.id}
-                  canChange={plan.changeable}
+          <ItemRow itemId={line.id} name={line.name}>
+            {index === lastIndex ? (
+              <>
+                {plan !== undefined ? (
+                  <StatusButton
+                    itemId={line.id}
+                    planId={plan.id}
+                    canChange={plan.changeable}
+                  />
+                ) : null}
+                <OpenName
+                  line={line}
+                  plan={plan}
+                  hasChildren={openHasChildren}
+                  onRemoved={onRemoved}
                 />
-              ) : null}
-              <OpenName
-                line={line}
-                plan={plan}
-                hasChildren={openHasChildren}
-                onRemoved={onRemoved}
-              />
-              {showsPlan && plan ? (
-                <PlanDot plan={plan} className="ms-xxs" />
-              ) : null}
-            </span>
-          ) : (
-            <LadderName line={line} onSelect={onSelect} />
-          )}
-          {/* every step above the open item holds the step below it */}
-          {plan !== undefined && (index < lastIndex || openHasChildren) ? (
-            <CookLink planId={plan.id} itemId={line.id} name={line.name} />
-          ) : null}
-          {line.chip && line.date !== null ? (
-            <span className="ms-auto flex shrink-0">
-              <DateChip date={line.date} separation={line.separation} />
-            </span>
-          ) : null}
+                {showsPlan && plan ? (
+                  <PlanDot plan={plan} className="ms-xxs" />
+                ) : null}
+              </>
+            ) : (
+              <LadderName line={line} onSelect={onSelect} />
+            )}
+            {/* every step above the open item holds the step below it */}
+            {plan !== undefined && (index < lastIndex || openHasChildren) ? (
+              <CookLink planId={plan.id} itemId={line.id} name={line.name} />
+            ) : null}
+            {line.chip && line.date !== null ? (
+              <span className="ms-auto flex shrink-0">
+                <DateChip date={line.date} separation={line.separation} />
+              </span>
+            ) : null}
+          </ItemRow>
         </li>
       ))}
     </ol>

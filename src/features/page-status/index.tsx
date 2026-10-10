@@ -23,22 +23,21 @@ export function PageStatus() {
       {/* Always present, so assistive tech hears the text arrive. */}
       <span role="status" className="flex shrink-0 items-center text-muted">
         {online ? null : (
-          <>
-            <OfflineIcon size="small" aria-hidden />
+          <span className="mx-xs text-danger">
+            <OfflineIcon aria-hidden />
             <span className="sr-only">Offline</span>
-          </>
+          </span>
         )}
       </span>
       {authorized ? null : (
         <ControlTooltip label={SIGN_IN_TIP} placement="right">
           <Button
             isIconOnly
-            size="sm"
-            variant="tertiary"
+            variant="danger"
             aria-label="Sign in again"
             onPress={() => void doLogin()}
           >
-            <SignedOutIcon size="small" aria-hidden />
+            <SignedOutIcon aria-hidden />
           </Button>
         </ControlTooltip>
       )}
@@ -46,12 +45,11 @@ export function PageStatus() {
         <ControlTooltip label={UPDATE_TIP} placement="right">
           <Button
             isIconOnly
-            size="sm"
             variant="tertiary"
             aria-label="Update available"
             onPress={engine.update}
           >
-            <UpdateIcon size="small" aria-hidden />
+            <UpdateIcon aria-hidden />
           </Button>
         </ControlTooltip>
       ) : null}

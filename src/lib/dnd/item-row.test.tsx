@@ -151,6 +151,19 @@ describe("ItemRow", () => {
     expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
   });
 
+  it("offers no handle on a line with no item, whatever can be moved", () => {
+    render(
+      <DragSession dragType={DRAG_TYPE} canMove={() => true}>
+        <ItemRow handle="placeholder">
+          <span>New item</span>
+        </ItemRow>
+      </DragSession>,
+    );
+
+    expect(screen.getByText("New item")).toBeVisible();
+    expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
+  });
+
   it("shows its item outside any drag session, offering no handle", () => {
     render(
       <ItemRow itemId="2" name="Pumpkin pie" zones={[]}>
