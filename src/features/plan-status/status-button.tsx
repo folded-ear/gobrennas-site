@@ -89,7 +89,7 @@ export function ToggleButton({
       <span
         role="img"
         aria-label={countedLabel(look.name, status, countsAs)}
-        className={clsx("flex items-center justify-center", color)}
+        className={clsx("item-button", color)}
       >
         <look.Icon aria-hidden="true" />
       </span>

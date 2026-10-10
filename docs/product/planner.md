@@ -263,8 +263,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   shows as text: below the open item or in a section screen, and the open
   item itself at the head of the item screen. Names on the timeline open
   the item instead.
-- Pressing anywhere in the space a name takes, or could take, starts
-  editing it. The name itself can be reached by keyboard.
+- Pressing a name starts editing it. The name itself can be reached by
+  keyboard.
 - One item is edited at a time. Leaving it, however that happens, saves
   its new name and shows it as usual again. Escape cancels, saving
   nothing, and leaves the screen open.

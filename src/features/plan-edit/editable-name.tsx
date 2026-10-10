@@ -33,9 +33,8 @@ type EditableNameProps = {
 };
 
 /**
- * I am the part of an item's row its name takes, or could: pressing
- * anywhere in it edits the name. The name itself is the button that does
- * so for assistive tech and keyboards.
+ * I am an item's name in its row: pressing it edits the name. The name
+ * itself is the button that does so for assistive tech and keyboards.
  * Outside an edit surface, or when the item can't be edited, I only show
  * the name.
  */

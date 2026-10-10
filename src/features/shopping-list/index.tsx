@@ -148,7 +148,7 @@ function RegionSection({
             </Disclosure.Trigger>
           </Disclosure.Heading>
           <Disclosure.Content>
-            <Disclosure.Body >{list}</Disclosure.Body>
+            <Disclosure.Body>{list}</Disclosure.Body>
           </Disclosure.Content>
         </Disclosure>
       ) : (
