@@ -65,7 +65,7 @@ export function Screen({
             // the body scrolls right to my edges.
             className="w-full max-w-none p-0 sm:max-w-[90vw]"
           >
-            <Drawer.Header className="gap-0 px-xl pt-xl text-base text-foreground">
+            <Drawer.Header className="gap-0 px-md pt-md text-base text-foreground">
               {showCloseButton ? (
                 <div className="flex justify-end">
                   <Drawer.CloseTrigger className="static" />
@@ -73,7 +73,7 @@ export function Screen({
               ) : null}
               {header}
             </Drawer.Header>
-            <Drawer.Body className="m-0 px-xl pb-xl text-base text-foreground">
+            <Drawer.Body className="m-0 px-md pb-md text-base text-foreground">
               {children}
             </Drawer.Body>
           </Drawer.Dialog>
