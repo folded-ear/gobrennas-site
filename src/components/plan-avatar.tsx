@@ -19,6 +19,11 @@ export default function PlanAvatar({
   className,
   ...rest
 }: PlanAvatarProps) {
+  const idx = plan.name.indexOf(" ");
+  const fallback =
+    idx < 1
+      ? plan.name.substring(0, 2)
+      : plan.name.charAt(0) + plan.name.charAt(idx + 1);
   return (
     <Avatar
       {...rest}
@@ -33,7 +38,7 @@ export default function PlanAvatar({
       )}
     >
       <Avatar.Fallback className="bg-transparent text-inherit">
-        {plan.name.substring(0, 2)}
+        {fallback}
       </Avatar.Fallback>
     </Avatar>
   );

@@ -29,17 +29,20 @@ const ITEMS = [
 ];
 
 type Offer = "before" | "after";
+type Handle = "disabled" | "placeholder";
 
 /** I offer every other row as somewhere to put the one being dragged. */
 function Row({
   id,
   name,
   offer,
+  handle,
   onDropped,
 }: {
   id: string;
   name: string;
   offer: Offer;
+  handle?: Handle;
   onDropped: (text: string) => void;
 }) {
   const { dragged } = useDragSession();
@@ -55,7 +58,7 @@ function Row({
         ]
       : [];
   return (
-    <ItemRow itemId={id} name={name} zones={zones}>
+    <ItemRow itemId={id} name={name} zones={zones} handle={handle}>
       <span>{name}</span>
     </ItemRow>
   );
@@ -64,15 +67,23 @@ function Row({
 function Harness({
   canMove = () => true,
   offer = "after",
+  handle,
 }: {
   canMove?: (itemId: string) => boolean;
   offer?: Offer;
+  handle?: Handle;
 }) {
   const [dropped, setDropped] = useState("nothing dropped");
   return (
     <DragSession dragType={DRAG_TYPE} canMove={canMove}>
       {ITEMS.map((it) => (
-        <Row key={it.id} {...it} offer={offer} onDropped={setDropped} />
+        <Row
+          key={it.id}
+          {...it}
+          offer={offer}
+          handle={handle}
+          onDropped={setDropped}
+        />
       ))}
       <p>{dropped}</p>
     </DragSession>
@@ -110,6 +121,34 @@ describe("ItemRow", () => {
     expect(
       screen.queryByRole("button", { name: "Move Pumpkin pie" }),
     ).toBeNull();
+  });
+
+  it("shows a disabled handle, which starts no drag", async () => {
+    render(<Harness handle="disabled" />);
+
+    const handle = screen.getByRole("button", { name: "Move Pumpkin pie" });
+    expect(handle).toHaveAttribute("aria-disabled", "true");
+    handle.focus();
+    await userEvent.keyboard("{Enter}");
+    // A drag takes focus to its first target a moment after it starts.
+    await new Promise(requestAnimationFrame);
+
+    expect(handle).toHaveFocus();
+    expect(screen.queryByRole("button", { name: /^Put / })).toBeNull();
+  });
+
+  it("offers no control as a placeholder for its handle", () => {
+    render(<Harness handle="placeholder" />);
+
+    expect(screen.getByText("Pumpkin pie")).toBeVisible();
+    expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
+  });
+
+  it("offers no handle of any sort when its item can't be moved", () => {
+    render(<Harness canMove={() => false} handle="disabled" />);
+
+    expect(screen.getByText("Pumpkin pie")).toBeVisible();
+    expect(screen.queryByRole("button", { name: /^Move / })).toBeNull();
   });
 
   it("shows its item outside any drag session, offering no handle", () => {

@@ -3,7 +3,6 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ControlTooltip } from "@/components/control-tooltip";
 import { CookedItIcon, DeleteIcon, MenuOpenIcon } from "@/components/icons";
-import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import { usePageEngine } from "@/features/page-engine";
 import { Button, Dropdown, Label } from "@heroui/react";
 import clsx from "clsx";
@@ -44,9 +43,8 @@ export function CancelPendingButton({
     <Button
       // What it says leads what it's called, so it can be asked for by sight.
       aria-label={`${CANCEL_TEXT} ${actionLabel(look.undo, item.name)}`}
-      className={clsx("h-xl shrink-0", look.pendingClassName)}
+      className={clsx("shrink-0", look.pendingClassName)}
       onPress={() => engine.cancel(itemId)}
-      size="sm"
     >
       {CANCEL_TEXT}
     </Button>
@@ -69,10 +67,7 @@ export function DeleteButton({ itemId, planId }: RemovalButtonProps) {
     <ControlTooltip label={look.action}>
       <Button
         aria-label={actionLabel(look.action, item.name)}
-        className={clsx(
-          LINE_CONTROL_CLASS_NAME,
-          "text-status-deleted hover:bg-status-deleted hover:text-status-deleted-foreground",
-        )}
+        className="text-status-deleted hover:bg-status-deleted hover:text-status-deleted-foreground"
         isDisabled={item.inert || item.pendingStatus !== null}
         isIconOnly
         onPress={() =>
@@ -84,10 +79,9 @@ export function DeleteButton({ itemId, planId }: RemovalButtonProps) {
             status: PlanItemStatus.DELETED,
           })
         }
-        size="sm"
         variant="ghost"
       >
-        <DeleteIcon size="small" aria-hidden="true" />
+        <DeleteIcon aria-hidden="true" />
       </Button>
     </ControlTooltip>
   );

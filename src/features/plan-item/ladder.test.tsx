@@ -316,6 +316,17 @@ describe("Ladder, plan indicators", () => {
     expect(screen.getAllByRole("img")).toHaveLength(1);
   });
 
+  it("sets the open item's plan after its name, outside its heading", () => {
+    renderWithPlans(2);
+
+    const heading = screen.getByRole("heading", { name: "Dressing" });
+    const dot = screen.getByRole("img", { name: "Holidays" });
+    expect(heading).not.toContainElement(dot);
+    expect(
+      heading.compareDocumentPosition(dot) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("marks nothing when only one plan is available", () => {
     renderWithPlans(1);
 

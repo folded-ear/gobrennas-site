@@ -110,6 +110,14 @@ text shadow for emphasis. The `.morsel-quantity`, `.morsel-unit`, and
 `.morsel-ingredient` classes apply this treatment to ordinary text spans;
 Morsel's editable text uses the same variables in CSS Custom Highlights.
 
+## Button-sized pieces
+
+`.item-button` gives anything that isn't a HeroUI `Button` an icon-only
+button's box: its size at each breakpoint, its corner, and its icon size.
+Use it for whatever sits beside buttons on a line and has to match them: a
+raw `<button>`, a link, a read-only icon, or an empty spacer holding a
+button's room. Real buttons get all of this from HeroUI and don't need it.
+
 ## Border radius
 
 `--radius` (0.5rem) is the base HeroUI uses to derive `--radius-xs` through

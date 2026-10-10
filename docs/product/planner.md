@@ -219,8 +219,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - In the section screen, the section's own items stay where the timeline
   put them: they can't be dragged, and an item dropped on one can only
   nest under it. A user who can change their plan sees a disabled handle
-  on them; where the section holds several plans' items, each shows its
-  plan's dot in the handle's place instead.
+  on them; where the section holds several plans' items, they show nothing
+  in the handle's place.
 - An item can't be dropped inside itself.
 - An item can't be dragged from the item screen to the timeline or back.
   Moving it in either one updates both.
@@ -263,8 +263,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   shows as text: below the open item or in a section screen, and the open
   item itself at the head of the item screen. Names on the timeline open
   the item instead.
-- Pressing anywhere in the space a name takes, or could take, starts
-  editing it. The name itself can be reached by keyboard.
+- Pressing a name starts editing it. The name itself can be reached by
+  keyboard.
 - One item is edited at a time. Leaving it, however that happens, saves
   its new name and shows it as usual again. Escape cancels, saving
   nothing, and leaves the screen open.

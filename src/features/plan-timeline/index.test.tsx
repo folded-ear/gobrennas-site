@@ -755,6 +755,21 @@ describe("PlanTimeline, plan indicators", () => {
     ).toHaveLength(1);
   });
 
+  it("sets a top-level item's plan after its name", () => {
+    const dayHeaded = renderApart(
+      SEP_11.id,
+      undefined,
+      buildPlanDirectory([THANKSGIVING_PLAN, WEEKNIGHTS_PLAN]),
+    );
+
+    const friday = within(dayHeaded("Fri, Sep 11"));
+    const name = friday.getByText("Dressing");
+    const dot = friday.getByRole("img", { name: "Thanksgiving" });
+    expect(
+      name.compareDocumentPosition(dot) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("marks a named bucket with its plan, but not a day or Unplanned", () => {
     const sectionHeaded = renderApart(
       PREP.id,

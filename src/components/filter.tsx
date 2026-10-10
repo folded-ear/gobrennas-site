@@ -1,7 +1,6 @@
 "use client";
 
-import { Input, Switch } from "@heroui/react";
-import { Search, X } from "lucide-react";
+import { SearchField, Switch } from "@heroui/react";
 
 interface RecipeFilterProps {
   query: string;
@@ -18,29 +17,18 @@ export function RecipeFilter({
 }: RecipeFilterProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <div className="relative flex-1">
-        <Search
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted"
-          aria-hidden
-        />
-        <Input
-          className="w-full pl-9 pr-9"
-          placeholder="Search recipes..."
+      <div className="flex-1">
+        <SearchField
           value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
+          onChange={onQueryChange}
           aria-label="Search recipes"
-          type="search"
-        />
-        {query && (
-          <button
-            type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
-            onClick={() => onQueryChange("")}
-            aria-label="Clear search"
-          >
-            <X className="size-4" aria-hidden />
-          </button>
-        )}
+        >
+          <SearchField.Group>
+            <SearchField.SearchIcon />
+            <SearchField.Input placeholder="Search recipes..." />
+            <SearchField.ClearButton aria-label="Clear search" />
+          </SearchField.Group>
+        </SearchField>
       </div>
       <Switch isSelected={includeOthers} onChange={onIncludeOthersChange}>
         <Switch.Content className="text-sm">

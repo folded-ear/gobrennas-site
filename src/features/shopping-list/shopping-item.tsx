@@ -1,5 +1,4 @@
 import { NoStoreOrderIcon } from "@/components/icons";
-import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import { PlanDotStack } from "@/components/plan-dot";
 import { useShowsPlanIndicators } from "@/features/plan-directory";
 import { DraftRow } from "@/features/plan-edit";
@@ -19,6 +18,8 @@ type ShoppingItemRowProps = {
   readonly rows?: ShoppingRows;
   /** Where a dragged ingredient can land on my line. */
   readonly zones?: readonly ZoneSpec[];
+  /** Whether my plan items leave a handle's room, lining up with me. */
+  readonly handleSpace?: boolean;
 };
 
 type ShoppingRowLineProps = {
@@ -44,8 +45,8 @@ export function ShoppingRowLine({
   const line =
     row.kind === "draft" ? (
       // spaced as a status is, so names line up
-      <div className="flex items-start gap-xs">
-        <span className={LINE_CONTROL_CLASS_NAME} />
+      <div className="flex items-center gap-xs">
+        <span className="item-button" />
         <DraftRow draft={row.draft} />
       </div>
     ) : (
@@ -61,8 +62,8 @@ export function ShoppingRowLine({
     <li className={className}>
       {handleSpace ? (
         // spaced as a handle is, so statuses line up
-        <div className="flex items-start gap-xxs">
-          <span className={LINE_CONTROL_CLASS_NAME} />
+        <div className="flex items-center gap-xxs">
+          <span className="item-button" />
           <div className="min-w-0 flex-1">{line}</div>
         </div>
       ) : (
@@ -83,6 +84,7 @@ export function ShoppingItemRow({
   item,
   rows,
   zones = [],
+  handleSpace = false,
 }: ShoppingItemRowProps) {
   const showsPlans = useShowsPlanIndicators();
   const amounts = item.implicit
@@ -104,7 +106,7 @@ export function ShoppingItemRow({
         zones={zones}
         className="py-xs"
       >
-        <div className="flex min-w-0 flex-1 items-start gap-xs">
+        <div className="flex min-w-0 flex-1 items-center gap-xs">
           <BulkStatusButton
             items={item.sources.map((it) => ({
               id: it.item.id,
@@ -114,7 +116,7 @@ export function ShoppingItemRow({
             name={item.ingredient.name}
             canChange={item.sources.every((it) => it.plan.changeable)}
           />
-          <Disclosure.Trigger className="flex min-w-0 flex-1 items-start gap-sm text-left">
+          <Disclosure.Trigger className="flex min-w-0 flex-1 items-center gap-sm text-left">
             <span>{item.ingredient.name}</span>
             {amounts ? <span className="text-muted">({amounts})</span> : null}
             {showsPlans ? <PlanDotStack plans={item.plans} /> : null}
@@ -124,7 +126,7 @@ export function ShoppingItemRow({
                 aria-label={NO_STORE_ORDER_LABEL}
                 className="inline-flex h-[1lh] shrink-0 items-center text-muted"
               >
-                <NoStoreOrderIcon size="small" aria-hidden />
+                <NoStoreOrderIcon aria-hidden />
               </span>
             ) : null}
             <Disclosure.Indicator className="ms-auto" />
@@ -132,23 +134,23 @@ export function ShoppingItemRow({
         </div>
       </ItemRow>
       <Disclosure.Content>
-        <Disclosure.Body>
-          <ul className="flex flex-col gap-xs ps-lg">
-            {(
-              rows?.groups.get(groupOf(item)) ??
-              item.sources.map((source): ShoppingRow => ({
-                kind: "item",
-                source,
-              }))
-            ).map((row) => (
-              <ShoppingRowLine
-                key={rowKey(row)}
-                row={row}
-                group={groupOf(item)}
-              />
-            ))}
-          </ul>
-        </Disclosure.Body>
+        {/* Padded as a disclosure body is, but for the side statuses line up on. */}
+        <ul className="flex flex-col gap-xs py-sm pe-sm">
+          {(
+            rows?.groups.get(groupOf(item)) ??
+            item.sources.map((source): ShoppingRow => ({
+              kind: "item",
+              source,
+            }))
+          ).map((row) => (
+            <ShoppingRowLine
+              key={rowKey(row)}
+              row={row}
+              group={groupOf(item)}
+              handleSpace={handleSpace}
+            />
+          ))}
+        </ul>
       </Disclosure.Content>
     </Disclosure>
   );

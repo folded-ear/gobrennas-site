@@ -14,12 +14,11 @@ export function SweepButton({ onSweep }: SweepButtonProps) {
     <ControlTooltip label={SWEEP_LABEL} placement="left">
       <Button
         isIconOnly
-        size="sm"
         variant="tertiary"
         aria-label={SWEEP_LABEL}
         onPress={onSweep}
       >
-        <SweepIcon size="small" aria-hidden />
+        <SweepIcon aria-hidden />
       </Button>
     </ControlTooltip>
   );

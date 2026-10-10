@@ -30,15 +30,11 @@ type EditableNameProps = {
   readonly className?: string;
   /** How the name shows out of edit mode. */
   readonly children: ReactNode;
-  /** Shown under the name, edited or not. */
-  readonly below?: ReactNode;
 };
 
 /**
- * I am the part of an item's row its name takes, or could: pressing
- * anywhere in it edits the name. The name itself is the button that does
- * so for assistive tech and keyboards. Whatever's below the name shows
- * under it, and pressing it does nothing.
+ * I am an item's name in its row: pressing it edits the name. The name
+ * itself is the button that does so for assistive tech and keyboards.
  * Outside an edit surface, or when the item can't be edited, I only show
  * the name.
  */
@@ -55,14 +51,12 @@ export function EditableName({
   onRemoved,
   className,
   children,
-  below,
 }: EditableNameProps) {
   const surface = useEditSurface();
   const key = { id: itemId };
   const editable = surface !== null && canEdit;
   const editing = editable && surface.isEditing(key);
   const button = useRef<HTMLButtonElement>(null);
-  const stacked = below !== undefined && "flex-col";
 
   useLayoutEffect(() => {
     surface?.register(
@@ -86,16 +80,7 @@ export function EditableName({
   });
 
   if (!editable) {
-    return (
-      <span className={clsx("min-w-0", stacked && "flex", stacked, className)}>
-        {below === undefined ? (
-          children
-        ) : (
-          <span className="flex items-start gap-xs">{children}</span>
-        )}
-        {below}
-      </span>
-    );
+    return <span className={clsx("min-w-0", className)}>{children}</span>;
   }
 
   if (editing) {
@@ -110,7 +95,7 @@ export function EditableName({
       hasChildren,
     };
     return (
-      <span className={clsx("flex min-w-0 flex-1", stacked, className)}>
+      <span className={clsx("flex min-w-0 flex-1", className)}>
         <Editor
           initialText={surface.resumeText() ?? name}
           caret={surface.caret}
@@ -122,35 +107,23 @@ export function EditableName({
           onChange={surface.setText}
           onEnd={() => surface.end(key)}
         />
-        {below}
       </span>
     );
   }
 
-  const area = (
+  return (
     // A convenience for pointers; the name's own button serves everyone.
     <span
-      className={clsx(
-        "flex min-w-0 flex-1 cursor-text",
-        below === undefined && className,
-      )}
+      className={clsx("flex min-w-0 cursor-text", className)}
       onClick={() => surface.start(key)}
     >
       <button
         ref={button}
         type="button"
-        className="flex items-start gap-xs text-left"
+        className="flex items-center gap-xs text-left"
       >
         {children}
       </button>
-    </span>
-  );
-  if (below === undefined) return area;
-  // What's below stays out of the area, as it stays out of the editor.
-  return (
-    <span className={clsx("flex min-w-0 flex-1 flex-col", className)}>
-      {area}
-      {below}
     </span>
   );
 }

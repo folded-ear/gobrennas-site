@@ -1,7 +1,6 @@
 "use client";
 
 import { ControlTooltip } from "@/components/control-tooltip";
-import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import { usePageEngine } from "@/features/page-engine";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
@@ -90,13 +89,9 @@ export function ToggleButton({
       <span
         role="img"
         aria-label={countedLabel(look.name, status, countsAs)}
-        className={clsx(
-          "flex items-center justify-center",
-          LINE_CONTROL_CLASS_NAME,
-          color,
-        )}
+        className={clsx("item-button", color)}
       >
-        <look.Icon size="small" aria-hidden="true" />
+        <look.Icon aria-hidden="true" />
       </span>
     );
   }
@@ -104,14 +99,13 @@ export function ToggleButton({
     <ControlTooltip label={look.action}>
       <Button
         aria-label={countedLabel(label, status, countsAs)}
-        className={clsx(LINE_CONTROL_CLASS_NAME, color, look.buttonClassName)}
+        className={clsx(color, look.buttonClassName)}
         isDisabled={isDisabled}
         isIconOnly
         onPress={onPress}
-        size="sm"
         variant="ghost"
       >
-        <look.Icon size="small" aria-hidden="true" />
+        <look.Icon aria-hidden="true" />
       </Button>
     </ControlTooltip>
   );

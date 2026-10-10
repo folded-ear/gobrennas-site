@@ -114,6 +114,7 @@ function RegionSection({
               item={item}
               rows={rows}
               zones={zonesOn(item.ingredient)}
+              handleSpace={storeMoves !== undefined}
             />
           </li>
         ))}

@@ -91,9 +91,6 @@ export function TimelineRow({
       )}
     >
       <ItemRow itemId={id} name={name} zones={zones} className="py-px">
-        {sectionRoot && showsPlan && plan ? (
-          <PlanDot plan={plan} className="me-xxs" />
-        ) : null}
         {plan !== undefined ? (
           <StatusButton
             itemId={id}
@@ -108,6 +105,9 @@ export function TimelineRow({
         {openId === id ? (
           // The bars say this to everyone who can see them.
           <span className="sr-only">, open in its screen</span>
+        ) : null}
+        {sectionRoot && showsPlan && plan ? (
+          <PlanDot plan={plan} className="ms-xxs" />
         ) : null}
         {plan !== undefined && node.item.children.length > 0 ? (
           <CookLink planId={plan.id} itemId={id} name={name} />
