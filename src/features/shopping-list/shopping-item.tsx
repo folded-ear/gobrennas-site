@@ -1,5 +1,4 @@
 import { NoStoreOrderIcon } from "@/components/icons";
-import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import { PlanDotStack } from "@/components/plan-dot";
 import { useShowsPlanIndicators } from "@/features/plan-directory";
 import { DraftRow } from "@/features/plan-edit";
@@ -19,6 +18,8 @@ type ShoppingItemRowProps = {
   readonly rows?: ShoppingRows;
   /** Where a dragged ingredient can land on my line. */
   readonly zones?: readonly ZoneSpec[];
+  /** Whether my plan items leave a handle's room, lining up with me. */
+  readonly handleSpace?: boolean;
 };
 
 type ShoppingRowLineProps = {
@@ -45,7 +46,7 @@ export function ShoppingRowLine({
     row.kind === "draft" ? (
       // spaced as a status is, so names line up
       <div className="flex items-start gap-xs">
-        <span className={LINE_CONTROL_CLASS_NAME} />
+        <span className="item-button" />
         <DraftRow draft={row.draft} />
       </div>
     ) : (
@@ -62,7 +63,7 @@ export function ShoppingRowLine({
       {handleSpace ? (
         // spaced as a handle is, so statuses line up
         <div className="flex items-start gap-xxs">
-          <span className={LINE_CONTROL_CLASS_NAME} />
+          <span className="item-button" />
           <div className="min-w-0 flex-1">{line}</div>
         </div>
       ) : (
@@ -83,6 +84,7 @@ export function ShoppingItemRow({
   item,
   rows,
   zones = [],
+  handleSpace = false,
 }: ShoppingItemRowProps) {
   const showsPlans = useShowsPlanIndicators();
   const amounts = item.implicit
@@ -124,7 +126,7 @@ export function ShoppingItemRow({
                 aria-label={NO_STORE_ORDER_LABEL}
                 className="inline-flex h-[1lh] shrink-0 items-center text-muted"
               >
-                <NoStoreOrderIcon size="small" aria-hidden />
+                <NoStoreOrderIcon aria-hidden />
               </span>
             ) : null}
             <Disclosure.Indicator className="ms-auto" />
@@ -132,23 +134,23 @@ export function ShoppingItemRow({
         </div>
       </ItemRow>
       <Disclosure.Content>
-        <Disclosure.Body>
-          <ul className="flex flex-col gap-xs ps-lg">
-            {(
-              rows?.groups.get(groupOf(item)) ??
-              item.sources.map((source): ShoppingRow => ({
-                kind: "item",
-                source,
-              }))
-            ).map((row) => (
-              <ShoppingRowLine
-                key={rowKey(row)}
-                row={row}
-                group={groupOf(item)}
-              />
-            ))}
-          </ul>
-        </Disclosure.Body>
+        {/* Padded above and below as a disclosure body is, but not beside. */}
+        <ul className="flex flex-col gap-xs py-sm">
+          {(
+            rows?.groups.get(groupOf(item)) ??
+            item.sources.map((source): ShoppingRow => ({
+              kind: "item",
+              source,
+            }))
+          ).map((row) => (
+            <ShoppingRowLine
+              key={rowKey(row)}
+              row={row}
+              group={groupOf(item)}
+              handleSpace={handleSpace}
+            />
+          ))}
+        </ul>
       </Disclosure.Content>
     </Disclosure>
   );

@@ -273,4 +273,17 @@
   .chip {
     --radius: 1rem;
   }
+
+  /*
+   * Whatever takes an icon-only button's room on a line without being a
+   * HeroUI button. The sizes are HeroUI's own, from `.button` and
+   * `.button--icon-only`.
+   */
+  .item-button {
+    @apply flex size-10 shrink-0 items-center justify-center rounded-3xl md:size-9;
+  }
+
+  .item-button svg {
+    @apply size-5 sm:size-4;
+  }
 }

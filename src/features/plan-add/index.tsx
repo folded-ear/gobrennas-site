@@ -56,13 +56,12 @@ export function PlanAdd({
       ) : (
         <Button
           ref={trigger}
-          size="sm"
           variant="ghost"
-          className="h-xl gap-xs px-xs text-muted"
+          className="gap-xs px-xs text-muted"
           aria-label={`Add to ${label}`}
           onPress={() => setOpen(true)}
         >
-          <Plus size={14} aria-hidden /> Add
+          <Plus aria-hidden /> Add
         </Button>
       )}
     </div>
@@ -171,7 +170,6 @@ function AddForm({
       <div className="flex gap-xs">
         <Button
           type="submit"
-          size="sm"
           variant="primary"
           isPending={save.pending}
           isDisabled={!plan || !row.raw.trim() || save.pending}
@@ -180,7 +178,6 @@ function AddForm({
         </Button>
         <Button
           type="button"
-          size="sm"
           variant="tertiary"
           isDisabled={save.pending}
           onPress={onClose}

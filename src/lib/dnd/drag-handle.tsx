@@ -49,9 +49,9 @@ export function DragHandle({ itemId, name, isFixed = false }: DragHandleProps) {
         aria-label={`Move ${displayName(name)}`}
         aria-disabled={isFixed || undefined}
         {...mergeProps(dragProps, descriptionProps, pressProps)}
-        className="flex size-xl shrink-0 cursor-grab touch-none items-center justify-center rounded-xs text-muted hover:text-foreground aria-disabled:cursor-default aria-disabled:opacity-40"
+        className="item-button cursor-grab touch-none text-muted hover:text-foreground aria-disabled:cursor-default aria-disabled:opacity-40"
       >
-        <DragHandleIcon size="small" />
+        <DragHandleIcon />
       </button>
       <DragPreview ref={preview}>
         {() => (

@@ -1,4 +1,3 @@
-import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import { useItemPlanLookup } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildEntries, DraftRow, useEditDrafts } from "@/features/plan-edit";
@@ -107,8 +106,8 @@ export function PlanItemDetail({
       renderDraft={(draft) => (
         // Spaced as a row's handle and status are, so its name lines up.
         <div className="flex items-start gap-xxs">
-          <span className={LINE_CONTROL_CLASS_NAME} />
-          <span className={LINE_CONTROL_CLASS_NAME} />
+          <span className="item-button" />
+          <span className="item-button" />
           <DraftRow draft={draft} />
         </div>
       )}

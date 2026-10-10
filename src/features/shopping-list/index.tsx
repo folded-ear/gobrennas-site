@@ -114,6 +114,7 @@ function RegionSection({
               item={item}
               rows={rows}
               zones={zonesOn(item.ingredient)}
+              handleSpace={storeMoves !== undefined}
             />
           </li>
         ))}
@@ -147,7 +148,7 @@ function RegionSection({
             </Disclosure.Trigger>
           </Disclosure.Heading>
           <Disclosure.Content>
-            <Disclosure.Body>{list}</Disclosure.Body>
+            <Disclosure.Body >{list}</Disclosure.Body>
           </Disclosure.Content>
         </Disclosure>
       ) : (

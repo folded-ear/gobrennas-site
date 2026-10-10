@@ -1,6 +1,5 @@
 "use client";
 
-import { LINE_CONTROL_CLASS_NAME } from "@/components/line-control";
 import clsx from "clsx";
 import { PropsWithChildren } from "react";
 import { DragHandle } from "./drag-handle";
@@ -43,7 +42,7 @@ export function ItemRow({
       )}
     >
       {!canMove(itemId) ? null : handle === "placeholder" ? (
-        <span aria-hidden className={LINE_CONTROL_CLASS_NAME} />
+        <span aria-hidden className="item-button" />
       ) : (
         <DragHandle
           itemId={itemId}
