@@ -105,7 +105,7 @@ export function PlanItemDetail({
       entries={buildEntries(descendants, drafts, parentId ?? null)}
       renderDraft={(draft) => (
         // Spaced as a row's handle and status are, so its name lines up.
-        <div className="flex items-start gap-xxs">
+        <div className="flex items-center gap-xxs">
           <span className="item-button" />
           <span className="item-button" />
           <DraftRow draft={draft} />

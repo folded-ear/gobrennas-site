@@ -45,7 +45,7 @@ export function ShoppingRowLine({
   const line =
     row.kind === "draft" ? (
       // spaced as a status is, so names line up
-      <div className="flex items-start gap-xs">
+      <div className="flex items-center gap-xs">
         <span className="item-button" />
         <DraftRow draft={row.draft} />
       </div>
@@ -62,7 +62,7 @@ export function ShoppingRowLine({
     <li className={className}>
       {handleSpace ? (
         // spaced as a handle is, so statuses line up
-        <div className="flex items-start gap-xxs">
+        <div className="flex items-center gap-xxs">
           <span className="item-button" />
           <div className="min-w-0 flex-1">{line}</div>
         </div>
@@ -106,7 +106,7 @@ export function ShoppingItemRow({
         zones={zones}
         className="py-xs"
       >
-        <div className="flex min-w-0 flex-1 items-start gap-xs">
+        <div className="flex min-w-0 flex-1 items-center gap-xs">
           <BulkStatusButton
             items={item.sources.map((it) => ({
               id: it.item.id,
@@ -116,7 +116,7 @@ export function ShoppingItemRow({
             name={item.ingredient.name}
             canChange={item.sources.every((it) => it.plan.changeable)}
           />
-          <Disclosure.Trigger className="flex min-w-0 flex-1 items-start gap-sm text-left">
+          <Disclosure.Trigger className="flex min-w-0 flex-1 items-center gap-sm text-left">
             <span>{item.ingredient.name}</span>
             {amounts ? <span className="text-muted">({amounts})</span> : null}
             {showsPlans ? <PlanDotStack plans={item.plans} /> : null}
@@ -134,8 +134,8 @@ export function ShoppingItemRow({
         </div>
       </ItemRow>
       <Disclosure.Content>
-        {/* Padded above and below as a disclosure body is, but not beside. */}
-        <ul className="flex flex-col gap-xs py-sm">
+        {/* Padded as a disclosure body is, but for the side statuses line up on. */}
+        <ul className="flex flex-col gap-xs py-sm pe-sm">
           {(
             rows?.groups.get(groupOf(item)) ??
             item.sources.map((source): ShoppingRow => ({

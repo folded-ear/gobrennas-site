@@ -36,7 +36,7 @@ export function ItemRow({
   return (
     <div
       className={clsx(
-        "relative flex items-start gap-xxs",
+        "relative flex items-center gap-xxs",
         dragged?.id === itemId && "opacity-40",
         className,
       )}

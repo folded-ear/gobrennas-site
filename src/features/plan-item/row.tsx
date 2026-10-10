@@ -79,7 +79,7 @@ export function PlanItemRow({
     </Fragment>
   ));
   return (
-    <div className="flex items-start gap-xs">
+    <div className="flex items-center gap-xs">
       <StatusButton
         itemId={data.id}
         planId={plan.id}
@@ -127,22 +127,24 @@ type RowNameProps = {
 function RowName({ itemId, name, plan, group, below, children }: RowNameProps) {
   const status = useItemStatus(itemId);
   return (
-    <EditableName
-      itemId={itemId}
-      planId={plan.id}
-      name={name}
-      // The shopping list is made of leaves.
-      hasChildren={false}
-      canEdit={
-        plan.changeable &&
-        status !== null &&
-        !status.inert &&
-        status.pendingStatus === null
-      }
-      group={group}
-      below={below}
-    >
-      {children}
-    </EditableName>
+    <div className="flex min-w-0 flex-1 flex-col">
+      <EditableName
+        itemId={itemId}
+        planId={plan.id}
+        name={name}
+        // The shopping list is made of leaves.
+        hasChildren={false}
+        canEdit={
+          plan.changeable &&
+          status !== null &&
+          !status.inert &&
+          status.pendingStatus === null
+        }
+        group={group}
+      >
+        {children}
+      </EditableName>
+      {below}
+    </div>
   );
 }
