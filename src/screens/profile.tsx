@@ -1,5 +1,6 @@
 import { SectionHeader } from "@/components/section-header";
 import { BuildTime } from "@/features/build-time";
+import { DisplaySize } from "@/features/display-size";
 import { InstallApp } from "@/features/install-app";
 import { LogOutButton } from "@/features/log-out";
 
@@ -11,6 +12,7 @@ export function Profile() {
         <InstallApp />
         <LogOutButton />
         <BuildTime />
+        <DisplaySize />
       </div>
     </>
   );
