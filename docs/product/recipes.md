@@ -245,7 +245,8 @@ Delivery: Built
   ingredients, and as sentences for directions.
 - Lines whose text has been sent are drawn apart from the rest.
 - The photo stays above the form until its Close photo button is pressed,
-  which leaves the draft and the photo as they are.
+  which leaves the draft and the photo as they are. Deleting the photo, there
+  or in the Photos screen, closes it too and leaves the draft.
 - An editor opened on a photo still being read says so, and shows its lines
   once they're read. One opened on a photo that couldn't be read says why,
   with Retry when it can be read again, and Delete photo.
