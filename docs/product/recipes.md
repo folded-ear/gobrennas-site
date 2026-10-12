@@ -13,10 +13,7 @@ without leaving the Library behind.
 ### Cook This
 
 State: Agreed  
-Delivery: Partly built
-
-The installation UI is built. The new recipe and stale-bookmark links require
-the API importer changes on its `feat/cook-this` branch to be merged and deployed.
+Delivery: Built
 
 - Profile offers a draggable Cook This link at `/profile#cook-this`. Drag it
   to the browser's bookmarks bar, or copy its link address into a bookmark.
