@@ -12,13 +12,16 @@ afterEach(() => {
   getCookie.mockReset();
 });
 
-it("offers an installable bookmark without running the importer on Profile", async () => {
-  vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", "https://api.example.com");
+it("uses the server-provided API address even without a browser environment variable", async () => {
+  vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", undefined);
   vi.stubEnv("NODE_ENV", "production");
-  render(<CookThis />);
+  render(<CookThis apiRoot="https://api.example.com" />);
   const link = screen.getByRole("link", { name: "Cook This" });
   expect(link).toHaveAttribute("draggable", "true");
   expect(link.getAttribute("href")).toMatch(/^javascript:void/);
+  expect(link.getAttribute("href")).toContain(
+    "apiRoot=https%3A%2F%2Fapi.example.com",
+  );
   expect(
     screen.getByText(/Drag Cook This to your browser/),
   ).toBeInTheDocument();
@@ -27,9 +30,8 @@ it("offers an installable bookmark without running the importer on Profile", asy
 });
 
 it("blocks dragging an HTTP bookmark without a sign-in token", () => {
-  vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", "http://localhost:8080");
   vi.stubEnv("NODE_ENV", "development");
-  render(<CookThis />);
+  render(<CookThis apiRoot="http://localhost:8080" />);
   const link = screen.getByRole("link", { name: "DEV Cook This" });
   expect(link).toHaveAttribute("aria-disabled", "true");
   expect(link).toHaveAttribute("draggable", "false");
@@ -40,10 +42,9 @@ it("blocks dragging an HTTP bookmark without a sign-in token", () => {
 });
 
 it("allows an HTTP bookmark with a token and labels it DEV", () => {
-  vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", "http://localhost:8080");
   vi.stubEnv("NODE_ENV", "development");
   getCookie.mockReturnValue("synthetic-test-credential");
-  render(<CookThis />);
+  render(<CookThis apiRoot="http://localhost:8080" />);
   const link = screen.getByRole("link", { name: "DEV Cook This" });
   expect(link).toHaveAttribute("draggable", "true");
   expect(link.getAttribute("href")).toContain(
@@ -54,9 +55,8 @@ it("allows an HTTP bookmark with a token and labels it DEV", () => {
 it.each(["", "/api", "not a URL", "ftp://example.com"])(
   "keeps Profile usable and installation disabled for invalid API address %s",
   (apiRoot) => {
-    vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", apiRoot);
     vi.stubEnv("NODE_ENV", "development");
-    render(<CookThis />);
+    render(<CookThis apiRoot={apiRoot} />);
     const link = screen.getByRole("link", { name: "DEV Cook This" });
     expect(link).toHaveAttribute("aria-disabled", "true");
     expect(link).toHaveAttribute("draggable", "false");

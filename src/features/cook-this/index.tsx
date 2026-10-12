@@ -15,14 +15,13 @@ function apiProtocol(apiRoot?: string) {
   }
 }
 
-export function CookThis() {
+export function CookThis({ apiRoot }: { apiRoot?: string }) {
   const cookies = useCookies();
   const mounted = useSyncExternalStore(
     noSubscription,
     () => true,
     () => false,
   );
-  const apiRoot = process.env.NEXT_PUBLIC_API_BASE_URL;
   const token = mounted ? cookies.get("FTOKEN") : undefined;
   const protocol = apiProtocol(apiRoot);
   const needsToken = protocol === "http:";
