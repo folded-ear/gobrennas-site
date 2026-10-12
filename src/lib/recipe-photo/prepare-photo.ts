@@ -1,9 +1,13 @@
 import { MAX_PHOTO_BYTES, PhotoUploadError, validatePhoto } from "./types";
 
-/** Decode even small files so corrupt/unsupported images fail before uploading. */
+/**
+ * Decode even small files so corrupt/unsupported images fail before uploading.
+ * An image of a type its reader can't read becomes a JPEG, whatever its size.
+ */
 export async function preparePhoto(
   file: File,
   signal: AbortSignal,
+  readableTypes?: readonly string[],
 ): Promise<File> {
   signal.throwIfAborted();
   validatePhoto(file);
@@ -42,10 +46,13 @@ export async function preparePhoto(
         "This image has no usable dimensions. Try another photo.",
       );
     }
-    if (file.size < MAX_PHOTO_BYTES) return file;
+    const fits = file.size < MAX_PHOTO_BYTES;
+    if (fits && (readableTypes?.includes(file.type) ?? true)) return file;
 
     const canvas = document.createElement("canvas");
-    let scale = Math.min(0.9, Math.sqrt(MAX_PHOTO_BYTES / file.size) * 0.8);
+    let scale = fits
+      ? 1
+      : Math.min(0.9, Math.sqrt(MAX_PHOTO_BYTES / file.size) * 0.8);
     // Match the legacy 1 MiB target, with a bounded loop rather than recursion.
     for (let attempt = 0; attempt < 8; attempt++) {
       signal.throwIfAborted();
