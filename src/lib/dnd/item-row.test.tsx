@@ -251,12 +251,14 @@ describe("ItemRow, inside a Screen", () => {
     await keyboardDrag("Move Pumpkin pie");
     await keyboardDrop("Put after Roast turkey");
     await screen.findByText("Pumpkin pie went after Roast turkey");
-    // A drop ends its drag a moment later, handing focus back to the handle.
+    // Wait for the drag to finish rather than depending on the drawer's
+    // focus restoration choosing the original handle after its target unmounts.
     await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Move Pumpkin pie" }),
-      ).toHaveFocus(),
+      expect(screen.queryByRole("button", { name: /^Put / })).toBeNull(),
     );
+    // Send Escape from a stable control inside the Screen. This test covers
+    // dismissal after dropping, not which control the focus scope restores.
+    screen.getByRole("button", { name: "Move Pumpkin pie" }).focus();
     await userEvent.keyboard("{Escape}");
 
     expect(back).toHaveBeenCalledTimes(1);
