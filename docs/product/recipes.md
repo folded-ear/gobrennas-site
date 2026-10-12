@@ -10,6 +10,26 @@ without leaving the Library behind.
 
 ## Behavior
 
+### Cook This
+
+State: Agreed  
+Delivery: Built
+
+- Profile offers a draggable Cook This link at `/profile#cook-this`. Drag it
+  to the browser's bookmarks bar, or copy its link address into a bookmark.
+- Development installations label the bookmark DEV Cook This. With an HTTP
+  API, installation is disabled until a sign-in token is available. Each use
+  requests the importer with a fresh timestamp to avoid a cached script.
+- On a recipe website, the bookmark opens the existing import overlay. Its
+  automatic extraction, manual grabbing, photo selection, review, and import
+  behavior remain available.
+- Successful import links to the new client's recipe detail and editor.
+  A stale bookmark links back to this client's Profile for replacement.
+- The bookmark uses the installation's app and API addresses and the current
+  sign-in credential when available. It is private to the account; signing in
+  and reinstalling replaces a stale credential. Website browser policies may
+  prevent the overlay from loading.
+
 ### Library and detail
 
 - The Library header offers a way to add a recipe beside the plan picker: a
