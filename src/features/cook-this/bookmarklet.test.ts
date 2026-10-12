@@ -30,7 +30,7 @@ describe("Cook This bookmarklet", () => {
     const clock = vi.spyOn(Date, "now");
     const run = new Function(
       bookmarkletUrl("https://example.com", "https://api.example.com").slice(
-        11,
+        "javascript:".length,
       ),
     );
     for (const time of [1000, 2000]) {

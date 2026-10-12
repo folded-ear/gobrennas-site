@@ -27,7 +27,9 @@ Delivery: Built
   A stale bookmark links back to this client's Profile for replacement.
 - The bookmark uses the installation's app and API addresses and the current
   sign-in credential when available. It is private to the account; signing in
-  and reinstalling replaces a stale credential. Website browser policies may
+  and reinstalling replaces a stale credential. The existing importer runs in
+  the recipe website's page, where other scripts can read the embedded credential.
+  Website browser policies may
   prevent the overlay from loading.
 
 ### Library and detail
