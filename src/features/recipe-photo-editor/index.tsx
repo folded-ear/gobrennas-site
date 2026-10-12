@@ -1,12 +1,9 @@
 "use client";
 
-import {
-  clampFocus,
-  PHOTO_ACCEPT,
-  type PhotoFocus,
-} from "@/lib/recipe-photo/types";
+import { PhotoChooser } from "@/components/photo-chooser";
+import { clampFocus, type PhotoFocus } from "@/lib/recipe-photo/types";
 import { Button, Label, ProgressBar } from "@heroui/react";
-import { type PointerEvent, useId, useRef } from "react";
+import { type PointerEvent, useId } from "react";
 import type { usePhotoUpload } from "./use-photo-upload";
 
 type PhotoEditorProps = {
@@ -16,7 +13,6 @@ type PhotoEditorProps = {
 };
 
 export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const helpId = useId();
   const { state, previewUrl, focus } = photo;
   function select(file: File | undefined) {
@@ -41,41 +37,13 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
   return (
     <fieldset className="flex min-w-0 flex-col gap-sm" disabled={isDisabled}>
       <legend className="mb-sm text-xs font-medium">Photo</legend>
-      <div
-        className="flex flex-col gap-md rounded-field border border-dashed border-border p-md"
-        onDragOver={(event) => {
-          event.preventDefault();
-          event.dataTransfer.dropEffect = isDisabled ? "none" : "copy";
-        }}
-        onDrop={(event) => {
-          event.preventDefault();
-          select(event.dataTransfer.files[0]);
-        }}
-      >
-        <div className="flex flex-wrap items-center gap-sm">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            isDisabled={isDisabled}
-            onPress={() => inputRef.current?.click()}
-          >
-            {previewUrl ? "Choose another photo" : "Choose photo"}
-          </Button>
-          <input
-            ref={inputRef}
-            type="file"
-            accept={PHOTO_ACCEPT}
-            aria-label="Recipe photo"
-            className="hidden"
-            disabled={isDisabled}
-            onChange={(event) => {
-              select(event.target.files?.[0]);
-              event.target.value = "";
-            }}
-          />
-          <span className="text-sm text-muted">Or drop an image here.</span>
-          {(state.status !== "empty" && state.status !== "saved") ||
+      <PhotoChooser
+        label={previewUrl ? "Choose another photo" : "Choose photo"}
+        inputLabel="Recipe photo"
+        isDisabled={isDisabled}
+        onChoose={([file]) => select(file)}
+        actions={
+          (state.status !== "empty" && state.status !== "saved") ||
           photo.isPreparing ? (
             <Button
               type="button"
@@ -89,8 +57,9 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
             >
               {photo.hasSavedPhoto ? "Discard replacement" : "Discard photo"}
             </Button>
-          ) : null}
-        </div>
+          ) : null
+        }
+      >
         {previewUrl ? (
           <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] items-start gap-sm">
             <div className="flex min-w-0 flex-col gap-sm">
@@ -233,7 +202,7 @@ export function PhotoEditor({ photo, isDisabled, onEdit }: PhotoEditorProps) {
             Photo ready. Save recipe to keep it.
           </p>
         ) : null}
-      </div>
+      </PhotoChooser>
     </fieldset>
   );
 }
