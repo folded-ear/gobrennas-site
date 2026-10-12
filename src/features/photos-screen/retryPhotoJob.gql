@@ -1,0 +1,9 @@
+mutation retryPhotoJob($id: ID!) {
+  textract {
+    retryJob(id: $id) {
+      id
+      status
+      ...photoJob
+    }
+  }
+}
