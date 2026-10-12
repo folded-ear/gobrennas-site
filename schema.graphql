@@ -844,11 +844,17 @@ type TextractBox {
 }
 
 type TextractJob {
+  "Why extraction failed. Will only have data if 'status' is ERROR."
+  errorMessage: String
   id: ID!
-  "Lines of extracted text. Will only have data if 'ready' is true."
+  "Lines of extracted text. Will only have data if 'status' is READY."
   lines: [TextractLine!]
   photo: FileInfo!
+  "Whether 'status' is READY. Prefer `status`."
   ready: Boolean!
+  "Whether `retryJob` will accept this job."
+  retryable: Boolean!
+  status: TextractJobStatus!
 }
 
 type TextractLine {
@@ -864,6 +870,8 @@ type TextractMutation {
   """
   createPreUploadedJob(filename: String!): TextractJob!
   deleteJob(id: ID!): Deletion!
+  "Re-request a failed job. The job must be retryable."
+  retryJob(id: ID!): TextractJob!
 }
 
 type TextractQuery {
@@ -889,14 +897,14 @@ type User implements Node {
 
   Return a single preference. If a deviceKey is provided, that device's
   value will be used. Otherwise, the user's global preference will be used, if
-  one exists. If not, the static default is returned.
+  one exists. If not, a default is returned.
   """
   preference(deviceKey: String, name: String!): UserPreference!
   """
 
   A value for every preference is returned. If a deviceKey is provided,
   that device's values will be used. Otherwise, the user's global preferences
-  are used, if they exist. If not, the static default is returned.
+  are used, if they exist. If not, a default is returned.
   """
   preferences(deviceKey: String): [UserPreference!]!
   provider: String!
@@ -1004,6 +1012,12 @@ enum RecognizedRangeType {
 enum SortDir {
   ASC
   DESC
+}
+
+enum TextractJobStatus {
+  ERROR
+  PENDING
+  READY
 }
 
 "The type of a cursor, an opaque string used for walking connections"
