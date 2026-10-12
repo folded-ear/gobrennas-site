@@ -1,4 +1,8 @@
 export const PLANNER_PATH = "/planner";
+export const ADD_RECIPE_PATH = "/recipes/new";
+
+/** Names, on the add form's address, the photo job a recipe starts from. */
+const PHOTO_JOB_PARAM = "job";
 
 const BUCKET_COOK_PATH = `${PLANNER_PATH}/cook`;
 const BUCKET_DATE_MARK = "@";
@@ -55,4 +59,26 @@ export function parseBucketCookIds(segment: string): readonly string[] {
     return [];
   }
   return [...new Set(decoded.split(ID_SEPARATOR))].filter((id) => id !== "");
+}
+
+/** I give the add form's address, starting from a photo job's text. */
+export function addRecipeFromPhotoHref(jobId: string) {
+  return `${ADD_RECIPE_PATH}?${new URLSearchParams({ [PHOTO_JOB_PARAM]: jobId })}`;
+}
+
+/**
+ * I give the photo job an add form's search params name: one that isn't
+ * empty. Anything else names none.
+ */
+export function photoJobOf(
+  value: string | readonly string[] | undefined,
+): string | undefined {
+  return typeof value === "string" && value !== "" ? value : undefined;
+}
+
+/** I give an add form's search params' value for its photo job. */
+export function photoJobParamOf(
+  searchParams: Readonly<Record<string, string | string[] | undefined>>,
+) {
+  return photoJobOf(searchParams[PHOTO_JOB_PARAM]);
 }
