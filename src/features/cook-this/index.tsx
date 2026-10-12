@@ -6,6 +6,15 @@ import { bookmarkletUrl } from "./bookmarklet";
 
 const noSubscription = () => () => {};
 
+function apiProtocol(apiRoot?: string) {
+  try {
+    const protocol = new URL(apiRoot ?? "").protocol;
+    return protocol === "http:" || protocol === "https:" ? protocol : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function CookThis() {
   const cookies = useCookies();
   const mounted = useSyncExternalStore(
@@ -15,8 +24,9 @@ export function CookThis() {
   );
   const apiRoot = process.env.NEXT_PUBLIC_API_BASE_URL;
   const token = mounted ? cookies.get("FTOKEN") : undefined;
-  const needsToken = !!apiRoot && new URL(apiRoot).protocol === "http:";
-  const disabled = !mounted || !apiRoot || (needsToken && !token);
+  const protocol = apiProtocol(apiRoot);
+  const needsToken = protocol === "http:";
+  const disabled = !mounted || !protocol || (needsToken && !token);
   const label =
     process.env.NODE_ENV === "production" ? "Cook This" : "DEV Cook This";
   const link = useRef<HTMLAnchorElement>(null);
@@ -47,7 +57,7 @@ export function CookThis() {
       </p>
       <a
         ref={link}
-        role="link"
+        role={disabled ? "link" : undefined}
         aria-disabled={disabled || undefined}
         tabIndex={disabled ? -1 : 0}
         draggable={!disabled}
@@ -60,6 +70,12 @@ export function CookThis() {
       >
         {label}
       </a>
+      {!protocol && (
+        <p role="status">
+          Cook This is unavailable because the API address is not configured
+          correctly.
+        </p>
+      )}
       {needsToken && !token && mounted && (
         <p role="status">
           Sign in before installing Cook This. With an HTTP API, replace the

@@ -50,3 +50,19 @@ it("allows an HTTP bookmark with a token and labels it DEV", () => {
     "token=synthetic-test-credential",
   );
 });
+
+it.each(["", "/api", "not a URL", "ftp://example.com"])(
+  "keeps Profile usable and installation disabled for invalid API address %s",
+  (apiRoot) => {
+    vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", apiRoot);
+    vi.stubEnv("NODE_ENV", "development");
+    render(<CookThis />);
+    const link = screen.getByRole("link", { name: "DEV Cook This" });
+    expect(link).toHaveAttribute("aria-disabled", "true");
+    expect(link).toHaveAttribute("draggable", "false");
+    expect(link).not.toHaveAttribute("href");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "API address is not configured correctly",
+    );
+  },
+);

@@ -13,7 +13,10 @@ without leaving the Library behind.
 ### Cook This
 
 State: Agreed  
-Delivery: Built
+Delivery: Partly built
+
+The installation UI is built. The new recipe and stale-bookmark links require
+the API importer changes on its `feat/cook-this` branch to be merged and deployed.
 
 - Profile offers a draggable Cook This link at `/profile#cook-this`. Drag it
   to the browser's bookmarks bar, or copy its link address into a bookmark.
@@ -27,7 +30,9 @@ Delivery: Built
   A stale bookmark links back to this client's Profile for replacement.
 - The bookmark uses the installation's app and API addresses and the current
   sign-in credential when available. It is private to the account; signing in
-  and reinstalling replaces a stale credential. Website browser policies may
+  and reinstalling replaces a stale credential. The existing importer runs in
+  the recipe website's page, where other scripts can read the embedded credential.
+  Website browser policies may
   prevent the overlay from loading.
 
 ### Library and detail
