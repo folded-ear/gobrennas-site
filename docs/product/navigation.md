@@ -37,6 +37,11 @@ away and lets focused content slide in without losing the user's place.
 - Saving a new recipe replaces that focused screen with the new recipe detail.
   The completed editor is not left behind in history.
 - Proposed edit-screen behavior is in the Draft [Recipes](recipes.md) document.
+- Add From Photo opens the Photos screen over the Library. Once a photo is
+  picked, the create editor takes its place, so Back from the editor returns
+  to the Library.
+- A recipe editor opens the Photos screen over itself. Picking a photo, or
+  closing the screen, returns to the editor and its draft.
 - Every way of closing a screen — its close button, a flick, tapping outside
   it, Escape, or Back — goes back one step in history.
 

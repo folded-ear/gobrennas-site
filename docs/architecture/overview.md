@@ -33,6 +33,14 @@ item graph, including retained completed prep, through `updatedSince(0)`; the
 scheduling tree alone omits those items. Each view retains its own actions.
 Recipe detail and the editor share deletion and cache cleanup through `src/features/recipe-form/use-delete-recipe.ts`.
 
+Importing a recipe from a photo is two features that know nothing of the
+recipe form: the Photos screen (`src/features/photos-screen/`), which uploads
+photos and lists their jobs, and the photo view (`src/features/photo-view/`),
+which selects text on one job's photo. The form offers the writes its draft
+takes (`src/lib/recipe-draft-writes.ts`) to whatever a screen places above
+its fields, and the editor screens join the three
+(`src/screens/use-editor-photos.tsx`).
+
 ## Navigation shell
 
 `app/(private)/layout.tsx` renders the page, the bottom section nav
@@ -49,7 +57,8 @@ history, so it opens by adding a history entry in one of two ways:
   elsewhere.
 - A screen without a route keeps what it shows on its own history entry with
   `useHistoryState` (`src/hooks/use-history-state/`), as the planner does for
-  the open plan item.
+  the open plan item. A screen can open one this way from inside itself, as
+  a recipe editor opens the Photos screen, and stays mounted beneath it.
 
 Preferences such as selected plans are per-device values stored by the API.
 They are never part of a URL.
@@ -99,6 +108,11 @@ engine's one timer, and alone listens to the browser's events for it.
   poll covers its plan. No poll covers pantry items, so a saved store-order
   change writes the store orders it showed into the cache instead.
 - Mounted screens tell the engine which plans to poll (`useWatchPlans`).
+- Photo jobs are kept current the same way (`useWatchJobs`). While something
+  mounted watches them, the engine polls the job list into the cache, sooner
+  while a job is pending. Like a plan poll, a jobs poll waits out a hidden,
+  offline, signed-out, or frozen page. Unlike one, it runs beside the single
+  plan request, and nothing of it is kept.
 - The section header's status (`src/features/page-status/`) reads the
   engine.
 
