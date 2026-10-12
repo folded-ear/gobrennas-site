@@ -1,5 +1,7 @@
 import { TextractJobStatus } from "@/__generated__/graphql";
 import { PollJobsDocument } from "@/features/page-engine/__generated__/pollJobs.generated";
+import { DeletePhotoJobDocument } from "@/lib/photo-jobs/__generated__/deletePhotoJob.generated";
+import { RetryPhotoJobDocument } from "@/lib/photo-jobs/__generated__/retryPhotoJob.generated";
 import { RecipePhotoUploadDocument } from "@/lib/recipe-photo/__generated__/recipePhotoUpload.generated";
 import { stubPhotoBrowser } from "@/lib/recipe-photo/test/browser";
 import {
@@ -15,9 +17,7 @@ import {
 import type { MockLink } from "@apollo/client/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreatePhotoJobDocument } from "./__generated__/createPhotoJob.generated";
-import { DeletePhotoJobDocument } from "./__generated__/deletePhotoJob.generated";
 import { PhotoJobsDocument } from "./__generated__/photoJobs.generated";
-import { RetryPhotoJobDocument } from "./__generated__/retryPhotoJob.generated";
 import { PhotosScreen } from "./index";
 import { jobList, photoJob, type ListedPhotoJob } from "./test/jobs";
 

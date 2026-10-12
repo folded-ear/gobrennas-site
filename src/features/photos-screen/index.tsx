@@ -10,6 +10,10 @@ import {
   PhotoJobFragment,
   PhotoJobFragmentDoc,
 } from "@/lib/photo-jobs/__generated__/photoJob.generated";
+import {
+  useDeletePhotoJob,
+  useRetryPhotoJob,
+} from "@/lib/photo-jobs/use-photo-job-actions";
 import { useUploadPhoto } from "@/lib/recipe-photo/use-upload-photo";
 import { FragmentType } from "@apollo/client";
 import { useFragment, useMutation, useQuery } from "@apollo/client/react";
@@ -24,9 +28,7 @@ import {
   useState,
 } from "react";
 import { CreatePhotoJobDocument } from "./__generated__/createPhotoJob.generated";
-import { DeletePhotoJobDocument } from "./__generated__/deletePhotoJob.generated";
 import { PhotoJobsDocument } from "./__generated__/photoJobs.generated";
-import { RetryPhotoJobDocument } from "./__generated__/retryPhotoJob.generated";
 import { jobToPick } from "./pick-for-user";
 import { type PhotoUpload, usePhotoUploads } from "./use-photo-uploads";
 
@@ -280,38 +282,26 @@ function JobTile({
     from: job,
   });
   const engine = usePageEngine();
-  const [retry, retrying] = useMutation(RetryPhotoJobDocument);
-  const [remove] = useMutation(DeletePhotoJobDocument);
+  const retry = useRetryPhotoJob();
+  const remove = useDeletePhotoJob();
+  const [isRetrying, setIsRetrying] = useState(false);
   const [isAsking, setIsAsking] = useState(false);
   if (!complete) return null;
   const { id, status, photo } = data;
   const name = photo.filename;
 
   async function readAgain() {
+    setIsRetrying(true);
     try {
-      const result = await retry({ variables: { id } });
-      if (result.data?.textract.retryJob.id !== id) {
-        throw new Error("No matching photo job was returned.");
-      }
+      await retry(id);
       engine.jobsChanged();
     } catch {
       toast.danger("Couldn’t read the photo again", {
         description: "Please try again.",
       });
+    } finally {
+      setIsRetrying(false);
     }
-  }
-
-  async function deleteJob() {
-    await remove({
-      variables: { id },
-      update(cache, { data: deleted }) {
-        if (deleted?.textract.deleteJob.id !== id) {
-          throw new Error("No matching deletion was returned.");
-        }
-        cache.evict({ id: cache.identify(data) });
-        cache.gc();
-      },
-    });
   }
 
   const picture = (
@@ -361,7 +351,7 @@ function JobTile({
             size="sm"
             variant="secondary"
             aria-label={`Read ${name} again`}
-            isDisabled={retrying.loading}
+            isDisabled={isRetrying}
             onPress={() => {
               void readAgain();
             }}
@@ -387,7 +377,7 @@ function JobTile({
         failureDescription="The photo is still here. Try again, or cancel."
         isOpen={isAsking}
         onOpenChange={setIsAsking}
-        onDelete={deleteJob}
+        onDelete={() => remove(id)}
       >
         <p>This permanently deletes the photo and the text read from it.</p>
       </DeleteDialog>
