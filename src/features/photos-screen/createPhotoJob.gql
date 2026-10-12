@@ -1,0 +1,9 @@
+mutation createPhotoJob($filename: String!) {
+  textract {
+    createPreUploadedJob(filename: $filename) {
+      id
+      status
+      ...photoJob
+    }
+  }
+}

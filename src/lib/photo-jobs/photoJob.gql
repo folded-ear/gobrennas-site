@@ -1,0 +1,11 @@
+# What the Photos screen shows of a job, and what a poll keeps current.
+fragment photoJob on TextractJob {
+  id
+  status
+  errorMessage
+  retryable
+  photo {
+    url
+    filename
+  }
+}

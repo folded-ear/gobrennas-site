@@ -31,6 +31,8 @@ export function buildInMemoryCache() {
           updatedSince: { keyArgs: ["planId"] },
         },
       },
+      // The job list and single jobs are read by separate queries.
+      TextractQuery: { merge: true },
       LibraryQuery: {
         fields: {
           recipes: relayStylePagination(["scope", "query"]),

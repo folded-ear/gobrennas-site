@@ -6,6 +6,8 @@ import {
   CreateChange,
   Effect,
   Event,
+  JOBS_PENDING_INTERVAL_MS,
+  JobsOutcome,
   POLL_INTERVAL_MS,
   POLL_MARGIN_MS,
   Posted,
@@ -829,5 +831,185 @@ describe("the shopping snapshot", () => {
     e.boot([], { snapshotCurrent: false, shoppingCached: false });
 
     expect(e.effects).toEqual([]);
+  });
+});
+
+describe("watching photo jobs", () => {
+  type Engine = ReturnType<typeof engine>;
+  const LISTED_PENDING: JobsOutcome = { kind: "listed", pending: true };
+  const LISTED_SETTLED: JobsOutcome = { kind: "listed", pending: false };
+
+  const watching = (init: Partial<StateInit> = {}) => {
+    const e = engine(init);
+    e.boot();
+    e.post({ type: "watchJobs" });
+    return e;
+  };
+
+  const lastJobsPoll = (e: Engine) => {
+    const polls = e.of("pollJobs");
+    expect(polls).toHaveLength(1);
+    return polls[0];
+  };
+
+  const answerJobs = (e: Engine, outcome: JobsOutcome) =>
+    e.post({
+      type: "jobsPolled",
+      requestId: e.state.jobs.flight!.id,
+      outcome,
+    });
+
+  it("polls nothing while nobody watches", () => {
+    const e = engine();
+    e.boot();
+
+    e.advance(POLL_INTERVAL_MS);
+
+    expect(e.of("pollJobs")).toEqual([]);
+  });
+
+  it("polls at once when first watched", () => {
+    const e = watching();
+
+    lastJobsPoll(e);
+  });
+
+  it("has one jobs poll out at a time", () => {
+    const e = watching();
+
+    e.post({ type: "watchJobs" });
+    e.post({ type: "jobsChanged" });
+
+    expect(e.of("pollJobs")).toEqual([]);
+  });
+
+  it("polls again soon while a job is pending", () => {
+    const e = watching();
+    answerJobs(e, LISTED_PENDING);
+
+    expect(e.advance(JOBS_PENDING_INTERVAL_MS - 1)).toEqual([]);
+    e.advance(1);
+
+    lastJobsPoll(e);
+  });
+
+  it("polls at the plans' interval once every job has settled", () => {
+    const e = watching();
+    answerJobs(e, LISTED_SETTLED);
+
+    expect(e.advance(POLL_INTERVAL_MS - 1)).toEqual([]);
+    e.advance(1);
+
+    lastJobsPoll(e);
+  });
+
+  it("polls at once when a job is created or retried", () => {
+    const e = watching();
+    answerJobs(e, LISTED_SETTLED);
+
+    e.post({ type: "jobsChanged" });
+
+    lastJobsPoll(e);
+  });
+
+  it("polls again at once after an answer a change came during", () => {
+    const e = watching();
+    e.advance(100);
+    e.post({ type: "jobsChanged" });
+
+    answerJobs(e, LISTED_SETTLED);
+
+    lastJobsPoll(e);
+  });
+
+  it("stops polling once the last watcher goes", () => {
+    const e = watching();
+    answerJobs(e, LISTED_PENDING);
+
+    e.post({ type: "unwatchJobs" });
+
+    expect(e.advance(POLL_INTERVAL_MS)).toEqual([]);
+  });
+
+  it("polls no jobs while hidden, and at once when shown", () => {
+    const e = watching({ visible: false });
+    expect(e.of("pollJobs")).toEqual([]);
+
+    e.post({ type: "visible" });
+
+    lastJobsPoll(e);
+  });
+
+  it("polls no jobs while offline, and at once when back", () => {
+    const e = watching({ online: false });
+    expect(e.of("pollJobs")).toEqual([]);
+
+    e.post({ type: "online" });
+
+    lastJobsPoll(e);
+  });
+
+  it("stops polling jobs once the login has expired", () => {
+    const e = watching();
+
+    answerJobs(e, { kind: "unauthorized" });
+
+    expect(e.state.authorized).toBe(false);
+    expect(e.advance(POLL_INTERVAL_MS)).toEqual([]);
+  });
+
+  it("tries again at the plans' interval after a failed poll", () => {
+    const e = watching();
+    answerJobs(e, { kind: "failed" });
+
+    expect(e.advance(POLL_INTERVAL_MS - 1)).toEqual([]);
+    e.advance(1);
+
+    lastJobsPoll(e);
+  });
+
+  it("gives up on a jobs poll out too long, ignoring its late answer", () => {
+    const e = watching();
+    const late = e.state.jobs.flight!.id;
+
+    expect(kinds(e.advance(REQUEST_TIMEOUT_MS))).toEqual(["abortJobs"]);
+    e.post({ type: "jobsPolled", requestId: late, outcome: LISTED_PENDING });
+
+    expect(e.advance(JOBS_PENDING_INTERVAL_MS)).toEqual([]);
+    e.advance(POLL_INTERVAL_MS - JOBS_PENDING_INTERVAL_MS);
+    lastJobsPoll(e);
+  });
+
+  it("drops its jobs poll when frozen, and polls again once restored", () => {
+    const e = watching();
+
+    expect(kinds(e.post({ type: "pagehide", persisted: true }))).toContain(
+      "abortJobs",
+    );
+    expect(e.advance(POLL_INTERVAL_MS)).toEqual([]);
+    e.post({ type: "pageshow", persisted: true });
+    e.post({ type: "restored", keys: [] });
+
+    lastJobsPoll(e);
+  });
+
+  it("polls jobs while a change is being sent, and sends during a poll", () => {
+    const e = engine();
+    e.boot();
+    e.change(rename(PIE, "Pecan pie"));
+    expect(e.state.inFlight?.kind).toBe("send");
+
+    e.post({ type: "watchJobs" });
+    lastJobsPoll(e);
+
+    e.post({
+      type: "sent",
+      requestId: e.state.inFlight!.id,
+      outcome: { kind: "saved", data: { planner: {} } },
+    });
+    e.change(rename(CREAM, "Chantilly"));
+
+    expect(e.state.jobs.flight).not.toBeNull();
+    expect(e.state.inFlight?.kind).toBe("send");
   });
 });

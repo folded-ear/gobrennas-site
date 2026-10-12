@@ -10,6 +10,7 @@ import {
   CloudOff,
   EyeIcon,
   GripVertical,
+  Images,
   LogOut,
   LucideIcon,
   LucideProps,
@@ -64,6 +65,7 @@ export const MenuOpenIcon = createIcon(ChevronDown);
 export const NeededIcon = createIcon(Circle);
 export const OfflineIcon = createIcon(CloudOff);
 export const PantryIcon = createIcon(ShelvingUnit);
+export const PhotosIcon = createIcon(Images);
 export const PlanScheduleIcon = createIcon(NotebookTabs);
 export const PlanCalendarIcon = createIcon(Calendar);
 export const RecipeEditIcon = createIcon(Pencil);

@@ -2,10 +2,12 @@ import {
   editableMorsel,
   withTextInsertion,
 } from "@/features/morsel/test/editing";
-import { act, render, screen, userEvent } from "@/test";
+import { act, render, screen, userEvent, waitFor } from "@/test";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { appendIngredientLines } from "./draft-writes";
 import { newIngredientDraft } from "./ingredient-draft";
+import type { RecognizeIngredient } from "./ingredient-recognition";
 import { IngredientRows } from "./ingredient-rows";
 import { createRecognitionQueue } from "./recognition-queue";
 
@@ -15,17 +17,41 @@ const recognize = async (raw: string, cursor: number) => ({
   ranges: [],
 });
 
-function Editor({ lines = [""] }: { lines?: string[] }) {
+function Editor({
+  lines = [""],
+  arriving = [],
+  recognizes = recognize,
+}: {
+  lines?: string[];
+  /** Lines my Arrive button brings in from outside the rows. */
+  arriving?: string[];
+  recognizes?: RecognizeIngredient;
+}) {
   const [queue] = useState(createRecognitionQueue);
   const [rows, setRows] = useState(() => lines.map(newIngredientDraft));
+  const [arrived, setArrived] =
+    useState<ReadonlyMap<string, { raw: string }>>();
   return (
-    <IngredientRows
-      rows={rows}
-      queue={queue}
-      onChange={setRows}
-      isDisabled={false}
-      recognize={recognize}
-    />
+    <>
+      <IngredientRows
+        rows={rows}
+        arrived={arrived}
+        queue={queue}
+        onChange={setRows}
+        isDisabled={false}
+        recognize={recognizes}
+      />
+      <button
+        type="button"
+        onClick={() => {
+          const next = appendIngredientLines(rows, arriving);
+          setRows(next.rows);
+          setArrived(new Map(next.arrived.map((it) => [it.clientId, it])));
+        }}
+      >
+        Arrive
+      </button>
+    </>
   );
 }
 
@@ -201,6 +227,26 @@ describe("IngredientRows", () => {
     expect(ingredient(1)).toBeEmptyDOMElement();
     await user.paste("2 cups flour");
     expect(ingredient(1)).toHaveTextContent("2 cups flour");
+  });
+
+  it("recognizes text arriving in a row that was pasted into, then emptied", async () => {
+    const user = userEvent.setup();
+    const recognizes = vi.fn<RecognizeIngredient>(recognize);
+    render(<Editor arriving={["1 cup ricotta"]} recognizes={recognizes} />);
+    await user.click(ingredient(1));
+    await user.paste("2 eggs\nmilk");
+    await user.click(ingredient(2));
+    await user.keyboard("{End}{Backspace}{Backspace}{Backspace}{Backspace}");
+    expect(ingredient(2).textContent).toBe("");
+
+    await user.click(screen.getByRole("button", { name: "Arrive" }));
+
+    expect(ingredient(2)).toHaveTextContent("1 cup ricotta");
+    await waitFor(() =>
+      expect(recognizes.mock.calls.map(([raw]) => raw)).toContain(
+        "1 cup ricotta",
+      ),
+    );
   });
 
   it("does not treat an IME confirmation as an instruction to add a row", async () => {

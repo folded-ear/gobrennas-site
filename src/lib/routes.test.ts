@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { bucketCookHref, parseBucketCookIds } from "./routes";
+import {
+  ADD_RECIPE_PATH,
+  addRecipeFromPhotoHref,
+  bucketCookHref,
+  parseBucketCookIds,
+  photoJobOf,
+} from "./routes";
 
 describe("bucketCookHref", () => {
   it.each([
@@ -48,4 +54,30 @@ describe("parseBucketCookIds", () => {
   it("reads no ids from a segment that won't decode", () => {
     expect(parseBucketCookIds("7%E0")).toEqual([]);
   });
+});
+
+describe("adding a recipe from a photo", () => {
+  it("names the photo's job on the add form's address", () => {
+    expect(addRecipeFromPhotoHref("8777749749830")).toBe(
+      `${ADD_RECIPE_PATH}?job=8777749749830`,
+    );
+  });
+
+  it("reads back the job an address names", () => {
+    const address = new URL(
+      addRecipeFromPhotoHref("a job/with odd&characters"),
+      "https://gobrennas.example",
+    );
+
+    expect(photoJobOf(address.searchParams.get("job") ?? undefined)).toBe(
+      "a job/with odd&characters",
+    );
+  });
+
+  it.each([[undefined], [""], [["8777749749830", "8777749749831"]]])(
+    "reads no job from %j",
+    (value) => {
+      expect(photoJobOf(value)).toBeUndefined();
+    },
+  );
 });

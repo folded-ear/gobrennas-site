@@ -11,19 +11,25 @@ import {
   toRecipeUpdate,
   type EditableRecipe,
 } from "./edit-recipe-draft";
-import { RecipeForm } from "./index";
+import { RecipeForm, type RecipeFormAdditions } from "./index";
 import type { RecipeDraft } from "./recipe-draft";
 import { useDeleteRecipe } from "./use-delete-recipe";
 import { useRecipeFormServices } from "./use-recipe-form-services";
 
-type Props = {
+type Props = RecipeFormAdditions & {
   id: string;
   onSaved: (id: string) => void | Promise<void>;
   onCancel: () => void;
   onDeleted: () => void;
 };
 
-export function EditRecipeForm({ id, onSaved, onCancel, onDeleted }: Props) {
+export function EditRecipeForm({
+  id,
+  onSaved,
+  onCancel,
+  onDeleted,
+  ...additions
+}: Props) {
   // Fetch a complete fresh snapshot, independent of the partial detail/card cache.
   const query = useQuery(GetRecipeForEditDocument, {
     variables: { id },
@@ -74,6 +80,7 @@ export function EditRecipeForm({ id, onSaved, onCancel, onDeleted }: Props) {
       onSaved={onSaved}
       onCancel={onCancel}
       onDeleted={onDeleted}
+      {...additions}
     />
   );
 }
@@ -83,6 +90,7 @@ function LoadedRecipeEditor({
   onSaved,
   onCancel,
   onDeleted,
+  ...additions
 }: Omit<Props, "id"> & { recipe: EditableRecipe }) {
   // A background cache change must not overwrite edits or replace row identities.
   const [snapshot] = useState(() => ({ recipe, draft: recipeToDraft(recipe) }));
@@ -119,6 +127,7 @@ function LoadedRecipeEditor({
       initialDraft={snapshot.draft}
       existingPhoto={snapshot.recipe.photo ?? undefined}
       {...services}
+      {...additions}
       onSubmit={submit}
       onCancel={onCancel}
       onDelete={remove}

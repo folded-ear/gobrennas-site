@@ -12,7 +12,10 @@ without leaving the Library behind.
 
 ### Library and detail
 
-- The Library header offers Add Recipe beside the plan picker.
+- The Library header offers a way to add a recipe beside the plan picker: a
+  split button. Its main part, a plus named Add Recipe, opens the create
+  editor. Its menu offers Add Recipe and Add From Photo; see
+  [Importing from a photo](#importing-from-a-photo).
 - Add Recipe opens the create editor as a focused screen over the Library.
 - After a successful create, the new recipe detail replaces the editor over the
   Library.
@@ -192,6 +195,63 @@ Delivery: Built
   Focus changes alone do not upload a file. A replacement uses the scratch-upload
   flow; Discard replacement restores the saved photo and focus. Removing the saved
   photo remains deferred to BFS-79.
+
+### Importing from a photo
+
+State: Agreed — BFS-38.
+
+Delivery: Built
+
+- A recipe's text can be pulled from a photo of it, such as a page of a
+  cookbook. Importing only fills the ordinary draft, for a new recipe or a
+  saved one. Nothing is saved until Save recipe, through the same validation.
+- Add From Photo opens the Photos screen over the Library. The create and
+  edit editors each have a Photos control in their header, which opens the
+  same screen over the editor.
+- The Photos screen has a control to choose or drop photos, several at a
+  time, above the person's photos, newest first.
+- A chosen photo is prepared, uploaded, and then read for text; its tile says
+  which. The photo field's image types are accepted. A photo that is not a
+  JPEG or PNG becomes a JPEG, and a large one is reduced as a recipe photo
+  is.
+- An upload that fails says why and offers Retry, from the same file, and
+  Dismiss. Closing the Photos screen drops photos still uploading. Photos
+  already being read carry on, and are there the next time it opens.
+- A photo whose text has been read can be picked. One that couldn't be read
+  says why, and offers Retry when it can be read again. Any photo can be
+  deleted, after a confirmation, which removes the photo and its text.
+- Photos stay until deleted. Saving a recipe leaves the photo it came from.
+- Opened from the Library, the Photos screen picks for the person: once every
+  photo just chosen has uploaded and the first has been read, the create
+  editor takes the screen's place, on that first photo. The others wait in
+  the Photos screen. If the first fails, the screen stays. A photo that was
+  already there is never picked this way.
+- Opened from an editor, the Photos screen waits for a photo to be picked,
+  even one just added. Picking closes it and shows the photo above the form's
+  fields. Opening, picking, and closing leave the draft as it was.
+- The photo shows a box on each line of text found on it, with a Selected
+  text box and three actions beside it, or below it in a narrow editor.
+  Rotate left and Rotate right turn the photo a quarter at a time.
+- Dragging on the photo selects every line the rectangle touches, in place of
+  what was selected. A tap selects the line under it, or nothing when there
+  is none. Lines are selected by pointer only.
+- Selected text is in reading order for the photo as it's turned: columns
+  left to right, lines top to bottom. It can be corrected by hand; a change
+  of selection, or a turn, replaces it.
+- Set Title replaces the title with the text, on one line. Add Ingredients
+  adds an ingredient for each nonblank line, filling a blank last row first,
+  and each is recognized. Add Directions adds the text as a paragraph of its
+  own. Words set in capitals are rewritten: as a title, in lower case for
+  ingredients, and as sentences for directions.
+- Lines whose text has been sent are drawn apart from the rest.
+- The photo stays above the form until its Close photo button is pressed,
+  which leaves the draft and the photo as they are. Deleting the photo, there
+  or in the Photos screen, closes it too and leaves the draft.
+- An editor opened on a photo still being read says so, and shows its lines
+  once they're read. One opened on a photo that couldn't be read says why,
+  with Retry when it can be read again, and Delete photo.
+- A section's ingredients and directions can't be sent to. Zooming the photo
+  is BFS-128.
 
 ### Editing saved recipes
 

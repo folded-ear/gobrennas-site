@@ -28,6 +28,8 @@ import type { RecognitionQueue } from "./recognition-queue";
 type IngredientRowsProps = {
   labelPrefix?: string;
   rows: IngredientDraft[];
+  /** Rows whose text came from outside me, recognized as a paste is. */
+  arrived?: ReadonlyMap<string, { raw: string }>;
   onChange: (
     rows: SetStateAction<IngredientDraft[]>,
     source?: "edit" | "recognition",
@@ -40,13 +42,21 @@ type IngredientRowsProps = {
 export function IngredientRows({
   labelPrefix = "Ingredient",
   rows,
+  arrived,
   onChange,
   isDisabled,
   recognize,
   queue,
 }: IngredientRowsProps) {
   const helpId = useId();
-  const [pasted, setPasted] = useState(new Map<string, { raw: string }>());
+  const [paste, setPaste] = useState<{
+    rows: ReadonlyMap<string, { raw: string }>;
+    /** What had arrived when I was made. */
+    after: typeof arrived;
+  }>();
+  // A paste is the latest text to come in until more arrives from outside.
+  const latest =
+    paste !== undefined && paste.after === arrived ? paste.rows : arrived;
   const inputs = useRef(new Map<string, HTMLDivElement>());
   const pendingFocus = useRef<string | undefined>(undefined);
 
@@ -96,7 +106,7 @@ export function IngredientRows({
               label={`${labelPrefix} ${index + 1}`}
               helpId={helpId}
               isDisabled={isDisabled}
-              pastedRow={pasted.get(row.clientId)}
+              pastedRow={latest?.get(row.clientId)}
               recognize={recognize}
               queue={queue}
               onChange={(raw, choice) =>
@@ -159,9 +169,12 @@ export function IngredientRows({
                     ? { clientId: row.clientId, raw }
                     : newIngredientDraft(raw),
                 );
-                setPasted(
-                  new Map(pastedRows.map((item) => [item.clientId, item])),
-                );
+                setPaste({
+                  rows: new Map(
+                    pastedRows.map((item) => [item.clientId, item]),
+                  ),
+                  after: arrived,
+                });
                 changeAndFocus(
                   [
                     ...rows.slice(0, index),

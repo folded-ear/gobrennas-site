@@ -1,0 +1,9 @@
+query photoJobs {
+  textract {
+    listJobs {
+      id
+      status
+      ...photoJob
+    }
+  }
+}

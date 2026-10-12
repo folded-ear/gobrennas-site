@@ -87,6 +87,8 @@ export type PageEngineApi = {
   update(): void;
   /** I forget what this device keeps of the user's shopping. */
   forgetDevice(): Promise<void>;
+  /** I'm told a photo job was created or retried, so the watched list is stale. */
+  jobsChanged(): void;
 };
 
 const PageEngineContext = createContext<Runner | null>(null);
@@ -185,6 +187,7 @@ export function usePageEngine(): PageEngineApi {
       install: () => post({ type: "install" }),
       update: () => post({ type: "update" }),
       forgetDevice: () => runner?.forget() ?? Promise.resolve(),
+      jobsChanged: () => post({ type: "jobsChanged" }),
     };
   }, [runner]);
 }
@@ -198,6 +201,16 @@ export function useWatchPlans(planIds: readonly string[]): void {
     runner?.post({ type: "watch", planIds: watched });
     return () => runner?.post({ type: "unwatch", planIds: watched });
   }, [runner, key]);
+}
+
+/** I keep the user's photo jobs current while the caller is mounted and asks. */
+export function useWatchJobs(active: boolean): void {
+  const runner = useContext(PageEngineContext);
+  useEffect(() => {
+    if (!active) return;
+    runner?.post({ type: "watchJobs" });
+    return () => runner?.post({ type: "unwatchJobs" });
+  }, [runner, active]);
 }
 
 /** What the server renders, before the engine has said anything. */

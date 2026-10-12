@@ -1,10 +1,12 @@
+import { TextractJobStatus } from "@/__generated__/graphql";
 import {
   CombinedGraphQLErrors,
   CombinedProtocolErrors,
   ServerError,
 } from "@apollo/client";
+import type { PollJobsQuery } from "./__generated__/pollJobs.generated";
 import { CHANGE_ROOTS } from "./roots";
-import type { PollOutcome, SendOutcome } from "./state";
+import type { JobsOutcome, PollOutcome, SendOutcome } from "./state";
 
 /** What a request came to: its result, or what it threw. */
 export type Answer =
@@ -86,4 +88,21 @@ export function pollOutcome(answer: Answer): PollOutcome {
     return { kind: "saved", data: "data" in answer ? answer.data : null };
   }
   return failure.kind === "refused" ? { kind: "refused" } : failure;
+}
+
+/** I tell what a jobs poll's answer means. */
+export function jobsOutcome(answer: Answer): JobsOutcome {
+  const failure = failureOfAnswer(answer);
+  if (failure !== null) {
+    return failure.kind === "unauthorized" ? failure : { kind: "failed" };
+  }
+  const jobs =
+    "data" in answer
+      ? (answer.data as PollJobsQuery | undefined)?.textract.listJobs
+      : undefined;
+  if (jobs === undefined) return { kind: "failed" };
+  return {
+    kind: "listed",
+    pending: jobs.some((it) => it.status === TextractJobStatus.PENDING),
+  };
 }

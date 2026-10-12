@@ -2,7 +2,7 @@
 
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { CreateRecipeDocument } from "./__generated__/createRecipe.generated";
-import { RecipeForm } from "./index";
+import { RecipeForm, type RecipeFormAdditions } from "./index";
 import {
   newRecipeDraft,
   toIngredientInfo,
@@ -10,7 +10,7 @@ import {
 } from "./recipe-draft";
 import { useRecipeFormServices } from "./use-recipe-form-services";
 
-type CreateRecipeFormProps = {
+type CreateRecipeFormProps = RecipeFormAdditions & {
   onCreated: (id: string) => void | Promise<void>;
   onCancel: () => void;
 };
@@ -18,6 +18,7 @@ type CreateRecipeFormProps = {
 export function CreateRecipeForm({
   onCreated,
   onCancel,
+  ...additions
 }: CreateRecipeFormProps) {
   const client = useApolloClient();
   const [createRecipe] = useMutation(CreateRecipeDocument);
@@ -44,6 +45,7 @@ export function CreateRecipeForm({
       initialDraft={newRecipeDraft()}
       onSubmit={submitRecipe}
       {...services}
+      {...additions}
       onCancel={onCancel}
     />
   );

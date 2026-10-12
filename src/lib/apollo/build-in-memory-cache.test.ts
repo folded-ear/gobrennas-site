@@ -249,3 +249,56 @@ describe("plan item status state", () => {
     });
   });
 });
+
+describe("photo jobs", () => {
+  const JOB_LIST = gql`
+    query jobList {
+      textract {
+        listJobs {
+          id
+          status
+        }
+      }
+    }
+  `;
+  const ONE_JOB = gql`
+    query oneJob($id: ID!) {
+      textract {
+        jobById(id: $id) {
+          id
+          lines {
+            text
+          }
+        }
+      }
+    }
+  `;
+  const RAVIOLI = { __typename: "TextractJob", id: "8777749749830" };
+
+  it("keeps the job list when a single job is read after it", () => {
+    const cache = buildInMemoryCache();
+    const list = {
+      textract: {
+        __typename: "TextractQuery",
+        listJobs: [{ ...RAVIOLI, status: "READY" }],
+      },
+    };
+    cache.writeQuery({ query: JOB_LIST, data: list });
+
+    cache.writeQuery({
+      query: ONE_JOB,
+      variables: { id: RAVIOLI.id },
+      data: {
+        textract: {
+          __typename: "TextractQuery",
+          jobById: {
+            ...RAVIOLI,
+            lines: [{ __typename: "TextractLine", text: "1 cup RICOTTA" }],
+          },
+        },
+      },
+    });
+
+    expect(cache.readQuery({ query: JOB_LIST })).toEqual(list);
+  });
+});

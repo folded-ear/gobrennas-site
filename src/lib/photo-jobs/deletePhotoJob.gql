@@ -1,0 +1,7 @@
+mutation deletePhotoJob($id: ID!) {
+  textract {
+    deleteJob(id: $id) {
+      id
+    }
+  }
+}

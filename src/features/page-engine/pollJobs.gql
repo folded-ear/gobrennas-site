@@ -1,0 +1,11 @@
+# What a jobs poll reads: whether any job is still pending, and what the
+# Photos screen shows of each.
+query pollJobs {
+  textract {
+    listJobs {
+      id
+      status
+      ...photoJob
+    }
+  }
+}

@@ -1,4 +1,5 @@
-import { render, screen, userEvent } from "@/test";
+import { useHistoryState } from "@/hooks/use-history-state";
+import { render, screen, userEvent, waitFor, within } from "@/test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Screen, useBlockScreenEscape } from "./screen";
 
@@ -8,13 +9,35 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ back }),
 }));
 
+const PHOTOS_KEY = "photos";
+
 beforeEach(() => {
   back.mockReset();
+  window.history.replaceState(null, "");
 });
 
 function EscapeBlocker({ isBlocked }: { isBlocked: boolean }) {
   useBlockScreenEscape(isBlocked);
   return <p>Roast the pumpkin first.</p>;
+}
+
+/** An editor screen that opens a second screen from inside itself. */
+function Editor() {
+  const photos = useHistoryState<true>(PHOTOS_KEY);
+  return (
+    <Screen label="Add Recipe">
+      <label>
+        Title
+        <input />
+      </label>
+      <button type="button" onClick={() => photos.push(true)}>
+        Photos
+      </button>
+      <Screen label="Photos" isOpen={photos.value === true}>
+        <p>Choose a photo of the recipe.</p>
+      </Screen>
+    </Screen>
+  );
 }
 
 describe("Screen", () => {
@@ -106,5 +129,54 @@ describe("Screen", () => {
     await userEvent.keyboard("{Escape}");
 
     expect(back).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("a Screen opened from inside another", () => {
+  beforeEach(() => {
+    back.mockImplementation(() => window.history.back());
+  });
+
+  async function openPhotosOver(title: string) {
+    render(<Editor />);
+    await userEvent.type(screen.getByRole("textbox", { name: "Title" }), title);
+    await userEvent.click(screen.getByRole("button", { name: "Photos" }));
+    return screen.findByRole("dialog", { name: "Photos" });
+  }
+
+  async function expectOnlyTheEditor(title: string) {
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Photos" })).toBeNull(),
+    );
+    const editor = screen.getByRole("dialog", { name: "Add Recipe" });
+    expect(within(editor).getByRole("textbox", { name: "Title" })).toHaveValue(
+      title,
+    );
+  }
+
+  it("shows as its own named dialog", async () => {
+    const photos = await openPhotosOver("Pumpkin pie");
+
+    expect(photos).toHaveTextContent("Choose a photo of the recipe.");
+  });
+
+  it("alone closes on Escape, leaving the first as it was", async () => {
+    await openPhotosOver("Pumpkin pie");
+
+    await userEvent.keyboard("{Escape}");
+
+    expect(back).toHaveBeenCalledTimes(1);
+    await expectOnlyTheEditor("Pumpkin pie");
+  });
+
+  it("alone closes by its close button, leaving the first as it was", async () => {
+    const photos = await openPhotosOver("Pumpkin pie");
+
+    await userEvent.click(
+      within(photos).getByRole("button", { name: /close/i }),
+    );
+
+    expect(back).toHaveBeenCalledTimes(1);
+    await expectOnlyTheEditor("Pumpkin pie");
   });
 });

@@ -1,7 +1,26 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { preparePhoto } from "./prepare-photo";
 import { soupPhoto, stubPhotoBrowser } from "./test/browser";
-import { MAX_PHOTO_BYTES } from "./types";
+import { MAX_PHOTO_BYTES, TEXT_EXTRACTION_TYPES } from "./types";
+
+const smallPhoto = (name: string, type: string) =>
+  new File(["a page of a cookbook"], name, { type });
+
+function stubCanvas(encodedBytes: number) {
+  const drawImage = vi.fn();
+  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+    fillStyle: "",
+    fillRect: vi.fn(),
+    drawImage,
+  } as unknown as CanvasRenderingContext2D);
+  vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation(
+    (callback) =>
+      callback(
+        new Blob([new Uint8Array(encodedBytes)], { type: "image/jpeg" }),
+      ),
+  );
+  return drawImage;
+}
 
 describe("preparing recipe photos", () => {
   let browser: ReturnType<typeof stubPhotoBrowser>;
@@ -72,6 +91,38 @@ describe("preparing recipe photos", () => {
     const [, , , width, height] = drawImage.mock.calls[0];
     expect(width).toBeLessThan(1600);
     expect(width / height).toBeCloseTo(4 / 3, 2);
+  });
+
+  it("keeps a small image of any accepted type, asked for nothing more", async () => {
+    const file = smallPhoto("ravioli.webp", "image/webp");
+
+    await expect(
+      preparePhoto(file, new AbortController().signal),
+    ).resolves.toBe(file);
+  });
+
+  it("keeps a small image its reader can read", async () => {
+    const file = smallPhoto("ravioli.png", "image/png");
+
+    await expect(
+      preparePhoto(file, new AbortController().signal, TEXT_EXTRACTION_TYPES),
+    ).resolves.toBe(file);
+  });
+
+  it("re-encodes a small image its reader can't read, at full size", async () => {
+    const drawImage = stubCanvas(50_000);
+
+    const prepared = await preparePhoto(
+      smallPhoto("ravioli.webp", "image/webp"),
+      new AbortController().signal,
+      TEXT_EXTRACTION_TYPES,
+    );
+
+    expect(prepared.type).toBe("image/jpeg");
+    expect(prepared.name).toBe("ravioli.jpg");
+    expect(prepared.size).toBe(50_000);
+    const [, , , width, height] = drawImage.mock.calls[0];
+    expect([width, height]).toEqual([1600, 1200]);
   });
 
   it("stops with a recoverable error if resizing cannot reach the limit", async () => {

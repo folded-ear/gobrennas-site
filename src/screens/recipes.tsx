@@ -2,16 +2,14 @@
 
 import { LibrarySearchScope } from "@/__generated__/graphql";
 import { RecipeFilter } from "@/components/filter";
-import { AddIcon } from "@/components/icons";
 import { SectionHeader } from "@/components/section-header";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { RecipeGrid } from "@/features/recipe-grid";
 import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { RecipesDocument } from "@/screens/__generated__/recipes.generated";
+import { LibraryAddRecipe } from "@/screens/library-add-recipe";
 import { useSuspenseQuery } from "@apollo/client/react";
-import { buttonVariants } from "@heroui/react";
-import Link from "next/link";
 import { useDeferredValue, useState } from "react";
 
 export function Recipes() {
@@ -38,13 +36,7 @@ export function Recipes() {
             onChange={setPlanIds}
             hideSingleName
           />
-          <Link
-            href="/recipes/new"
-            className={buttonVariants({ variant: "primary" })}
-          >
-            <AddIcon aria-hidden size="small" />
-            Add Recipe
-          </Link>
+          <LibraryAddRecipe />
         </div>
       </SectionHeader>
       <div className="flex flex-col gap-lg p-md">

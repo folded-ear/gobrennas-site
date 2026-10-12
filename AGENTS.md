@@ -49,7 +49,8 @@
   `src/features/`.
 - Keep feature-specific components, GraphQL operations, and tests together under `src/features/<feature-name>/`.
   Features should use fragments which are spread into their owning screens' query. Features should not import resources
-  from other features - abstract and reference, don't duplicate.
+  from other features - abstract and reference, don't duplicate. The exception is `page-engine`, designed for shared use
+  across a page.
 - Do not edit `__generated__/` files. Change the schema or `.gql` operation and run `pnpm run generate`.
 - Add request middleware by implementing the `Filter` type in `src/filters/` and registering it in the root `proxy.ts`
   chain.
