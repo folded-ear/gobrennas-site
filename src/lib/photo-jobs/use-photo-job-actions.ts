@@ -1,27 +1,45 @@
 "use client";
 
+import { usePageEngine } from "@/features/page-engine";
 import { useMutation } from "@apollo/client/react";
-import { useCallback } from "react";
+import { toast } from "@heroui/react";
+import { useCallback, useState } from "react";
 import { DeletePhotoJobDocument } from "./__generated__/deletePhotoJob.generated";
 import { RetryPhotoJobDocument } from "./__generated__/retryPhotoJob.generated";
 
 const JOB_TYPENAME = "TextractJob";
 
 /**
- * I give a way to have a failed photo job read again. It rejects when the
- * job isn't taken back.
+ * I give a way to have a failed photo job read again, and say whether
+ * that's under way. A job that isn't taken back is said so in a toast.
  */
-export function useRetryPhotoJob(): (id: string) => Promise<void> {
+export function useReadPhotoAgain(): {
+  readonly isRetrying: boolean;
+  readonly readAgain: (id: string) => Promise<void>;
+} {
+  const engine = usePageEngine();
   const [retry] = useMutation(RetryPhotoJobDocument);
-  return useCallback(
-    async (id) => {
-      const result = await retry({ variables: { id } });
-      if (result.data?.textract.retryJob.id !== id) {
-        throw new Error("No matching photo job was returned.");
+  const [isRetrying, setIsRetrying] = useState(false);
+  const readAgain = useCallback(
+    async (id: string) => {
+      setIsRetrying(true);
+      try {
+        const result = await retry({ variables: { id } });
+        if (result.data?.textract.retryJob.id !== id) {
+          throw new Error("No matching photo job was returned.");
+        }
+        engine.jobsChanged();
+      } catch {
+        toast.danger("Couldn’t read the photo again", {
+          description: "Please try again.",
+        });
+      } finally {
+        setIsRetrying(false);
       }
     },
-    [retry],
+    [engine, retry],
   );
+  return { isRetrying, readAgain };
 }
 
 /**

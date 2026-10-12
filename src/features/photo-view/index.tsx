@@ -1,17 +1,15 @@
 "use client";
 
 import { TextractJobStatus } from "@/__generated__/graphql";
-import { DeleteDialog } from "@/components/delete-dialog";
-import { usePageEngine, useWatchJobs } from "@/features/page-engine";
+import { DeletePhotoDialog } from "@/components/delete-photo-dialog";
+import { useWatchJobs } from "@/features/page-engine";
 import {
   noAllCaps,
   noAllCapsForProse,
   noAllCapsForTitle,
 } from "@/lib/no-all-caps";
-import {
-  useDeletePhotoJob,
-  useRetryPhotoJob,
-} from "@/lib/photo-jobs/use-photo-job-actions";
+import { PHOTO_UNREADABLE } from "@/lib/photo-jobs/messages";
+import { useReadPhotoAgain } from "@/lib/photo-jobs/use-photo-job-actions";
 import type { RecipeDraftWrites } from "@/lib/recipe-draft-writes";
 import { useQuery } from "@apollo/client/react";
 import {
@@ -22,7 +20,6 @@ import {
   Skeleton,
   TextArea,
   TextField,
-  toast,
 } from "@heroui/react";
 import { RotateCcw, RotateCw, X } from "lucide-react";
 import Image from "next/image";
@@ -56,7 +53,6 @@ const WHITESPACE_RUNS = /\s+/g;
 const UNKNOWN_ASPECT_RATIO = 4 / 3;
 /** The photo is the full width of a phone, and half of anything wider. */
 const PHOTO_SIZES = "(min-width: 48rem) 50vw, 100vw";
-const UNREADABLE = "Text couldn’t be read from this photo.";
 
 type PhotoViewProps = {
   jobId: string;
@@ -98,6 +94,13 @@ export function PhotoView({
   useEffect(() => {
     if (awaitsLines) loadLines();
   }, [awaitsLines]);
+  // Nothing held, asked for, or failed: the photo was deleted from under me.
+  const isGone =
+    job === undefined && !query.loading && query.error === undefined;
+  const close = useEffectEvent(onClose);
+  useEffect(() => {
+    if (isGone) close();
+  }, [isGone]);
 
   return (
     <section
@@ -136,7 +139,7 @@ export function PhotoView({
           />
         )
       ) : status === TextractJobStatus.ERROR ? (
-        <Unreadable job={job} onDeleted={onClose} />
+        <Unreadable job={job} />
       ) : job.lines === null || status !== TextractJobStatus.READY ? (
         <p role="status" className="text-sm text-muted">
           Reading text…
@@ -179,39 +182,20 @@ function Problem({
   );
 }
 
-function Unreadable({ job, onDeleted }: { job: Job; onDeleted: () => void }) {
-  const engine = usePageEngine();
-  const retry = useRetryPhotoJob();
-  const remove = useDeletePhotoJob();
-  const [isRetrying, setIsRetrying] = useState(false);
+function Unreadable({ job }: { job: Job }) {
+  const { isRetrying, readAgain } = useReadPhotoAgain();
   const [isAsking, setIsAsking] = useState(false);
-  const name = job.photo.filename;
-
-  async function readAgain() {
-    setIsRetrying(true);
-    try {
-      await retry(job.id);
-      engine.jobsChanged();
-    } catch {
-      toast.danger("Couldn’t read the photo again", {
-        description: "Please try again.",
-      });
-    } finally {
-      setIsRetrying(false);
-    }
-  }
-
   return (
     <Problem
       title="Couldn’t read this photo"
-      description={job.errorMessage ?? UNREADABLE}
+      description={job.errorMessage ?? PHOTO_UNREADABLE}
     >
       {job.retryable ? (
         <Button
           variant="secondary"
           isDisabled={isRetrying}
           onPress={() => {
-            void readAgain();
+            void readAgain(job.id);
           }}
         >
           Retry
@@ -220,21 +204,12 @@ function Unreadable({ job, onDeleted }: { job: Job; onDeleted: () => void }) {
       <Button variant="danger-soft" onPress={() => setIsAsking(true)}>
         Delete photo
       </Button>
-      <DeleteDialog
-        heading={`Delete “${name}”?`}
-        confirmLabel="Delete photo"
-        pendingLabel="Deleting photo"
-        failureTitle="Couldn’t delete photo"
-        failureDescription="The photo is still here. Try again, or cancel."
+      <DeletePhotoDialog
+        jobId={job.id}
+        name={job.photo.filename}
         isOpen={isAsking}
         onOpenChange={setIsAsking}
-        onDelete={async () => {
-          await remove(job.id);
-          onDeleted();
-        }}
-      >
-        <p>This permanently deletes the photo and the text read from it.</p>
-      </DeleteDialog>
+      />
     </Problem>
   );
 }

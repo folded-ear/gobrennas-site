@@ -396,6 +396,19 @@ describe("PhotoView", () => {
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
   });
 
+  it("closes once its photo is deleted from elsewhere", async () => {
+    const { cache, onClose } = renderView();
+    await overlay();
+
+    // As deleting the photo on the Photos screen leaves it.
+    cache.evict({
+      id: cache.identify({ __typename: "TextractJob", id: JOB_ID }),
+    });
+    cache.gc();
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  });
+
   it("offers another try when the photo can't be loaded", async () => {
     renderView({
       loads: [

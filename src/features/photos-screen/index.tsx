@@ -1,7 +1,7 @@
 "use client";
 
 import { TextractJobStatus } from "@/__generated__/graphql";
-import { DeleteDialog } from "@/components/delete-dialog";
+import { DeletePhotoDialog } from "@/components/delete-photo-dialog";
 import { DeleteIcon } from "@/components/icons";
 import { PhotoChooser } from "@/components/photo-chooser";
 import { Screen } from "@/components/screen";
@@ -10,14 +10,12 @@ import {
   PhotoJobFragment,
   PhotoJobFragmentDoc,
 } from "@/lib/photo-jobs/__generated__/photoJob.generated";
-import {
-  useDeletePhotoJob,
-  useRetryPhotoJob,
-} from "@/lib/photo-jobs/use-photo-job-actions";
+import { PHOTO_UNREADABLE } from "@/lib/photo-jobs/messages";
+import { useReadPhotoAgain } from "@/lib/photo-jobs/use-photo-job-actions";
 import { useUploadPhoto } from "@/lib/recipe-photo/use-upload-photo";
 import { FragmentType } from "@apollo/client";
 import { useFragment, useMutation, useQuery } from "@apollo/client/react";
-import { Alert, Button, Skeleton, toast } from "@heroui/react";
+import { Alert, Button, Skeleton } from "@heroui/react";
 import { X } from "lucide-react";
 import Image from "next/image";
 import {
@@ -33,7 +31,6 @@ import { jobToPick } from "./pick-for-user";
 import { type PhotoUpload, usePhotoUploads } from "./use-photo-uploads";
 
 const READING = "Reading text…";
-const UNREADABLE = "Text couldn’t be read from this photo.";
 /** A tile's photo is about half a phone wide, less on wider screens. */
 const TILE_SIZES = "(min-width: 64rem) 25vw, (min-width: 40rem) 33vw, 50vw";
 const LOADING_TILES = 3;
@@ -281,28 +278,11 @@ function JobTile({
     fragmentName: "photoJob",
     from: job,
   });
-  const engine = usePageEngine();
-  const retry = useRetryPhotoJob();
-  const remove = useDeletePhotoJob();
-  const [isRetrying, setIsRetrying] = useState(false);
+  const { isRetrying, readAgain } = useReadPhotoAgain();
   const [isAsking, setIsAsking] = useState(false);
   if (!complete) return null;
   const { id, status, photo } = data;
   const name = photo.filename;
-
-  async function readAgain() {
-    setIsRetrying(true);
-    try {
-      await retry(id);
-      engine.jobsChanged();
-    } catch {
-      toast.danger("Couldn’t read the photo again", {
-        description: "Please try again.",
-      });
-    } finally {
-      setIsRetrying(false);
-    }
-  }
 
   const picture = (
     <Image
@@ -342,7 +322,7 @@ function JobTile({
       ) : null}
       {status === TextractJobStatus.ERROR ? (
         <p role="alert" className="text-xs text-danger">
-          {data.errorMessage ?? UNREADABLE}
+          {data.errorMessage ?? PHOTO_UNREADABLE}
         </p>
       ) : null}
       <div className="flex items-center justify-end gap-xs">
@@ -353,7 +333,7 @@ function JobTile({
             aria-label={`Read ${name} again`}
             isDisabled={isRetrying}
             onPress={() => {
-              void readAgain();
+              void readAgain(id);
             }}
           >
             Retry
@@ -369,18 +349,12 @@ function JobTile({
           <DeleteIcon aria-hidden size="small" />
         </Button>
       </div>
-      <DeleteDialog
-        heading={`Delete “${name}”?`}
-        confirmLabel="Delete photo"
-        pendingLabel="Deleting photo"
-        failureTitle="Couldn’t delete photo"
-        failureDescription="The photo is still here. Try again, or cancel."
+      <DeletePhotoDialog
+        jobId={id}
+        name={name}
         isOpen={isAsking}
         onOpenChange={setIsAsking}
-        onDelete={() => remove(id)}
-      >
-        <p>This permanently deletes the photo and the text read from it.</p>
-      </DeleteDialog>
+      />
     </Tile>
   );
 }
