@@ -1,4 +1,4 @@
-import { PlanItemStatus } from "@/__generated__/graphql";
+import { PlanItemStatus, TextractJobStatus } from "@/__generated__/graphql";
 import { gql } from "@apollo/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PageLocks } from "./locks";
@@ -6,6 +6,8 @@ import { createRunner, Runner } from "./runner";
 import {
   Change,
   ChangeRecord,
+  JOBS_PENDING_INTERVAL_MS,
+  POLL_INTERVAL_MS,
   RenameChange,
   RETRY_BASE_MS,
   UNDO_WINDOW_MS,
@@ -601,5 +603,99 @@ describe("the runner's snapshot", () => {
     expect(memory.kept.snapshot).toBeNull();
     expect(deleted).toHaveBeenCalledWith("shopping-page");
     vi.unstubAllGlobals();
+  });
+});
+
+describe("the runner, watching photo jobs", () => {
+  const JOB_STATUS = gql`
+    fragment jobStatus on TextractJob {
+      status
+      errorMessage
+      photo {
+        filename
+      }
+    }
+  `;
+
+  const job = (status: TextractJobStatus) => ({
+    __typename: "TextractJob",
+    id: "8777749749830",
+    status,
+    errorMessage: null,
+    retryable: false,
+    photo: {
+      __typename: "FileInfo",
+      url: "https://photos.example/ravioli.jpg",
+      filename: "ravioli.jpg",
+    },
+  });
+
+  const jobPolls = () =>
+    api.requests.filter((it) => it.operation === "pollJobs");
+
+  const cachedJob = () =>
+    cache.readFragment({
+      id: "TextractJob:8777749749830",
+      fragment: JOB_STATUS,
+    });
+
+  it("asks for no jobs until they're watched", async () => {
+    vi.useFakeTimers();
+    start();
+
+    await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+
+    expect(jobPolls()).toEqual([]);
+  });
+
+  it("writes the watched jobs to the cache, soon again while one is pending", async () => {
+    vi.useFakeTimers();
+    api.jobs = [job(TextractJobStatus.PENDING)];
+    const { runner } = start();
+    await vi.advanceTimersByTimeAsync(0);
+
+    runner.post({ type: "watchJobs" });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(cachedJob()).toMatchObject({
+      status: "PENDING",
+      photo: { filename: "ravioli.jpg" },
+    });
+
+    api.jobs = [job(TextractJobStatus.READY)];
+    await vi.advanceTimersByTimeAsync(JOBS_PENDING_INTERVAL_MS);
+
+    expect(cachedJob()).toMatchObject({ status: "READY" });
+    expect(jobPolls()).toHaveLength(2);
+  });
+
+  it("waits the plans' interval once every job has settled", async () => {
+    vi.useFakeTimers();
+    api.jobs = [job(TextractJobStatus.READY)];
+    const { runner } = start();
+    await vi.advanceTimersByTimeAsync(0);
+    runner.post({ type: "watchJobs" });
+    await vi.advanceTimersByTimeAsync(0);
+
+    await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS - 1);
+    expect(jobPolls()).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(jobPolls()).toHaveLength(2);
+  });
+
+  it("asks again after an unreachable server, at the plans' interval", async () => {
+    vi.useFakeTimers();
+    api.mode = "unreachable";
+    const { runner } = start();
+    await vi.advanceTimersByTimeAsync(0);
+    runner.post({ type: "watchJobs" });
+    await vi.advanceTimersByTimeAsync(0);
+    api.mode = "save";
+    api.jobs = [job(TextractJobStatus.READY)];
+
+    await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+
+    expect(jobPolls()).toHaveLength(2);
+    expect(cachedJob()).toMatchObject({ status: "READY" });
   });
 });

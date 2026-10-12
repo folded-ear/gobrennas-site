@@ -1,6 +1,7 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { describe, expect, it } from "vitest";
 import {
+  JOBS_PENDING_INTERVAL_MS,
   POLL_INTERVAL_MS,
   REQUEST_TIMEOUT_MS,
   RETRY_BASE_MS,
@@ -108,5 +109,48 @@ describe("nextWake", () => {
 
     expect(nextWake(hidden)).toBeNull();
     expect(nextWake(offline)).toBeNull();
+  });
+
+  it("wakes to give up on a jobs poll out too long", () => {
+    const state = after(booted(), { type: "watchJobs", at: START });
+
+    expect(nextWake(state)).toBe(START + REQUEST_TIMEOUT_MS);
+  });
+
+  it("wakes for the next jobs poll, sooner while a job is pending", () => {
+    const watching = after(booted(), { type: "watchJobs", at: START });
+    const answered = (pending: boolean) =>
+      after(watching, {
+        type: "jobsPolled",
+        at: START + 100,
+        requestId: watching.jobs.flight!.id,
+        outcome: { kind: "listed", pending },
+      });
+
+    expect(nextWake(answered(true))).toBe(
+      START + 100 + JOBS_PENDING_INTERVAL_MS,
+    );
+    expect(nextWake(answered(false))).toBe(START + 100 + POLL_INTERVAL_MS);
+  });
+
+  it("doesn't wake to poll jobs nobody watches, or while hidden", () => {
+    const unwatched = after(
+      booted(),
+      { type: "watchJobs", at: START },
+      {
+        type: "jobsPolled",
+        at: START,
+        requestId: 1,
+        outcome: { kind: "failed" },
+      },
+      { type: "unwatchJobs", at: START },
+    );
+    const hidden = after(booted({ visible: false }), {
+      type: "watchJobs",
+      at: START,
+    });
+
+    expect(nextWake(unwatched)).toBeNull();
+    expect(nextWake(hidden)).toBeNull();
   });
 });

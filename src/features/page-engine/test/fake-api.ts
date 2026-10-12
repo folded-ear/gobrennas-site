@@ -108,6 +108,8 @@ export function fakeApi(cache: ApolloCache) {
     polled: [] as unknown[][],
     /** The plans the Shopping query answers with. */
     shopping: [] as unknown[],
+    /** The photo jobs a jobs poll answers with. */
+    jobs: [] as unknown[],
     requests,
     client: null as unknown as ApolloClient,
   };
@@ -144,6 +146,15 @@ export function fakeApi(cache: ApolloCache) {
           observer.next({
             data: null,
             errors: [{ message: "Nope", path: ["planner", "s0"] }],
+          });
+          observer.complete();
+          return;
+        }
+        if (operation.operationName === "pollJobs") {
+          observer.next({
+            data: {
+              textract: { __typename: "TextractQuery", listJobs: api.jobs },
+            },
           });
           observer.complete();
           return;

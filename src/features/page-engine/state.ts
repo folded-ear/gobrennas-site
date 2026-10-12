@@ -11,6 +11,8 @@ export const POLL_MARGIN_MS = POLL_INTERVAL_MS / 2;
 export const RETRY_BASE_MS = 2000;
 export const RETRY_MAX_MS = 60_000;
 export const REQUEST_TIMEOUT_MS = 20_000;
+/** How soon photo jobs are polled again while any is still pending. */
+export const JOBS_PENDING_INTERVAL_MS = 2000;
 
 /** One item's new status. */
 export type StatusChange = {
@@ -165,6 +167,28 @@ export type InFlight = {
   readonly retiring: readonly string[];
 };
 
+/** A poll of the user's photo jobs, now out. */
+export type JobsFlight = {
+  readonly id: number;
+  /** When the request is given up on. */
+  readonly deadline: number;
+  readonly startedAt: number;
+};
+
+/**
+ * The page's watch on the user's photo jobs. Its polls share nothing with
+ * the request the engine has out for plans.
+ */
+export type JobsWatch = {
+  /** How many mounted components watch the jobs. */
+  readonly watchers: number;
+  /** When the next poll is due. */
+  readonly dueAt: number;
+  /** When a job was last created or retried here. */
+  readonly changedAt: number;
+  readonly flight: JobsFlight | null;
+};
+
 export type Lifecycle = "booting" | "running" | "frozen" | "restoring";
 
 export type State = {
@@ -197,6 +221,7 @@ export type State = {
   readonly renderedAt: number;
   /** When the next poll is due. */
   readonly pollDueAt: number;
+  readonly jobs: JobsWatch;
   /** Whether the browser's install prompt is held, ready to show. */
   readonly installable: boolean;
   /** Whether a new version of the app is installed and waiting. */
@@ -228,6 +253,12 @@ export type PollOutcome =
   | { readonly kind: "unreachable" }
   | { readonly kind: "unauthorized" };
 
+export type JobsOutcome =
+  /** The jobs were listed; pending tells whether any is yet to finish. */
+  | { readonly kind: "listed"; readonly pending: boolean }
+  | { readonly kind: "failed" }
+  | { readonly kind: "unauthorized" };
+
 type At = { readonly at: number };
 
 export type Event = At &
@@ -254,6 +285,15 @@ export type Event = At &
     | { readonly type: "flush" }
     | { readonly type: "watch"; readonly planIds: readonly string[] }
     | { readonly type: "unwatch"; readonly planIds: readonly string[] }
+    | { readonly type: "watchJobs" }
+    | { readonly type: "unwatchJobs" }
+    /** A photo job was created or retried, so the list is out of date. */
+    | { readonly type: "jobsChanged" }
+    | {
+        readonly type: "jobsPolled";
+        readonly requestId: number;
+        readonly outcome: JobsOutcome;
+      }
     | { readonly type: "online" }
     | { readonly type: "offline" }
     | { readonly type: "visible" }
@@ -317,6 +357,8 @@ export type Effect =
       readonly requests: readonly PollRequest[];
     }
   | { readonly kind: "seed"; readonly requestId: number }
+  | { readonly kind: "pollJobs"; readonly requestId: number }
+  | { readonly kind: "abortJobs" }
   /** Snapshot the cache, whose newest data was read at takenAt. */
   | { readonly kind: "snapshot"; readonly takenAt: number }
   | { readonly kind: "abort" }

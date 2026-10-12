@@ -8,6 +8,7 @@ import {
   Effect,
   Event,
   InFlight,
+  JOBS_PENDING_INTERVAL_MS,
   Pending,
   POLL_INTERVAL_MS,
   POLL_MARGIN_MS,
@@ -62,6 +63,7 @@ export function initialState({
     cutoffs: {},
     renderedAt,
     pollDueAt: 0,
+    jobs: { watchers: 0, dueAt: 0, changedAt: 0, flight: null },
     installable: false,
     updateWaiting: false,
     seedWanted: false,
@@ -190,6 +192,8 @@ export function step(
   releaseExpired(s);
   checkDeadline(s);
   dispatch(s);
+  checkJobsDeadline(s);
+  pollJobs(s);
   const result = s.finish();
   return samePending(result.state.pending, state.pending)
     ? { ...result, state: { ...result.state, pending: state.pending } }
@@ -265,6 +269,36 @@ function handle(s: Stepping, event: Event) {
         w.watched = count > 1 ? { ...rest, [planId]: count - 1 } : rest;
       }
       return;
+    case "watchJobs":
+      w.jobs = {
+        ...w.jobs,
+        watchers: w.jobs.watchers + 1,
+        dueAt:
+          w.jobs.watchers === 0 ? Math.min(w.jobs.dueAt, at) : w.jobs.dueAt,
+      };
+      return;
+    case "unwatchJobs":
+      w.jobs = { ...w.jobs, watchers: Math.max(0, w.jobs.watchers - 1) };
+      return;
+    case "jobsChanged":
+      w.jobs = { ...w.jobs, changedAt: at, dueAt: Math.min(w.jobs.dueAt, at) };
+      return;
+    case "jobsPolled": {
+      const flight = w.jobs.flight;
+      if (flight?.id !== event.requestId) return;
+      const { outcome } = event;
+      if (outcome.kind === "unauthorized") w.authorized = false;
+      const soon = outcome.kind === "listed" && outcome.pending;
+      w.jobs = {
+        ...w.jobs,
+        flight: null,
+        dueAt:
+          w.jobs.changedAt >= flight.startedAt
+            ? at
+            : at + (soon ? JOBS_PENDING_INTERVAL_MS : POLL_INTERVAL_MS),
+      };
+      return;
+    }
     case "online":
       w.online = true;
       reconnect(s);
@@ -290,6 +324,10 @@ function handle(s: Stepping, event: Event) {
       if (!event.persisted || w.lifecycle !== "running") return;
       w.lifecycle = "frozen";
       s.emit({ kind: "freeze" });
+      if (w.jobs.flight !== null) {
+        w.jobs = { ...w.jobs, flight: null, dueAt: at };
+        s.emit({ kind: "abortJobs" });
+      }
       return;
     case "pageshow":
       if (!event.persisted || w.lifecycle !== "frozen") return;
@@ -472,6 +510,7 @@ function reconnect(s: Stepping) {
   w.failures = 0;
   w.retryAt = 0;
   w.pollDueAt = Math.min(w.pollDueAt, at);
+  w.jobs = { ...w.jobs, dueAt: Math.min(w.jobs.dueAt, at) };
 }
 
 function backOff(s: Stepping) {
@@ -487,6 +526,35 @@ function checkDeadline(s: Stepping) {
   if (at < w.inFlight.deadline) return;
   w.inFlight = { ...w.inFlight, abort: "timeout" };
   s.emit({ kind: "abort" });
+}
+
+function checkJobsDeadline(s: Stepping) {
+  const { w, at } = s;
+  if (w.jobs.flight === null || at < w.jobs.flight.deadline) return;
+  w.jobs = { ...w.jobs, flight: null, dueAt: at + POLL_INTERVAL_MS };
+  s.emit({ kind: "abortJobs" });
+}
+
+/** I ask for the user's photo jobs, whatever else is out. */
+function pollJobs(s: Stepping) {
+  const { w, at } = s;
+  if (
+    w.jobs.flight !== null ||
+    w.jobs.watchers === 0 ||
+    w.lifecycle !== "running" ||
+    !w.online ||
+    !w.authorized ||
+    !w.visible ||
+    at < w.jobs.dueAt
+  ) {
+    return;
+  }
+  const id = ++w.lastRequestId;
+  w.jobs = {
+    ...w.jobs,
+    flight: { id, deadline: at + REQUEST_TIMEOUT_MS, startedAt: at },
+  };
+  s.emit({ kind: "pollJobs", requestId: id });
 }
 
 function answered(s: Stepping, flight: InFlight, outcome: SendOutcome) {

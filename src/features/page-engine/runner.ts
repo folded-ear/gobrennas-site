@@ -1,6 +1,7 @@
 import { ShoppingDocument } from "@/screens/__generated__/shopping.generated";
 import { SHOPPING_PAGE_CACHE } from "@/worker/cache-names";
 import type { ApolloClient } from "@apollo/client";
+import { PollJobsDocument } from "./__generated__/pollJobs.generated";
 import {
   evictDraft,
   writeDraft,
@@ -9,7 +10,7 @@ import {
 } from "./cache-writes";
 import type { PageLocks } from "./locks";
 import { changeMutation, pollQuery } from "./mutation";
-import { pollOutcome, sendOutcome } from "./outcome";
+import { jobsOutcome, pollOutcome, sendOutcome } from "./outcome";
 import {
   isKnownChange,
   type Change,
@@ -124,6 +125,8 @@ export function createRunner({
   let timer: ReturnType<typeof setTimeout> | undefined;
   /** The request out, and which of the engine's it is. */
   let request: { id: number; controller: AbortController } | null = null;
+  /** The jobs poll out, if any. */
+  let jobsRequest: AbortController | null = null;
   let storing: Promise<unknown> = Promise.resolve();
   const waiting = new Map<string, (id: string | null) => void>();
   const listeners = new Set<() => void>();
@@ -244,6 +247,29 @@ export function createRunner({
           .then((outcome) => post({ type: "polled", requestId, outcome }));
         return;
       }
+      case "pollJobs": {
+        const { requestId } = effect;
+        if (!running) return;
+        const controller = new AbortController();
+        jobsRequest = controller;
+        client
+          .query({
+            query: PollJobsDocument,
+            // The answer goes to the cache, where the jobs are read from.
+            fetchPolicy: "network-only",
+            context: { fetchOptions: { signal: controller.signal } },
+          })
+          .then(
+            ({ data }) => jobsOutcome({ data }),
+            (thrown: unknown) => jobsOutcome({ thrown }),
+          )
+          .then((outcome) => post({ type: "jobsPolled", requestId, outcome }));
+        return;
+      }
+      case "abortJobs":
+        jobsRequest?.abort();
+        jobsRequest = null;
+        return;
       case "seed": {
         const { requestId } = effect;
         if (!running) return;
@@ -419,6 +445,8 @@ export function createRunner({
     clearTimeout(timer);
     request?.controller.abort();
     request = null;
+    jobsRequest?.abort();
+    jobsRequest = null;
     window.removeEventListener("online", onOnline);
     window.removeEventListener("offline", onOffline);
     document.removeEventListener("visibilitychange", onVisibility);

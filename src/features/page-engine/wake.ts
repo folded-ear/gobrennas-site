@@ -21,5 +21,16 @@ export function nextWake(state: State): number | null {
       times.push(Math.max(state.retryAt, state.pollDueAt));
     }
   }
+  if (state.jobs.flight !== null) {
+    times.push(state.jobs.flight.deadline);
+  } else if (
+    state.lifecycle === "running" &&
+    state.online &&
+    state.authorized &&
+    state.visible &&
+    state.jobs.watchers > 0
+  ) {
+    times.push(state.jobs.dueAt);
+  }
   return times.length === 0 ? null : Math.min(...times);
 }
