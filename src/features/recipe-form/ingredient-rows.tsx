@@ -28,6 +28,8 @@ import type { RecognitionQueue } from "./recognition-queue";
 type IngredientRowsProps = {
   labelPrefix?: string;
   rows: IngredientDraft[];
+  /** Rows whose text came from outside me, recognized as a paste is. */
+  arrived?: ReadonlyMap<string, { raw: string }>;
   onChange: (
     rows: SetStateAction<IngredientDraft[]>,
     source?: "edit" | "recognition",
@@ -40,6 +42,7 @@ type IngredientRowsProps = {
 export function IngredientRows({
   labelPrefix = "Ingredient",
   rows,
+  arrived,
   onChange,
   isDisabled,
   recognize,
@@ -96,7 +99,7 @@ export function IngredientRows({
               label={`${labelPrefix} ${index + 1}`}
               helpId={helpId}
               isDisabled={isDisabled}
-              pastedRow={pasted.get(row.clientId)}
+              pastedRow={pasted.get(row.clientId) ?? arrived?.get(row.clientId)}
               recognize={recognize}
               queue={queue}
               onChange={(raw, choice) =>

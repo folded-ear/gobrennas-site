@@ -1,7 +1,9 @@
 import { editableMorsel } from "@/features/morsel/test/editing";
+import type { RecipeDraftWrites } from "@/lib/recipe-draft-writes";
 import { render, screen, userEvent, waitFor } from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeForm } from "./index";
+import type { RecognizeIngredient } from "./ingredient-recognition";
 import type { RecipeDraft } from "./recipe-draft";
 
 const INITIAL_DRAFT: RecipeDraft = {
@@ -533,5 +535,154 @@ describe("recipe label save lifecycle", () => {
         screen.getByRole("button", { name: /Recipe labels/ }),
       ).toBeEnabled(),
     );
+  });
+});
+
+describe("writes from outside the form", () => {
+  /** Stands in for the photo view: one button per write. */
+  function PhotoText({
+    writes,
+    isDisabled,
+  }: {
+    writes: RecipeDraftWrites;
+    isDisabled: boolean;
+  }) {
+    return (
+      <>
+        <button
+          type="button"
+          disabled={isDisabled}
+          onClick={() => writes.setTitle("Radicchio Tortelloni")}
+        >
+          Set Title
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            writes.appendIngredients(["1 cup ricotta", "2 large egg yolks"])
+          }
+        >
+          Add Ingredients
+        </button>
+        <button
+          type="button"
+          onClick={() => writes.appendDirections("Bring the cream to a boil.")}
+        >
+          Add Directions
+        </button>
+      </>
+    );
+  }
+
+  function renderWithWrites(
+    recognizeIngredient: RecognizeIngredient = async (raw, cursor) => ({
+      raw,
+      cursor,
+      ranges: [],
+    }),
+  ) {
+    const onSubmit = vi
+      .fn<(draft: RecipeDraft) => Promise<void>>()
+      .mockResolvedValue(undefined);
+    render(
+      <RecipeForm
+        heading="Add Recipe"
+        initialDraft={INITIAL_DRAFT}
+        recognizeIngredient={recognizeIngredient}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+        headerActions={<button type="button">Photos</button>}
+        aboveFields={(writes, isDisabled) => (
+          <PhotoText writes={writes} isDisabled={isDisabled} />
+        )}
+      />,
+    );
+    return { onSubmit };
+  }
+
+  it("shows the header actions it's given, and what goes above its fields", () => {
+    renderWithWrites();
+
+    expect(screen.getByRole("button", { name: "Photos" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Set Title" })).toBeEnabled();
+  });
+
+  it("takes a title, which makes the recipe saveable", async () => {
+    const user = userEvent.setup();
+    renderWithWrites();
+
+    await user.click(screen.getByRole("button", { name: "Set Title" }));
+
+    expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(
+      "Radicchio Tortelloni",
+    );
+    expect(screen.getByRole("button", { name: "Save recipe" })).toBeEnabled();
+  });
+
+  it("takes ingredients into a blank last row and on, recognizing each", async () => {
+    const user = userEvent.setup();
+    const recognize = vi.fn<RecognizeIngredient>(async (raw, cursor) => ({
+      raw,
+      cursor,
+      ranges: [],
+    }));
+    renderWithWrites(recognize);
+
+    await user.click(screen.getByRole("button", { name: "Add Ingredients" }));
+
+    expect(editableMorsel("Ingredient 1")).toHaveTextContent("1 cup ricotta");
+    expect(editableMorsel("Ingredient 2")).toHaveTextContent(
+      "2 large egg yolks",
+    );
+    await waitFor(() =>
+      expect(recognize.mock.calls.map(([raw]) => raw)).toEqual(
+        expect.arrayContaining(["1 cup ricotta", "2 large egg yolks"]),
+      ),
+    );
+  });
+
+  it("takes directions after those already written", async () => {
+    const user = userEvent.setup();
+    renderWithWrites();
+    const directions = screen.getByRole("textbox", { name: "Directions" });
+    await user.type(directions, "Make the filling.");
+
+    await user.click(screen.getByRole("button", { name: "Add Directions" }));
+
+    expect(directions).toHaveValue(
+      "Make the filling.\n\nBring the cream to a boil.",
+    );
+  });
+
+  it("saves what was written like anything typed", async () => {
+    const user = userEvent.setup();
+    const { onSubmit } = renderWithWrites();
+    await user.click(screen.getByRole("button", { name: "Set Title" }));
+    await user.click(screen.getByRole("button", { name: "Add Ingredients" }));
+    await user.click(screen.getByRole("button", { name: "Add Directions" }));
+
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({
+      title: "Radicchio Tortelloni",
+      directions: "Bring the cream to a boil.",
+      ingredients: [{ raw: "1 cup ricotta" }, { raw: "2 large egg yolks" }],
+    });
+  });
+
+  it("tells what's above its fields when it's saving", async () => {
+    const user = userEvent.setup();
+    const saving = createDeferred();
+    const { onSubmit } = renderWithWrites();
+    onSubmit.mockReturnValue(saving.promise);
+    await user.click(screen.getByRole("button", { name: "Set Title" }));
+
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Set Title" })).toBeDisabled(),
+    );
+    saving.resolve();
   });
 });

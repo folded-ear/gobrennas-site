@@ -5,12 +5,14 @@ import { SectionHeader } from "@/components/section-header";
 import { LabelEditor, type LabelSuggestions } from "@/features/label-editor";
 import { PhotoEditor } from "@/features/recipe-photo-editor";
 import { usePhotoUpload } from "@/features/recipe-photo-editor/use-photo-upload";
+import type { RecipeDraftWrites } from "@/lib/recipe-draft-writes";
 import type { SavedPhoto, UploadPhoto } from "@/lib/recipe-photo/types";
 import { Alert, Button, Form, Spinner } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { DeleteRecipeButton } from "./delete-recipe-button";
+import { appendDirectionsText, appendIngredientLines } from "./draft-writes";
 import { RecipeFormError } from "./edit-recipe-draft";
 import type { RecognizeIngredient } from "./ingredient-recognition";
 import { IngredientRows } from "./ingredient-rows";
@@ -18,7 +20,15 @@ import { OwnedSections } from "./owned-sections";
 import { recipeDraftSchema, type RecipeDraft } from "./recipe-draft";
 import { createRecognitionQueue } from "./recognition-queue";
 
-type RecipeFormProps = {
+/** What a screen may add to the form: controls, and content that writes. */
+export type RecipeFormAdditions = {
+  /** Shown in my header, before Save and Cancel. */
+  headerActions?: ReactNode;
+  /** I render what goes above my fields, given how to write to my draft. */
+  aboveFields?: (writes: RecipeDraftWrites, isDisabled: boolean) => ReactNode;
+};
+
+type RecipeFormProps = RecipeFormAdditions & {
   heading: string;
   initialDraft: RecipeDraft;
   onSubmit: (draft: RecipeDraft) => Promise<void>;
@@ -40,12 +50,15 @@ export function RecipeForm({
   labelSuggestions,
   uploadPhoto,
   existingPhoto,
+  headerActions,
+  aboveFields,
 }: RecipeFormProps) {
   const {
     control,
     handleSubmit,
     getValues,
-    formState: { isSubmitting },
+    setValue,
+    formState: { isSubmitting, isSubmitted },
   } = useForm<RecipeDraft>({
     defaultValues: initialDraft,
     resolver: zodResolver(recipeDraftSchema, undefined, { raw: true }),
@@ -58,10 +71,36 @@ export function RecipeForm({
   const [saveErrorMessage, setSaveErrorMessage] = useState<string>();
   const isSubmittingRef = useRef(false);
   const photoUpload = usePhotoUpload(uploadPhoto, existingPhoto);
+  const [arrived, setArrived] = useState<ReadonlyMap<string, { raw: string }>>(
+    new Map(),
+  );
 
   function clearSaveFailure(): void {
     setHasSaveFailure(false);
   }
+
+  // Written as typing writes: dirty, and rechecked once a save was tried.
+  const written = { shouldDirty: true, shouldValidate: isSubmitted };
+  const writes: RecipeDraftWrites = {
+    setTitle(text) {
+      setValue("title", text, written);
+      clearSaveFailure();
+    },
+    appendIngredients(lines) {
+      const next = appendIngredientLines(getValues("ingredients"), lines);
+      setValue("ingredients", next.rows, written);
+      setArrived(new Map(next.arrived.map((it) => [it.clientId, it])));
+      clearSaveFailure();
+    },
+    appendDirections(text) {
+      setValue(
+        "directions",
+        appendDirectionsText(getValues("directions"), text),
+        written,
+      );
+      clearSaveFailure();
+    },
+  };
 
   async function submitRecipe(draft: RecipeDraft): Promise<void> {
     clearSaveFailure();
@@ -104,6 +143,7 @@ export function RecipeForm({
     >
       <SectionHeader title={heading}>
         <div className="flex shrink-0 gap-sm">
+          {headerActions}
           <Button
             isDisabled={
               isSubmitting ||
@@ -147,6 +187,8 @@ export function RecipeForm({
           </Alert>
         ) : null}
 
+        {aboveFields?.(writes, isSubmitting)}
+
         <FormTextField
           control={control}
           name="title"
@@ -183,6 +225,7 @@ export function RecipeForm({
               render={({ field }) => (
                 <IngredientRows
                   rows={field.value}
+                  arrived={arrived}
                   queue={recognitionQueue}
                   recognize={recognizeIngredient}
                   onChange={(rows, source) => {
