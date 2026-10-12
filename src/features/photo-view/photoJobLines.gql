@@ -1,0 +1,23 @@
+query photoJobLines($id: ID!) {
+  textract {
+    jobById(id: $id) {
+      id
+      status
+      errorMessage
+      retryable
+      photo {
+        url
+        filename
+      }
+      lines {
+        text
+        box {
+          left
+          top
+          width
+          height
+        }
+      }
+    }
+  }
+}
