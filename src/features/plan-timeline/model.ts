@@ -1,6 +1,5 @@
-import { canonBucketName } from "@/features/plan-dnd/moves";
 import { PlanItemFragment } from "@/features/plan-item/__generated__/planItem.generated";
-import { isNamedBucket } from "@/lib/buckets";
+import { canonBucketName, isNamedBucket } from "@/lib/buckets";
 import { addDays, diffDays } from "@/lib/dates";
 import { FragmentType } from "@apollo/client";
 import { TimelineItemFragment } from "./__generated__/timelineItem.generated";

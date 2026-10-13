@@ -19,3 +19,8 @@ export function bucketLabel(name: string | null, date: string | null): string {
   }
   return date === null ? name : `${name} – ${formatDayLabel(date)}`;
 }
+
+/** I give a bucket name as it compares: case and spacing aside. */
+export function canonBucketName(name: string): string {
+  return name.trim().replace(/\s+/g, " ").toLowerCase();
+}

@@ -73,7 +73,13 @@ function snapshot(
     },
   };
 }
-function Harness({ initial }: { initial: BucketAction }) {
+function Harness({
+  initial,
+  plans = [plan],
+}: {
+  initial: BucketAction;
+  plans?: BucketPlan[];
+}) {
   const [action, setAction] = useState<BucketAction | null>(initial);
   const { data } = useQuery<ReturnType<typeof snapshot>>(query);
   return (
@@ -81,7 +87,7 @@ function Harness({ initial }: { initial: BucketAction }) {
       {action ? (
         <BucketDialog
           action={action}
-          plans={[plan]}
+          plans={plans}
           onClose={() => setAction(null)}
         />
       ) : null}
@@ -242,6 +248,95 @@ describe("bucket management", () => {
     expect(screen.getByLabelText("Name")).toHaveValue("Dinner");
   });
 
+  it.each(["create", "edit"] as const)(
+    "rejects a duplicate name during %s, regardless of case, spacing, or date",
+    async (kind) => {
+      const onClose = vi.fn();
+      const conflicting = { ...bucket, id: "brunch", name: "Brunch Club" };
+      render(
+        <BucketDialog
+          action={
+            kind === "create"
+              ? { kind, date: "2026-10-13" }
+              : { kind, planId: plan.id, bucket }
+          }
+          plans={[{ ...plan, buckets: [bucket, conflicting] }]}
+          onClose={onClose}
+        />,
+      );
+      await userEvent.clear(screen.getByLabelText("Name"));
+      await userEvent.type(screen.getByLabelText("Name"), " brunch   CLUB ");
+      await userEvent.click(
+        screen.getByRole("button", {
+          name: kind === "create" ? "Add Bucket" : "Save",
+        }),
+      );
+      expect(
+        await screen.findByText(
+          "This plan already has a bucket named Brunch Club.",
+        ),
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText("Name")).toHaveFocus();
+      expect(screen.getByLabelText("Name")).toHaveValue(" brunch   CLUB ");
+      expect(onClose).not.toHaveBeenCalled();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      await userEvent.clear(screen.getByLabelText("Name"));
+      await userEvent.type(screen.getByLabelText("Name"), "Dinner");
+      await waitFor(() =>
+        expect(
+          screen.queryByText(
+            "This plan already has a bucket named Brunch Club.",
+          ),
+        ).not.toBeInTheDocument(),
+      );
+    },
+  );
+
+  it("allows an unchanged name when editing, even if another plan uses it", async () => {
+    render(
+      <Harness
+        initial={{ kind: "edit", planId: plan.id, bucket }}
+        plans={[
+          plan,
+          { ...plan, id: "other", buckets: [{ ...bucket, id: "other-b" }] },
+        ]}
+      />,
+      {
+        mocks: [
+          { request: { query }, result: { data: snapshot() } },
+          {
+            request: {
+              query: UpdateNamedBucketDocument,
+              variables: {
+                planId: plan.id,
+                bucketId: bucket.id,
+                name: bucket.name,
+                date: null,
+              },
+            },
+            result: {
+              data: {
+                planner: {
+                  __typename: "PlannerMutation",
+                  bucket: { ...bucket, date: null },
+                },
+              },
+            },
+          },
+          {
+            request: { query },
+            result: { data: snapshot([{ ...bucket, date: null }]) },
+          },
+        ],
+      },
+    );
+    await userEvent.clear(screen.getByLabelText("Date"));
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+  });
+
   it("renames a bucket and clears its date", async () => {
     const edited = { ...bucket, name: "Holiday", date: null };
     render(<Harness initial={{ kind: "edit", planId: "p", bucket }} />, {
@@ -298,13 +393,18 @@ describe("bucket management", () => {
       ],
     });
     expect(screen.getByText(/Recipes and items will stay/)).toBeInTheDocument();
+    expect(
+      await screen.findByText("Grilled Burgers: bucketed"),
+    ).toBeInTheDocument();
     await userEvent.click(
       screen.getByRole("button", { name: "Remove Bucket" }),
     );
     await waitFor(() =>
       expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument(),
     );
-    expect(screen.getByText("Grilled Burgers: Unplanned")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Grilled Burgers: Unplanned"),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Columbus Day")).not.toBeInTheDocument();
   });
 });

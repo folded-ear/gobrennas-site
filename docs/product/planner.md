@@ -264,6 +264,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   the plan for each action; each action changes only that plan's bucket.
 - Removing a bucket requires confirmation. Its items stay in the plan, inheriting
   their parent's section or returning to Unplanned. Removing does not delete recipes.
+- A bucket name must be unique within its plan, ignoring case and extra spacing.
+  A name already in use is reported beside the name field before saving.
 - Failed saves or removals keep the dialog open and offer another try. A failed
   save preserves the entered name and date.
 

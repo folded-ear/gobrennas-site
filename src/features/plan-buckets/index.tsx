@@ -3,6 +3,7 @@
 import { DeleteDialog } from "@/components/delete-dialog";
 import { FormTextField } from "@/components/form-text-field";
 import { PlanPicker } from "@/features/plan-picker";
+import { canonBucketName } from "@/lib/buckets";
 import { canAdministerPlan } from "@/lib/plans";
 import { useMutation } from "@apollo/client/react";
 import { Button, Dropdown, Label, Modal } from "@heroui/react";
@@ -102,15 +103,33 @@ export function BucketDialog({
   const [create] = useMutation(CreateNamedBucketDocument);
   const [update] = useMutation(UpdateNamedBucketDocument);
   const [remove] = useMutation(RemoveNamedBucketDocument);
+  const plan = eligible.find((plan) => plan.id === planId);
   const form = useForm<z.input<typeof schema>>({
-    resolver: zodResolver(schema, undefined, { raw: true }),
+    resolver: zodResolver(
+      schema.superRefine((values, context) => {
+        const duplicate = plan?.buckets.find(
+          (bucket) =>
+            bucket.name !== null &&
+            (action.kind === "create" || bucket.id !== action.bucket.id) &&
+            canonBucketName(bucket.name) === canonBucketName(values.name),
+        );
+        if (duplicate) {
+          context.addIssue({
+            code: "custom",
+            path: ["name"],
+            message: `This plan already has a bucket named ${duplicate.name?.trim()}.`,
+          });
+        }
+      }),
+      undefined,
+      { raw: true },
+    ),
     defaultValues: {
       name: action.kind === "create" ? "" : (action.bucket.name ?? ""),
       date: (action.kind === "create" ? action.date : action.bucket.date) ?? "",
     },
   });
   const pending = form.formState.isSubmitting;
-  const plan = eligible.find((plan) => plan.id === planId);
 
   if (action.kind === "remove")
     return (
@@ -224,6 +243,7 @@ export function BucketDialog({
                   onChange={(ids) => {
                     if (!pending) {
                       setPlanId(ids[0]);
+                      form.clearErrors("name");
                       setError(null);
                     }
                   }}

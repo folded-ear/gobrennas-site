@@ -1,4 +1,4 @@
-import { isNamedBucket } from "@/lib/buckets";
+import { canonBucketName, isNamedBucket } from "@/lib/buckets";
 
 /** Anything with an id and ordered child ids: a plan, or one of its items. */
 export type TreeSource = {
@@ -169,11 +169,6 @@ export function bucketForName(
         canonBucketName(b.name) === canon,
     )?.id ?? null
   );
-}
-
-/** I give a bucket name as it compares: case and spacing aside. */
-export function canonBucketName(name: string): string {
-  return name.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 /** What a bucket assignment really touches, once redundant copies fold away. */
