@@ -1,0 +1,37 @@
+mutation CreateNamedBucket($planId: ID!, $name: String!, $date: Date) {
+  planner {
+    createBucket(planId: $planId, name: $name, date: $date) {
+      id
+      name
+      date
+    }
+  }
+}
+
+mutation UpdateNamedBucket(
+  $planId: ID!
+  $bucketId: ID!
+  $name: String!
+  $date: Date
+) {
+  planner {
+    updateBucket(
+      planId: $planId
+      bucketId: $bucketId
+      name: $name
+      date: $date
+    ) {
+      id
+      name
+      date
+    }
+  }
+}
+
+mutation RemoveNamedBucket($planId: ID!, $bucketId: ID!) {
+  planner {
+    deleteBucket(planId: $planId, bucketId: $bucketId) {
+      id
+    }
+  }
+}

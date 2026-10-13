@@ -232,8 +232,11 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Adding from the timeline
 
-- Each day, named bucket, and Unplanned section has an Add button when the user
-  can add there. It opens the shared Morsel editor with pantry, recipe, and section
+- Each day, named bucket, and Unplanned section has a + Add button in its header
+  when the user can add there. A day offers Add Recipe and, when the user can
+  administer a selected plan, Add Bucket. Add Recipe opens the inline Morsel editor
+  beneath the section’s items, focusing it and scrolling it into view when needed.
+  The editor offers pantry, recipe, and section
   suggestions. Choosing a suggestion preserves its identity when saved, including
   suggestions with the same name. A leading `!` skips recognition.
 - When several eligible plans are shown, a plan picker chooses where the new item
@@ -249,6 +252,20 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - Cancel discards the draft. A plain item appears in its section at once,
   bucket included; see [Saving changes](#saving-changes). A failure while
   making a missing bucket or adding a recipe keeps the text.
+
+### Managing named buckets
+
+- Add Bucket starts with the day's date and asks for a name. The date can be
+  changed or cleared. When several selected plans can be administered, a plan
+  picker chooses which plan owns the bucket.
+- A named bucket's header has a separate menu for Edit Bucket and Remove Bucket
+  when the user can administer its plan. Edit changes its name and optional date.
+- When a section groups buckets from several plans, the management menu names
+  the plan for each action; each action changes only that plan's bucket.
+- Removing a bucket requires confirmation. Its items stay in the plan, inheriting
+  their parent's section or returning to Unplanned. Removing does not delete recipes.
+- Failed saves or removals keep the dialog open and offer another try. A failed
+  save preserves the entered name and date.
 
 ### Editing items
 

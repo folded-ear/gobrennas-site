@@ -19,6 +19,7 @@ type DaySectionProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  headerActions?: ReactNode;
   footer?: ReactNode;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
@@ -32,6 +33,7 @@ export function DaySection({
   openId,
   onSelect,
   onOpenSection,
+  headerActions,
   footer,
   dnd,
 }: DaySectionProps) {
@@ -66,6 +68,7 @@ export function DaySection({
       openId={openId}
       onSelect={onSelect}
       onOpenSection={onOpenSection}
+      headerActions={headerActions}
       footer={footer}
       dnd={dnd}
     />

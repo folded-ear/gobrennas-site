@@ -15,6 +15,7 @@ type DayListProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  renderHeaderActions?: (section: TimelineSection) => ReactNode;
   renderFooter?: (section: TimelineSection) => ReactNode;
   dnd?: TimelineDnd;
 };
@@ -27,6 +28,7 @@ export function DayList({
   openId,
   onSelect,
   onOpenSection,
+  renderHeaderActions,
   renderFooter,
   dnd,
 }: DayListProps) {
@@ -44,6 +46,7 @@ export function DayList({
                 openId={openId}
                 onSelect={onSelect}
                 onOpenSection={onOpenSection}
+                headerActions={renderHeaderActions?.(entry)}
                 footer={renderFooter?.(entry)}
                 dnd={dnd}
               />
@@ -57,6 +60,7 @@ export function DayList({
                 openId={openId}
                 onSelect={onSelect}
                 onOpenSection={onOpenSection}
+                headerActions={renderHeaderActions?.(entry)}
                 footer={renderFooter?.(entry)}
                 dnd={dnd}
               />
@@ -70,6 +74,7 @@ export function DayList({
                 openId={openId}
                 onSelect={onSelect}
                 onOpenSection={onOpenSection}
+                headerActions={renderHeaderActions?.(entry)}
                 footer={renderFooter?.(entry)}
                 dnd={dnd}
               />

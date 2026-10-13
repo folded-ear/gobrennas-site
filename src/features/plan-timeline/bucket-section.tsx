@@ -24,6 +24,7 @@ type SectionProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  headerActions?: ReactNode;
   footer?: ReactNode;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
@@ -41,6 +42,7 @@ export function BucketSection({
   openId,
   onSelect,
   onOpenSection,
+  headerActions,
   footer,
   dnd,
 }: BucketSectionProps) {
@@ -85,6 +87,7 @@ export function BucketSection({
       openId={openId}
       onSelect={onSelect}
       onOpenSection={onOpenSection}
+      headerActions={headerActions}
       footer={footer}
       dnd={dnd}
     />
@@ -103,6 +106,7 @@ export function UnplannedSection({
   openId,
   onSelect,
   onOpenSection,
+  headerActions,
   footer,
   dnd,
 }: UnplannedSectionProps) {
@@ -130,6 +134,7 @@ export function UnplannedSection({
       openId={openId}
       onSelect={onSelect}
       onOpenSection={onOpenSection}
+      headerActions={headerActions}
       footer={footer}
       dnd={dnd}
     />

@@ -25,6 +25,7 @@ type SectionShellProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  headerActions?: ReactNode;
   footer?: ReactNode;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
@@ -44,6 +45,7 @@ export function SectionShell({
   openId,
   onSelect,
   onOpenSection,
+  headerActions,
   footer,
   dnd,
 }: SectionShellProps) {
@@ -80,7 +82,10 @@ export function SectionShell({
             title
           )}
         </h3>
-        {action}
+        <div className="ms-auto flex shrink-0 items-center gap-xs">
+          {action}
+          {headerActions}
+        </div>
       </div>
       {roots.length === 0 ? (
         // Room to read the section as somewhere an item could go.
