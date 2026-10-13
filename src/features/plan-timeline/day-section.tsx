@@ -60,6 +60,7 @@ export function DaySection({
         <BucketCookLink section={day} planIds={plans.map((plan) => plan.id)} />
       }
       emphasized={isToday}
+      showHeaderRule={false}
       ariaCurrent={isToday ? "date" : undefined}
       roots={day.roots}
       zones={zones}

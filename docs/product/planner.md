@@ -33,8 +33,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - The planner lays every selected plan out down one calendar, anchored on
   today. Where plans share a day or section, their items appear in plan
   order: the user's own plans, then those shared with them.
-- Each day is introduced by a separator carrying its weekday and date, and
-  today is marked as the current date.
+- Each day has a subtle outline enclosing its items and dated named buckets.
+  Its header carries its weekday and date, and today is marked as the current date.
 - An item's section comes from its own bucket, or else from the nearest
   ancestor with one:
   - an unnamed bucket puts it on that bucket's day;

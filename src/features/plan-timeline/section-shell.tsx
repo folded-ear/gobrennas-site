@@ -15,6 +15,8 @@ type SectionShellProps = {
   action?: ReactNode;
   /** The accent styling a day gets for being today. */
   emphasized?: boolean;
+  /** The day's outer outline supplies its boundary instead. */
+  showHeaderRule?: boolean;
   ariaCurrent?: "date";
   roots: readonly PlanItemNode[];
   zones: readonly ZoneSpec[];
@@ -37,6 +39,7 @@ export function SectionShell({
   marker,
   action,
   emphasized = false,
+  showHeaderRule = true,
   ariaCurrent,
   roots,
   zones,
@@ -60,8 +63,9 @@ export function SectionShell({
     <li aria-current={ariaCurrent} className="relative py-xxs">
       <div
         className={clsx(
-          "flex items-center gap-xs border-b",
-          emphasized ? "border-accent" : "border-separator",
+          "flex items-center gap-xs",
+          showHeaderRule && "border-b",
+          showHeaderRule && (emphasized ? "border-accent" : "border-separator"),
         )}
       >
         <h3
