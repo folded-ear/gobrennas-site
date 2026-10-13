@@ -256,7 +256,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
 ### Managing named buckets
 
 - Add Bucket starts with the day's date and asks for a name. The date can be
-  changed or cleared. When several selected plans can be administered, a plan
+  changed or cleared with the Clear date button. When several selected plans can be administered, a plan
   picker chooses which plan owns the bucket.
 - A named bucket's header has a separate menu for Edit Bucket and Remove Bucket
   when the user can administer its plan. Edit changes its name and optional date.

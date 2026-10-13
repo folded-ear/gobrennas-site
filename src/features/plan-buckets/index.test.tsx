@@ -218,6 +218,38 @@ describe("bucket management", () => {
     expect(screen.getByText("Dinner")).toBeInTheDocument();
   });
 
+  it("clears the default date before creating an undated bucket", async () => {
+    const undated = { ...bucket, id: "new", name: "Dinner", date: null };
+    render(<Harness initial={{ kind: "create", date: "2026-10-13" }} />, {
+      mocks: [
+        { request: { query }, result: { data: snapshot() } },
+        {
+          request: {
+            query: CreateNamedBucketDocument,
+            variables: { planId: "p", name: "Dinner", date: null },
+          },
+          result: {
+            data: {
+              planner: { __typename: "PlannerMutation", bucket: undated },
+            },
+          },
+        },
+        { request: { query }, result: { data: snapshot([bucket, undated]) } },
+      ],
+    });
+    await userEvent.type(screen.getByLabelText("Name"), "Dinner");
+    await userEvent.click(screen.getByRole("button", { name: "Clear date" }));
+    expect(screen.getByLabelText("Date")).toHaveValue("");
+    expect(screen.getByLabelText("Date")).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Clear date" })).toBeDisabled();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Add Bucket" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(await screen.findByText("Dinner")).toBeInTheDocument();
+  });
+
   it("requires a nonblank name and preserves the draft on failure", async () => {
     render(
       <BucketDialog
@@ -330,7 +362,10 @@ describe("bucket management", () => {
         ],
       },
     );
-    await userEvent.clear(screen.getByLabelText("Date"));
+    await userEvent.click(screen.getByRole("button", { name: "Clear date" }));
+    expect(screen.getByLabelText("Date")).toHaveValue("");
+    expect(screen.getByLabelText("Date")).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Clear date" })).toBeDisabled();
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),

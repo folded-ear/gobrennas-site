@@ -8,9 +8,9 @@ import { canAdministerPlan } from "@/lib/plans";
 import { useMutation } from "@apollo/client/react";
 import { Button, Dropdown, Label, Modal } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, X } from "lucide-react";
 import { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import {
   CreateNamedBucketDocument,
@@ -129,6 +129,7 @@ export function BucketDialog({
       date: (action.kind === "create" ? action.date : action.bucket.date) ?? "",
     },
   });
+  const date = useWatch({ control: form.control, name: "date" });
   const pending = form.formState.isSubmitting;
 
   if (action.kind === "remove")
@@ -256,14 +257,37 @@ export function BucketDialog({
                 isRequired
                 onValueChange={() => setError(null)}
               />
-              <FormTextField
-                control={form.control}
-                name="date"
-                label="Date"
-                type="date"
-                description="Optional. Leave blank for an undated bucket."
-                onValueChange={() => setError(null)}
-              />
+              <div className="flex items-start gap-xs">
+                <div className="min-w-0 flex-1">
+                  <FormTextField
+                    control={form.control}
+                    name="date"
+                    label="Date"
+                    type="date"
+                    description="Optional. Leave blank for an undated bucket."
+                    onValueChange={() => setError(null)}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  isIconOnly
+                  className="mt-5 text-muted"
+                  aria-label="Clear date"
+                  isDisabled={pending || !date}
+                  onPress={() => {
+                    form.setValue("date", "", {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                    setError(null);
+                    form.setFocus("date");
+                  }}
+                >
+                  <X size={16} aria-hidden />
+                </Button>
+              </div>
               <div className="flex justify-end gap-sm">
                 <Button
                   variant="secondary"
