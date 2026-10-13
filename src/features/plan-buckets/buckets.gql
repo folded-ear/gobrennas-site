@@ -1,6 +1,6 @@
 mutation CreateNamedBucket($planId: ID!, $name: String!, $date: Date) {
   planner {
-    createBucket(planId: $planId, name: $name, date: $date) {
+    bucket: createBucket(planId: $planId, name: $name, date: $date) {
       id
       name
       date
@@ -15,7 +15,7 @@ mutation UpdateNamedBucket(
   $date: Date
 ) {
   planner {
-    updateBucket(
+    bucket: updateBucket(
       planId: $planId
       bucketId: $bucketId
       name: $name

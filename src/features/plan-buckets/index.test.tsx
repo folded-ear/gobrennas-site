@@ -195,7 +195,7 @@ describe("bucket management", () => {
             data: {
               planner: {
                 __typename: "PlannerMutation",
-                createBucket: newBucket,
+                bucket: newBucket,
               },
             },
           },
@@ -259,7 +259,7 @@ describe("bucket management", () => {
           },
           result: {
             data: {
-              planner: { __typename: "PlannerMutation", updateBucket: edited },
+              planner: { __typename: "PlannerMutation", bucket: edited },
             },
           },
         },

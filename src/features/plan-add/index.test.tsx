@@ -54,6 +54,34 @@ const day: TimelineSection = {
   roots: [],
 };
 
+function AddHarness({
+  section,
+  onAddBucket,
+}: {
+  section: TimelineSection;
+  onAddBucket?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <PlanAdd
+        plans={[plan]}
+        section={section}
+        isOpen={open}
+        onOpenChange={setOpen}
+        onAddBucket={onAddBucket}
+      />
+      {open ? (
+        <PlanAddForm
+          plans={[plan]}
+          section={section}
+          onClose={() => setOpen(false)}
+        />
+      ) : null}
+    </>
+  );
+}
+
 const ingredient = {
   __typename: "PlanItem" as const,
   id: "101",
@@ -337,7 +365,7 @@ function setup({
   }
   render(
     <>
-      <PlanAdd plans={[plan]} section={section} />
+      <AddHarness section={section} />
       {showSavedPlan ? <SavedPlan /> : null}
     </>,
     { client },
@@ -394,7 +422,7 @@ describe("planner Add", () => {
 
   it("offers recipe and bucket creation from a day's Add menu", async () => {
     const onAddBucket = vi.fn();
-    render(<PlanAdd plans={[plan]} section={day} onAddBucket={onAddBucket} />);
+    render(<AddHarness section={day} onAddBucket={onAddBucket} />);
     await userEvent.click(
       screen.getByRole("button", { name: "Add to Fri, Oct 2" }),
     );
@@ -406,7 +434,7 @@ describe("planner Add", () => {
   });
 
   it("opens the recipe editor from a day's Add menu", async () => {
-    render(<PlanAdd plans={[plan]} section={day} onAddBucket={vi.fn()} />);
+    render(<AddHarness section={day} onAddBucket={vi.fn()} />);
     await userEvent.click(
       screen.getByRole("button", { name: "Add to Fri, Oct 2" }),
     );

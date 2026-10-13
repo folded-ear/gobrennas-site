@@ -26,20 +26,16 @@ export function PlanAdd({
   plans,
   section,
   onAddBucket,
-  isOpen,
-  onOpenChange,
+  isOpen: open,
+  onOpenChange: setOpen,
 }: {
   plans: readonly AddPlan[];
   section: TimelineSection;
   onAddBucket?: () => void;
-  /** Controlled when the screen places the editor beneath its items. */
-  isOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
   const eligible = plans.filter((plan) => canAddToSection(plan, section));
-  const [localOpen, setLocalOpen] = useState(false);
-  const open = isOpen ?? localOpen;
-  const setOpen = onOpenChange ?? setLocalOpen;
   const trigger = useRef<HTMLButtonElement>(null);
   const wasOpen = useRef(open);
   const label = sectionLabel(section);
@@ -48,59 +44,48 @@ export function PlanAdd({
     wasOpen.current = open;
   }, [open]);
   if (!eligible.length && !onAddBucket) return null;
-  return (
-    <>
-      {onAddBucket ? (
-        <Dropdown>
-          <Button
-            variant="ghost"
-            className="gap-xs px-sm text-muted"
-            aria-label={`Add to ${label}`}
-            ref={trigger}
+  return onAddBucket ? (
+    <Dropdown>
+      <Button
+        variant="ghost"
+        className="gap-xs px-sm text-muted"
+        aria-label={`Add to ${label}`}
+        ref={trigger}
+      >
+        <Plus aria-hidden /> Add
+      </Button>
+      <Dropdown.Popover>
+        <Dropdown.Menu aria-label={`Add to ${label}`}>
+          <Dropdown.Item
+            id="recipe"
+            textValue="Add Recipe"
+            isDisabled={!eligible.length || open}
+            onAction={() => setOpen(true)}
           >
-            <Plus aria-hidden /> Add
-          </Button>
-          <Dropdown.Popover>
-            <Dropdown.Menu aria-label={`Add to ${label}`}>
-              <Dropdown.Item
-                id="recipe"
-                textValue="Add Recipe"
-                isDisabled={!eligible.length || open}
-                onAction={() => setOpen(true)}
-              >
-                <Label>Add Recipe</Label>
-              </Dropdown.Item>
-              <Dropdown.Item
-                id="bucket"
-                textValue="Add Bucket"
-                onAction={onAddBucket}
-              >
-                <Label>Add Bucket</Label>
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown.Popover>
-        </Dropdown>
-      ) : (
-        <Button
-          ref={trigger}
-          variant="ghost"
-          className="gap-xs px-sm text-muted"
-          aria-label={`Add to ${label}`}
-          isDisabled={open}
-          aria-expanded={open}
-          onPress={() => setOpen(true)}
-        >
-          <Plus aria-hidden /> Add
-        </Button>
-      )}
-      {isOpen === undefined && open ? (
-        <PlanAddForm
-          plans={eligible}
-          section={section}
-          onClose={() => setOpen(false)}
-        />
-      ) : null}
-    </>
+            <Label>Add Recipe</Label>
+          </Dropdown.Item>
+          <Dropdown.Item
+            id="bucket"
+            textValue="Add Bucket"
+            onAction={onAddBucket}
+          >
+            <Label>Add Bucket</Label>
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown.Popover>
+    </Dropdown>
+  ) : (
+    <Button
+      ref={trigger}
+      variant="ghost"
+      className="gap-xs px-sm text-muted"
+      aria-label={`Add to ${label}`}
+      isDisabled={open}
+      aria-expanded={open}
+      onPress={() => setOpen(true)}
+    >
+      <Plus aria-hidden /> Add
+    </Button>
   );
 }
 

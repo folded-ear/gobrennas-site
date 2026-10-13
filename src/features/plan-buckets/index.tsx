@@ -3,6 +3,7 @@
 import { DeleteDialog } from "@/components/delete-dialog";
 import { FormTextField } from "@/components/form-text-field";
 import { PlanPicker } from "@/features/plan-picker";
+import { canAdministerPlan } from "@/lib/plans";
 import { useMutation } from "@apollo/client/react";
 import { Button, Dropdown, Label, Modal } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,9 +16,8 @@ import {
   RemoveNamedBucketDocument,
   UpdateNamedBucketDocument,
 } from "./__generated__/buckets.generated";
-import { canManageBuckets, type BucketAction, type BucketPlan } from "./model";
+import type { BucketAction, BucketPlan } from "./model";
 
-export { canManageBuckets } from "./model";
 export type { BucketAction } from "./model";
 
 export function BucketMenu({
@@ -32,7 +32,7 @@ export function BucketMenu({
   onAction: (action: BucketAction) => void;
 }) {
   const targets = plans
-    .filter(canManageBuckets)
+    .filter(canAdministerPlan)
     .flatMap((plan) =>
       plan.buckets
         .filter((bucket) => bucketIds.includes(bucket.id))
@@ -94,7 +94,7 @@ export function BucketDialog({
   onClose: () => void;
 }) {
   const eligible = plans
-    .filter(canManageBuckets)
+    .filter(canAdministerPlan)
     .filter((plan) => action.kind === "create" || plan.id === action.planId);
   const [planId, setPlanId] = useState(eligible[0]?.id ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -169,12 +169,7 @@ export function BucketDialog({
                   refetchQueries: ["Planner"],
                   awaitRefetchQueries: true,
                 });
-          if (
-            !result.data ||
-            !("createBucket" in result.data.planner
-              ? result.data.planner.createBucket.id
-              : result.data.planner.updateBucket.id)
-          )
+          if (!result.data?.planner.bucket.id)
             throw new Error("Missing bucket result");
           onClose();
         } catch {

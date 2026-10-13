@@ -1,4 +1,3 @@
-import { AccessLevel } from "@/__generated__/graphql";
 import { bucketForName } from "@/features/plan-dnd/moves";
 import type { PlanPickerPlanFragment } from "@/features/plan-picker/__generated__/planPickerPlan.generated";
 import type {
@@ -6,7 +5,7 @@ import type {
   TimelineSection,
 } from "@/features/plan-timeline/model";
 import { isNamedBucket } from "@/lib/buckets";
-import { canChangePlan, type PlanAccess } from "@/lib/plans";
+import { canAdministerPlan, canChangePlan, type PlanAccess } from "@/lib/plans";
 
 export type AddPlan = PlanPickerPlanFragment &
   PlanAccess & {
@@ -35,10 +34,5 @@ export function canAddToSection(
   if (section.kind === "unplanned" || destinationBucket(plan, section))
     return true;
   // Making the destination bucket requires admin access, even when adding items does not.
-  return (
-    plan.mine ||
-    plan.grants.some(
-      (grant) => grant.user.me && grant.level === AccessLevel.ADMINISTER,
-    )
-  );
+  return canAdministerPlan(plan);
 }

@@ -1,6 +1,6 @@
 import { AccessLevel } from "@/__generated__/graphql";
 import { describe, expect, it } from "vitest";
-import { canChangePlan, orderPlans } from "./plans";
+import { canAdministerPlan, canChangePlan, orderPlans } from "./plans";
 
 const WEEKNIGHTS = { id: "1", mine: true };
 const NEIGHBOR = { id: "3", mine: false };
@@ -46,5 +46,29 @@ describe("canChangePlan", () => {
         grants: [{ level: AccessLevel.CHANGE, user: { me: false } }],
       }),
     ).toBe(false);
+  });
+});
+
+describe("canAdministerPlan", () => {
+  it("allows the owner without an explicit grant", () => {
+    expect(canAdministerPlan({ mine: true, grants: [] })).toBe(true);
+  });
+
+  it.each([
+    [AccessLevel.VIEW, true, false],
+    [AccessLevel.CHANGE, true, false],
+    [AccessLevel.ADMINISTER, true, true],
+    [AccessLevel.ADMINISTER, false, false],
+  ])("checks a %s grant for the viewer (%s)", (level, me, expected) => {
+    expect(
+      canAdministerPlan({
+        mine: false,
+        grants: [{ level, user: { me } }],
+      }),
+    ).toBe(expected);
+  });
+
+  it("denies access without ownership or a grant", () => {
+    expect(canAdministerPlan({ mine: false, grants: [] })).toBe(false);
   });
 });

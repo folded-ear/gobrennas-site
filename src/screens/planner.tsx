@@ -8,7 +8,6 @@ import { canAddToSection } from "@/features/plan-add/destination";
 import {
   BucketDialog,
   BucketMenu,
-  canManageBuckets,
   type BucketAction,
 } from "@/features/plan-buckets";
 import {
@@ -39,7 +38,7 @@ import { sectionLabel } from "@/features/plan-timeline/section-label";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
 import { useHistoryState } from "@/hooks/use-history-state";
 import { displayName } from "@/lib/plan-item-name";
-import { canChangePlan, orderPlans } from "@/lib/plans";
+import { canAdministerPlan, canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
@@ -253,7 +252,7 @@ export function Planner() {
                   isOpen={addingSections.has(sectionKey(section))}
                   onOpenChange={(adding) => setAdding(section, adding)}
                   onAddBucket={
-                    section.kind === "day" && shownPlans.some(canManageBuckets)
+                    section.kind === "day" && shownPlans.some(canAdministerPlan)
                       ? () =>
                           setBucketAction({
                             kind: "create",
