@@ -31,10 +31,10 @@ import type { GraphQLCodegenDataMasking } from "@apollo/client/masking";
 import { useQuery } from "@apollo/client/react";
 import { print } from "@apollo/client/utilities";
 import { useState } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { AddPlannerRecipeMutation } from "./__generated__/addPlannerRecipe.generated";
 import type { AddPlan } from "./destination";
-import { PlanAdd } from "./index";
+import { PlanAdd, PlanAddForm } from "./index";
 
 const plan: AddPlan = {
   __typename: "Plan",
@@ -53,6 +53,34 @@ const day: TimelineSection = {
   bucketIds: [],
   roots: [],
 };
+
+function AddHarness({
+  section,
+  onAddBucket,
+}: {
+  section: TimelineSection;
+  onAddBucket?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <PlanAdd
+        plans={[plan]}
+        section={section}
+        isOpen={open}
+        onOpenChange={setOpen}
+        onAddBucket={onAddBucket}
+      />
+      {open ? (
+        <PlanAddForm
+          plans={[plan]}
+          section={section}
+          onClose={() => setOpen(false)}
+        />
+      ) : null}
+    </>
+  );
+}
 
 const ingredient = {
   __typename: "PlanItem" as const,
@@ -337,7 +365,7 @@ function setup({
   }
   render(
     <>
-      <PlanAdd plans={[plan]} section={section} />
+      <AddHarness section={section} />
       {showSavedPlan ? <SavedPlan /> : null}
     </>,
     { client },
@@ -348,6 +376,81 @@ function setup({
 withTextInsertion();
 
 describe("planner Add", () => {
+  it("opens an inline editor beneath its section and returns focus on Escape", async () => {
+    function InlinePlanner() {
+      const [open, setOpen] = useState(false);
+      return (
+        <PlanTimeline
+          plans={[{ rootIds: [], items: [], buckets: [] }]}
+          renderHeaderActions={(section) =>
+            section.kind === "unplanned" ? (
+              <PlanAdd
+                plans={[plan]}
+                section={section}
+                isOpen={open}
+                onOpenChange={setOpen}
+              />
+            ) : null
+          }
+          renderFooter={(section) =>
+            section.kind === "unplanned" && open ? (
+              <PlanAddForm
+                plans={[plan]}
+                section={section}
+                onClose={() => setOpen(false)}
+              />
+            ) : null
+          }
+        />
+      );
+    }
+    render(<InlinePlanner />);
+    const trigger = screen.getByRole("button", { name: "Add to Unplanned" });
+    await userEvent.click(trigger);
+    const editor = screen.getByRole("form", { name: "Add to Unplanned" });
+    expect(editor.closest("li")).toBe(trigger.closest("li"));
+    expect(
+      trigger.compareDocumentPosition(editor) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(editableMorsel("Item for Unplanned")).toHaveFocus();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("form")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("offers recipe and bucket creation from a day's Add menu", async () => {
+    const onAddBucket = vi.fn();
+    render(<AddHarness section={day} onAddBucket={onAddBucket} />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Add to Fri, Oct 2" }),
+    );
+    expect(
+      screen.getByRole("menuitem", { name: "Add Recipe" }),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("menuitem", { name: "Add Bucket" }));
+    expect(onAddBucket).toHaveBeenCalledOnce();
+  });
+
+  it("opens the recipe editor from a day's Add menu", async () => {
+    render(<AddHarness section={day} onAddBucket={vi.fn()} />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Add to Fri, Oct 2" }),
+    );
+    await userEvent.click(screen.getByRole("menuitem", { name: "Add Recipe" }));
+    expect(
+      screen.getByRole("form", { name: "Add to Fri, Oct 2" }),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("form")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole("button", { name: "Add to Fri, Oct 2" }),
+    ).toHaveFocus();
+  });
+
   it("adds a selected recipe with its ingredients, cooking link, and working detail view", async () => {
     const { user, requests, client } = setup({ showSavedPlan: true });
     await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));

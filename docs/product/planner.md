@@ -33,8 +33,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - The planner lays every selected plan out down one calendar, anchored on
   today. Where plans share a day or section, their items appear in plan
   order: the user's own plans, then those shared with them.
-- Each day is introduced by a separator carrying its weekday and date, and
-  today is marked as the current date.
+- Each day has a subtle outline enclosing its items and dated named buckets.
+  Its header carries its weekday and date, and today is marked as the current date.
 - An item's section comes from its own bucket, or else from the nearest
   ancestor with one:
   - an unnamed bucket puts it on that bucket's day;
@@ -232,8 +232,11 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Adding from the timeline
 
-- Each day, named bucket, and Unplanned section has an Add button when the user
-  can add there. It opens the shared Morsel editor with pantry, recipe, and section
+- Each day, named bucket, and Unplanned section has a + Add button in its header
+  when the user can add there. A day offers Add Recipe and, when the user can
+  administer a selected plan, Add Bucket. Add Recipe opens the inline Morsel editor
+  beneath the section’s items, focusing it and scrolling it into view when needed.
+  The editor offers pantry, recipe, and section
   suggestions. Choosing a suggestion preserves its identity when saved, including
   suggestions with the same name. A leading `!` skips recognition.
 - When several eligible plans are shown, a plan picker chooses where the new item
@@ -249,6 +252,22 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - Cancel discards the draft. A plain item appears in its section at once,
   bucket included; see [Saving changes](#saving-changes). A failure while
   making a missing bucket or adding a recipe keeps the text.
+
+### Managing named buckets
+
+- Add Bucket starts with the day's date and asks for a name. The date can be
+  changed or cleared with the Clear date button. When several selected plans can be administered, a plan
+  picker chooses which plan owns the bucket.
+- A named bucket's header has a separate menu for Edit Bucket and Remove Bucket
+  when the user can administer its plan. Edit changes its name and optional date.
+- When a section groups buckets from several plans, the management menu names
+  the plan for each action; each action changes only that plan's bucket.
+- Removing a bucket requires confirmation. Its items stay in the plan, inheriting
+  their parent's section or returning to Unplanned. Removing does not delete recipes.
+- A bucket name must be unique within its plan, ignoring case and extra spacing.
+  A name already in use is reported beside the name field before saving.
+- Failed saves or removals keep the dialog open and offer another try. A failed
+  save preserves the entered name and date.
 
 ### Editing items
 

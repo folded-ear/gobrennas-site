@@ -3,8 +3,13 @@
 import { Screen } from "@/components/screen";
 import { SectionHeader } from "@/components/section-header";
 import { useWatchPlans } from "@/features/page-engine";
-import { PlanAdd } from "@/features/plan-add";
+import { PlanAdd, PlanAddForm } from "@/features/plan-add";
 import { canAddToSection } from "@/features/plan-add/destination";
+import {
+  BucketDialog,
+  BucketMenu,
+  type BucketAction,
+} from "@/features/plan-buckets";
 import {
   buildPlanDirectory,
   PlanDirectoryProvider,
@@ -27,12 +32,13 @@ import {
   buildSection,
   buildSubtree,
   PlanItemNode,
+  type TimelineSection,
 } from "@/features/plan-timeline/model";
 import { sectionLabel } from "@/features/plan-timeline/section-label";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
 import { useHistoryState } from "@/hooks/use-history-state";
 import { displayName } from "@/lib/plan-item-name";
-import { canChangePlan, orderPlans } from "@/lib/plans";
+import { canAdministerPlan, canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useSuspenseQuery } from "@apollo/client/react";
@@ -66,6 +72,23 @@ export function Planner() {
   const open = useHistoryState<PlannerOpen>(OPEN_KEY);
   const router = useRouter();
   const edit = useEditState();
+  const [addingSections, setAddingSections] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  const sectionKey = (section: TimelineSection) =>
+    section.kind === "day"
+      ? section.date
+      : section.kind === "bucket"
+        ? section.key
+        : "unplanned";
+  const setAdding = (section: TimelineSection, adding: boolean) =>
+    setAddingSections((previous) => {
+      const next = new Set(previous);
+      if (adding) next.add(sectionKey(section));
+      else next.delete(sectionKey(section));
+      return next;
+    });
+  const [bucketAction, setBucketAction] = useState<BucketAction | null>(null);
 
   const plans = data.planner.plans;
   const directory = useMemo(() => buildPlanDirectory(plans), [plans]);
@@ -156,6 +179,13 @@ export function Planner() {
 
   return (
     <PlanDirectoryProvider directory={directory}>
+      {bucketAction ? (
+        <BucketDialog
+          action={bucketAction}
+          plans={shownPlans}
+          onClose={() => setBucketAction(null)}
+        />
+      ) : null}
       <SectionHeader title="Planner">
         <PlanPicker
           label="Plans"
@@ -214,9 +244,42 @@ export function Planner() {
         {shownPlans.length > 0 ? (
           <PlanTimeline
             plans={timelinePlans}
+            renderHeaderActions={(section) => (
+              <>
+                <PlanAdd
+                  plans={shownPlans}
+                  section={section}
+                  isOpen={addingSections.has(sectionKey(section))}
+                  onOpenChange={(adding) => setAdding(section, adding)}
+                  onAddBucket={
+                    section.kind === "day" && shownPlans.some(canAdministerPlan)
+                      ? () =>
+                          setBucketAction({
+                            kind: "create",
+                            date: section.date,
+                          })
+                      : undefined
+                  }
+                />
+                {section.kind === "bucket" ? (
+                  <BucketMenu
+                    plans={shownPlans}
+                    bucketIds={section.bucketIds}
+                    label={sectionLabel(section)}
+                    onAction={setBucketAction}
+                  />
+                ) : null}
+              </>
+            )}
             renderFooter={(section) =>
-              shownPlans.some((plan) => canAddToSection(plan, section)) ? (
-                <PlanAdd plans={shownPlans} section={section} />
+              addingSections.has(sectionKey(section)) ? (
+                <PlanAddForm
+                  plans={shownPlans.filter((plan) =>
+                    canAddToSection(plan, section),
+                  )}
+                  section={section}
+                  onClose={() => setAdding(section, false)}
+                />
               ) : null
             }
             openId={selected?.id}

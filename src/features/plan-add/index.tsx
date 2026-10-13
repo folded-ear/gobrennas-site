@@ -12,7 +12,7 @@ import { IngredientInput } from "@/features/recipe-form/ingredient-input";
 import type { RecognizeIngredient } from "@/features/recipe-form/ingredient-recognition";
 import { createRecognitionQueue } from "@/features/recipe-form/recognition-queue";
 import { useRecognizeIngredient } from "@/features/recipe-form/use-recognize-ingredient";
-import { Button } from "@heroui/react";
+import { Button, Dropdown, Label } from "@heroui/react";
 import { Plus } from "lucide-react";
 import { useCallback, useId, useLayoutEffect, useRef, useState } from "react";
 import {
@@ -25,63 +25,84 @@ import { useAddItem } from "./use-add-item";
 export function PlanAdd({
   plans,
   section,
+  onAddBucket,
+  isOpen: open,
+  onOpenChange: setOpen,
 }: {
   plans: readonly AddPlan[];
   section: TimelineSection;
+  onAddBucket?: () => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
   const eligible = plans.filter((plan) => canAddToSection(plan, section));
-  const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
-  const restoreFocus = useRef(false);
+  const wasOpen = useRef(open);
   const label = sectionLabel(section);
   useLayoutEffect(() => {
-    if (!open && restoreFocus.current) {
-      trigger.current?.focus();
-      restoreFocus.current = false;
-    }
+    if (!open && wasOpen.current) trigger.current?.focus();
+    wasOpen.current = open;
   }, [open]);
-  if (!eligible.length) return null;
-  return (
-    <div className="relative py-xs">
-      {open ? (
-        <AddForm
-          plans={eligible}
-          section={section}
-          label={label}
-          onClose={() => {
-            restoreFocus.current = true;
-            setOpen(false);
-          }}
-        />
-      ) : (
-        <Button
-          ref={trigger}
-          variant="ghost"
-          className="gap-xs px-xs text-muted"
-          aria-label={`Add to ${label}`}
-          onPress={() => setOpen(true)}
-        >
-          <Plus aria-hidden /> Add
-        </Button>
-      )}
-    </div>
+  if (!eligible.length && !onAddBucket) return null;
+  return onAddBucket ? (
+    <Dropdown>
+      <Button
+        variant="ghost"
+        className="gap-xs px-sm text-muted"
+        aria-label={`Add to ${label}`}
+        ref={trigger}
+      >
+        <Plus aria-hidden /> Add
+      </Button>
+      <Dropdown.Popover>
+        <Dropdown.Menu aria-label={`Add to ${label}`}>
+          <Dropdown.Item
+            id="recipe"
+            textValue="Add Recipe"
+            isDisabled={!eligible.length || open}
+            onAction={() => setOpen(true)}
+          >
+            <Label>Add Recipe</Label>
+          </Dropdown.Item>
+          <Dropdown.Item
+            id="bucket"
+            textValue="Add Bucket"
+            onAction={onAddBucket}
+          >
+            <Label>Add Bucket</Label>
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown.Popover>
+    </Dropdown>
+  ) : (
+    <Button
+      ref={trigger}
+      variant="ghost"
+      className="gap-xs px-sm text-muted"
+      aria-label={`Add to ${label}`}
+      isDisabled={open}
+      aria-expanded={open}
+      onPress={() => setOpen(true)}
+    >
+      <Plus aria-hidden /> Add
+    </Button>
   );
 }
 
-function AddForm({
+export function PlanAddForm({
   plans,
   section,
-  label,
   onClose,
 }: {
   plans: readonly AddPlan[];
   section: TimelineSection;
-  label: string;
   onClose: () => void;
 }) {
+  const label = sectionLabel(section);
   const [planId, setPlanId] = useState(
     () =>
-      (plans.find((plan) => destinationBucket(plan, section)) ?? plans[0]).id,
+      (plans.find((plan) => destinationBucket(plan, section)) ?? plans[0])
+        ?.id ?? "",
   );
   const plan = plans.find((it) => it.id === planId);
   const [row, setRow] = useState(newIngredientDraft);
@@ -97,7 +118,14 @@ function AddForm({
     [recognizeIngredient],
   );
   const save = useAddItem(section);
-  useLayoutEffect(() => input.current?.focus(), []);
+  const form = useRef<HTMLFormElement>(null);
+  useLayoutEffect(() => {
+    input.current?.focus({ preventScroll: true });
+    const rect = form.current?.getBoundingClientRect();
+    if (rect && (rect.top < 0 || rect.bottom > window.innerHeight)) {
+      form.current?.scrollIntoView?.({ block: "nearest" });
+    }
+  }, []);
 
   async function submit() {
     if (await save.add(plan, row)) onClose();
@@ -105,8 +133,16 @@ function AddForm({
 
   return (
     <form
+      ref={form}
+      aria-busy={save.pending}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !save.pending) {
+          event.stopPropagation();
+          onClose();
+        }
+      }}
       aria-label={`Add to ${label}`}
-      className="flex flex-col gap-sm"
+      className="flex flex-col gap-sm py-xs"
       onSubmit={(event) => {
         event.preventDefault();
         void submit();

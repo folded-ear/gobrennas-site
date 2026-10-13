@@ -33,3 +33,12 @@ export function canChangePlan(plan: PlanAccess): boolean {
     plan.grants.some((g) => g.user.me && CHANGING_LEVELS.has(g.level))
   );
 }
+
+export function canAdministerPlan(plan: PlanAccess): boolean {
+  return (
+    plan.mine ||
+    plan.grants.some(
+      (grant) => grant.user.me && grant.level === AccessLevel.ADMINISTER,
+    )
+  );
+}

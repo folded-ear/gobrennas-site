@@ -24,6 +24,7 @@ type PlanTimelineProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  renderHeaderActions?: (section: TimelineSection) => ReactNode;
   renderFooter?: (section: TimelineSection) => ReactNode;
   /** Left out, nothing can be dragged. */
   dnd?: PlanDnd;
@@ -35,6 +36,7 @@ export function PlanTimeline({
   openId,
   onSelect,
   onOpenSection,
+  renderHeaderActions,
   renderFooter,
   dnd,
 }: PlanTimelineProps) {
@@ -62,6 +64,7 @@ export function PlanTimeline({
         openId={openId}
         onSelect={onSelect}
         onOpenSection={onOpenSection}
+        renderHeaderActions={renderHeaderActions}
         renderFooter={renderFooter}
       />
     );
@@ -76,6 +79,7 @@ export function PlanTimeline({
         openId={openId}
         onSelect={onSelect}
         onOpenSection={onOpenSection}
+        renderHeaderActions={renderHeaderActions}
         renderFooter={renderFooter}
         dnd={timelineDnd}
       />

@@ -15,6 +15,8 @@ type SectionShellProps = {
   action?: ReactNode;
   /** The accent styling a day gets for being today. */
   emphasized?: boolean;
+  /** The day's outer outline supplies its boundary instead. */
+  showHeaderRule?: boolean;
   ariaCurrent?: "date";
   roots: readonly PlanItemNode[];
   zones: readonly ZoneSpec[];
@@ -25,6 +27,7 @@ type SectionShellProps = {
   onSelect?: (id: string) => void;
   /** Opens a section by its key. Left out, no section opens. */
   onOpenSection?: (key: string) => void;
+  headerActions?: ReactNode;
   footer?: ReactNode;
   /** Left out, nothing can be dragged. */
   dnd?: TimelineDnd;
@@ -36,6 +39,7 @@ export function SectionShell({
   marker,
   action,
   emphasized = false,
+  showHeaderRule = true,
   ariaCurrent,
   roots,
   zones,
@@ -44,6 +48,7 @@ export function SectionShell({
   openId,
   onSelect,
   onOpenSection,
+  headerActions,
   footer,
   dnd,
 }: SectionShellProps) {
@@ -58,8 +63,9 @@ export function SectionShell({
     <li aria-current={ariaCurrent} className="relative py-xxs">
       <div
         className={clsx(
-          "flex items-center gap-xs border-b",
-          emphasized ? "border-accent" : "border-separator",
+          "flex items-center gap-xs",
+          showHeaderRule && "border-b",
+          showHeaderRule && (emphasized ? "border-accent" : "border-separator"),
         )}
       >
         <h3
@@ -80,7 +86,10 @@ export function SectionShell({
             title
           )}
         </h3>
-        {action}
+        <div className="ms-auto flex shrink-0 items-center gap-xs">
+          {action}
+          {headerActions}
+        </div>
       </div>
       {roots.length === 0 ? (
         // Room to read the section as somewhere an item could go.
