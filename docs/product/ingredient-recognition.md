@@ -6,8 +6,8 @@ Delivery: Built; authenticated browser verification pending
 ## Purpose
 
 Help people enter ingredients by identifying quantities, units, and ingredients
-while keeping their original text editable. BFS-22 adds single-row recognition;
-BFS-82 adds contextual suggestions and recognition of multiline-pasted rows.
+while keeping their original text editable. [BFS-22](https://linear.app/go-brennas/issue/BFS-22) adds single-row recognition;
+[BFS-82](https://linear.app/go-brennas/issue/BFS-82) adds contextual suggestions and recognition of multiline-pasted rows.
 [BFS-23](https://linear.app/go-brennas/issue/BFS-23) defines the shared request
 and draft-update behavior below. Raw row editing and single-row recognition
 are implemented using the shared `Morsel` component. Multiline paste queues

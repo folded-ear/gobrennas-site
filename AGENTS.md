@@ -55,6 +55,12 @@
 - Add request middleware by implementing the `Filter` type in `src/filters/` and registering it in the root `proxy.ts`
   chain.
 - Use the `@/` path alias for imports from `src/`.
+- Focus, scroll, and other DOM-imperative work generally belongs in `useEffect`, not `useLayoutEffect`. Modal libraries
+  such as React ARIA toggle `inert` in effect cleanups, so a layout effect can run while its target is still inert.
+- Dev runs in React StrictMode, which double-invokes effects. Be wary of false-positives from the second invocation.
+- Do not fix an ordering problem with `requestAnimationFrame`, timeouts, or by changing a synchronous test assertion to
+  `waitFor`. Find what the code is racing with and fix the problem, not the symptom. If changing a synchronous test
+  asynchronous is needed for it to pass, stop and ask a human.
 
 ### Before completing the task
 
