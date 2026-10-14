@@ -97,14 +97,14 @@ Delivery: Built
   recipe action. Other people see neither action. Deletion uses the confirmation
   and recovery behavior below and returns to the Library on success.
 - Duplicate and Copy to my library open the copy workflow below. Share is
-  outside the manual recipe CRUD scope of BFS-83.
+  outside the manual recipe CRUD scope of [BFS-83](https://linear.app/go-brennas/issue/BFS-83).
 - Opening a planned recipe in the planner remains focused on editing that
   occurrence. Its Cook view provides the readable recipe and cooking actions;
   see [Cooking](planner.md#cooking).
 
 ### Copying a recipe
 
-State: Agreed — BFS-36.
+State: Agreed — [BFS-36](https://linear.app/go-brennas/issue/BFS-36).
 
 Delivery: Built
 
@@ -208,7 +208,7 @@ Delivery: Built
   are disabled while saving.
 - Added labels persist through recipe creation. Successful creation invalidates
   the cached label suggestions so subsequent editors can discover new labels.
-- Section label editing is out of scope for now (BFS-80, canceled). Existing
+- Section label editing is out of scope for now ([BFS-80](https://linear.app/go-brennas/issue/BFS-80), canceled). Existing
   section labels are preserved when editing and copying recipes. Library
   search/filter changes are separate work.
 
@@ -252,11 +252,11 @@ Delivery: Built
 - Editing uses the same photo controls with the saved photo as the starting point.
   Focus changes alone do not upload a file. A replacement uses the scratch-upload
   flow; Discard replacement restores the saved photo and focus. Removing the saved
-  photo remains deferred to BFS-79.
+  photo remains deferred to [BFS-79](https://linear.app/go-brennas/issue/BFS-79).
 
 ### Importing from a photo
 
-State: Agreed — BFS-38.
+State: Agreed — [BFS-38](https://linear.app/go-brennas/issue/BFS-38).
 
 Delivery: Built
 
@@ -309,7 +309,7 @@ Delivery: Built
   once they're read. One opened on a photo that couldn't be read says why,
   with Retry when it can be read again, and Delete photo.
 - A section's ingredients and directions can't be sent to. Zooming the photo
-  is BFS-128.
+  is [BFS-128](https://linear.app/go-brennas/issue/BFS-128).
 
 ### Editing saved recipes
 
@@ -330,11 +330,11 @@ Delivery: Built
   without modifying their source. Duplicate occurrences of an owned section are
   handled like the current client: edit its content only at the first occurrence.
 - Existing section labels are preserved without showing label-editing controls.
-  Section label editing is out of scope for now (BFS-80, canceled).
+  Section label editing is out of scope for now ([BFS-80](https://linear.app/go-brennas/issue/BFS-80), canceled).
 - Changing one field preserves unrelated fields, including zero values, nullable
   fields, and stored cook-time precision. A section still used by an ordinary
   ingredient cannot be removed until that reference is removed; this avoids the
-  API update-ordering concern tracked in BFS-96.
+  API update-ordering concern tracked in [BFS-96](https://linear.app/go-brennas/issue/BFS-96).
 
 ### Deleting saved recipes
 
@@ -354,7 +354,7 @@ Delivery: Built
 
 ### Owned sections
 
-State: Agreed — frontend scope of BFS-24.
+State: Agreed — frontend scope of [BFS-24](https://linear.app/go-brennas/issue/BFS-24).
 
 - Add section appends an expanded section below the main recipe fields and
   focuses its title. A recipe may contain multiple owned sections.
@@ -376,11 +376,11 @@ State: Agreed — frontend scope of BFS-24.
   API. Their titles, directions, ingredient order, and recognized details are
   preserved; blank ingredient rows are omitted. Client identity is independent
   of server identity, including after earlier sections are removed.
-- Adding borrowed sections as structural sections is not planned (BFS-81,
+- Adding borrowed sections as structural sections is not planned ([BFS-81](https://linear.app/go-brennas/issue/BFS-81),
   canceled); ingredient rows can reference another recipe's section instead.
   Existing borrowed sections are preserved when editing and copying recipes.
   Backend suggestion exclusions and save-time self-reference checks remain
-  deferred to BFS-97, alongside the update-ordering concern in BFS-96.
+  deferred to [BFS-97](https://linear.app/go-brennas/issue/BFS-97), alongside the update-ordering concern in [BFS-96](https://linear.app/go-brennas/issue/BFS-96).
 
 ### Saving
 
