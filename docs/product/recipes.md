@@ -125,7 +125,9 @@ Delivery: Built
   A failed save preserves the draft and allows retry; repeated submissions while
   pending are blocked. A missing or unchanged returned recipe ID is a failure.
 - Cancel returns to the source recipe without saving. A successful copy refreshes
-  library and label data and opens the new recipe.
+  library and label data and returns to the Library list. A “Copy saved to your
+  library” toast offers Open copy; opening it shows the new recipe and dismisses
+  the toast. Ordinary edits still return to the edited recipe.
 
 ### Create editor
 

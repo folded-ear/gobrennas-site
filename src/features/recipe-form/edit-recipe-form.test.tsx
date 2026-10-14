@@ -23,8 +23,11 @@ import { UpdateRecipeDocument } from "./__generated__/updateRecipe.generated";
 import { EditRecipeForm } from "./edit-recipe-form";
 import { copiedInfo, storedInfo, storedRecipe } from "./test/edit-recipe";
 
-const { replace } = vi.hoisted(() => ({ replace: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+const { replace, push } = vi.hoisted(() => ({
+  replace: vi.fn(),
+  push: vi.fn(),
+}));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace, push }) }));
 
 const query = { query: GetRecipeForEditDocument, variables: { id: "pie" } };
 const load = {
@@ -268,6 +271,29 @@ describe("editing owned recipes", () => {
       );
     },
   );
+
+  it("returns to the edited recipe without a copy toast after an ordinary save", async () => {
+    render(<RecipeEdit id="pie" />, {
+      mocks: [
+        load,
+        labels,
+        ...recognitionMocks,
+        {
+          request: {
+            query: UpdateRecipeDocument,
+            variables: { id: "pie", info: storedInfo },
+          },
+          result: success,
+        },
+      ],
+    });
+    await screen.findByRole("textbox", { name: "Title" });
+    await userEvent.click(screen.getByRole("button", { name: "Save recipe" }));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/recipes/pie"));
+    expect(
+      screen.queryByText("Copy saved to your library"),
+    ).not.toBeInTheDocument();
+  });
 
   it("offers retry for a load failure and cancels without saving", async () => {
     const user = userEvent.setup();
@@ -659,8 +685,17 @@ describe("copying recipes", () => {
         "Chill the pastry.",
       );
       await userEvent.dblClick(screen.getByRole("button", { name: button }));
+      await waitFor(() => expect(replace).toHaveBeenCalledWith("/recipes"));
+      expect(
+        await screen.findByText("Copy saved to your library"),
+      ).toBeVisible();
+      expect(push).not.toHaveBeenCalled();
+      await userEvent.click(screen.getByRole("button", { name: "Open copy" }));
+      expect(push).toHaveBeenCalledWith("/recipes/new-pie");
       await waitFor(() =>
-        expect(replace).toHaveBeenCalledWith("/recipes/new-pie"),
+        expect(
+          screen.queryByText("Copy saved to your library"),
+        ).not.toBeInTheDocument(),
       );
       expect(result).toHaveBeenCalledOnce();
       expect(evict).toHaveBeenCalledWith({
@@ -714,11 +749,12 @@ describe("copying recipes", () => {
         "Apple pie",
       );
       expect(replace).not.toHaveBeenCalled();
+      expect(
+        screen.queryByText("Copy saved to your library"),
+      ).not.toBeInTheDocument();
       expect(evict).not.toHaveBeenCalled();
       await userEvent.click(screen.getByRole("button", { name: "Save copy" }));
-      await waitFor(() =>
-        expect(replace).toHaveBeenCalledWith("/recipes/new-pie"),
-      );
+      await waitFor(() => expect(replace).toHaveBeenCalledWith("/recipes"));
     },
   );
 
