@@ -38,6 +38,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: remoteImagePatterns,
   },
+  // Next runs with React's StrictMode by default - this can disable it.
+  // reactStrictMode: false,
   async redirects() {
     return [
       {

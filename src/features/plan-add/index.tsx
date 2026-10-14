@@ -14,7 +14,14 @@ import { createRecognitionQueue } from "@/features/recipe-form/recognition-queue
 import { useRecognizeIngredient } from "@/features/recipe-form/use-recognize-ingredient";
 import { Button, Dropdown, Label } from "@heroui/react";
 import { Plus } from "lucide-react";
-import { useCallback, useId, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   canAddToSection,
   destinationBucket,
@@ -119,7 +126,9 @@ export function PlanAddForm({
   );
   const save = useAddItem(section);
   const form = useRef<HTMLFormElement>(null);
-  useLayoutEffect(() => {
+  // Don't useLayoutEffect - it will race with React-ARIA's inert from modals,
+  // such as select menu.
+  useEffect(() => {
     input.current?.focus({ preventScroll: true });
     const rect = form.current?.getBoundingClientRect();
     if (rect && (rect.top < 0 || rect.bottom > window.innerHeight)) {
