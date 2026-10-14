@@ -128,6 +128,27 @@ describe("RecipeDetail", () => {
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 
+  it.each([true, false])("offers the copy flow (mine: %s)", async (mine) => {
+    show({ ...recipe, mine });
+    await userEvent.click(
+      screen.getByRole("button", { name: "More recipe actions" }),
+    );
+    if (!mine) {
+      expect(
+        screen.queryByRole("menuitem", { name: "Edit recipe" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("menuitem", { name: "Delete recipe" }),
+      ).not.toBeInTheDocument();
+    }
+    await userEvent.click(
+      screen.getByRole("menuitem", {
+        name: mine ? "Duplicate" : "Copy to my library",
+      }),
+    );
+    expect(push).toHaveBeenCalledWith("/recipes/pie/edit?copy=1");
+  });
+
   it("cancels deletion and returns focus to its trigger", async () => {
     const user = userEvent.setup();
     show();

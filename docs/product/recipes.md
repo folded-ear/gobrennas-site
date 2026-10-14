@@ -93,10 +93,41 @@ Delivery: Built
 - The owner can open More recipe actions for Edit recipe and a separated Delete
   recipe action. Other people see neither action. Deletion uses the confirmation
   and recovery behavior below and returns to the Library on success.
-- Share and Copy to my library are deferred until those features are ready.
+- Duplicate and Copy to my library open the copy workflow below. Share remains
+  deferred.
 - Opening a planned recipe in the planner remains focused on editing that
   occurrence. Its Cook view provides the readable recipe and cooking actions;
   see [Cooking](planner.md#cooking).
+
+### Copying a recipe
+
+State: Agreed — BFS-36.
+
+Delivery: Built
+
+- A saved recipe offers Duplicate to its owner and Copy to my library to other
+  viewers. Both open the existing editor with a complete draft of the source.
+  Opening a non-owned recipe's edit URL also opens this copy flow.
+- An owned recipe's editor offers Save as copy using the current draft, including
+  unsaved changes. Copying always creates a new recipe owned by the viewer and
+  leaves the source unchanged. The title is retained unless the viewer changes it.
+- Owned sections become independent, editable sections of the copy, preserving
+  their content and labels. Borrowed sections and ingredient references retain
+  their original targets, including references to sections owned by the source;
+  copying does not redirect those references to the new sections.
+- Copying uses the saved library recipe, not a planned occurrence's quantities,
+  notes, or ingredient edits.
+- Photo behavior stays as provided by the existing API: an unchanged photo is
+  copied with its original focal point, and an uploaded replacement is used
+  instead. Focal-point-only changes to the existing photo are not retained by
+  the copy operation. No API changes are part of this work.
+- Copying reuses the editor's validation, upload, pending, and failure behavior.
+  A failed save preserves the draft and allows retry; repeated submissions while
+  pending are blocked. A missing or unchanged returned recipe ID is a failure.
+- Cancel returns to the source recipe without saving. A successful copy refreshes
+  library and label data and returns to the Library list. A “Copy saved to your
+  library” toast offers Open copy; opening it shows the new recipe and dismisses
+  the toast. Ordinary edits still return to the edited recipe.
 
 ### Create editor
 
@@ -278,8 +309,8 @@ Delivery: Built
 ### Editing saved recipes
 
 - The owner can open Edit recipe from the detail view or use the library edit
-  action. Direct edit links show a read-only notice for other users, with a way
-  back to the recipe. The API continues to enforce ownership on update.
+  action. Direct edit links open the copy workflow for other users. The API
+  continues to enforce ownership on update.
 - Editing loads a complete fresh recipe and uses the same form as creation.
   Loading and load failures have dedicated feedback and retry. Background data
   changes do not replace the draft while the person is editing.

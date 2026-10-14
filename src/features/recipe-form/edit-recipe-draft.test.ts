@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { recipeToDraft, toRecipeUpdate } from "./edit-recipe-draft";
+import {
+  recipeToDraft,
+  toRecipeCopy,
+  toRecipeUpdate,
+} from "./edit-recipe-draft";
 import { moveIngredient, updateIngredient } from "./ingredient-draft";
 import { newSectionDraft } from "./section-draft";
-import { storedInfo, storedRecipe } from "./test/edit-recipe";
+import { copiedInfo, storedInfo, storedRecipe } from "./test/edit-recipe";
 
 describe("lossless recipe editing", () => {
   it("round-trips every supported field and both section kinds when only the title changes", () => {
@@ -132,5 +136,54 @@ describe("lossless recipe editing", () => {
     expect(() =>
       toRecipeUpdate({ ...removed, ingredients: [] }, initial, recipe),
     ).not.toThrow();
+  });
+});
+
+describe("recipe copies", () => {
+  it("copies owned sections and preserves borrowed sections, labels, and exact saved metadata", () => {
+    const initial = recipeToDraft(storedRecipe);
+    expect(toRecipeCopy(initial, initial, storedRecipe)).toEqual(copiedInfo);
+    expect(
+      toRecipeCopy(
+        {
+          ...initial,
+          sections: [
+            {
+              ...initial.sections[0],
+              title: "New crust",
+              directions: "Chill.",
+            },
+            initial.sections[1],
+          ],
+        },
+        initial,
+        storedRecipe,
+      ).sections,
+    ).toEqual([
+      { ...copiedInfo.sections![0], name: "New crust", directions: "Chill." },
+      { id: "topping" },
+    ]);
+  });
+
+  it("keeps ingredient references to source-owned sections, even when the copy omits that section", () => {
+    const recipe = {
+      ...storedRecipe,
+      ingredients: [
+        {
+          ...storedRecipe.ingredients[0],
+          ingredient: { __typename: "Recipe" as const, id: "crust" },
+        },
+      ],
+      sections: [...storedRecipe.sections, storedRecipe.sections[0]],
+    };
+    const initial = recipeToDraft(recipe);
+    const info = toRecipeCopy(initial, initial, recipe);
+    expect(info.ingredients![0].ingredientId).toBe("crust");
+    expect(info.sections).toEqual([...copiedInfo.sections!, { id: "crust" }]);
+    expect(
+      toRecipeCopy({ ...initial, sections: [] }, initial, recipe)
+        .ingredients![0].ingredientId,
+    ).toBe("crust");
+    expect(initial.sections[0].id).toBe("crust");
   });
 });

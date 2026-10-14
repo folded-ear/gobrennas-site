@@ -59,7 +59,7 @@ export function recipeToDraft(recipe: EditableRecipe): RecipeDraft {
 }
 
 /** Preserve stored values for untouched fields, including precision and nulls. */
-export function toRecipeUpdate(
+function toRecipeInfo(
   draft: RecipeDraft,
   initial: RecipeDraft,
   recipe: EditableRecipe,
@@ -102,6 +102,31 @@ export function toRecipeUpdate(
       };
     }),
   };
+  return info;
+}
+
+export function toRecipeCopy(
+  draft: RecipeDraft,
+  initial: RecipeDraft,
+  recipe: EditableRecipe,
+): IngredientInfo {
+  const info = toRecipeInfo(draft, initial, recipe);
+  return {
+    ...info,
+    sections: info.sections?.map((section, index) =>
+      draft.sections[index].referenceRecipeId
+        ? section
+        : { ...section, id: null },
+    ),
+  };
+}
+
+export function toRecipeUpdate(
+  draft: RecipeDraft,
+  initial: RecipeDraft,
+  recipe: EditableRecipe,
+): IngredientInfo {
+  const info = toRecipeInfo(draft, initial, recipe);
   const ownedIds = new Set(
     recipe.sections
       .filter((s) => s.sectionOf?.id === recipe.id)

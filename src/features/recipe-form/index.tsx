@@ -32,6 +32,8 @@ type RecipeFormProps = RecipeFormAdditions & {
   heading: string;
   initialDraft: RecipeDraft;
   onSubmit: (draft: RecipeDraft) => Promise<void>;
+  onSaveCopy?: (draft: RecipeDraft) => Promise<void>;
+  saveLabel?: string;
   onCancel: () => void;
   onDelete?: () => Promise<void>;
   recognizeIngredient: RecognizeIngredient;
@@ -44,6 +46,8 @@ export function RecipeForm({
   heading,
   initialDraft,
   onSubmit,
+  onSaveCopy,
+  saveLabel = "Save recipe",
   onCancel,
   onDelete,
   recognizeIngredient,
@@ -102,11 +106,14 @@ export function RecipeForm({
     },
   };
 
-  async function submitRecipe(draft: RecipeDraft): Promise<void> {
+  async function submitRecipe(
+    draft: RecipeDraft,
+    save: RecipeFormProps["onSubmit"],
+  ): Promise<void> {
     clearSaveFailure();
     try {
       const photo = photoUpload.savedPhoto();
-      await onSubmit(photo ? { ...draft, photo } : draft);
+      await save(photo ? { ...draft, photo } : draft);
     } catch (error) {
       setSaveErrorMessage(
         error instanceof RecipeFormError ? error.message : undefined,
@@ -127,7 +134,12 @@ export function RecipeForm({
     // Acquire before async validation, so two submissions cannot race.
     isSubmittingRef.current = true;
     try {
-      await handleSubmit(submitRecipe)(event);
+      const submitter = (event.nativeEvent as SubmitEvent).submitter;
+      const save =
+        submitter instanceof HTMLButtonElement && submitter.value === "copy"
+          ? (onSaveCopy ?? onSubmit)
+          : onSubmit;
+      await handleSubmit((draft) => submitRecipe(draft, save))(event);
     } finally {
       isSubmittingRef.current = false;
     }
@@ -142,7 +154,7 @@ export function RecipeForm({
       validationBehavior="aria"
     >
       <SectionHeader title={heading}>
-        <div className="flex shrink-0 gap-sm">
+        <div className="flex flex-wrap justify-end gap-sm">
           {headerActions}
           <Button
             isDisabled={
@@ -160,9 +172,22 @@ export function RecipeForm({
                 Saving…
               </>
             ) : (
-              "Save recipe"
+              saveLabel
             )}
           </Button>
+          {onSaveCopy ? (
+            <Button
+              type="submit"
+              name="intent"
+              value="copy"
+              variant="secondary"
+              isDisabled={
+                isSubmitting || !title.trim() || !photoUpload.canSave()
+              }
+            >
+              Save as copy
+            </Button>
+          ) : null}
           <Button
             isDisabled={isSubmitting}
             onPress={onCancel}
