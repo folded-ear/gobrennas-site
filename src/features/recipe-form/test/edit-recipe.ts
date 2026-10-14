@@ -115,3 +115,8 @@ export const storedInfo: IngredientInfo = {
     { id: "topping" },
   ],
 };
+
+export const copiedInfo: IngredientInfo = {
+  ...storedInfo,
+  sections: [{ ...storedInfo.sections![0], id: null }, { id: "topping" }],
+};

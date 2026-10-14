@@ -14,13 +14,14 @@ import {
 import { gql } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { CreateRecipeFromDocument } from "./__generated__/createRecipeFrom.generated";
 import { DeleteRecipeDocument } from "./__generated__/deleteRecipe.generated";
 import { GetRecipeForEditDocument } from "./__generated__/getRecipeForEdit.generated";
 import { RecipeLabelSuggestionsDocument } from "./__generated__/recipeLabelSuggestions.generated";
 import { RecognizeIngredientDocument } from "./__generated__/recognizeIngredient.generated";
 import { UpdateRecipeDocument } from "./__generated__/updateRecipe.generated";
 import { EditRecipeForm } from "./edit-recipe-form";
-import { storedInfo, storedRecipe } from "./test/edit-recipe";
+import { copiedInfo, storedInfo, storedRecipe } from "./test/edit-recipe";
 
 const { replace } = vi.hoisted(() => ({ replace: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
@@ -267,44 +268,6 @@ describe("editing owned recipes", () => {
       );
     },
   );
-
-  it("does not offer an editable form to a non-owner", async () => {
-    render(
-      <EditRecipeForm
-        onDeleted={vi.fn()}
-        id="pie"
-        onSaved={vi.fn()}
-        onCancel={vi.fn()}
-      />,
-      {
-        mocks: [
-          {
-            ...load,
-            result: {
-              data: {
-                library: {
-                  __typename: "LibraryQuery",
-                  getRecipeById: { ...storedRecipe, mine: false },
-                },
-              },
-            },
-          },
-        ],
-      },
-    );
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "only its owner",
-    );
-    expect(
-      screen.queryByRole("textbox", { name: "Title" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Save recipe" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Delete recipe" }),
-    ).not.toBeInTheDocument();
-  });
 
   it("offers retry for a load failure and cancels without saving", async () => {
     const user = userEvent.setup();
@@ -610,5 +573,169 @@ describe("deleting owned recipes", () => {
       ingredient: { __ref: "Ingredient:topping" },
       notes: "Keep me",
     });
+  });
+});
+
+describe("copying recipes", () => {
+  it.each([
+    { mine: true, copy: true, button: "Save copy" },
+    { mine: true, copy: false, button: "Save as copy" },
+    { mine: false, copy: false, button: "Save copy" },
+  ])(
+    "copies from $button (mine: $mine, copy: $copy) with the current draft",
+    async ({ mine, copy, button }) => {
+      const cache = buildInMemoryCache();
+      cache.writeQuery({ ...query, data: load.result.data });
+      const evict = vi.spyOn(cache, "evict");
+      const result = vi.fn(() => ({
+        data: {
+          library: {
+            __typename: "LibraryMutation",
+            createRecipeFrom: { __typename: "Recipe", id: "new-pie" },
+          },
+        },
+      }));
+      render(<RecipeEdit id="pie" copy={copy} />, {
+        cache,
+        mocks: [
+          {
+            ...load,
+            result: {
+              data: {
+                library: {
+                  __typename: "LibraryQuery",
+                  getRecipeById: { ...storedRecipe, mine },
+                },
+              },
+            },
+          },
+          labels,
+          ...recognitionMocks,
+          {
+            request: {
+              query: CreateRecipeFromDocument,
+              variables: {
+                sourceRecipeId: "pie",
+                info: {
+                  ...copiedInfo,
+                  name: "My pie",
+                  sections: [
+                    {
+                      ...copiedInfo.sections![0],
+                      directions: "Chill the pastry.",
+                    },
+                    copiedInfo.sections![1],
+                  ],
+                },
+              },
+            },
+            delay: 40,
+            result,
+          },
+        ],
+      });
+      const title = await screen.findByRole("textbox", { name: "Title" });
+      expect(
+        screen.getByRole("img", { name: "Selected recipe photo" }),
+      ).toHaveAttribute("src", storedRecipe.photo!.url);
+      expect(
+        screen.getByRole("link", { name: "Borrowed topping" }),
+      ).toHaveAttribute("href", "/recipes/other-recipe");
+      if (copy || !mine) {
+        expect(
+          screen.getByRole("heading", { name: "Copy Recipe" }),
+        ).toBeInTheDocument();
+        expect(
+          screen.queryByRole("button", { name: "Save recipe" }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole("button", { name: "Delete recipe" }),
+        ).not.toBeInTheDocument();
+      }
+      await userEvent.clear(title);
+      await userEvent.type(title, "My pie");
+      await userEvent.type(
+        screen.getByRole("textbox", { name: "Section 1 directions" }),
+        "Chill the pastry.",
+      );
+      await userEvent.dblClick(screen.getByRole("button", { name: button }));
+      await waitFor(() =>
+        expect(replace).toHaveBeenCalledWith("/recipes/new-pie"),
+      );
+      expect(result).toHaveBeenCalledOnce();
+      expect(evict).toHaveBeenCalledWith({
+        id: "ROOT_QUERY",
+        fieldName: "library",
+      });
+      expect(evict).toHaveBeenCalledWith({
+        id: "ROOT_QUERY",
+        fieldName: "labels",
+      });
+      expect(evict).not.toHaveBeenCalledWith({ id: "Ingredient:pie" });
+      expect(evict).not.toHaveBeenCalledWith({ id: "Ingredient:crust" });
+    },
+  );
+
+  it.each(["network", "missing id", "source id"])(
+    "preserves the draft after %s failure and permits retry",
+    async (failure) => {
+      const request = {
+        query: CreateRecipeFromDocument,
+        variables: { sourceRecipeId: "pie", info: copiedInfo },
+      };
+      const cache = buildInMemoryCache();
+      const evict = vi.spyOn(cache, "evict");
+      const reply = (id: string) => ({
+        data: {
+          library: {
+            __typename: "LibraryMutation",
+            createRecipeFrom: { __typename: "Recipe", id },
+          },
+        },
+      });
+      render(<RecipeEdit id="pie" copy />, {
+        cache,
+        mocks: [
+          load,
+          labels,
+          ...recognitionMocks,
+          failure === "network"
+            ? { request, error: new Error("Offline") }
+            : { request, result: reply(failure === "source id" ? "pie" : "") },
+          { request, result: reply("new-pie") },
+        ],
+      });
+      await screen.findByRole("textbox", { name: "Title" });
+      await userEvent.click(screen.getByRole("button", { name: "Save copy" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Couldn’t save recipe",
+      );
+      expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(
+        "Apple pie",
+      );
+      expect(replace).not.toHaveBeenCalled();
+      expect(evict).not.toHaveBeenCalled();
+      await userEvent.click(screen.getByRole("button", { name: "Save copy" }));
+      await waitFor(() =>
+        expect(replace).toHaveBeenCalledWith("/recipes/new-pie"),
+      );
+    },
+  );
+
+  it("validates a copy and cancels back to the source without saving", async () => {
+    render(<RecipeEdit id="pie" copy />, {
+      mocks: [load, labels, ...recognitionMocks],
+    });
+    await screen.findByRole("textbox", { name: "Title" });
+    await userEvent.clear(
+      screen.getByRole("textbox", { name: "Section 1 title" }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Save copy" }));
+    expect(
+      await screen.findByText("A section title is required."),
+    ).toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(replace).toHaveBeenCalledWith("/recipes/pie");
   });
 });

@@ -3,7 +3,7 @@
 import { AddRecipeToPlan } from "@/features/add-recipe-to-plan";
 import { DeleteRecipeDialog } from "@/features/recipe-form/delete-recipe-button";
 import { Button, Dropdown, Label, Separator } from "@heroui/react";
-import { Ellipsis, Pencil, Trash2, X } from "lucide-react";
+import { Copy, Ellipsis, Pencil, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useRef, useState } from "react";
 
@@ -52,19 +52,31 @@ export function LibraryRecipeActions({
   return (
     <>
       <AddRecipeToPlan recipeId={recipe.id} />
-      {recipe.mine ? (
-        <>
-          <Dropdown>
-            <Button
-              ref={more}
-              isIconOnly
-              variant="secondary"
-              aria-label="More recipe actions"
+      <Dropdown>
+        <Button
+          ref={more}
+          isIconOnly
+          variant="secondary"
+          aria-label="More recipe actions"
+        >
+          <Ellipsis size={20} aria-hidden />
+        </Button>
+        <Dropdown.Popover>
+          <Dropdown.Menu aria-label="More recipe actions">
+            <Dropdown.Item
+              id="copy"
+              textValue={recipe.mine ? "Duplicate" : "Copy to my library"}
+              onAction={() =>
+                router.push(
+                  `/recipes/${encodeURIComponent(recipe.id)}/edit?copy=1`,
+                )
+              }
             >
-              <Ellipsis size={20} aria-hidden />
-            </Button>
-            <Dropdown.Popover>
-              <Dropdown.Menu aria-label="More recipe actions">
+              <Copy size={16} aria-hidden />
+              <Label>{recipe.mine ? "Duplicate" : "Copy to my library"}</Label>
+            </Dropdown.Item>
+            {recipe.mine ? (
+              <>
                 <Dropdown.Item
                   id="edit"
                   onAction={() =>
@@ -90,18 +102,20 @@ export function LibraryRecipeActions({
                   <Trash2 size={16} aria-hidden />
                   <Label>Delete recipe</Label>
                 </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown.Popover>
-          </Dropdown>
-          <DeleteRecipeDialog
-            name={recipe.name}
-            isDisabled={false}
-            isOpen={deleteOpen}
-            onOpenChange={setDeleteOpen}
-            onDelete={onDelete}
-            failureDescription="The recipe hasn’t been deleted. Try again, or cancel to return to the recipe."
-          />
-        </>
+              </>
+            ) : null}
+          </Dropdown.Menu>
+        </Dropdown.Popover>
+      </Dropdown>
+      {recipe.mine ? (
+        <DeleteRecipeDialog
+          name={recipe.name}
+          isDisabled={false}
+          isOpen={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          onDelete={onDelete}
+          failureDescription="The recipe hasn’t been deleted. Try again, or cancel to return to the recipe."
+        />
       ) : null}
     </>
   );

@@ -2,9 +2,14 @@ import { RecipeEdit } from "@/screens/recipe-edit";
 
 type PageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ copy?: string }>;
 };
 
-export default async function RecipeEditPage({ params }: PageProps) {
+export default async function RecipeEditPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { id } = await params;
-  return <RecipeEdit id={id} />;
+  const copy = (await searchParams).copy === "1";
+  return <RecipeEdit id={id} copy={copy} />;
 }
