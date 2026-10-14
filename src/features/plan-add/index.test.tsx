@@ -57,15 +57,17 @@ const day: TimelineSection = {
 function AddHarness({
   section,
   onAddBucket,
+  plans = [plan],
 }: {
   section: TimelineSection;
   onAddBucket?: () => void;
+  plans?: AddPlan[];
 }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <PlanAdd
-        plans={[plan]}
+        plans={plans}
         section={section}
         isOpen={open}
         onOpenChange={setOpen}
@@ -73,7 +75,7 @@ function AddHarness({
       />
       {open ? (
         <PlanAddForm
-          plans={[plan]}
+          plans={plans}
           section={section}
           onClose={() => setOpen(false)}
         />
@@ -417,7 +419,7 @@ describe("planner Add", () => {
     expect(editableMorsel("Item for Unplanned")).toHaveFocus();
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
-    expect(trigger).toHaveFocus();
+    await waitFor(() => expect(trigger).toHaveFocus());
   });
 
   it("offers recipe and bucket creation from a day's Add menu", async () => {
@@ -433,23 +435,42 @@ describe("planner Add", () => {
     expect(onAddBucket).toHaveBeenCalledOnce();
   });
 
-  it("opens the recipe editor from a day's Add menu", async () => {
-    render(<AddHarness section={day} onAddBucket={vi.fn()} />);
-    await userEvent.click(
-      screen.getByRole("button", { name: "Add to Fri, Oct 2" }),
-    );
-    await userEvent.click(screen.getByRole("menuitem", { name: "Add Recipe" }));
-    expect(
-      screen.getByRole("form", { name: "Add to Fri, Oct 2" }),
-    ).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    await waitFor(() =>
-      expect(screen.queryByRole("form")).not.toBeInTheDocument(),
-    );
-    expect(
-      screen.getByRole("button", { name: "Add to Fri, Oct 2" }),
-    ).toHaveFocus();
-  });
+  it.each([1, 2])(
+    "focuses Morsel from a day's Add menu with %i eligible plans",
+    async (count) => {
+      render(
+        <AddHarness
+          section={day}
+          onAddBucket={vi.fn()}
+          plans={[
+            plan,
+            { ...plan, id: "second-plan", name: "Second plan" },
+          ].slice(0, count)}
+        />,
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: "Add to Fri, Oct 2" }),
+      );
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Add Recipe" }),
+      );
+      expect(editableMorsel("Item for Fri, Oct 2")).toHaveFocus();
+      await userEvent.tab();
+      expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+      expect(
+        screen.getByRole("form", { name: "Add to Fri, Oct 2" }),
+      ).toBeInTheDocument();
+      await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+      await waitFor(() =>
+        expect(screen.queryByRole("form")).not.toBeInTheDocument(),
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: "Add to Fri, Oct 2" }),
+        ).toHaveFocus(),
+      );
+    },
+  );
 
   it("adds a selected recipe with its ingredients, cooking link, and working detail view", async () => {
     const { user, requests, client } = setup({ showSavedPlan: true });
@@ -613,9 +634,11 @@ describe("planner Add", () => {
     });
     expect(saved?.query).toContain("$choice0: RecognitionChoice");
     expect(saved?.query).toContain("choice: $choice0");
-    expect(
-      screen.getByRole("button", { name: "Add to Unplanned" }),
-    ).toHaveFocus();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Add to Unplanned" }),
+      ).toHaveFocus(),
+    );
   });
 
   it("saves plain text without choice and honors the recognition opt-out", async () => {
@@ -699,8 +722,10 @@ describe("planner Add", () => {
     expect(requests.filter((it) => it.name !== "recognizeIngredient")).toEqual(
       [],
     );
-    expect(
-      screen.getByRole("button", { name: "Add to Unplanned" }),
-    ).toHaveFocus();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Add to Unplanned" }),
+      ).toHaveFocus(),
+    );
   });
 });

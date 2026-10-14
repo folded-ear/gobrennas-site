@@ -14,14 +14,8 @@ import { createRecognitionQueue } from "@/features/recipe-form/recognition-queue
 import { useRecognizeIngredient } from "@/features/recipe-form/use-recognize-ingredient";
 import { Button, Dropdown, Label } from "@heroui/react";
 import { Plus } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { FocusScope } from "react-aria";
 import {
   canAddToSection,
   destinationBucket,
@@ -43,13 +37,7 @@ export function PlanAdd({
   onOpenChange: (open: boolean) => void;
 }) {
   const eligible = plans.filter((plan) => canAddToSection(plan, section));
-  const trigger = useRef<HTMLButtonElement>(null);
-  const wasOpen = useRef(open);
   const label = sectionLabel(section);
-  useLayoutEffect(() => {
-    if (!open && wasOpen.current) trigger.current?.focus();
-    wasOpen.current = open;
-  }, [open]);
   if (!eligible.length && !onAddBucket) return null;
   return onAddBucket ? (
     <Dropdown>
@@ -57,7 +45,6 @@ export function PlanAdd({
         variant="ghost"
         className="gap-xs px-sm text-muted"
         aria-label={`Add to ${label}`}
-        ref={trigger}
       >
         <Plus aria-hidden /> Add
       </Button>
@@ -83,7 +70,6 @@ export function PlanAdd({
     </Dropdown>
   ) : (
     <Button
-      ref={trigger}
       variant="ghost"
       className="gap-xs px-sm text-muted"
       aria-label={`Add to ${label}`}
@@ -114,7 +100,6 @@ export function PlanAddForm({
   const plan = plans.find((it) => it.id === planId);
   const [row, setRow] = useState(newIngredientDraft);
   const [queue] = useState(createRecognitionQueue);
-  const input = useRef<HTMLDivElement>(null);
   const helpId = useId();
   const recognizeIngredient = useRecognizeIngredient();
   const recognize = useCallback<RecognizeIngredient>(
@@ -129,7 +114,6 @@ export function PlanAddForm({
   // Don't useLayoutEffect - it will race with React-ARIA's inert from modals,
   // such as select menu.
   useEffect(() => {
-    input.current?.focus({ preventScroll: true });
     const rect = form.current?.getBoundingClientRect();
     if (rect && (rect.top < 0 || rect.bottom > window.innerHeight)) {
       form.current?.scrollIntoView?.({ block: "nearest" });
@@ -141,95 +125,106 @@ export function PlanAddForm({
   }
 
   return (
-    <form
-      ref={form}
-      aria-busy={save.pending}
-      onKeyDown={(event) => {
-        if (event.key === "Escape" && !save.pending) {
-          event.stopPropagation();
-          onClose();
-        }
-      }}
-      aria-label={`Add to ${label}`}
-      className="flex flex-col gap-sm py-xs"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void submit();
-      }}
-    >
-      <div className="flex flex-col gap-sm sm:flex-row sm:items-start">
-        {plans.length > 1 && !save.pending ? (
-          <PlanPicker
-            compact
-            label="Add to plan"
-            plans={plans}
-            selectionMode="single"
-            selectedIds={plan ? [plan.id] : []}
-            onChange={(ids) => setPlanId(ids[0])}
-          />
+    <FocusScope restoreFocus>
+      <form
+        ref={form}
+        aria-busy={save.pending}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && !save.pending) {
+            event.stopPropagation();
+            onClose();
+          }
+        }}
+        aria-label={`Add to ${label}`}
+        className="flex flex-col gap-sm py-xs"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submit();
+        }}
+      >
+        <div className="flex flex-col gap-sm sm:flex-row sm:items-start">
+          {plans.length > 1 && !save.pending ? (
+            <PlanPicker
+              compact
+              label="Add to plan"
+              plans={plans}
+              selectionMode="single"
+              selectedIds={plan ? [plan.id] : []}
+              onChange={(ids) => setPlanId(ids[0])}
+            />
+          ) : null}
+          <FocusScope autoFocus>
+            <IngredientInput
+              row={row}
+              label={`Item for ${label}`}
+              helpId={helpId}
+              isDisabled={save.pending}
+              onChange={(raw, choice) =>
+                setRow(
+                  (previous) =>
+                    updateIngredient(
+                      [previous],
+                      previous.clientId,
+                      raw,
+                      choice,
+                    )[0],
+                )
+              }
+              onChoose={(raw, choice) =>
+                setRow(
+                  (previous) =>
+                    chooseIngredient(
+                      [previous],
+                      previous.clientId,
+                      raw,
+                      choice,
+                    )[0],
+                )
+              }
+              onRecognized={(recognition) =>
+                setRow((previous) =>
+                  previous.raw === recognition.raw
+                    ? { ...previous, recognition }
+                    : previous,
+                )
+              }
+              onKeyDown={() => {}}
+              onEnter={() => {
+                void submit();
+              }}
+              onPasteLines={() => false}
+              recognize={recognize}
+              queue={queue}
+            />
+          </FocusScope>
+        </div>
+        <span id={helpId} className="sr-only">
+          Choose a suggestion or enter an item, then Add to save it.
+        </span>
+        {save.error ? (
+          <p role="alert" className="text-sm text-danger">
+            {save.error}
+          </p>
         ) : null}
-        <IngredientInput
-          row={row}
-          label={`Item for ${label}`}
-          helpId={helpId}
-          isDisabled={save.pending}
-          inputRef={(element) => {
-            input.current = element;
-          }}
-          onChange={(raw, choice) =>
-            setRow(
-              (previous) =>
-                updateIngredient([previous], previous.clientId, raw, choice)[0],
-            )
-          }
-          onChoose={(raw, choice) =>
-            setRow(
-              (previous) =>
-                chooseIngredient([previous], previous.clientId, raw, choice)[0],
-            )
-          }
-          onRecognized={(recognition) =>
-            setRow((previous) =>
-              previous.raw === recognition.raw
-                ? { ...previous, recognition }
-                : previous,
-            )
-          }
-          onKeyDown={() => {}}
-          onEnter={() => {
-            void submit();
-          }}
-          onPasteLines={() => false}
-          recognize={recognize}
-          queue={queue}
-        />
-      </div>
-      <span id={helpId} className="sr-only">
-        Choose a suggestion or enter an item, then Add to save it.
-      </span>
-      {save.error ? (
-        <p role="alert" className="text-sm text-danger">
-          {save.error}
-        </p>
-      ) : null}
-      <div className="flex gap-xs">
-        <Button
-          type="submit"
-          variant="primary"
-          isPending={save.pending}
-          isDisabled={!plan || !row.raw.trim() || save.pending}
-        >
-          Add
-        </Button>
-        <Button
-          type="button"
-          variant="tertiary"
-          isDisabled={save.pending}
-          onPress={onClose}
-        >
-          Cancel
-        </Button>
-      </div>
-    </form>
+        <div className="flex gap-xs">
+          <Button
+            type="submit"
+            variant="primary"
+            isPending={save.pending}
+            isDisabled={!plan || !row.raw.trim() || save.pending}
+          >
+            Add
+          </Button>
+          <Button
+            type="button"
+            variant="tertiary"
+            isDisabled={save.pending}
+            onPress={onClose}
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </FocusScope>
   );
 }

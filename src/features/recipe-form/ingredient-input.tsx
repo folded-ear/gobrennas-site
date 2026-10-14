@@ -50,7 +50,7 @@ export function IngredientInput({
   helpId: string;
   isDisabled: boolean;
   pastedRow?: { raw: string };
-  inputRef: RefCallback<HTMLDivElement>;
+  inputRef?: RefCallback<HTMLDivElement>;
   onChange: (raw: string, choice?: MorselChoice) => void;
   onChoose: (raw: string, choice: MorselChoice) => void;
   onRecognized: (result: IngredientRecognition) => void;
@@ -95,7 +95,7 @@ export function IngredientInput({
         suggestions={recognition.suggestions}
         inputRef={(element) => {
           input.current = element;
-          inputRef(element);
+          inputRef?.(element);
         }}
         onChange={(raw, cursor, inputType) => {
           const choice = history.edit(raw, inputType);
