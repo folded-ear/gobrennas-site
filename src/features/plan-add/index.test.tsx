@@ -414,7 +414,9 @@ describe("planner Add", () => {
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(editableMorsel("Item for Unplanned")).toHaveFocus();
+    await waitFor(() =>
+      expect(editableMorsel("Item for Unplanned")).toHaveFocus(),
+    );
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
@@ -442,6 +444,9 @@ describe("planner Add", () => {
     expect(
       screen.getByRole("form", { name: "Add to Fri, Oct 2" }),
     ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(editableMorsel("Item for Fri, Oct 2")).toHaveFocus(),
+    );
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
     await waitFor(() =>
       expect(screen.queryByRole("form")).not.toBeInTheDocument(),
@@ -590,7 +595,7 @@ describe("planner Add", () => {
     const { user, requests } = setup();
     await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
     const input = editableMorsel("Item for Unplanned");
-    expect(input).toHaveFocus();
+    await waitFor(() => expect(input).toHaveFocus());
     await user.type(input, "So");
     const options = await screen.findAllByRole("option");
     expect(options).toHaveLength(3);
