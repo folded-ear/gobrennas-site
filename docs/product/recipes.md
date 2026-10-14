@@ -51,6 +51,9 @@ Delivery: Built
   state and reports an error so the person can try again.
 - Library cards show the most recent recorded cooking date, or “Never cooked”
   when there is no completed cooking history.
+- Library card Edit and View buttons include the recipe title in their
+  accessible names. The end of the recipe list, including an empty search,
+  displays “fin.” intentionally.
 - On an owned recipe without a photo, the Library card's placeholder accepts a
   dropped image or opens a file picker when pressed. It uses the editor's image
   validation, resizing, and upload flow, and saves immediately with centered
@@ -93,8 +96,8 @@ Delivery: Built
 - The owner can open More recipe actions for Edit recipe and a separated Delete
   recipe action. Other people see neither action. Deletion uses the confirmation
   and recovery behavior below and returns to the Library on success.
-- Duplicate and Copy to my library open the copy workflow below. Share remains
-  deferred.
+- Duplicate and Copy to my library open the copy workflow below. Share is
+  outside the manual recipe CRUD scope of BFS-83.
 - Opening a planned recipe in the planner remains focused on editing that
   occurrence. Its Cook view provides the readable recipe and cooking actions;
   see [Cooking](planner.md#cooking).
@@ -205,7 +208,9 @@ Delivery: Built
   are disabled while saving.
 - Added labels persist through recipe creation. Successful creation invalidates
   the cached label suggestions so subsequent editors can discover new labels.
-- Section labels (BFS-80) and library search/filter changes are separate work.
+- Section label editing is out of scope for now (BFS-80, canceled). Existing
+  section labels are preserved when editing and copying recipes. Library
+  search/filter changes are separate work.
 
 ### Photos in recipe creation
 
@@ -325,7 +330,7 @@ Delivery: Built
   without modifying their source. Duplicate occurrences of an owned section are
   handled like the current client: edit its content only at the first occurrence.
 - Existing section labels are preserved without showing label-editing controls.
-  Section label management remains an undecided separate feature.
+  Section label editing is out of scope for now (BFS-80, canceled).
 - Changing one field preserves unrelated fields, including zero values, nullable
   fields, and stored cook-time precision. A section still used by an ordinary
   ingredient cannot be removed until that reference is removed; this avoids the
@@ -371,9 +376,11 @@ State: Agreed — frontend scope of BFS-24.
   API. Their titles, directions, ingredient order, and recognized details are
   preserved; blank ingredient rows are omitted. Client identity is independent
   of server identity, including after earlier sections are removed.
-- Referenced structural sections and editing saved recipes remain separate
-  work. BFS-24's backend suggestion exclusions and save-time reference checks
-  are explicitly deferred, alongside the update-ordering concern in BFS-96.
+- Adding borrowed sections as structural sections is not planned (BFS-81,
+  canceled); ingredient rows can reference another recipe's section instead.
+  Existing borrowed sections are preserved when editing and copying recipes.
+  Backend suggestion exclusions and save-time self-reference checks remain
+  deferred to BFS-97, alongside the update-ordering concern in BFS-96.
 
 ### Saving
 
@@ -387,7 +394,7 @@ State: Agreed — frontend scope of BFS-24.
 
 ### Edit editor
 
-- The proposed edit editor replaces recipe detail when that detail is already a
+- The edit editor replaces recipe detail when that detail is already a
   focused screen. Edit chosen from the Library opens the editor over the
   Library.
 - Saving or canceling edit replaces the editor with recipe detail, so the editor

@@ -80,6 +80,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
               isIconOnly
               size="sm"
               variant="tertiary"
+              aria-label={`Edit recipe: ${data.name}`}
               onClick={() => router.push(`/recipes/${data.id}/edit`)}
             >
               <RecipeEditIcon />
@@ -88,6 +89,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
               isIconOnly
               size="sm"
               variant="tertiary"
+              aria-label={`View recipe: ${data.name}`}
               onClick={() => router.push(`/recipes/${data.id}`)}
             >
               <RecipeViewIcon />
