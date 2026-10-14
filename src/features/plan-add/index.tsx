@@ -120,15 +120,11 @@ export function PlanAddForm({
   const save = useAddItem(section);
   const form = useRef<HTMLFormElement>(null);
   useLayoutEffect(() => {
-    // Let the Add menu finish its focus restoration before focusing the editor.
-    const frame = requestAnimationFrame(() => {
-      input.current?.focus({ preventScroll: true });
-      const rect = form.current?.getBoundingClientRect();
-      if (rect && (rect.top < 0 || rect.bottom > window.innerHeight)) {
-        form.current?.scrollIntoView?.({ block: "nearest" });
-      }
-    });
-    return () => cancelAnimationFrame(frame);
+    input.current?.focus({ preventScroll: true });
+    const rect = form.current?.getBoundingClientRect();
+    if (rect && (rect.top < 0 || rect.bottom > window.innerHeight)) {
+      form.current?.scrollIntoView?.({ block: "nearest" });
+    }
   }, []);
 
   async function submit() {
