@@ -34,7 +34,7 @@ export function scrollSpeed(pointerY: number, { top, bottom }: Edges): number {
 
 /** I give what scrolls an element: its nearest scrolling ancestor, or the page. */
 function scrollerOf(element: Element): Element {
-  let ancestor = element.parentElement;
+  let ancestor: Element | null = element;
   while (
     ancestor !== null &&
     !SCROLLING_OVERFLOW.test(getComputedStyle(ancestor).overflowY)
@@ -54,7 +54,8 @@ function edgesOf(scroller: Element): Edges {
  * I scroll a scroller while a drag's pointer sits near its top or bottom,
  * from when I'm called until the function I return is.
  */
-function scrollUnderDrag(scroller: Element): () => void {
+export function scrollUnderDrag(): () => void {
+  let scroller = document.documentElement as Element;
   let pointerY: number | null = null;
   let frame: number | null = null;
   let lastFrame: number | null = null;
@@ -80,6 +81,13 @@ function scrollUnderDrag(scroller: Element): () => void {
     frame = requestAnimationFrame(step);
   };
   const onDragOver = (event: DragEvent) => {
+    if (!(event.target instanceof Element)) return;
+    const target = scrollerOf(event.target);
+    if (target !== scroller) {
+      scroller = target;
+      lastFrame = null;
+      owed = 0;
+    }
     pointerY = event.clientY;
     frame ??= requestAnimationFrame(step);
   };
@@ -99,18 +107,15 @@ function scrollUnderDrag(scroller: Element): () => void {
 }
 
 /**
- * While `isDragging`, I scroll whatever scrolls `ref`'s element as the
- * drag's pointer nears its top or bottom.
+ * While `isDragging`, I scroll the area under the drag pointer, including
+ * when it crosses from the source list into a different scroll area.
  */
 export function useDragScroll(
   ref: RefObject<Element | null>,
   isDragging: boolean,
 ): void {
   useEffect(
-    () =>
-      isDragging && ref.current !== null
-        ? scrollUnderDrag(scrollerOf(ref.current))
-        : undefined,
+    () => (isDragging && ref.current !== null ? scrollUnderDrag() : undefined),
     [ref, isDragging],
   );
 }

@@ -186,110 +186,113 @@ export function Planner() {
           onClose={() => setBucketAction(null)}
         />
       ) : null}
-      <SectionHeader title="Planner">
-        <PlanPicker
-          label="Plans"
-          plans={plans}
-          selectionMode="multiple"
-          selectedIds={planIds}
-          onChange={setPlanIds}
-        />
-      </SectionHeader>
-      <EditSurfaceProvider
-        state={edit}
-        order={editOrder}
-        tree={tree}
-        createdStayPut
-      >
-        <Screen
-          label={
-            shown
-              ? displayName(shown.name)
-              : shownSection
-                ? sectionLabel(shownSection)
-                : ""
-          }
-          isOpen={isOpen}
-          header={
-            shown ? (
-              <PlanItemHeader
-                item={shown}
-                context={context}
-                hasDescendants={descendants.length > 0}
-                onSelect={(id) => open.replace({ item: id })}
-                onRemoved={() => {
-                  // Only while it's still open: an edit ended by the screen
-                  // closing mustn't go back again.
-                  if (openItemId(open.value) === shown.id) router.back();
-                }}
-              />
-            ) : shownSection ? (
-              <PlanSectionHeader section={shownSection} />
-            ) : null
-          }
+      <div className="flex h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] flex-col overflow-hidden">
+        <SectionHeader title="Planner">
+          <PlanPicker
+            label="Plans"
+            plans={plans}
+            selectionMode="multiple"
+            selectedIds={planIds}
+            onChange={setPlanIds}
+          />
+        </SectionHeader>
+        <EditSurfaceProvider
+          state={edit}
+          order={editOrder}
+          tree={tree}
+          createdStayPut
         >
-          {shown || shownSection ? (
-            <PlanItemDetail
-              context={context}
-              descendants={descendants}
-              parentId={shown?.id}
-              dnd={dnd}
-              holdsSection={!shown}
-            />
-          ) : null}
-        </Screen>
-      </EditSurfaceProvider>
-
-      <div className="p-md bg-surface">
-        {shownPlans.length > 0 ? (
-          <PlanTimeline
-            plans={timelinePlans}
-            renderHeaderActions={(section) => (
-              <>
-                <PlanAdd
-                  plans={shownPlans}
-                  section={section}
-                  isOpen={addingSections.has(sectionKey(section))}
-                  onOpenChange={(adding) => setAdding(section, adding)}
-                  onAddBucket={
-                    section.kind === "day" && shownPlans.some(canAdministerPlan)
-                      ? () =>
-                          setBucketAction({
-                            kind: "create",
-                            date: section.date,
-                          })
-                      : undefined
-                  }
+          <Screen
+            label={
+              shown
+                ? displayName(shown.name)
+                : shownSection
+                  ? sectionLabel(shownSection)
+                  : ""
+            }
+            isOpen={isOpen}
+            header={
+              shown ? (
+                <PlanItemHeader
+                  item={shown}
+                  context={context}
+                  hasDescendants={descendants.length > 0}
+                  onSelect={(id) => open.replace({ item: id })}
+                  onRemoved={() => {
+                    // Only while it's still open: an edit ended by the screen
+                    // closing mustn't go back again.
+                    if (openItemId(open.value) === shown.id) router.back();
+                  }}
                 />
-                {section.kind === "bucket" ? (
-                  <BucketMenu
-                    plans={shownPlans}
-                    bucketIds={section.bucketIds}
-                    label={sectionLabel(section)}
-                    onAction={setBucketAction}
-                  />
-                ) : null}
-              </>
-            )}
-            renderFooter={(section) =>
-              addingSections.has(sectionKey(section)) ? (
-                <PlanAddForm
-                  plans={shownPlans.filter((plan) =>
-                    canAddToSection(plan, section),
-                  )}
-                  section={section}
-                  onClose={() => setAdding(section, false)}
-                />
+              ) : shownSection ? (
+                <PlanSectionHeader section={shownSection} />
               ) : null
             }
-            openId={selected?.id}
-            onSelect={(id) => open.push({ item: id })}
-            onOpenSection={(key) => open.push({ section: key })}
-            dnd={dnd}
-          />
-        ) : (
-          <p>There are no plans to show.</p>
-        )}
+          >
+            {shown || shownSection ? (
+              <PlanItemDetail
+                context={context}
+                descendants={descendants}
+                parentId={shown?.id}
+                dnd={dnd}
+                holdsSection={!shown}
+              />
+            ) : null}
+          </Screen>
+        </EditSurfaceProvider>
+
+        <div className="min-h-0 flex-1 bg-surface">
+          {shownPlans.length > 0 ? (
+            <PlanTimeline
+              plans={timelinePlans}
+              renderHeaderActions={(section) => (
+                <>
+                  <PlanAdd
+                    plans={shownPlans}
+                    section={section}
+                    isOpen={addingSections.has(sectionKey(section))}
+                    onOpenChange={(adding) => setAdding(section, adding)}
+                    onAddBucket={
+                      section.kind === "day" &&
+                      shownPlans.some(canAdministerPlan)
+                        ? () =>
+                            setBucketAction({
+                              kind: "create",
+                              date: section.date,
+                            })
+                        : undefined
+                    }
+                  />
+                  {section.kind === "bucket" ? (
+                    <BucketMenu
+                      plans={shownPlans}
+                      bucketIds={section.bucketIds}
+                      label={sectionLabel(section)}
+                      onAction={setBucketAction}
+                    />
+                  ) : null}
+                </>
+              )}
+              renderFooter={(section) =>
+                addingSections.has(sectionKey(section)) ? (
+                  <PlanAddForm
+                    plans={shownPlans.filter((plan) =>
+                      canAddToSection(plan, section),
+                    )}
+                    section={section}
+                    onClose={() => setAdding(section, false)}
+                  />
+                ) : null
+              }
+              openId={selected?.id}
+              onSelect={(id) => open.push({ item: id })}
+              onOpenSection={(key) => open.push({ section: key })}
+              dnd={dnd}
+            />
+          ) : (
+            <p className="p-md">There are no plans to show.</p>
+          )}
+        </div>
       </div>
     </PlanDirectoryProvider>
   );

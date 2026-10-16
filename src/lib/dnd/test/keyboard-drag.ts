@@ -1,4 +1,4 @@
-import { screen, userEvent, waitFor } from "@/test";
+import { act, screen, userEvent, waitFor } from "@/test";
 
 /** More than any test's drop targets, so a missing one fails, not hangs. */
 const MAX_TABS = 50;
@@ -9,7 +9,7 @@ const MAX_TABS = 50;
  */
 export async function keyboardDrag(handleName: string): Promise<void> {
   const handle = screen.getByRole("button", { name: handleName });
-  handle.focus();
+  act(() => handle.focus());
   await userEvent.keyboard("{Enter}");
   await waitFor(() => {
     if (document.activeElement === handle) {
