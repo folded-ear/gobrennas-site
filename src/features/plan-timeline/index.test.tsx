@@ -67,12 +67,14 @@ describe("PlanTimeline", () => {
   it("anchors an empty plan at today and runs on a week", () => {
     render(<PlanTimeline plans={[{ rootIds: [], items: [], buckets: [] }]} />);
 
-    const days = screen.getAllByRole("listitem");
-    expect(days).toHaveLength(8);
+    const calendar = screen.getByRole("region", { name: "Planning calendar" });
+    const days = within(calendar).getAllByRole("listitem");
+    expect(days).toHaveLength(7);
     expect(days[0]).toHaveTextContent(/Sep 9/);
     expect(days[0]).toHaveAttribute("aria-current", "date");
-    expect(days[1]).toHaveTextContent("Unplanned");
-    expect(days[7]).toHaveTextContent(/Sep 15/);
+    expect(within(calendar).queryByText("Unplanned")).toBeNull();
+    expect(screen.getByRole("tab", { name: "Unplanned · 0" })).toBeVisible();
+    expect(days[6]).toHaveTextContent(/Sep 15/);
   });
 
   it("puts a past item on its own date, with a break before today", () => {
@@ -533,6 +535,61 @@ describe("PlanTimeline, moving items", () => {
       "Breakfast",
     );
     expect(moves.moveToDate).not.toHaveBeenCalled();
+  });
+
+  it("keeps the count and calendar visible when the planner panel is collapsed", async () => {
+    renderMovable();
+    const panel = screen.getByRole("complementary", { name: "Planning tools" });
+    expect(
+      within(panel).getByRole("tablist", { name: "Planner views" }),
+    ).toBeVisible();
+    const tab = screen.getByRole("tab", { name: "Unplanned · 1" });
+    expect(screen.getByText("Leftovers lunch")).toBeVisible();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Collapse planning tools" }),
+    );
+    expect(tab).toBeVisible();
+    expect(screen.getByText("Leftovers lunch")).not.toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Move Leftovers lunch" }),
+    ).toBeNull();
+    expect(screen.getByText("Thanksgiving dinner")).toBeVisible();
+    await userEvent.click(tab);
+    expect(screen.getByText("Leftovers lunch")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Collapse planning tools" }),
+    ).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("moves an unplanned recipe across panels into an undated bucket", async () => {
+    const moves = fakeMoves();
+    renderMovable({ moves }, [
+      SEP_12,
+      { id: "bPrep", date: null, name: "Weekend prep" },
+    ]);
+    await keyboardDrag("Move Leftovers lunch");
+    const bucket = screen.getByRole("button", {
+      name: /^Move to Weekend prep/,
+    });
+    await keyboardDrop(bucket.getAttribute("aria-label")!);
+    expect(moves.moveToBucket).toHaveBeenCalledWith(
+      "8",
+      { name: "Weekend prep", date: null },
+      "Leftovers lunch",
+    );
+  });
+
+  it("moves an unplanned recipe across panels into a day", async () => {
+    const moves = fakeMoves();
+    renderMovable({ moves });
+    await keyboardDrag("Move Leftovers lunch");
+    const today = screen.getByRole("button", { name: /^Move to .*Sep 9/ });
+    await keyboardDrop(today.getAttribute("aria-label")!);
+    expect(moves.moveToDate).toHaveBeenCalledWith(
+      "8",
+      "2026-09-09",
+      "Leftovers lunch",
+    );
   });
 
   it("moves any item to the day it's dropped on", async () => {

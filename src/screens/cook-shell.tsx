@@ -29,7 +29,7 @@ export function CookShell({
 }: CookShellProps) {
   const router = useRouter();
   return (
-    <div className="mx-auto flex h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] w-full max-w-5xl flex-col px-md">
+    <div className="mx-auto flex h-[calc(100dvh-var(--section-nav-clearance))] w-full max-w-5xl flex-col px-md">
       <RecipeActionBar title={title} onClose={() => router.back()}>
         {actions}
       </RecipeActionBar>

@@ -50,8 +50,15 @@ The terms used here are defined in the [domain model](../domain/model.md).
   named bucket's heading. Days and Unplanned carry none, and an item nested
   beneath another shares its plan, so carries none either.
 - A named bucket's section always appears: a dated one right after its
-  day, an undated one right after today. Unplanned always appears after
-  those.
+  day, an undated one right after today.
+- Unplanned appears in a collapsible planner panel on the right on desktop,
+  and at the bottom above navigation on mobile. Its tinted background and
+  divider distinguish it from the calendar; both areas scroll independently.
+- The selected Unplanned tab shows its top-level item count even when collapsed.
+  A directional chevron collapses or expands the panel; selecting the tab also
+  expands it. Recipe rows, section actions, and drag-and-drop behavior are unchanged.
+- The panel starts expanded. Library browsing is a future source, not part of
+  this layout change.
 - The planner shows top-level items, items assigned to a bucket, and items
   that have children of their own. Anything else — a leaf nobody has
   bucketed — appears only in the item screen.
