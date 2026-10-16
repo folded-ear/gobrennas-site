@@ -64,6 +64,36 @@ describe("scrollSpeed", () => {
 });
 
 describe("scrollUnderDrag", () => {
+  it("reuses style lookups for a target only within the current drag", () => {
+    const area = document.createElement("div");
+    const row = document.createElement("div");
+    area.style.overflowY = "auto";
+    area.append(row);
+    document.body.append(area);
+    const styles = vi.spyOn(window, "getComputedStyle");
+    const over = () =>
+      row.dispatchEvent(
+        new MouseEvent("dragover", { bubbles: true, clientY: 200 }),
+      );
+    let stop = scrollUnderDrag();
+    try {
+      over();
+      expect(styles).toHaveBeenCalledWith(area);
+      styles.mockClear();
+      over();
+      over();
+      expect(styles).not.toHaveBeenCalled();
+      stop();
+      stop = scrollUnderDrag();
+      over();
+      expect(styles).toHaveBeenCalledWith(area);
+    } finally {
+      stop();
+      styles.mockRestore();
+      area.remove();
+    }
+  });
+
   it("scrolls the destination under the pointer when a drag crosses panels", () => {
     const source = document.createElement("div");
     const calendar = document.createElement("div");

@@ -186,7 +186,7 @@ export function Planner() {
           onClose={() => setBucketAction(null)}
         />
       ) : null}
-      <div className="flex h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] flex-col overflow-hidden">
+      <div className="flex h-[calc(100dvh-var(--section-nav-clearance))] flex-col overflow-hidden">
         <SectionHeader title="Planner">
           <PlanPicker
             label="Plans"

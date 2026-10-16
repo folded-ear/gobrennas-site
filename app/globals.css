@@ -5,6 +5,14 @@
  * @see https://v3.heroui.com/docs/react/getting-started/theming
  */
 
+:root {
+  /* Shared by the fixed section nav and the screens above it. */
+  --section-nav-height: 3.5rem;
+  --section-nav-clearance: calc(
+    var(--section-nav-height) + env(safe-area-inset-bottom)
+  );
+}
+
 @theme {
   /* add custom theme colors and vars here */
   --font-figtree: "Figtree", sans-serif;

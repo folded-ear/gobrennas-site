@@ -55,7 +55,9 @@ function edgesOf(scroller: Element): Edges {
  * from when I'm called until the function I return is.
  */
 export function scrollUnderDrag(): () => void {
-  let scroller = document.documentElement as Element;
+  // The scroll hierarchy stays fixed during a drag; discard it when the drag ends.
+  const scrollers = new WeakMap<Element, Element>();
+  let scroller: Element = document.documentElement;
   let pointerY: number | null = null;
   let frame: number | null = null;
   let lastFrame: number | null = null;
@@ -82,7 +84,11 @@ export function scrollUnderDrag(): () => void {
   };
   const onDragOver = (event: DragEvent) => {
     if (!(event.target instanceof Element)) return;
-    const target = scrollerOf(event.target);
+    let target = scrollers.get(event.target);
+    if (!target) {
+      target = scrollerOf(event.target);
+      scrollers.set(event.target, target);
+    }
     if (target !== scroller) {
       scroller = target;
       lastFrame = null;

@@ -140,3 +140,10 @@ showing every color token as a labeled swatch and the full heading/body type
 scale, plus a catalog of HeroUI components below so you can sanity-check that
 components pick up the theme without per-component overrides. Toggle
 light/dark with the switch at the top of the page.
+
+## Fixed section navigation
+
+`--section-nav-height` sets the bottom navigation's link height.
+`--section-nav-clearance` adds the device's bottom safe-area inset. The private
+layout uses that clearance for padding; planner and cook screens subtract it
+from the viewport height so their scroll areas fit above navigation.

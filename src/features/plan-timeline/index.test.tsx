@@ -539,6 +539,10 @@ describe("PlanTimeline, moving items", () => {
 
   it("keeps the count and calendar visible when the planner panel is collapsed", async () => {
     renderMovable();
+    const panel = screen.getByRole("complementary", { name: "Planning tools" });
+    expect(
+      within(panel).getByRole("tablist", { name: "Planner views" }),
+    ).toBeVisible();
     const tab = screen.getByRole("tab", { name: "Unplanned · 1" });
     expect(screen.getByText("Leftovers lunch")).toBeVisible();
     await userEvent.click(

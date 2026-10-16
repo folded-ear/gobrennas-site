@@ -35,7 +35,7 @@ export function PlannerPanel({ count, children }: PlannerPanelProps) {
       >
         <div className="flex shrink-0 items-center justify-between gap-xs border-b border-separator px-sm">
           <Tabs.ListContainer className="min-w-0 rounded-none bg-transparent">
-            <Tabs.List aria-label="Planning tools" className="p-0">
+            <Tabs.List aria-label="Planner views" className="p-0">
               <Tabs.Tab
                 id="unplanned"
                 className="h-11 rounded-none whitespace-nowrap border-b-2 border-accent px-xs text-accent"
