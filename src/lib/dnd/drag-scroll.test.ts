@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   MAX_SCROLL_PX_PER_S,
   SCROLL_BAND_PX,
   scrollSpeed,
+  scrollUnderDrag,
 } from "./drag-scroll";
 
 // A scroller set down from the screen's top, as the item screen's body is,
@@ -59,5 +60,83 @@ describe("scrollSpeed", () => {
     expect(scrollSpeed(BOTTOM + SCROLL_BAND_PX, EDGES)).toBe(
       MAX_SCROLL_PX_PER_S,
     );
+  });
+});
+
+describe("scrollUnderDrag", () => {
+  it("reuses style lookups for a target only within the current drag", () => {
+    const area = document.createElement("div");
+    const row = document.createElement("div");
+    area.style.overflowY = "auto";
+    area.append(row);
+    document.body.append(area);
+    const styles = vi.spyOn(window, "getComputedStyle");
+    const over = () =>
+      row.dispatchEvent(
+        new MouseEvent("dragover", { bubbles: true, clientY: 200 }),
+      );
+    let stop = scrollUnderDrag();
+    try {
+      over();
+      expect(styles).toHaveBeenCalledWith(area);
+      styles.mockClear();
+      over();
+      over();
+      expect(styles).not.toHaveBeenCalled();
+      stop();
+      stop = scrollUnderDrag();
+      over();
+      expect(styles).toHaveBeenCalledWith(area);
+    } finally {
+      stop();
+      styles.mockRestore();
+      area.remove();
+    }
+  });
+
+  it("scrolls the destination under the pointer when a drag crosses panels", () => {
+    const source = document.createElement("div");
+    const calendar = document.createElement("div");
+    const day = document.createElement("div");
+    calendar.append(day);
+    document.body.append(source, calendar);
+    for (const area of [source, calendar]) {
+      area.style.overflowY = "auto";
+      area.getBoundingClientRect = () => ({ top: 0, bottom: 500 }) as DOMRect;
+      area.scrollBy = vi.fn();
+    }
+    let nextFrame: FrameRequestCallback | undefined;
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      nextFrame = callback;
+      return 1;
+    });
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    const stop = scrollUnderDrag();
+    try {
+      // jsdom has no native drag implementation. Dispatch the browser events
+      // directly to exercise its capture listener and animation-frame timing.
+      source.dispatchEvent(
+        new MouseEvent("dragover", { bubbles: true, clientY: 490 }),
+      );
+      nextFrame!(0);
+      nextFrame!(16);
+      expect(source.scrollBy).toHaveBeenCalled();
+      vi.mocked(source.scrollBy).mockClear();
+      day.dispatchEvent(
+        new MouseEvent("dragover", { bubbles: true, clientY: 490 }),
+      );
+      nextFrame!(32);
+      nextFrame!(48);
+      expect(calendar.scrollBy).toHaveBeenCalledWith({
+        top: 14,
+        behavior: "instant",
+      });
+      expect(source.scrollBy).not.toHaveBeenCalled();
+    } finally {
+      stop();
+      source.remove();
+      calendar.remove();
+      vi.unstubAllGlobals();
+    }
   });
 });

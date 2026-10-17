@@ -11,6 +11,7 @@ import {
   TimelinePlan,
   type TimelineSection,
 } from "./model";
+import { PlannerPanel } from "./planner-panel";
 import { TimelineDnd } from "./timeline-row";
 import { useToday } from "./use-today";
 
@@ -55,34 +56,41 @@ export function PlanTimeline({
     [plans],
   );
 
-  if (!dnd) {
-    return (
-      <DayList
-        entries={entries}
-        today={today}
-        context={context}
-        openId={openId}
-        onSelect={onSelect}
-        onOpenSection={onOpenSection}
-        renderHeaderActions={renderHeaderActions}
-        renderFooter={renderFooter}
-      />
-    );
-  }
-  const timelineDnd: TimelineDnd = { ...dnd, rootIds: rootIdSet, sectionOf };
-  return (
+  const timelineDnd: TimelineDnd | undefined = dnd
+    ? { ...dnd, rootIds: rootIdSet, sectionOf }
+    : undefined;
+  const listProps = {
+    today,
+    context,
+    openId,
+    onSelect,
+    onOpenSection,
+    renderHeaderActions,
+    renderFooter,
+    dnd: timelineDnd,
+  };
+  const unplanned = entries.filter((entry) => entry.kind === "unplanned");
+  const layout = (
+    <div className="flex h-full min-h-0 flex-col md:flex-row">
+      <section
+        aria-label="Planning calendar"
+        className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain bg-surface p-md"
+      >
+        <DayList
+          {...listProps}
+          entries={entries.filter((entry) => entry.kind !== "unplanned")}
+        />
+      </section>
+      <PlannerPanel count={unplanned[0]?.roots.length ?? 0}>
+        <DayList {...listProps} entries={unplanned} />
+      </PlannerPanel>
+    </div>
+  );
+  return dnd ? (
     <DragSession dragType={TIMELINE_DRAG_TYPE} canMove={dnd.canMove}>
-      <DayList
-        entries={entries}
-        today={today}
-        context={context}
-        openId={openId}
-        onSelect={onSelect}
-        onOpenSection={onOpenSection}
-        renderHeaderActions={renderHeaderActions}
-        renderFooter={renderFooter}
-        dnd={timelineDnd}
-      />
+      {layout}
     </DragSession>
+  ) : (
+    layout
   );
 }

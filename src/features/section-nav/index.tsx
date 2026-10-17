@@ -34,7 +34,7 @@ export function SectionNav() {
                 href={section.href}
                 aria-current={isCurrent ? "page" : undefined}
                 className={clsx(
-                  "flex h-14 flex-col items-center justify-center gap-xxs text-xs transition-colors",
+                  "flex h-(--section-nav-height) flex-col items-center justify-center gap-xxs text-xs transition-colors",
                   isCurrent
                     ? "text-accent"
                     : "text-muted hover:text-foreground",
