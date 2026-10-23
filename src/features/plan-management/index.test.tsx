@@ -69,6 +69,81 @@ async function chooseRed(user: ReturnType<typeof userEvent.setup>) {
 
 describe("plan management", () => {
   it.each(["name", "color"] as const)(
+    "should clear the saved status when the %s field changes",
+    async (field) => {
+      const user = userEvent.setup();
+      render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+        cache: seed(),
+      });
+
+      await user.click(screen.getByRole("button", { name: "Save changes" }));
+      expect(await screen.findByRole("status")).toHaveTextContent(
+        "Changes saved.",
+      );
+      if (field === "name") {
+        await user.type(
+          screen.getByRole("textbox", { name: "Name" }),
+          " for everyone",
+        );
+      } else {
+        await chooseRed(user);
+      }
+
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Save changes" }),
+      ).toBeEnabled();
+    },
+  );
+
+  it("should preserve the color draft when name validation blocks the shared save", async () => {
+    const user = userEvent.setup();
+    const cache = seed();
+    const data: ColorManagedPlanMutation = {
+      planner: {
+        __typename: "PlannerMutation",
+        setColor: { __typename: "Plan", id: plan.id, color: "#783232" },
+      },
+    };
+    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+      cache,
+      mocks: [
+        {
+          request: {
+            query: ColorManagedPlanDocument,
+            variables: { id: plan.id, color: "#783232" },
+          },
+          result: { data },
+        },
+      ],
+    });
+    await chooseRed(user);
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await user.clear(name);
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText("Enter a plan name.")).toBeInTheDocument();
+    expect(name).toHaveFocus();
+    expect(
+      cache.readFragment({
+        fragment: PlanManagementFragmentDoc,
+        id: cache.identify(plan),
+      })?.color,
+    ).toBe(plan.color);
+
+    await user.type(name, plan.name);
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Changes saved.",
+    );
+    expect(
+      cache.readFragment({
+        fragment: PlanManagementFragmentDoc,
+        id: cache.identify(plan),
+      })?.color,
+    ).toBe("#783232");
+  });
+
+  it.each(["name", "color"] as const)(
     "should save only the edited %s without overwriting an external change",
     async (edited) => {
       const user = userEvent.setup();

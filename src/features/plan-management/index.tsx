@@ -26,7 +26,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ChevronRight, Settings } from "lucide-react";
 import { useId, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import {
   ColorManagedPlanDocument,
@@ -96,8 +96,22 @@ export function PlanManagementList({
   );
 }
 
-const nameSchema = z.object({
+const planDetailsSchema = z.object({
   name: z.string().trim().min(1, "Enter a plan name."),
+  color: z
+    .string()
+    .transform((value, context) => {
+      try {
+        return parseColor(value).toString("hex").toLowerCase();
+      } catch {
+        context.addIssue({
+          code: "custom",
+          message: "Select a valid plan color.",
+        });
+        return z.NEVER;
+      }
+    })
+    .pipe(z.string().regex(/^#[\da-f]{6}$/i, "Select a valid plan color.")),
 });
 
 export function PlanManagement({
@@ -139,22 +153,21 @@ function PlanManagementFields({
   const [remove] = useMutation(DeleteManagedPlanDocument);
   const [saveColor] = useMutation(ColorManagedPlanDocument);
   const colorLabelId = useId();
-  const [color, setColor] = useState(() => parseColor(plan.color));
-  // Track this draft's baseline, not live cache values from other devices.
-  // Advance each field only after its save succeeds, including partial saves.
-  const baseline = useRef({
-    name: plan.name,
-    color: color.toString("hex").toLowerCase(),
-  });
+  const colorErrorId = useId();
   const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState("");
-  const [saved, setSaved] = useState(false);
   const busy = useRef(false);
-  const form = useForm<z.input<typeof nameSchema>>({
-    resolver: zodResolver(nameSchema, undefined, { raw: true }),
-    defaultValues: { name: plan.name },
+  const form = useForm<z.input<typeof planDetailsSchema>>({
+    resolver: zodResolver(planDetailsSchema, undefined, { raw: true }),
+    defaultValues: { name: plan.name, color: plan.color },
   });
-  const pending = form.formState.isSubmitting;
+  const {
+    defaultValues,
+    errors,
+    isSubmitting: pending,
+    isSubmitSuccessful,
+    isDirty,
+  } = form.formState;
+  const saved = isSubmitSuccessful && !isDirty;
 
   return (
     <div className="flex max-w-lg flex-col gap-xl py-md">
@@ -179,41 +192,39 @@ function PlanManagementFields({
           busy.current = true;
           void form
             .handleSubmit(async (raw) => {
-              setError("");
-              setSaved(false);
               let nameSaved = false;
               try {
                 if (!canChangePlan(plan))
                   throw new Error("Plan is not editable");
-                const { name } = nameSchema.parse(raw);
-                const hex = color.toString("hex");
-                if (!/^#[\da-f]{6}$/i.test(hex))
-                  throw new Error("Invalid plan color");
-                if (name !== baseline.current.name) {
+                const { name, color } = planDetailsSchema.parse(raw);
+                // Compare with this form's defaults, not other devices' updates.
+                const baseline = planDetailsSchema.parse(defaultValues);
+                if (name !== baseline.name) {
                   const result = await rename({
                     variables: { id: plan.id, name },
                   });
                   if (result.data?.planner.rename.id !== plan.id)
                     throw new Error("Missing rename result");
-                  baseline.current.name = name;
+                  // Mark only the acknowledged field saved, even if color fails.
+                  form.resetField("name", { defaultValue: name });
                   nameSaved = true;
                 }
-                if (hex.toLowerCase() !== baseline.current.color) {
+                if (color !== baseline.color) {
                   const result = await saveColor({
-                    variables: { id: plan.id, color: hex },
+                    variables: { id: plan.id, color },
                   });
                   if (result.data?.planner.setColor.id !== plan.id)
                     throw new Error("Missing color result");
-                  baseline.current.color = hex.toLowerCase();
+                  form.resetField("color", { defaultValue: raw.color });
                 }
-                form.reset({ name });
-                setSaved(true);
+                form.reset({ name, color: raw.color });
               } catch {
-                setError(
-                  nameSaved
+                form.setError("root.save", {
+                  type: "server",
+                  message: nameSaved
                     ? "The name was saved, but the color could not be saved. Your changes are still here; try again."
                     : "Could not save changes. Your changes are still here; try again.",
-                );
+                });
               }
             })(event)
             .finally(() => {
@@ -221,9 +232,9 @@ function PlanManagementFields({
             });
         }}
       >
-        {error ? (
+        {errors.root?.save ? (
           <p role="alert" className="text-danger">
-            {error}
+            {errors.root.save.message}
           </p>
         ) : null}
         <fieldset disabled={pending || deleting}>
@@ -233,8 +244,7 @@ function PlanManagementFields({
             label="Name"
             isRequired
             onValueChange={() => {
-              setError("");
-              setSaved(false);
+              form.clearErrors("root.save");
             }}
           />
         </fieldset>
@@ -242,37 +252,60 @@ function PlanManagementFields({
           <Label id={colorLabelId} className="text-xs">
             Select a plan color
           </Label>
-          <ColorPicker
-            value={color}
-            onChange={(value) => {
-              setColor(value);
-              setError("");
-              setSaved(false);
-            }}
-          >
-            <ColorPicker.Trigger
-              aria-labelledby={colorLabelId}
-              isDisabled={pending || deleting}
-            >
-              <ColorSwatch size="lg" />
-            </ColorPicker.Trigger>
-            <ColorPicker.Popover>
-              <ColorArea
-                aria-label="Plan color"
-                colorSpace="hsb"
-                xChannel="saturation"
-                yChannel="brightness"
-              >
-                <ColorArea.Thumb />
-              </ColorArea>
-              <ColorSlider channel="hue" colorSpace="hsb">
-                <Label>Hue</Label>
-                <ColorSlider.Track>
-                  <ColorSlider.Thumb />
-                </ColorSlider.Track>
-              </ColorSlider>
-            </ColorPicker.Popover>
-          </ColorPicker>
+          <Controller
+            name="color"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <>
+                <ColorPicker
+                  value={field.value}
+                  onChange={(value) => {
+                    // Keep hue/saturation while editing, including for black/white.
+                    field.onChange(value.toString("hsb"));
+                    form.clearErrors("root.save");
+                  }}
+                >
+                  <ColorPicker.Trigger
+                    ref={field.ref}
+                    onBlur={field.onBlur}
+                    aria-labelledby={colorLabelId}
+                    aria-invalid={fieldState.invalid || undefined}
+                    aria-describedby={
+                      fieldState.error ? colorErrorId : undefined
+                    }
+                    isDisabled={pending || deleting}
+                  >
+                    <ColorSwatch size="lg" />
+                  </ColorPicker.Trigger>
+                  <ColorPicker.Popover>
+                    <ColorArea
+                      aria-label="Plan color"
+                      colorSpace="hsb"
+                      xChannel="saturation"
+                      yChannel="brightness"
+                    >
+                      <ColorArea.Thumb />
+                    </ColorArea>
+                    <ColorSlider channel="hue" colorSpace="hsb">
+                      <Label>Hue</Label>
+                      <ColorSlider.Track>
+                        <ColorSlider.Thumb />
+                      </ColorSlider.Track>
+                    </ColorSlider>
+                  </ColorPicker.Popover>
+                </ColorPicker>
+                {fieldState.error ? (
+                  <p
+                    id={colorErrorId}
+                    role="alert"
+                    className="text-xs text-danger"
+                  >
+                    {fieldState.error.message}
+                  </p>
+                ) : null}
+              </>
+            )}
+          />
         </div>
         <div className="flex items-center gap-md">
           <Button
