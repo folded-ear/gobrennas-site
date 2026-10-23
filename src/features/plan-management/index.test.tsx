@@ -19,7 +19,11 @@ import {
   type PlanManagementFragment,
   type RenameManagedPlanMutation,
 } from "./__generated__/management.generated";
-import { PlanManagement, PlanManagementMenu } from "./index";
+import {
+  PlanManagement,
+  PlanManagementButton,
+  PlanManagementList,
+} from "./index";
 
 const plan: PlanManagementFragment = {
   __typename: "Plan",
@@ -50,21 +54,148 @@ function shared(level: AccessLevel): PlanManagementFragment {
   };
 }
 
+async function chooseRed(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(
+    screen.getByRole("button", { name: /Select a plan color$/ }),
+  );
+  const hue = screen.getByRole("slider", { name: "Hue" });
+  for (let index = 0; index < 4 && document.activeElement !== hue; index++) {
+    await user.tab();
+  }
+  expect(hue).toHaveFocus();
+  await user.keyboard("{Home}{Escape}");
+}
+
 describe("plan management", () => {
+  it("should open management directly without a menu", async () => {
+    const user = userEvent.setup();
+    const onPress = vi.fn();
+    render(<PlanManagementButton plans={[plan]} onPress={onPress} />);
+    await user.click(screen.getByRole("button", { name: "Manage plans" }));
+    expect(onPress).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
+  it("should list all plans but prevent editing read-only plans", () => {
+    const viewerPlan = {
+      ...shared(AccessLevel.VIEW),
+      id: "shared-plan",
+      name: "Shared meals",
+    };
+    render(
+      <PlanManagementList plans={[plan, viewerPlan]} onSelect={vi.fn()} />,
+    );
+    expect(screen.getByRole("button", { name: plan.name })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: "Shared meals Read only" }),
+    ).toBeDisabled();
+  });
+
+  it.each([false, true])(
+    "should save both fields with one button and recover from a partial failure (%s)",
+    async (failColor) => {
+      const user = userEvent.setup();
+      const cache = seed();
+      const renamed: RenameManagedPlanMutation = {
+        planner: {
+          __typename: "PlannerMutation",
+          rename: { __typename: "Plan", id: plan.id, name: "Family dinners" },
+        },
+      };
+      const colored: ColorManagedPlanMutation = {
+        planner: {
+          __typename: "PlannerMutation",
+          setColor: { __typename: "Plan", id: plan.id, color: "#783232" },
+        },
+      };
+      const colorRequest = {
+        query: ColorManagedPlanDocument,
+        variables: { id: plan.id, color: "#783232" },
+      };
+      render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+        cache,
+        mocks: [
+          {
+            request: {
+              query: RenameManagedPlanDocument,
+              variables: { id: plan.id, name: "Family dinners" },
+            },
+            result: { data: renamed },
+          },
+          ...(failColor
+            ? [{ request: colorRequest, error: new Error("Offline") }]
+            : []),
+          { request: colorRequest, result: { data: colored } },
+        ],
+      });
+      const name = screen.getByRole("textbox", { name: "Name" });
+      await user.clear(name);
+      await user.type(name, "Family dinners");
+      await chooseRed(user);
+      expect(screen.getAllByRole("button", { name: /Save/ })).toHaveLength(1);
+      await user.click(screen.getByRole("button", { name: "Save changes" }));
+      if (failColor) {
+        expect(await screen.findByRole("alert")).toHaveTextContent(
+          "The name was saved, but the color could not be saved",
+        );
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+        expect(name).toHaveValue("Family dinners");
+        expect(
+          cache.readFragment({
+            fragment: PlanManagementFragmentDoc,
+            id: cache.identify(plan),
+          }),
+        ).toMatchObject({ name: "Family dinners", color: plan.color });
+        await user.click(screen.getByRole("button", { name: "Save changes" }));
+      }
+      expect(await screen.findByRole("status")).toHaveTextContent(
+        "Changes saved.",
+      );
+      expect(
+        cache.readFragment({
+          fragment: PlanManagementFragmentDoc,
+          id: cache.identify(plan),
+        }),
+      ).toMatchObject({ name: "Family dinners", color: "#783232" });
+    },
+  );
+
+  it("should disable both fields and deletion while saving color", async () => {
+    const user = userEvent.setup();
+    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+      cache: seed(),
+      mocks: [
+        {
+          request: {
+            query: ColorManagedPlanDocument,
+            variables: { id: plan.id, color: "#783232" },
+          },
+          delay: Infinity,
+        },
+      ],
+    });
+    await chooseRed(user);
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(screen.getByRole("textbox", { name: "Name" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Select a plan color$/ }),
+    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Delete plan" })).toBeDisabled();
+  });
   it("should offer a single plan even when the plan picker would be hidden", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
-    render(<PlanManagementMenu plans={[plan]} onSelect={onSelect} />);
-    await user.click(screen.getByRole("button", { name: "Manage plans" }));
-    await user.click(screen.getByRole("menuitem", { name: plan.name }));
+    render(<PlanManagementList plans={[plan]} onSelect={onSelect} />);
+    expect(screen.getByText("Choose a plan to edit")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: plan.name }));
     expect(onSelect).toHaveBeenCalledWith(plan.id);
   });
 
   it("should not offer management to a viewer", () => {
     render(
-      <PlanManagementMenu
+      <PlanManagementButton
         plans={[shared(AccessLevel.VIEW)]}
-        onSelect={vi.fn()}
+        onPress={vi.fn()}
       />,
     );
     expect(
@@ -79,7 +210,9 @@ describe("plan management", () => {
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
       plan.name,
     );
-    expect(screen.getByRole("button", { name: / Color$/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Select a plan color$/ }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Delete plan" }),
     ).toBeInTheDocument();
@@ -94,7 +227,7 @@ describe("plan management", () => {
       plan.name,
     );
     expect(
-      screen.getByRole("button", { name: "Save color" }),
+      screen.getByRole("button", { name: "Save changes" }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Delete plan" }),
@@ -119,7 +252,7 @@ describe("plan management", () => {
     const name = screen.getByRole("textbox", { name: "Name" });
     await user.clear(name);
     await user.type(name, "   ");
-    await user.click(screen.getByRole("button", { name: "Save name" }));
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByText("Enter a plan name.")).toBeInTheDocument();
     expect(name).toHaveFocus();
   });
@@ -150,8 +283,8 @@ describe("plan management", () => {
       screen.getByRole("textbox", { name: "Name" }),
       "  Family dinners  ",
     );
-    await user.click(screen.getByRole("button", { name: "Save name" }));
-    expect(await screen.findByText("Name saved.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText("Changes saved.")).toBeInTheDocument();
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
@@ -187,15 +320,15 @@ describe("plan management", () => {
       screen.getByRole("textbox", { name: "Name" }),
       "Family dinners",
     );
-    await user.click(screen.getByRole("button", { name: "Save name" }));
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not save the name",
+      "Could not save changes",
     );
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
       "Family dinners",
     );
-    await user.click(screen.getByRole("button", { name: "Save name" }));
-    expect(await screen.findByText("Name saved.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText("Changes saved.")).toBeInTheDocument();
   });
 
   it("should disable management controls while saving the name", async () => {
@@ -206,15 +339,22 @@ describe("plan management", () => {
         {
           request: {
             query: RenameManagedPlanDocument,
-            variables: { id: plan.id, name: plan.name },
+            variables: { id: plan.id, name: "Family dinners" },
           },
           delay: Infinity,
         },
       ],
     });
-    await user.click(screen.getByRole("button", { name: "Save name" }));
+    await user.clear(screen.getByRole("textbox", { name: "Name" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Name" }),
+      "Family dinners",
+    );
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
     expect(screen.getByRole("textbox", { name: "Name" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Save color" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Select a plan color$/ }),
+    ).toBeDisabled();
     expect(screen.getByRole("button", { name: "Delete plan" })).toBeDisabled();
   });
 
@@ -354,15 +494,9 @@ describe("plan management", () => {
         },
       ],
     });
-    await user.click(screen.getByRole("button", { name: / Color$/ }));
-    const hue = screen.getByRole("slider", { name: "Hue" });
-    for (let index = 0; index < 4 && document.activeElement !== hue; index++) {
-      await user.tab();
-    }
-    expect(hue).toHaveFocus();
-    await user.keyboard("{Home}{Escape}");
-    await user.click(screen.getByRole("button", { name: "Save color" }));
-    expect(await screen.findByText("Color saved.")).toBeInTheDocument();
+    await chooseRed(user);
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText("Changes saved.")).toBeInTheDocument();
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,

@@ -20,13 +20,12 @@ import {
   ColorPicker,
   ColorSlider,
   ColorSwatch,
-  Dropdown,
   Label,
   parseColor,
 } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Settings } from "lucide-react";
-import { useRef, useState } from "react";
+import { ArrowLeft, ChevronRight, Settings } from "lucide-react";
+import { useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -37,36 +36,63 @@ import {
   type PlanManagementFragment,
 } from "./__generated__/management.generated";
 
-export function PlanManagementMenu({
+type ManagedPlan = PlanAccess & { id: string; name: string; color: string };
+
+export function PlanManagementButton({
+  plans,
+  onPress,
+}: {
+  plans: readonly ManagedPlan[];
+  onPress: () => void;
+}) {
+  if (!plans.some(canChangePlan)) return null;
+  return (
+    <Button
+      isIconOnly
+      variant="ghost"
+      aria-label="Manage plans"
+      onPress={onPress}
+    >
+      <Settings aria-hidden />
+    </Button>
+  );
+}
+
+export function PlanManagementList({
   plans,
   onSelect,
 }: {
-  plans: readonly (PlanAccess & { id: string; name: string; color: string })[];
+  plans: readonly ManagedPlan[];
   onSelect: (id: string) => void;
 }) {
-  const eligible = orderPlans(plans).filter(canChangePlan);
-  if (!eligible.length) return null;
+  if (!plans.length) return <p>There are no plans to manage.</p>;
   return (
-    <Dropdown>
-      <Button isIconOnly variant="ghost" aria-label="Manage plans">
-        <Settings aria-hidden />
-      </Button>
-      <Dropdown.Popover>
-        <Dropdown.Menu aria-label="Manage plans">
-          {eligible.map((plan) => (
-            <Dropdown.Item
-              key={plan.id}
-              id={plan.id}
-              textValue={plan.name}
-              onAction={() => onSelect(plan.id)}
+    <div className="flex max-w-lg flex-col gap-sm py-md">
+      <p>Choose a plan to edit</p>
+      <ul aria-label="Plans to manage" className="flex flex-col gap-sm">
+        {orderPlans(plans).map((plan) => (
+          <li key={plan.id}>
+            <Button
+              fullWidth
+              variant="ghost"
+              className="justify-start"
+              isDisabled={!canChangePlan(plan)}
+              onPress={() => onSelect(plan.id)}
             >
               <PlanAvatar plan={plan} size="sm" aria-hidden />
-              <Label>{plan.name}</Label>
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown.Popover>
-    </Dropdown>
+              <span className="min-w-0 flex-1 truncate text-left">
+                {plan.name}
+              </span>
+              {canChangePlan(plan) ? (
+                <ChevronRight aria-hidden />
+              ) : (
+                <span>Read only</span>
+              )}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -77,9 +103,11 @@ const nameSchema = z.object({
 export function PlanManagement({
   plan: reference,
   onDeleted,
+  onBack,
 }: {
   plan: { __typename?: "Plan"; id: string };
   onDeleted: () => void;
+  onBack?: () => void;
 }) {
   const { data: plan, complete } = useFragment({
     fragment: PlanManagementFragmentDoc,
@@ -88,37 +116,54 @@ export function PlanManagement({
   if (!complete || !canChangePlan(plan))
     return <p>This plan is no longer available to manage.</p>;
   return (
-    <PlanManagementFields key={plan.id} plan={plan} onDeleted={onDeleted} />
+    <PlanManagementFields
+      key={plan.id}
+      plan={plan}
+      onDeleted={onDeleted}
+      onBack={onBack}
+    />
   );
 }
 
 function PlanManagementFields({
   plan,
   onDeleted,
+  onBack,
 }: {
   plan: PlanManagementFragment;
   onDeleted: () => void;
+  onBack?: () => void;
 }) {
   const client = useApolloClient();
   const [rename] = useMutation(RenameManagedPlanDocument);
   const [remove] = useMutation(DeleteManagedPlanDocument);
-  const [saveColor, { loading: colorPending }] = useMutation(
-    ColorManagedPlanDocument,
-  );
+  const [saveColor] = useMutation(ColorManagedPlanDocument);
+  const colorLabelId = useId();
+  const [color, setColor] = useState(() => parseColor(plan.color));
   const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const busy = useRef(false);
   const form = useForm<z.input<typeof nameSchema>>({
     resolver: zodResolver(nameSchema, undefined, { raw: true }),
     defaultValues: { name: plan.name },
   });
-  const pending = form.formState.isSubmitting || colorPending;
+  const pending = form.formState.isSubmitting;
 
   return (
     <div className="flex max-w-lg flex-col gap-xl py-md">
+      {onBack ? (
+        <Button
+          variant="ghost"
+          className="self-start"
+          isDisabled={pending || deleting}
+          onPress={onBack}
+        >
+          <ArrowLeft aria-hidden /> Back to all plans
+        </Button>
+      ) : null}
       <form
-        aria-label="Plan name"
+        aria-label="Plan details"
         aria-busy={pending}
         noValidate
         className="flex flex-col gap-md"
@@ -128,21 +173,42 @@ function PlanManagementFields({
           busy.current = true;
           void form
             .handleSubmit(async (raw) => {
-              setError(false);
+              setError("");
               setSaved(false);
+              let nameSaved = false;
               try {
                 if (!canChangePlan(plan))
                   throw new Error("Plan is not editable");
                 const { name } = nameSchema.parse(raw);
-                const result = await rename({
-                  variables: { id: plan.id, name },
-                });
-                if (result.data?.planner.rename.id !== plan.id)
-                  throw new Error("Missing rename result");
+                const hex = color.toString("hex");
+                if (!/^#[\da-f]{6}$/i.test(hex))
+                  throw new Error("Invalid plan color");
+                if (name !== plan.name) {
+                  const result = await rename({
+                    variables: { id: plan.id, name },
+                  });
+                  if (result.data?.planner.rename.id !== plan.id)
+                    throw new Error("Missing rename result");
+                  nameSaved = true;
+                }
+                if (
+                  hex.toLowerCase() !==
+                  parseColor(plan.color).toString("hex").toLowerCase()
+                ) {
+                  const result = await saveColor({
+                    variables: { id: plan.id, color: hex },
+                  });
+                  if (result.data?.planner.setColor.id !== plan.id)
+                    throw new Error("Missing color result");
+                }
                 form.reset({ name });
                 setSaved(true);
               } catch {
-                setError(true);
+                setError(
+                  nameSaved
+                    ? "The name was saved, but the color could not be saved. Your changes are still here; try again."
+                    : "Could not save changes. Your changes are still here; try again.",
+                );
               }
             })(event)
             .finally(() => {
@@ -152,7 +218,7 @@ function PlanManagementFields({
       >
         {error ? (
           <p role="alert" className="text-danger">
-            Could not save the name. Your changes are still here; try again.
+            {error}
           </p>
         ) : null}
         <fieldset disabled={pending || deleting}>
@@ -162,11 +228,47 @@ function PlanManagementFields({
             label="Name"
             isRequired
             onValueChange={() => {
-              setError(false);
+              setError("");
               setSaved(false);
             }}
           />
         </fieldset>
+        <div className="flex flex-col items-start gap-xs">
+          <Label id={colorLabelId} className="text-xs">
+            Select a plan color
+          </Label>
+          <ColorPicker
+            value={color}
+            onChange={(value) => {
+              setColor(value);
+              setError("");
+              setSaved(false);
+            }}
+          >
+            <ColorPicker.Trigger
+              aria-labelledby={colorLabelId}
+              isDisabled={pending || deleting}
+            >
+              <ColorSwatch size="lg" />
+            </ColorPicker.Trigger>
+            <ColorPicker.Popover>
+              <ColorArea
+                aria-label="Plan color"
+                colorSpace="hsb"
+                xChannel="saturation"
+                yChannel="brightness"
+              >
+                <ColorArea.Thumb />
+              </ColorArea>
+              <ColorSlider channel="hue" colorSpace="hsb">
+                <Label>Hue</Label>
+                <ColorSlider.Track>
+                  <ColorSlider.Thumb />
+                </ColorSlider.Track>
+              </ColorSlider>
+            </ColorPicker.Popover>
+          </ColorPicker>
+        </div>
         <div className="flex items-center gap-md">
           <Button
             type="submit"
@@ -174,21 +276,11 @@ function PlanManagementFields({
             isPending={pending}
             isDisabled={pending || deleting}
           >
-            Save name
+            Save changes
           </Button>
-          {saved ? <p role="status">Name saved.</p> : null}
+          {saved ? <p role="status">Changes saved.</p> : null}
         </div>
       </form>
-      <PlanColor
-        plan={plan}
-        isDisabled={pending || deleting}
-        onSave={async (color) => {
-          if (!canChangePlan(plan)) throw new Error("Plan is not editable");
-          const result = await saveColor({ variables: { id: plan.id, color } });
-          if (result.data?.planner.setColor.id !== plan.id)
-            throw new Error("Missing color result");
-        }}
-      />
       {canAdministerPlan(plan) ? (
         <div className="border-t border-separator pt-lg">
           <Button
@@ -225,88 +317,5 @@ function PlanManagementFields({
         </div>
       ) : null}
     </div>
-  );
-}
-
-function PlanColor({
-  plan,
-  isDisabled,
-  onSave,
-}: {
-  plan: PlanManagementFragment;
-  isDisabled: boolean;
-  onSave: (color: string) => Promise<void>;
-}) {
-  const [color, setColor] = useState(() => parseColor(plan.color));
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const busy = useRef(false);
-  return (
-    <section aria-label="Plan color" className="flex flex-col gap-md">
-      <ColorPicker
-        value={color}
-        onChange={(value) => {
-          setColor(value);
-          setError(false);
-          setSaved(false);
-        }}
-      >
-        <ColorPicker.Trigger isDisabled={isDisabled || loading}>
-          <ColorSwatch size="lg" />
-          <Label>Color</Label>
-        </ColorPicker.Trigger>
-        <ColorPicker.Popover>
-          <ColorArea
-            aria-label="Plan color"
-            colorSpace="hsb"
-            xChannel="saturation"
-            yChannel="brightness"
-          >
-            <ColorArea.Thumb />
-          </ColorArea>
-          <ColorSlider channel="hue" colorSpace="hsb">
-            <Label>Hue</Label>
-            <ColorSlider.Track>
-              <ColorSlider.Thumb />
-            </ColorSlider.Track>
-          </ColorSlider>
-        </ColorPicker.Popover>
-      </ColorPicker>
-      {error ? (
-        <p role="alert" className="text-danger">
-          Could not save the color. Try again.
-        </p>
-      ) : null}
-      <div className="flex items-center gap-md">
-        <Button
-          variant="secondary"
-          isPending={loading}
-          isDisabled={isDisabled || loading}
-          onPress={async () => {
-            if (busy.current || isDisabled) return;
-            busy.current = true;
-            setLoading(true);
-            setError(false);
-            setSaved(false);
-            try {
-              const hex = color.toString("hex");
-              if (!/^#[\da-f]{6}$/i.test(hex))
-                throw new Error("Invalid plan color");
-              await onSave(hex);
-              setSaved(true);
-            } catch {
-              setError(true);
-            } finally {
-              busy.current = false;
-              setLoading(false);
-            }
-          }}
-        >
-          Save color
-        </Button>
-        {saved ? <p role="status">Color saved.</p> : null}
-      </div>
-    </section>
   );
 }

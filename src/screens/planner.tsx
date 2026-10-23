@@ -25,7 +25,11 @@ import {
 } from "@/features/plan-edit";
 import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
 import { PlanSectionHeader } from "@/features/plan-item/section-header";
-import { PlanManagement, PlanManagementMenu } from "@/features/plan-management";
+import {
+  PlanManagement,
+  PlanManagementButton,
+  PlanManagementList,
+} from "@/features/plan-management";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { buildPlanContext } from "@/features/plan-timeline/context";
@@ -58,7 +62,8 @@ const PlanTimeline = dynamic(
 type PlannerOpen =
   | { readonly item: string }
   | { readonly section: string }
-  | { readonly plan: string };
+  | { readonly plan: string }
+  | { readonly manage: true };
 
 // What's open rides its own history entry, so going back closes it.
 const OPEN_KEY = "plannerOpen";
@@ -73,6 +78,10 @@ function openSectionKey(open: PlannerOpen | undefined): string | undefined {
 
 function openPlanId(open: PlannerOpen | undefined): string | undefined {
   return open !== undefined && "plan" in open ? open.plan : undefined;
+}
+
+function isManaging(open: PlannerOpen | undefined): boolean {
+  return open !== undefined && ("manage" in open || "plan" in open);
 }
 
 export function Planner() {
@@ -131,7 +140,8 @@ export function Planner() {
     open.value !== undefined &&
     (openItemId(open.value) !== openItemId(shownOpen) ||
       openSectionKey(open.value) !== openSectionKey(shownOpen) ||
-      openPlanId(open.value) !== openPlanId(shownOpen))
+      openPlanId(open.value) !== openPlanId(shownOpen) ||
+      isManaging(open.value) !== isManaging(shownOpen))
   ) {
     setShownOpen(open.value);
   }
@@ -155,7 +165,7 @@ export function Planner() {
     }));
   }, [items, shown, shownSection]);
   const isOpen =
-    plans.some((plan) => plan.id === openPlanId(open.value)) ||
+    isManaging(open.value) ||
     selected !== undefined ||
     (openSectionKey(open.value) !== undefined && shownSection !== null);
   const tree = useMemo(
@@ -207,9 +217,9 @@ export function Planner() {
               selectedIds={planIds}
               onChange={setPlanIds}
             />
-            <PlanManagementMenu
+            <PlanManagementButton
               plans={plans}
-              onSelect={(id) => open.push({ plan: id })}
+              onPress={() => open.push({ manage: true })}
             />
           </div>
         </SectionHeader>
@@ -223,16 +233,20 @@ export function Planner() {
             label={
               shownPlan
                 ? `Manage ${shownPlan.name}`
-                : shown
-                  ? displayName(shown.name)
-                  : shownSection
-                    ? sectionLabel(shownSection)
-                    : "Planner details"
+                : isManaging(shownOpen)
+                  ? "Manage plans"
+                  : shown
+                    ? displayName(shown.name)
+                    : shownSection
+                      ? sectionLabel(shownSection)
+                      : "Planner details"
             }
             isOpen={isOpen}
             header={
               shownPlan ? (
                 <h2>Manage {shownPlan.name}</h2>
+              ) : isManaging(shownOpen) ? (
+                <h2>Manage plans</h2>
               ) : shown ? (
                 <PlanItemHeader
                   item={shown}
@@ -253,7 +267,13 @@ export function Planner() {
             {shownPlan ? (
               <PlanManagement
                 plan={shownPlan}
-                onDeleted={() => router.back()}
+                onBack={() => open.replace({ manage: true })}
+                onDeleted={() => open.replace({ manage: true })}
+              />
+            ) : isManaging(shownOpen) ? (
+              <PlanManagementList
+                plans={plans}
+                onSelect={(id) => open.replace({ plan: id })}
               />
             ) : shown || shownSection ? (
               <PlanItemDetail

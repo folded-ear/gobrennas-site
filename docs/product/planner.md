@@ -30,13 +30,18 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Managing plans
 
-- Manage plans in the planner header opens a plan in a side drawer, including
-  when only one plan is accessible. Closing it or going Back returns to the planner.
-- Users with permission to change a plan can save a new name and choose its color.
-  A plan name cannot be blank. Failed saves preserve the draft for another try.
+- Manage plans in the planner header opens a side drawer listing all accessible
+  plans, including when only one plan is accessible. Read-only plans cannot be
+  edited. Selecting an editable plan opens its settings; Back to all plans returns
+  to the list. Closing the drawer or using browser Back returns to the planner.
+- Users with permission to change a plan edit its name and color together, using
+  one Save changes button. A plan name cannot be blank. Failed saves preserve the
+  draft for another try. If the name saves but the color fails, the form says so
+  and allows retrying the remaining change.
 - Plan administrators can delete a plan after confirmation. Deletion permanently
   removes the plan and its planned items and buckets, not saved library recipes.
-  A failed deletion keeps the confirmation open for another try.
+  A failed deletion keeps the confirmation open for another try. A successful
+  deletion returns to the plan list in the drawer.
 - Deleting a selected plan removes it from the planner. If no selected plans
   remain, the first remaining accessible plan is selected; with none, the planner
   shows its empty state.

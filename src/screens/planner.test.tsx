@@ -69,12 +69,24 @@ describe("planner management drawer", () => {
     const user = userEvent.setup();
     render(<Planner />, { cache: plannerCache(), mocks: [pollingMock()] });
     await user.click(screen.getByRole("button", { name: "Manage plans" }));
-    await user.click(screen.getByRole("menuitem", { name: plan.name }));
+    const list = screen.getByRole("dialog", { name: "Manage plans" });
+    expect(
+      within(list).getByRole("list", { name: "Plans to manage" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    await user.click(within(list).getByRole("button", { name: plan.name }));
     const drawer = screen.getByRole("dialog", { name: `Manage ${plan.name}` });
     expect(within(drawer).getByRole("textbox", { name: "Name" })).toHaveValue(
       plan.name,
     );
-    await user.click(within(drawer).getByRole("button", { name: /close/i }));
+    await user.click(
+      within(drawer).getByRole("button", { name: "Back to all plans" }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Manage plans" }),
+    ).toBeInTheDocument();
+    expect(back).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: /close/i }));
     expect(back).toHaveBeenCalledOnce();
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
@@ -84,7 +96,7 @@ describe("planner management drawer", () => {
     ).toBeInTheDocument();
   });
 
-  it("should return to the empty planner after deleting the last plan", async () => {
+  it("should return to the empty management list after deleting the last plan", async () => {
     const user = userEvent.setup();
     render(<Planner />, {
       cache: plannerCache(),
@@ -107,7 +119,7 @@ describe("planner management drawer", () => {
       ],
     });
     await user.click(screen.getByRole("button", { name: "Manage plans" }));
-    await user.click(screen.getByRole("menuitem", { name: plan.name }));
+    await user.click(screen.getByRole("button", { name: plan.name }));
     await user.click(screen.getByRole("button", { name: "Delete plan" }));
     await user.click(
       within(screen.getByRole("alertdialog")).getByRole("button", {
@@ -115,8 +127,10 @@ describe("planner management drawer", () => {
       }),
     );
     expect(
-      await screen.findByText("There are no plans to show."),
+      await screen.findByText("There are no plans to manage."),
     ).toBeInTheDocument();
+    expect(back).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: /close/i }));
     expect(back).toHaveBeenCalledOnce();
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
