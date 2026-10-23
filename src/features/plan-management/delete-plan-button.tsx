@@ -1,6 +1,6 @@
 import { DeleteDialog } from "@/components/delete-dialog";
 import { canAdministerPlan } from "@/lib/plans";
-import { useApolloClient, useMutation } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
 import { Button } from "@heroui/react";
 import {
   DeleteManagedPlanDocument,
@@ -20,7 +20,6 @@ export function DeletePlanButton({
   onOpenChange: (isOpen: boolean) => void;
   onDeleted: () => void;
 }) {
-  const client = useApolloClient();
   const [remove] = useMutation(DeleteManagedPlanDocument);
   if (!canAdministerPlan(plan)) return null;
   return (
@@ -43,12 +42,18 @@ export function DeletePlanButton({
         onDelete={async () => {
           if (!canAdministerPlan(plan))
             throw new Error("Plan is not deletable");
-          const result = await remove({ variables: { id: plan.id } });
+          const result = await remove({
+            variables: { id: plan.id },
+            update(cache, result) {
+              if (result.data?.planner.deletePlan.id !== plan.id)
+                throw new Error("Missing deletion result");
+              // Evict within the mutation so query updates precede navigation.
+              cache.evict({ id: cache.identify(plan) });
+              cache.gc();
+            },
+          });
           if (result.data?.planner.deletePlan.id !== plan.id)
             throw new Error("Missing deletion result");
-          // Eviction removes this plan from every cached plan list, including shopping.
-          client.cache.evict({ id: client.cache.identify(plan) });
-          client.cache.gc();
           onDeleted();
         }}
       >
