@@ -41,6 +41,26 @@ function Editor() {
 }
 
 describe("Screen", () => {
+  it.each([undefined, "wide", "compact"] as const)(
+    "should apply the %s width while keeping full mobile width",
+    (size) => {
+      render(
+        <Screen label="Plan settings" size={size}>
+          <p>Edit your plan.</p>
+        </Screen>,
+      );
+
+      const dialog = screen.getByRole("dialog", { name: "Plan settings" });
+      expect(dialog).toHaveClass("w-full", "max-w-none");
+      expect(dialog).toHaveClass(
+        size === "compact" ? "sm:max-w-lg" : "sm:max-w-[90vw]",
+      );
+      expect(dialog).not.toHaveClass(
+        size === "compact" ? "sm:max-w-[90vw]" : "sm:max-w-lg",
+      );
+    },
+  );
+
   it("shows its content as a named dialog", () => {
     render(
       <Screen label="Pumpkin pie">

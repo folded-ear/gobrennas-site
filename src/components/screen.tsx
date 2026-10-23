@@ -1,6 +1,7 @@
 "use client";
 
 import { Drawer } from "@heroui/react";
+import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import {
   createContext,
@@ -28,6 +29,8 @@ type ScreenProps = PropsWithChildren<{
   header?: ReactNode;
   isOpen?: boolean;
   showCloseButton?: boolean;
+  /** Compact caps desktop width at 32rem; both sizes fill mobile screens. */
+  size?: "wide" | "compact";
 }>;
 
 /**
@@ -41,6 +44,7 @@ export function Screen({
   header,
   isOpen = true,
   showCloseButton = true,
+  size = "wide",
   children,
 }: ScreenProps) {
   const router = useRouter();
@@ -63,7 +67,10 @@ export function Screen({
             aria-label={label}
             // The padding moves inside the header and the scrolling body, so
             // the body scrolls right to my edges.
-            className="w-full max-w-none p-0 sm:max-w-[90vw]"
+            className={clsx(
+              "w-full max-w-none p-0",
+              size === "compact" ? "sm:max-w-lg" : "sm:max-w-[90vw]",
+            )}
           >
             <Drawer.Header className="gap-0 px-md pt-md text-base text-foreground">
               {showCloseButton ? (

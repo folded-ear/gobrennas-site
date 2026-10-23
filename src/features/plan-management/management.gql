@@ -1,0 +1,39 @@
+fragment planManagement on Plan {
+  id
+  name
+  color
+  mine
+  grants {
+    level
+    user {
+      id
+      me
+    }
+  }
+}
+
+mutation RenameManagedPlan($id: ID!, $name: String!) {
+  planner {
+    rename(id: $id, name: $name) {
+      id
+      name
+    }
+  }
+}
+
+mutation ColorManagedPlan($id: ID!, $color: String!) {
+  planner {
+    setColor(planId: $id, color: $color) {
+      id
+      color
+    }
+  }
+}
+
+mutation DeleteManagedPlan($id: ID!) {
+  planner {
+    deletePlan(id: $id) {
+      id
+    }
+  }
+}
