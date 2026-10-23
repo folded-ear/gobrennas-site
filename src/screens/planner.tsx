@@ -230,6 +230,7 @@ export function Planner() {
           createdStayPut
         >
           <Screen
+            size={isManaging(shownOpen) ? "compact" : "wide"}
             label={
               shownPlan
                 ? `Manage ${shownPlan.name}`

@@ -125,12 +125,14 @@ describe("planner management drawer", () => {
     render(<Planner />, { cache: plannerCache(), mocks: [pollingMock()] });
     await user.click(screen.getByRole("button", { name: "Manage plans" }));
     const list = screen.getByRole("dialog", { name: "Manage plans" });
+    expect(list).toHaveClass("sm:max-w-lg");
     expect(
       within(list).getByRole("list", { name: "Plans to manage" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     await user.click(within(list).getByRole("button", { name: plan.name }));
     const drawer = screen.getByRole("dialog", { name: `Manage ${plan.name}` });
+    expect(drawer).toHaveClass("sm:max-w-lg");
     expect(within(drawer).getByRole("textbox", { name: "Name" })).toHaveValue(
       plan.name,
     );

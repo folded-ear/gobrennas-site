@@ -35,6 +35,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   plans, including when only one plan is accessible. Read-only plans cannot be
   edited. Selecting an editable plan opens its settings; Back to all plans returns
   to the list. Closing the drawer or using browser Back returns to the planner.
+- The plan list and settings use a compact drawer on larger screens and fill
+  the screen width on mobile.
 - Users with permission to change a plan edit its name and color together, using
   one Save changes button. A plan name cannot be blank. Failed saves preserve the
   draft for another try. If the name saves but the color fails, the form says so
