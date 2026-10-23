@@ -18,10 +18,12 @@ away and lets focused content slide in without losing the user's place.
 - The tab for the section the current page belongs to is marked.
 - Each section's page has a header that stays at the top as the page
   scrolls, holding the section's title and controls.
-- Beside the title, the header shows an icon while the device is offline.
-  It offers to sign in again when the login has expired, and to update
-  when a new version of the app is waiting. Updating sends any held
-  changes, switches to the new version, and reloads.
+- Beside the title, the header shows the most pressing of three things: an
+  icon while the device is offline; else an offer to sign in again when the
+  login has expired; else an offer to update when a new version of the app
+  is waiting. Updating sends any held changes, switches to the new version,
+  and reloads. A taken offer shows a spinner, and if the page is still
+  there six seconds later, or signing in fails, the page reloads.
 - The Library header has a picker for the one plan recipes are sent to. The
   Planner and Shopping headers each have a picker for the plans they show.
   No picker shows when the user has only one plan.
