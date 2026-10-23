@@ -25,6 +25,7 @@ import {
 } from "@/features/plan-edit";
 import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
 import { PlanSectionHeader } from "@/features/plan-item/section-header";
+import { PlanManagement, PlanManagementMenu } from "@/features/plan-management";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { buildPlanContext } from "@/features/plan-timeline/context";
@@ -53,8 +54,11 @@ const PlanTimeline = dynamic(
   { ssr: false, loading: () => <TimelineSkeleton /> },
 );
 
-/** What the screen over the planner shows: one item, or one section. */
-type PlannerOpen = { readonly item: string } | { readonly section: string };
+/** What the screen over the planner shows: an item, a section, or plan settings. */
+type PlannerOpen =
+  | { readonly item: string }
+  | { readonly section: string }
+  | { readonly plan: string };
 
 // What's open rides its own history entry, so going back closes it.
 const OPEN_KEY = "plannerOpen";
@@ -65,6 +69,10 @@ function openItemId(open: PlannerOpen | undefined): string | undefined {
 
 function openSectionKey(open: PlannerOpen | undefined): string | undefined {
   return open !== undefined && "section" in open ? open.section : undefined;
+}
+
+function openPlanId(open: PlannerOpen | undefined): string | undefined {
+  return open !== undefined && "plan" in open ? open.plan : undefined;
 }
 
 export function Planner() {
@@ -122,11 +130,13 @@ export function Planner() {
   if (
     open.value !== undefined &&
     (openItemId(open.value) !== openItemId(shownOpen) ||
-      openSectionKey(open.value) !== openSectionKey(shownOpen))
+      openSectionKey(open.value) !== openSectionKey(shownOpen) ||
+      openPlanId(open.value) !== openPlanId(shownOpen))
   ) {
     setShownOpen(open.value);
   }
   const shown = items.find((it) => it.id === openItemId(shownOpen));
+  const shownPlan = plans.find((plan) => plan.id === openPlanId(shownOpen));
   const shownSectionKey = openSectionKey(shownOpen);
   const shownSection = useMemo(
     () =>
@@ -145,6 +155,7 @@ export function Planner() {
     }));
   }, [items, shown, shownSection]);
   const isOpen =
+    plans.some((plan) => plan.id === openPlanId(open.value)) ||
     selected !== undefined ||
     (openSectionKey(open.value) !== undefined && shownSection !== null);
   const tree = useMemo(
@@ -188,13 +199,19 @@ export function Planner() {
       ) : null}
       <div className="flex h-[calc(100dvh-var(--section-nav-clearance))] flex-col overflow-hidden">
         <SectionHeader title="Planner">
-          <PlanPicker
-            label="Plans"
-            plans={plans}
-            selectionMode="multiple"
-            selectedIds={planIds}
-            onChange={setPlanIds}
-          />
+          <div className="flex min-w-0 items-center gap-sm">
+            <PlanPicker
+              label="Plans"
+              plans={plans}
+              selectionMode="multiple"
+              selectedIds={planIds}
+              onChange={setPlanIds}
+            />
+            <PlanManagementMenu
+              plans={plans}
+              onSelect={(id) => open.push({ plan: id })}
+            />
+          </div>
         </SectionHeader>
         <EditSurfaceProvider
           state={edit}
@@ -204,15 +221,19 @@ export function Planner() {
         >
           <Screen
             label={
-              shown
-                ? displayName(shown.name)
-                : shownSection
-                  ? sectionLabel(shownSection)
-                  : ""
+              shownPlan
+                ? `Manage ${shownPlan.name}`
+                : shown
+                  ? displayName(shown.name)
+                  : shownSection
+                    ? sectionLabel(shownSection)
+                    : "Planner details"
             }
             isOpen={isOpen}
             header={
-              shown ? (
+              shownPlan ? (
+                <h2>Manage {shownPlan.name}</h2>
+              ) : shown ? (
                 <PlanItemHeader
                   item={shown}
                   context={context}
@@ -229,7 +250,12 @@ export function Planner() {
               ) : null
             }
           >
-            {shown || shownSection ? (
+            {shownPlan ? (
+              <PlanManagement
+                plan={shownPlan}
+                onDeleted={() => router.back()}
+              />
+            ) : shown || shownSection ? (
               <PlanItemDetail
                 context={context}
                 descendants={descendants}

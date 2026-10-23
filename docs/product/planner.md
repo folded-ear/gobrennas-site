@@ -28,6 +28,19 @@ The terms used here are defined in the [domain model](../domain/model.md).
   the split-out work.
 - Plan access distinguishes Admin, Completer, Acquirer, and Viewer.
 
+### Managing plans
+
+- Manage plans in the planner header opens a plan in a side drawer, including
+  when only one plan is accessible. Closing it or going Back returns to the planner.
+- Users with permission to change a plan can save a new name and choose its color.
+  A plan name cannot be blank. Failed saves preserve the draft for another try.
+- Plan administrators can delete a plan after confirmation. Deletion permanently
+  removes the plan and its planned items and buckets, not saved library recipes.
+  A failed deletion keeps the confirmation open for another try.
+- Deleting a selected plan removes it from the planner. If no selected plans
+  remain, the first remaining accessible plan is selected; with none, the planner
+  shows its empty state.
+
 ### The timeline
 
 - The planner lays every selected plan out down one calendar, anchored on
