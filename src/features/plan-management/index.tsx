@@ -140,6 +140,12 @@ function PlanManagementFields({
   const [saveColor] = useMutation(ColorManagedPlanDocument);
   const colorLabelId = useId();
   const [color, setColor] = useState(() => parseColor(plan.color));
+  // Track this draft's baseline, not live cache values from other devices.
+  // Advance each field only after its save succeeds, including partial saves.
+  const baseline = useRef({
+    name: plan.name,
+    color: color.toString("hex").toLowerCase(),
+  });
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
@@ -183,23 +189,22 @@ function PlanManagementFields({
                 const hex = color.toString("hex");
                 if (!/^#[\da-f]{6}$/i.test(hex))
                   throw new Error("Invalid plan color");
-                if (name !== plan.name) {
+                if (name !== baseline.current.name) {
                   const result = await rename({
                     variables: { id: plan.id, name },
                   });
                   if (result.data?.planner.rename.id !== plan.id)
                     throw new Error("Missing rename result");
+                  baseline.current.name = name;
                   nameSaved = true;
                 }
-                if (
-                  hex.toLowerCase() !==
-                  parseColor(plan.color).toString("hex").toLowerCase()
-                ) {
+                if (hex.toLowerCase() !== baseline.current.color) {
                   const result = await saveColor({
                     variables: { id: plan.id, color: hex },
                   });
                   if (result.data?.planner.setColor.id !== plan.id)
                     throw new Error("Missing color result");
+                  baseline.current.color = hex.toLowerCase();
                 }
                 form.reset({ name });
                 setSaved(true);
@@ -306,6 +311,7 @@ function PlanManagementFields({
                 throw new Error("Missing deletion result");
               // Eviction removes this plan from every cached plan list, including shopping.
               client.cache.evict({ id: client.cache.identify(plan) });
+              client.cache.gc();
               onDeleted();
             }}
           >

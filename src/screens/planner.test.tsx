@@ -40,11 +40,13 @@ beforeEach(() => {
   window.history.replaceState(null, "");
 });
 
-function plannerCache() {
+function plannerCache(
+  plans: readonly Unmasked<PlannerQuery>["planner"]["plans"][number][] = [plan],
+) {
   const cache = buildInMemoryCache();
   cache.writeQuery({
     query: PlannerDocument,
-    data: { planner: { __typename: "PlannerQuery", plans: [plan] } },
+    data: { planner: { __typename: "PlannerQuery", plans: [...plans] } },
   });
   cache.writeFragment({
     id: cache.identify({
@@ -57,14 +59,67 @@ function plannerCache() {
   return cache;
 }
 
-function pollingMock() {
+function pollingMock(planId = plan.id) {
   return {
-    request: pollQuery([{ planId: plan.id, cutoff: -7500 }]),
+    request: pollQuery([{ planId, cutoff: -7500 }]),
     result: { data: { planner: { __typename: "PlannerQuery", p0: [] } } },
   };
 }
 
 describe("planner management drawer", () => {
+  it("should select the first remaining plan after deleting the only selected plan", async () => {
+    const user = userEvent.setup();
+    const nextPlan = { ...plan, id: "holiday-plan", name: "Thanksgiving" };
+    const lastPlan = { ...plan, id: "weekend-plan", name: "Weekend meals" };
+    render(<Planner />, {
+      cache: plannerCache([plan, nextPlan, lastPlan]),
+      mocks: [
+        pollingMock(),
+        pollingMock(nextPlan.id),
+        {
+          request: {
+            query: DeleteManagedPlanDocument,
+            variables: { id: plan.id },
+          },
+          result: {
+            data: {
+              planner: {
+                __typename: "PlannerMutation",
+                deletePlan: { __typename: "Deletion", id: plan.id },
+              },
+            },
+          },
+        },
+      ],
+    });
+    expect(screen.getByRole("button", { name: /Plans/ })).toHaveTextContent(
+      plan.name,
+    );
+    await user.click(screen.getByRole("button", { name: "Manage plans" }));
+    await user.click(screen.getByRole("button", { name: plan.name }));
+    await user.click(screen.getByRole("button", { name: "Delete plan" }));
+    await user.click(
+      within(screen.getByRole("alertdialog")).getByRole("button", {
+        name: "Delete plan",
+      }),
+    );
+    const drawer = await screen.findByRole("dialog", { name: "Manage plans" });
+    expect(
+      within(drawer).queryByRole("button", { name: plan.name }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(drawer).getByRole("button", { name: nextPlan.name }),
+    ).toBeInTheDocument();
+    await user.click(within(drawer).getByRole("button", { name: /close/i }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    const picker = screen.getByRole("button", { name: /Plans/ });
+    expect(picker).toHaveTextContent(nextPlan.name);
+    expect(picker).not.toHaveTextContent(plan.name);
+    expect(picker).not.toHaveTextContent(lastPlan.name);
+  });
+
   it("should open management in the shared drawer and close through history", async () => {
     const user = userEvent.setup();
     render(<Planner />, { cache: plannerCache(), mocks: [pollingMock()] });

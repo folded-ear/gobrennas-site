@@ -1,5 +1,6 @@
 import { AccessLevel } from "@/__generated__/graphql";
 import {
+  act,
   buildInMemoryCache,
   render,
   screen,
@@ -67,6 +68,83 @@ async function chooseRed(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("plan management", () => {
+  it.each(["name", "color"] as const)(
+    "should save only the edited %s without overwriting an external change",
+    async (edited) => {
+      const user = userEvent.setup();
+      const cache = seed();
+      const renamed: RenameManagedPlanMutation = {
+        planner: {
+          __typename: "PlannerMutation",
+          rename: { __typename: "Plan", id: plan.id, name: "Family dinners" },
+        },
+      };
+      const colored: ColorManagedPlanMutation = {
+        planner: {
+          __typename: "PlannerMutation",
+          setColor: { __typename: "Plan", id: plan.id, color: "#783232" },
+        },
+      };
+      render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+        cache,
+        mocks:
+          edited === "name"
+            ? [
+                {
+                  request: {
+                    query: RenameManagedPlanDocument,
+                    variables: { id: plan.id, name: "Family dinners" },
+                  },
+                  result: { data: renamed },
+                },
+              ]
+            : [
+                {
+                  request: {
+                    query: ColorManagedPlanDocument,
+                    variables: { id: plan.id, color: "#783232" },
+                  },
+                  result: { data: colored },
+                },
+              ],
+      });
+      if (edited === "name") {
+        await user.clear(screen.getByRole("textbox", { name: "Name" }));
+        await user.type(
+          screen.getByRole("textbox", { name: "Name" }),
+          "Family dinners",
+        );
+      } else {
+        await chooseRed(user);
+      }
+      act(() => {
+        cache.writeFragment({
+          fragment: PlanManagementFragmentDoc,
+          data: {
+            ...plan,
+            ...(edited === "name"
+              ? { color: "#225522" }
+              : { name: "Meals from another device" }),
+          },
+        });
+      });
+      await user.click(screen.getByRole("button", { name: "Save changes" }));
+      expect(await screen.findByRole("status")).toHaveTextContent(
+        "Changes saved.",
+      );
+      expect(
+        cache.readFragment({
+          fragment: PlanManagementFragmentDoc,
+          id: cache.identify(plan),
+        }),
+      ).toMatchObject(
+        edited === "name"
+          ? { name: "Family dinners", color: "#225522" }
+          : { name: "Meals from another device", color: "#783232" },
+      );
+    },
+  );
+
   it("should open management directly without a menu", async () => {
     const user = userEvent.setup();
     const onPress = vi.fn();
@@ -146,6 +224,13 @@ describe("plan management", () => {
             id: cache.identify(plan),
           }),
         ).toMatchObject({ name: "Family dinners", color: plan.color });
+        // Another device edits the already-saved name before the color retry.
+        act(() => {
+          cache.writeFragment({
+            fragment: PlanManagementFragmentDoc,
+            data: { ...plan, name: "Meals from another device" },
+          });
+        });
         await user.click(screen.getByRole("button", { name: "Save changes" }));
       }
       expect(await screen.findByRole("status")).toHaveTextContent(
@@ -156,7 +241,27 @@ describe("plan management", () => {
           fragment: PlanManagementFragmentDoc,
           id: cache.identify(plan),
         }),
-      ).toMatchObject({ name: "Family dinners", color: "#783232" });
+      ).toMatchObject({
+        name: failColor ? "Meals from another device" : "Family dinners",
+        color: "#783232",
+      });
+      // A later Save with no new edits must not resend either saved field.
+      act(() => {
+        cache.writeFragment({
+          fragment: PlanManagementFragmentDoc,
+          data: { ...plan, name: "Updated elsewhere", color: "#225522" },
+        });
+      });
+      await user.click(screen.getByRole("button", { name: "Save changes" }));
+      expect(await screen.findByRole("status")).toHaveTextContent(
+        "Changes saved.",
+      );
+      expect(
+        cache.readFragment({
+          fragment: PlanManagementFragmentDoc,
+          id: cache.identify(plan),
+        }),
+      ).toMatchObject({ name: "Updated elsewhere", color: "#225522" });
     },
   );
 
@@ -387,6 +492,14 @@ describe("plan management", () => {
           plans {
             id
             name
+            descendants {
+              id
+              name
+            }
+            buckets {
+              id
+              name
+            }
           }
         }
       }
@@ -397,8 +510,30 @@ describe("plan management", () => {
         planner: {
           __typename: "PlannerQuery",
           plans: [
-            plan,
-            { __typename: "Plan", id: "holiday-plan", name: "Thanksgiving" },
+            {
+              ...plan,
+              descendants: [
+                {
+                  __typename: "PlanItem",
+                  id: "weeknight-item",
+                  name: "Roasted vegetables",
+                },
+              ],
+              buckets: [
+                {
+                  __typename: "PlanBucket",
+                  id: "weeknight-bucket",
+                  name: "Dinner prep",
+                },
+              ],
+            },
+            {
+              __typename: "Plan",
+              id: "holiday-plan",
+              name: "Thanksgiving",
+              descendants: [],
+              buckets: [],
+            },
           ],
         },
       },
@@ -432,10 +567,18 @@ describe("plan management", () => {
       planner: {
         __typename: "PlannerQuery",
         plans: [
-          { __typename: "Plan", id: "holiday-plan", name: "Thanksgiving" },
+          {
+            __typename: "Plan",
+            id: "holiday-plan",
+            name: "Thanksgiving",
+            descendants: [],
+            buckets: [],
+          },
         ],
       },
     });
+    expect(cache.extract()).not.toHaveProperty("PlanItem:weeknight-item");
+    expect(cache.extract()).not.toHaveProperty("PlanBucket:weeknight-bucket");
   });
 
   it("should keep the plan and confirmation available after deletion fails", async () => {
