@@ -1,4 +1,3 @@
-import { LibraryIcon } from "@/components/icons";
 import { useItemPlanLookup } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildEntries, DraftRow, useEditDrafts } from "@/features/plan-edit";
@@ -8,14 +7,13 @@ import { DragSession } from "@/lib/dnd/drag-session";
 import { ItemRow } from "@/lib/dnd/item-row";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
-import { buttonVariants } from "@heroui/react";
-import Link from "next/link";
 import {
   PlanItemFragment,
   PlanItemFragmentDoc,
 } from "./__generated__/planItem.generated";
 import { DrawerRow } from "./drawer-row";
 import { Ladder } from "./ladder";
+import { LibraryLink } from "./library-link";
 import { PlanItemTree } from "./tree";
 
 const DRAWER_DRAG_TYPE = "application/x.gobrennas.drawer-item";
@@ -51,6 +49,9 @@ export function PlanItemHeader({
 
   if (!complete) return null;
 
+  const ingredient = data.ingredient;
+  const isRecipe = ingredient?.__typename === "Recipe";
+
   return (
     <div className="flex flex-col gap-sm pb-sm">
       <Ladder
@@ -59,21 +60,7 @@ export function PlanItemHeader({
         onSelect={onSelect}
         openHasChildren={hasDescendants}
         onRemoved={onRemoved}
-        openActions={
-          data.ingredient?.__typename === "Recipe" ? (
-            <Link
-              href={`/recipes/${data.ingredient.id}`}
-              className={buttonVariants({
-                variant: "tertiary",
-                size: "sm",
-                className: "h-7 shrink-0 gap-xs px-sm text-xs",
-              })}
-            >
-              <LibraryIcon size="small" aria-hidden="true" />
-              Open in Library
-            </Link>
-          ) : null
-        }
+        openActions={isRecipe ? <LibraryLink recipeId={ingredient.id} /> : null}
       />
       {data.notes ? <p className="text-sm text-muted">{data.notes}</p> : null}
       {hasDescendants ? (
