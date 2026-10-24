@@ -13,6 +13,7 @@ import {
 } from "./__generated__/planItem.generated";
 import { DrawerRow } from "./drawer-row";
 import { Ladder } from "./ladder";
+import { LibraryLink } from "./library-link";
 import { PlanItemTree } from "./tree";
 
 const DRAWER_DRAG_TYPE = "application/x.gobrennas.drawer-item";
@@ -48,6 +49,9 @@ export function PlanItemHeader({
 
   if (!complete) return null;
 
+  const ingredient = data.ingredient;
+  const isRecipe = ingredient?.__typename === "Recipe";
+
   return (
     <div className="flex flex-col gap-sm pb-sm">
       <Ladder
@@ -56,6 +60,7 @@ export function PlanItemHeader({
         onSelect={onSelect}
         openHasChildren={hasDescendants}
         onRemoved={onRemoved}
+        openActions={isRecipe ? <LibraryLink recipeId={ingredient.id} /> : null}
       />
       {data.notes ? <p className="text-sm text-muted">{data.notes}</p> : null}
       {hasDescendants ? (
