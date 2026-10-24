@@ -237,6 +237,42 @@ describe("PlanItemDetail", () => {
     expect(screen.getByText(/Use the sugar pumpkin/)).toBeVisible();
   });
 
+  it("links to the saved library recipe rather than the planned occurrence", () => {
+    const cache = buildInMemoryCache();
+    const pie = seedFragment(cache, PlanItemFragmentDoc, "planItem", {
+      ...planItemFragment(PIE),
+      ingredient: { __typename: "Recipe", id: "saved-pumpkin-pie" },
+    });
+
+    render(<Detail item={pie} context={planContext()} descendants={[]} />, {
+      cache,
+    });
+
+    expect(
+      screen.getByRole("link", { name: "Open in Library" }),
+    ).toHaveAttribute("href", "/recipes/saved-pumpkin-pie");
+  });
+
+  it.each<PlanItemFragment["ingredient"]>([
+    null,
+    { __typename: "PantryItem", id: "pumpkin" },
+  ])("offers no library recipe for an item linked to %j", (ingredient) => {
+    const cache = buildInMemoryCache();
+    const pie = seedFragment(cache, PlanItemFragmentDoc, "planItem", {
+      ...planItemFragment(PIE),
+      ingredient,
+    });
+
+    render(<Detail item={pie} context={planContext()} descendants={[]} />, {
+      cache,
+    });
+
+    expect(screen.getByRole("heading", { name: PIE.name })).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: "Open in Library" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows what sits below the item", () => {
     renderDetail(null, [node(CRUST)]);
 

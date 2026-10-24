@@ -12,6 +12,7 @@ import {
   Separation,
 } from "@/features/plan-timeline/context";
 import { ItemRow } from "@/lib/dnd/item-row";
+import type { ReactNode } from "react";
 import { DateChip } from "./chips";
 import { CookLink } from "./cook-link";
 import { NameText } from "./item-name";
@@ -36,6 +37,8 @@ type LadderProps = {
   readonly onSelect?: (id: string) => void;
   /** Whether anything sits below the open item, so it can be cooked. */
   readonly openHasChildren?: boolean;
+  /** Actions beside the open item's cook link. */
+  readonly openActions?: ReactNode;
   /** Called when an edit deletes the open item. */
   readonly onRemoved?: () => void;
 };
@@ -137,6 +140,7 @@ export function Ladder({
   id,
   onSelect,
   openHasChildren = false,
+  openActions,
   onRemoved,
 }: LadderProps) {
   const plan = useItemPlan(id);
@@ -180,6 +184,7 @@ export function Ladder({
             {plan !== undefined && (index < lastIndex || openHasChildren) ? (
               <CookLink planId={plan.id} itemId={line.id} name={line.name} />
             ) : null}
+            {index === lastIndex ? openActions : null}
             {line.chip && line.date !== null ? (
               <span className="ms-auto flex shrink-0">
                 <DateChip date={line.date} separation={line.separation} />

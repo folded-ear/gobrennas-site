@@ -1,3 +1,4 @@
+import { LibraryIcon } from "@/components/icons";
 import { useItemPlanLookup } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildEntries, DraftRow, useEditDrafts } from "@/features/plan-edit";
@@ -7,6 +8,8 @@ import { DragSession } from "@/lib/dnd/drag-session";
 import { ItemRow } from "@/lib/dnd/item-row";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
+import { buttonVariants } from "@heroui/react";
+import Link from "next/link";
 import {
   PlanItemFragment,
   PlanItemFragmentDoc,
@@ -56,6 +59,21 @@ export function PlanItemHeader({
         onSelect={onSelect}
         openHasChildren={hasDescendants}
         onRemoved={onRemoved}
+        openActions={
+          data.ingredient?.__typename === "Recipe" ? (
+            <Link
+              href={`/recipes/${data.ingredient.id}`}
+              className={buttonVariants({
+                variant: "tertiary",
+                size: "sm",
+                className: "h-7 shrink-0 gap-xs px-sm text-xs",
+              })}
+            >
+              <LibraryIcon size="small" aria-hidden="true" />
+              Open in Library
+            </Link>
+          ) : null
+        }
       />
       {data.notes ? <p className="text-sm text-muted">{data.notes}</p> : null}
       {hasDescendants ? (

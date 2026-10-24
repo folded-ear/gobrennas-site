@@ -122,6 +122,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
   item can be chosen: it is already in view, and opening it would only
   narrow what is shown.
 - An item below the open one that falls on another day says which day.
+- An item linked to a saved recipe offers a small Open in Library button with a
+  book icon beside its cook link. It opens the
+  library recipe over the planner detail; closing it returns to the same open item.
 
 ### The section screen
 
