@@ -5,7 +5,7 @@ import { canChangePlan, orderPlans } from "@/lib/plans";
 import { useFragment } from "@apollo/client/react";
 import { Button, Dropdown, Label, Popover } from "@heroui/react";
 import clsx from "clsx";
-import { Ellipsis, Plus } from "lucide-react";
+import { Ellipsis, Plus, Settings } from "lucide-react";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   PlannerPlanBarFragmentDoc,
@@ -155,6 +155,7 @@ export function PlannerPlanBar<P extends BarPlan>({
   onChange,
   onManage,
   onCreate,
+  onManageAll,
   renderOwnerAvatar,
 }: {
   plans: readonly P[];
@@ -162,6 +163,7 @@ export function PlannerPlanBar<P extends BarPlan>({
   onChange: (ids: string[]) => void;
   onManage: (id: string) => void;
   onCreate: () => void;
+  onManageAll?: () => void;
   renderOwnerAvatar: (plan: P) => ReactNode;
 }) {
   const ordered = orderPlans(plans);
@@ -283,6 +285,17 @@ export function PlannerPlanBar<P extends BarPlan>({
         <Plus aria-hidden />
         <span className="hidden sm:inline">New plan</span>
       </Button>
+      {onManageAll ? (
+        <Button
+          isIconOnly
+          variant="ghost"
+          className="shrink-0"
+          aria-label="Manage plans"
+          onPress={onManageAll}
+        >
+          <Settings aria-hidden />
+        </Button>
+      ) : null}
       <div
         aria-hidden
         inert

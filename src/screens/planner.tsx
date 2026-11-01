@@ -237,6 +237,11 @@ export function Planner() {
           onChange={setPlanIds}
           onManage={(id) => open.push({ plan: id })}
           onCreate={() => setCreatingPlan(true)}
+          onManageAll={
+            plans.some(canChangePlan)
+              ? () => open.push({ manage: true })
+              : undefined
+          }
         />
         <EditSurfaceProvider
           state={edit}

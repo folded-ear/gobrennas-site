@@ -75,6 +75,36 @@ function pollingMock(planId = plan.id) {
 }
 
 describe("planner management drawer", () => {
+  it("should open the all-plans drawer from the settings button beside New plan", async () => {
+    const user = userEvent.setup();
+    render(<Planner />, { cache: plannerCache(), mocks: [pollingMock()] });
+    await user.click(screen.getByRole("button", { name: "Manage plans" }));
+    const drawer = screen.getByRole("dialog", { name: "Manage plans" });
+    expect(
+      within(drawer).getByRole("list", { name: "Plans to manage" }),
+    ).toBeVisible();
+    await user.click(within(drawer).getByRole("button", { name: plan.name }));
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
+      plan.name,
+    );
+    expect(back).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])(
+    "should hide all-plan settings when no plan is editable (read-only plan: %s)",
+    (hasReadOnlyPlan) => {
+      const readOnly = { ...plan, id: "shared-view-only", mine: false };
+      render(<Planner />, {
+        cache: plannerCache(hasReadOnlyPlan ? [readOnly] : []),
+        mocks: hasReadOnlyPlan ? [pollingMock(readOnly.id)] : [],
+      });
+      expect(
+        screen.queryByRole("button", { name: "Manage plans" }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "New plan" })).toBeVisible();
+    },
+  );
+
   it("should identify a shared plan with its owner's avatar instead of printed name", () => {
     const sharedPlan: Unmasked<PlannerQuery>["planner"]["plans"][number] = {
       ...plan,

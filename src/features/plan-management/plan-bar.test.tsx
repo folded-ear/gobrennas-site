@@ -48,10 +48,12 @@ function Harness({
   plans,
   onManage,
   onCreate,
+  onManageAll,
 }: {
   plans: readonly PlannerPlanBarFragment[];
   onManage: (id: string) => void;
   onCreate: () => void;
+  onManageAll?: () => void;
 }) {
   const [selected, setSelected] = useState([mine.id]);
   return (
@@ -61,6 +63,7 @@ function Harness({
       onChange={setSelected}
       onManage={onManage}
       onCreate={onCreate}
+      onManageAll={onManageAll}
       renderOwnerAvatar={(plan) => (
         <span title={plan.ownedBy?.name ?? undefined}>B</span>
       )}
@@ -68,21 +71,41 @@ function Harness({
   );
 }
 
-function mount(plans = [shared, mine, second]) {
+function mount(plans = [shared, mine, second], onManageAll?: () => void) {
   const cache = buildInMemoryCache();
   for (const plan of plans)
     cache.writeFragment({ fragment: PlannerPlanBarFragmentDoc, data: plan });
   const onManage = vi.fn();
   const onCreate = vi.fn();
-  render(<Harness plans={plans} onManage={onManage} onCreate={onCreate} />, {
-    cache,
-  });
+  render(
+    <Harness
+      plans={plans}
+      onManage={onManage}
+      onCreate={onCreate}
+      onManageAll={onManageAll}
+    />,
+    {
+      cache,
+    },
+  );
   return { onManage, onCreate };
 }
 
 afterEach(() => vi.restoreAllMocks());
 
 describe("PlannerPlanBar", () => {
+  it("should offer all-plan settings beside creation without changing selection", async () => {
+    const user = userEvent.setup();
+    const onManageAll = vi.fn();
+    mount([mine], onManageAll);
+    await user.click(screen.getByRole("button", { name: "Manage plans" }));
+    expect(onManageAll).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "New plan" })).toBeVisible();
+    expect(screen.getByRole("button", { name: mine.name })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
   it.each(["Trip", "Thanksgiving", "Our Weekend at the Coast"])(
     "should constrain %s with CSS while keeping its full name available",
     (name) => {

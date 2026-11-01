@@ -41,6 +41,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Managing plans
 
+- A Manage plans settings button beside New plan opens the all-plans drawer. It
+  stays outside overflow and is hidden when no accessible plan can be edited.
 - New plan stays outside overflow in the plan bar, becoming a labeled + button on
   small screens. It asks for a nonblank name. Successful creation closes the form
   and selects the empty plan alongside existing selections. Failed creation keeps
