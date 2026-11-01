@@ -7,7 +7,7 @@ import { PlanSettingsForm } from "./settings-form";
 
 export { CreatePlanDialog, PlannerWelcome } from "./create-plan";
 export { PlannerPlanBar } from "./plan-bar";
-export { PlanManagementButton, PlanManagementList } from "./plan-list";
+export { PlanManagementList } from "./plan-list";
 
 export function PlanManagement({
   plan: reference,

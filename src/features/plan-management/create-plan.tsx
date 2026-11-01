@@ -4,13 +4,10 @@ import { FormTextField } from "@/components/form-text-field";
 import { useMutation } from "@apollo/client/react";
 import { Button, Modal } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import {
-  CreateManagedPlanDocument,
-  ManagedPlanMembershipDocument,
-} from "./__generated__/management.generated";
+import { CreateManagedPlanDocument } from "./__generated__/management.generated";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Enter a plan name."),
@@ -19,12 +16,15 @@ const schema = z.object({
 export function CreatePlanDialog({
   onClose,
   onCreated,
+  refreshPlans,
 }: {
   onClose: () => void;
   onCreated: (id: string) => void;
+  refreshPlans: () => Promise<void>;
 }) {
   const [create] = useMutation(CreateManagedPlanDocument);
   const busy = useRef(false);
+  const [createdId, setCreatedId] = useState<string>();
   const form = useForm<z.input<typeof schema>>({
     resolver: zodResolver(schema, undefined, { raw: true }),
     defaultValues: { name: "" },
@@ -36,6 +36,7 @@ export function CreatePlanDialog({
       isDismissable={!pending}
       isKeyboardDismissDisabled={pending}
       onOpenChange={(open) => {
+        // Also guard the interval before RHF publishes isSubmitting.
         if (!open && !busy.current) onClose();
       }}
     >
@@ -56,45 +57,30 @@ export function CreatePlanDialog({
                 busy.current = true;
                 void form
                   .handleSubmit(async (raw) => {
+                    let id = createdId;
                     try {
-                      const result = await create({
-                        variables: schema.parse(raw),
-                        update(cache, result) {
-                          const plan = result.data?.planner.createPlan;
-                          if (!plan?.id)
-                            throw new Error("Missing created plan");
-                          cache.updateQuery(
-                            { query: ManagedPlanMembershipDocument },
-                            (previous) =>
-                              previous
-                                ? {
-                                    ...previous,
-                                    planner: {
-                                      ...previous.planner,
-                                      plans: previous.planner.plans.some(
-                                        (item) => item.id === plan.id,
-                                      )
-                                        ? previous.planner.plans
-                                        : [
-                                            ...previous.planner.plans,
-                                            {
-                                              __typename: "Plan" as const,
-                                              id: plan.id,
-                                            },
-                                          ],
-                                    },
-                                  }
-                                : previous,
-                          );
-                        },
-                      });
-                      if (!result.data?.planner.createPlan.id)
-                        throw new Error("Missing created plan");
-                      onCreated(result.data.planner.createPlan.id);
+                      if (!id) {
+                        const result = await create({
+                          variables: schema.parse(raw),
+                        });
+                        id = result.data?.planner.createPlan.id;
+                        if (!id) throw new Error("Missing created plan");
+                        setCreatedId(id);
+                      }
                     } catch {
                       form.setError("root.save", {
                         message:
                           "Could not create your plan. Your name is still here; try again.",
+                      });
+                      return;
+                    }
+                    try {
+                      await refreshPlans();
+                      onCreated(id);
+                    } catch {
+                      form.setError("root.save", {
+                        message:
+                          "Your plan was created, but the planner could not refresh. Try refreshing again; this will not create another plan.",
                       });
                     }
                   })(event)
@@ -108,20 +94,22 @@ export function CreatePlanDialog({
                   {form.formState.errors.root.save.message}
                 </p>
               ) : null}
-              <FormTextField
-                control={form.control}
-                name="name"
-                label="Name"
-                isRequired
-                onValueChange={() => form.clearErrors("root.save")}
-              />
+              <fieldset disabled={createdId !== undefined}>
+                <FormTextField
+                  control={form.control}
+                  name="name"
+                  label="Name"
+                  isRequired
+                  onValueChange={() => form.clearErrors("root.save")}
+                />
+              </fieldset>
               <div className="flex justify-end gap-sm">
                 <Button
                   variant="secondary"
                   isDisabled={pending}
                   onPress={onClose}
                 >
-                  Cancel
+                  {createdId ? "Close" : "Cancel"}
                 </Button>
                 <Button
                   variant="primary"
@@ -129,7 +117,7 @@ export function CreatePlanDialog({
                   isPending={pending}
                   isDisabled={pending}
                 >
-                  Create plan
+                  {createdId ? "Refresh plans" : "Create plan"}
                 </Button>
               </div>
             </form>

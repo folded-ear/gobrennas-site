@@ -63,6 +63,12 @@ history, so it opens by adding a history entry in one of two ways:
 Preferences such as selected plans are per-device values stored by the API.
 They are never part of a URL.
 
+Plan creation returns only the new identifier. The Planner screen supplies the
+creation dialog's refresh callback, which fetches the existing Planner query
+again and updates the cache. A failed refresh stays in the dialog rather than
+failing the screen's suspense query. The dialog retains the created identifier
+so retrying refresh never repeats creation.
+
 ## GraphQL data
 
 The root `schema.graphql` and `schema-local.graphql` files define the schema

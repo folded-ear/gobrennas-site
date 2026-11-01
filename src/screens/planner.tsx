@@ -48,7 +48,7 @@ import { displayName } from "@/lib/plan-item-name";
 import { canAdministerPlan, canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
-import { useSuspenseQuery } from "@apollo/client/react";
+import { useApolloClient, useSuspenseQuery } from "@apollo/client/react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -87,6 +87,7 @@ function isManaging(open: PlannerOpen | undefined): boolean {
 }
 
 export function Planner() {
+  const client = useApolloClient();
   const { data } = useSuspenseQuery(PlannerDocument);
   const open = useHistoryState<PlannerOpen>(OPEN_KEY);
   const router = useRouter();
@@ -205,6 +206,14 @@ export function Planner() {
     <PlanDirectoryProvider directory={directory}>
       {creatingPlan ? (
         <CreatePlanDialog
+          refreshPlans={async () => {
+            // A failed refresh belongs to the creation dialog, not the screen's
+            // suspense query and its error boundary.
+            await client.query({
+              query: PlannerDocument,
+              fetchPolicy: "network-only",
+            });
+          }}
           onClose={() => setCreatingPlan(false)}
           onCreated={(id) => {
             setPlanIds([...planIds, id]);
@@ -222,11 +231,7 @@ export function Planner() {
       <div className="flex h-[calc(100dvh-var(--section-nav-clearance))] flex-col overflow-hidden">
         <SectionHeader title="Planner" />
         <PlannerPlanBar
-          renderOwnerAvatar={(id) => (
-            <OtherUserAvatar
-              user={plans.find((plan) => plan.id === id)?.ownedBy ?? null}
-            />
-          )}
+          renderOwnerAvatar={(plan) => <OtherUserAvatar user={plan.ownedBy} />}
           plans={plans}
           selectedIds={planIds}
           onChange={setPlanIds}

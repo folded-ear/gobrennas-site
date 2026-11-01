@@ -106,9 +106,13 @@ describe("planner management drawer", () => {
     ).not.toBeInTheDocument();
   });
 
-  it.each([false, true])(
-    "should create and select a plan while preserving existing selections (has plans: %s)",
-    async (hasPlans) => {
+  it.each([
+    { hasPlans: false, refreshFails: false },
+    { hasPlans: true, refreshFails: false },
+    { hasPlans: true, refreshFails: true },
+  ])(
+    "should create and select a plan while preserving selections (has plans: $hasPlans, retry refresh: $refreshFails)",
+    async ({ hasPlans, refreshFails }) => {
       const user = userEvent.setup();
       const cache = plannerCache(hasPlans ? [plan] : []);
       cache.writeQuery({
@@ -116,6 +120,14 @@ describe("planner management drawer", () => {
         data: { deviceKey: "planner-device" },
       });
       const newPlan = { ...plan, id: "holiday-plan", name: "Holiday meals" };
+      const createResult = vi.fn(() => ({
+        data: {
+          planner: {
+            __typename: "PlannerMutation",
+            createPlan: { __typename: "Plan", id: newPlan.id },
+          },
+        },
+      }));
       const value = formatIdSet(
         hasPlans ? [plan.id, newPlan.id] : [newPlan.id],
       );
@@ -128,9 +140,25 @@ describe("planner management drawer", () => {
               query: CreateManagedPlanDocument,
               variables: { name: newPlan.name },
             },
+            result: createResult,
+            maxUsageCount: 2,
+          },
+          ...(refreshFails
+            ? [
+                {
+                  request: { query: PlannerDocument },
+                  error: new Error("Refresh unavailable"),
+                },
+              ]
+            : []),
+          {
+            request: { query: PlannerDocument },
             result: {
               data: {
-                planner: { __typename: "PlannerMutation", createPlan: newPlan },
+                planner: {
+                  __typename: "PlannerQuery",
+                  plans: hasPlans ? [plan, newPlan] : [newPlan],
+                },
               },
             },
           },
@@ -188,6 +216,12 @@ describe("planner management drawer", () => {
         newPlan.name,
       );
       await user.click(screen.getByRole("button", { name: "Create plan" }));
+      if (refreshFails) {
+        expect(await screen.findByRole("alert")).toHaveTextContent(
+          "Your plan was created, but the planner could not refresh.",
+        );
+        await user.click(screen.getByRole("button", { name: "Refresh plans" }));
+      }
       expect(
         await screen.findByRole("button", { name: newPlan.name }),
       ).toHaveAttribute("aria-pressed", "true");
@@ -204,6 +238,7 @@ describe("planner management drawer", () => {
           .readQuery({ query: PlannerDocument })
           ?.planner.plans.map((item) => item.id),
       ).toEqual(hasPlans ? [plan.id, newPlan.id] : [newPlan.id]);
+      expect(createResult).toHaveBeenCalledOnce();
     },
   );
 

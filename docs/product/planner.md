@@ -29,6 +29,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   every screen size, rather than a separate mobile interface.
 - The selected plans are remembered per device, not per page visit. At least
   one plan is always selected; with nothing remembered, the first plan is.
+- The last selected plan's toggle is disabled, with a hint explaining that at
+  least one plan must stay selected. Its settings menu remains available.
 - A plan can be marked complete.
 - A plan item can be assigned to a user.
 - A plan item can be given a date.
@@ -43,6 +45,10 @@ The terms used here are defined in the [domain model](../domain/model.md).
   small screens. It asks for a nonblank name. Successful creation closes the form
   and selects the empty plan alongside existing selections. Failed creation keeps
   the name for another try. Color can be changed later in settings.
+- After creation, the planner refreshes its plan list before selecting the new
+  plan. If refreshing fails, the dialog explains that creation succeeded and
+  offers Refresh plans. Retrying refresh does not create another plan; the saved
+  name is no longer editable in this dialog.
 - With no accessible plans, the planner shows a welcome panel and a prominent
   Create a plan button instead of an empty timeline. Users with only shared plans
   see those plans normally and can still create their own.

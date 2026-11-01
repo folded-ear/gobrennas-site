@@ -30,39 +30,10 @@ fragment plannerPlanBar on Plan {
   }
 }
 
-# Read and update membership without refetching the planner after creation.
-query ManagedPlanMembership {
-  planner {
-    plans {
-      id
-    }
-  }
-}
-
 mutation CreateManagedPlan($name: String!) {
   planner {
     createPlan(name: $name) {
       id
-      ...planManagement
-      ...plannerPlanBar
-      notes
-      ownedBy {
-        id
-        name
-        imageUrl
-        email
-      }
-      buckets {
-        id
-        name
-        date
-      }
-      children {
-        id
-      }
-      descendants {
-        id
-      }
     }
   }
 }

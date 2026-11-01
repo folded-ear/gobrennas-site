@@ -61,7 +61,9 @@ function Harness({
       onChange={setSelected}
       onManage={onManage}
       onCreate={onCreate}
-      renderOwnerAvatar={() => <span title="Brenna">B</span>}
+      renderOwnerAvatar={(plan) => (
+        <span title={plan.ownedBy?.name ?? undefined}>B</span>
+      )}
     />
   );
 }
@@ -108,6 +110,10 @@ describe("PlannerPlanBar", () => {
     expect(within(sharedToggle).getByTitle("Brenna")).toBeVisible();
     expect(sharedToggle).not.toHaveTextContent("Brenna");
     const first = screen.getByRole("button", { name: mine.name });
+    expect(first).toBeDisabled();
+    expect(first).toHaveAccessibleDescription(
+      "At least one plan must stay selected.",
+    );
     expect(first.parentElement).toHaveClass(
       "border-accent",
       "ring-1",
@@ -116,6 +122,7 @@ describe("PlannerPlanBar", () => {
     await user.click(first);
     expect(first).toHaveAttribute("aria-pressed", "true");
     await user.click(screen.getByRole("button", { name: second.name }));
+    expect(first).toBeEnabled();
     expect(first).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: second.name })).toHaveAttribute(
       "aria-pressed",
@@ -123,6 +130,7 @@ describe("PlannerPlanBar", () => {
     );
     await user.click(first);
     expect(first).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: second.name })).toBeDisabled();
     expect(first.parentElement).toHaveClass("border-border");
     expect(first.parentElement).not.toHaveClass("ring-accent");
     expect(screen.getAllByRole("button", { pressed: false })[0]).toBe(first);

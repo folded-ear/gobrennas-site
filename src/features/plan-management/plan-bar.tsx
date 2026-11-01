@@ -6,7 +6,7 @@ import { useFragment } from "@apollo/client/react";
 import { Button, Dropdown, Label, Popover } from "@heroui/react";
 import clsx from "clsx";
 import { Ellipsis, Plus } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   PlannerPlanBarFragmentDoc,
   type PlannerPlanBarFragment,
@@ -22,30 +22,50 @@ function planLabel(plan: Plan) {
     : plan.name;
 }
 
+function groupLabel(mine: boolean) {
+  return mine ? "Your plans" : "Shared with you";
+}
+
+function moreLabel(selected: number) {
+  return `More plans · ${selected} selected`;
+}
+
 function PlanControl({
   plan,
   selected,
   onToggle,
   onManage,
   ownerAvatar,
+  isOnlySelected,
 }: {
   plan: Plan;
   selected: boolean;
   onToggle: () => void;
   onManage: () => void;
   ownerAvatar: ReactNode;
+  isOnlySelected: boolean;
 }) {
+  const hintId = useId();
+  const hint = "At least one plan must stay selected.";
   return (
     <div
+      title={isOnlySelected ? hint : undefined}
       className={clsx(
         "flex shrink-0 items-center rounded-lg border",
         selected ? "border-accent ring-1 ring-accent" : "border-border",
       )}
     >
+      {isOnlySelected ? (
+        <span id={hintId} className="sr-only">
+          {hint}
+        </span>
+      ) : null}
       <Button
         variant="ghost"
         aria-pressed={selected}
         aria-label={planLabel(plan)}
+        isDisabled={isOnlySelected}
+        aria-describedby={isOnlySelected ? hintId : undefined}
         className="min-w-0 gap-sm"
         onPress={onToggle}
       >
@@ -92,16 +112,16 @@ function PlanBarEntry({
   onToggle,
   onManage,
   heading,
-  reserveHeading,
-  renderOwnerAvatar,
+  ownerAvatar,
+  isOnlySelected,
 }: {
   plan: PlanReference;
   selected: boolean;
   onToggle: () => void;
   onManage: () => void;
   heading?: string;
-  reserveHeading: boolean;
-  renderOwnerAvatar: (planId: string) => ReactNode;
+  ownerAvatar: ReactNode;
+  isOnlySelected: boolean;
 }) {
   const { data: plan, complete } = useFragment({
     fragment: PlannerPlanBarFragmentDoc,
@@ -110,7 +130,7 @@ function PlanBarEntry({
   if (!complete) return null;
   return (
     <div className="flex shrink-0 flex-col items-start gap-xxs">
-      {reserveHeading ? (
+      {heading !== undefined ? (
         <span className="h-4 whitespace-nowrap text-xs text-muted">
           {heading}
         </span>
@@ -120,9 +140,8 @@ function PlanBarEntry({
         selected={selected}
         onToggle={onToggle}
         onManage={onManage}
-        ownerAvatar={
-          !plan.mine && plan.ownedBy ? renderOwnerAvatar(plan.id) : null
-        }
+        ownerAvatar={ownerAvatar}
+        isOnlySelected={isOnlySelected}
       />
     </div>
   );
@@ -130,7 +149,7 @@ function PlanBarEntry({
 
 type BarPlan = PlanReference & { mine: boolean };
 
-export function PlannerPlanBar({
+export function PlannerPlanBar<P extends BarPlan>({
   plans,
   selectedIds,
   onChange,
@@ -138,14 +157,15 @@ export function PlannerPlanBar({
   onCreate,
   renderOwnerAvatar,
 }: {
-  plans: readonly BarPlan[];
+  plans: readonly P[];
   selectedIds: readonly string[];
   onChange: (ids: string[]) => void;
   onManage: (id: string) => void;
   onCreate: () => void;
-  renderOwnerAvatar: (planId: string) => ReactNode;
+  renderOwnerAvatar: (plan: P) => ReactNode;
 }) {
   const ordered = orderPlans(plans);
+  const selected = new Set(selectedIds);
   const available = useRef<HTMLDivElement>(null);
   const measurements = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState<number | undefined>(undefined);
@@ -180,37 +200,36 @@ export function PlannerPlanBar({
 
   const count = Math.min(visible ?? ordered.length, ordered.length);
   const hidden = ordered.slice(count);
-  const hiddenSelected = hidden.filter((plan) =>
-    selectedIds.includes(plan.id),
-  ).length;
+  const hiddenSelected = hidden.filter((plan) => selected.has(plan.id)).length;
   const toggle = (id: string) => {
-    const next = selectedIds.includes(id)
+    const next = selected.has(id)
       ? selectedIds.filter((selected) => selected !== id)
       : [...selectedIds, id];
     if (next.length) onChange(next);
   };
-  const entry = (plan: BarPlan, index: number, withHeading: boolean) => (
+  const entry = (plan: P, heading?: string) => (
     <PlanBarEntry
       key={plan.id}
       plan={plan}
-      selected={selectedIds.includes(plan.id)}
-      reserveHeading={withHeading}
-      renderOwnerAvatar={renderOwnerAvatar}
+      selected={selected.has(plan.id)}
+      isOnlySelected={selected.size === 1 && selected.has(plan.id)}
+      ownerAvatar={!plan.mine ? renderOwnerAvatar(plan) : null}
       onToggle={() => toggle(plan.id)}
       onManage={() => {
         setOverflowOpen(false);
         onManage(plan.id);
       }}
-      heading={
-        withHeading && (index === 0 || ordered[index - 1].mine !== plan.mine)
-          ? plan.mine
-            ? "Your plans"
-            : "Shared with you"
-          : undefined
-      }
+      heading={heading}
     />
   );
-  const overflowLabel = `More plans · ${hiddenSelected} selected`;
+  const firstShared = ordered.findIndex((plan) => !plan.mine);
+  // An empty heading reserves the bar's label row; overflow omits it entirely.
+  const barEntries = ordered.map((plan, index) =>
+    entry(
+      plan,
+      index === 0 || index === firstShared ? groupLabel(plan.mine) : "",
+    ),
+  );
   return (
     <div
       aria-label="Planner plans"
@@ -219,19 +238,13 @@ export function PlannerPlanBar({
     >
       <div ref={available} className="min-w-0 flex-1">
         <div className="-m-xxs flex items-end gap-sm overflow-hidden p-xxs">
-          {ordered
-            .slice(0, count)
-            .map((plan, index) => entry(plan, index, true))}
+          {barEntries.slice(0, count)}
           {hidden.length ? (
             <Popover isOpen={overflowOpen} onOpenChange={setOverflowOpen}>
-              <Button
-                variant="secondary"
-                className="shrink-0"
-                aria-label={overflowLabel}
-              >
+              <Button variant="secondary" className="shrink-0">
                 <Ellipsis aria-hidden />
                 <span className="tabular-nums">
-                  More plans · {hiddenSelected} selected
+                  {moreLabel(hiddenSelected)}
                 </span>
               </Button>
               <Popover.Content
@@ -247,13 +260,11 @@ export function PlannerPlanBar({
                     return group.length ? (
                       <section
                         key={String(mine)}
-                        aria-label={mine ? "Your plans" : "Shared with you"}
+                        aria-label={groupLabel(mine)}
                         className="flex flex-col gap-sm py-sm"
                       >
-                        <h2 className="text-sm">
-                          {mine ? "Your plans" : "Shared with you"}
-                        </h2>
-                        {group.map((plan) => entry(plan, 0, false))}
+                        <h2 className="text-sm">{groupLabel(mine)}</h2>
+                        {group.map((plan) => entry(plan))}
                       </section>
                     ) : null;
                   })}
@@ -278,12 +289,10 @@ export function PlannerPlanBar({
         className="pointer-events-none invisible absolute inset-x-0 top-0 h-0 overflow-hidden"
       >
         <div ref={measurements} className="flex w-max items-center gap-sm">
-          {ordered.map((plan, index) => entry(plan, index, true))}
+          {barEntries}
           <Button variant="secondary">
             <Ellipsis />
-            <span className="tabular-nums">
-              More plans · {plans.length} selected
-            </span>
+            <span className="tabular-nums">{moreLabel(plans.length)}</span>
           </Button>
         </div>
       </div>
