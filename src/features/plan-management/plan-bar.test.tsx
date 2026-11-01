@@ -81,14 +81,14 @@ function mount(plans = [shared, mine, second]) {
 afterEach(() => vi.restoreAllMocks());
 
 describe("PlannerPlanBar", () => {
-  it.each(["Thanksgiving", "Our Weekend at the Coast"])(
+  it.each(["Trip", "Thanksgiving", "Our Weekend at the Coast"])(
     "should constrain %s with CSS while keeping its full name available",
     (name) => {
       mount([{ ...mine, name }]);
       const toggle = screen.getByRole("button", { name });
       const label = within(toggle).getByText(name);
       expect(label).toHaveAttribute("title", name);
-      expect(label).toHaveClass("truncate", "min-w-[12ch]", "max-w-[16ch]");
+      expect(label).toHaveClass("truncate", "min-w-0", "max-w-[16ch]");
     },
   );
 
@@ -108,6 +108,11 @@ describe("PlannerPlanBar", () => {
     expect(within(sharedToggle).getByTitle("Brenna")).toBeVisible();
     expect(sharedToggle).not.toHaveTextContent("Brenna");
     const first = screen.getByRole("button", { name: mine.name });
+    expect(first.parentElement).toHaveClass(
+      "border-accent",
+      "ring-1",
+      "ring-accent",
+    );
     await user.click(first);
     expect(first).toHaveAttribute("aria-pressed", "true");
     await user.click(screen.getByRole("button", { name: second.name }));
@@ -118,6 +123,8 @@ describe("PlannerPlanBar", () => {
     );
     await user.click(first);
     expect(first).toHaveAttribute("aria-pressed", "false");
+    expect(first.parentElement).toHaveClass("border-border");
+    expect(first.parentElement).not.toHaveClass("ring-accent");
     expect(screen.getAllByRole("button", { pressed: false })[0]).toBe(first);
   });
 

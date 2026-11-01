@@ -4,7 +4,8 @@ import { PlanDot } from "@/components/plan-dot";
 import { canChangePlan, orderPlans } from "@/lib/plans";
 import { useFragment } from "@apollo/client/react";
 import { Button, Dropdown, Label, Popover } from "@heroui/react";
-import { Check, Ellipsis, Plus } from "lucide-react";
+import clsx from "clsx";
+import { Ellipsis, Plus } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   PlannerPlanBarFragmentDoc,
@@ -35,9 +36,14 @@ function PlanControl({
   ownerAvatar: ReactNode;
 }) {
   return (
-    <div className="flex shrink-0 items-center rounded-lg border border-border">
+    <div
+      className={clsx(
+        "flex shrink-0 items-center rounded-lg border",
+        selected ? "border-accent ring-1 ring-accent" : "border-border",
+      )}
+    >
       <Button
-        variant={selected ? "secondary" : "ghost"}
+        variant="ghost"
         aria-pressed={selected}
         aria-label={planLabel(plan)}
         className="min-w-0 gap-sm"
@@ -47,16 +53,12 @@ function PlanControl({
           <PlanDot plan={plan} />
         </span>
         <span
-          className="min-w-[12ch] max-w-[16ch] truncate text-left"
+          className="min-w-0 max-w-[16ch] truncate text-left"
           title={plan.name}
         >
           {plan.name}
         </span>
         {ownerAvatar}
-        <Check
-          aria-hidden
-          className={selected ? "size-4" : "invisible size-4"}
-        />
       </Button>
       {canChangePlan(plan) ? (
         <Dropdown>
