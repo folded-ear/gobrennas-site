@@ -1,6 +1,11 @@
 import { pollQuery } from "@/features/page-engine/mutation";
-import { DeleteManagedPlanDocument } from "@/features/plan-management/__generated__/management.generated";
+import {
+  CreateManagedPlanDocument,
+  DeleteManagedPlanDocument,
+} from "@/features/plan-management/__generated__/management.generated";
 import { PreferenceValueFragmentDoc } from "@/hooks/use-preference/__generated__/preferenceValue.generated";
+import { DoSetPreferenceDocument } from "@/hooks/use-set-preference/__generated__/doSetPreference.generated";
+import { InitializeDeviceKeyDocument } from "@/lib/apollo/__generated__/initializeDeviceKey.generated";
 import { PREF_PLANNER_PLANS, formatIdSet } from "@/lib/preferences";
 import {
   buildInMemoryCache,
@@ -54,7 +59,10 @@ function plannerCache(
       name: PREF_PLANNER_PLANS,
     }),
     fragment: PreferenceValueFragmentDoc,
-    data: { __typename: "UserPreference", value: formatIdSet([plan.id]) },
+    data: {
+      __typename: "UserPreference",
+      value: formatIdSet(plans.length ? [plan.id] : []),
+    },
   });
   return cache;
 }
@@ -67,6 +75,203 @@ function pollingMock(planId = plan.id) {
 }
 
 describe("planner management drawer", () => {
+  it("should open the all-plans drawer from the settings button beside New plan", async () => {
+    const user = userEvent.setup();
+    render(<Planner />, { cache: plannerCache(), mocks: [pollingMock()] });
+    await user.click(screen.getByRole("button", { name: "Manage plans" }));
+    const drawer = screen.getByRole("dialog", { name: "Manage plans" });
+    expect(
+      within(drawer).getByRole("list", { name: "Plans to manage" }),
+    ).toBeVisible();
+    await user.click(within(drawer).getByRole("button", { name: plan.name }));
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
+      plan.name,
+    );
+    expect(back).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])(
+    "should hide all-plan settings when no plan is editable (read-only plan: %s)",
+    (hasReadOnlyPlan) => {
+      const readOnly = { ...plan, id: "shared-view-only", mine: false };
+      render(<Planner />, {
+        cache: plannerCache(hasReadOnlyPlan ? [readOnly] : []),
+        mocks: hasReadOnlyPlan ? [pollingMock(readOnly.id)] : [],
+      });
+      expect(
+        screen.queryByRole("button", { name: "Manage plans" }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "New plan" })).toBeVisible();
+    },
+  );
+
+  it("should identify a shared plan with its owner's avatar instead of printed name", () => {
+    const sharedPlan: Unmasked<PlannerQuery>["planner"]["plans"][number] = {
+      ...plan,
+      id: "family-plan",
+      name: "Family dinners",
+      mine: false,
+      ownedBy: {
+        __typename: "User",
+        id: "brenna",
+        name: "Brenna",
+        email: "brenna@example.com",
+        imageUrl: null,
+      },
+    };
+    render(<Planner />, {
+      cache: plannerCache([plan, sharedPlan]),
+      mocks: [pollingMock()],
+    });
+    const toggle = screen.getByRole("button", {
+      name: "Family dinners · Brenna",
+    });
+    expect(within(toggle).getByTitle("Brenna")).toHaveTextContent("B");
+    expect(toggle).toHaveTextContent("Family dinners");
+    expect(toggle).not.toHaveTextContent("Brenna");
+    expect(
+      within(screen.getByRole("button", { name: plan.name })).queryByTitle(
+        "Brenna",
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it.each([
+    { hasPlans: false, refreshFails: false },
+    { hasPlans: true, refreshFails: false },
+    { hasPlans: true, refreshFails: true },
+  ])(
+    "should create and select a plan while preserving selections (has plans: $hasPlans, retry refresh: $refreshFails)",
+    async ({ hasPlans, refreshFails }) => {
+      const user = userEvent.setup();
+      const cache = plannerCache(hasPlans ? [plan] : []);
+      cache.writeQuery({
+        query: InitializeDeviceKeyDocument,
+        data: { deviceKey: "planner-device" },
+      });
+      const newPlan = { ...plan, id: "holiday-plan", name: "Holiday meals" };
+      const createResult = vi.fn(() => ({
+        data: {
+          planner: {
+            __typename: "PlannerMutation",
+            createPlan: { __typename: "Plan", id: newPlan.id },
+          },
+        },
+      }));
+      const value = formatIdSet(
+        hasPlans ? [plan.id, newPlan.id] : [newPlan.id],
+      );
+      render(<Planner />, {
+        cache,
+        mocks: [
+          ...(hasPlans ? [pollingMock()] : []),
+          {
+            request: {
+              query: CreateManagedPlanDocument,
+              variables: { name: newPlan.name },
+            },
+            result: createResult,
+            maxUsageCount: 2,
+          },
+          ...(refreshFails
+            ? [
+                {
+                  request: { query: PlannerDocument },
+                  error: new Error("Refresh unavailable"),
+                },
+              ]
+            : []),
+          {
+            request: { query: PlannerDocument },
+            result: {
+              data: {
+                planner: {
+                  __typename: "PlannerQuery",
+                  plans: hasPlans ? [plan, newPlan] : [newPlan],
+                },
+              },
+            },
+          },
+          {
+            request: {
+              query: DoSetPreferenceDocument,
+              variables: {
+                name: PREF_PLANNER_PLANS,
+                value,
+                deviceKey: "planner-device",
+              },
+            },
+            result: {
+              data: {
+                profile: {
+                  __typename: "ProfileMutation",
+                  setPreference: {
+                    __typename: "UserPreference",
+                    name: PREF_PLANNER_PLANS,
+                    value,
+                  },
+                },
+              },
+            },
+          },
+          ...(hasPlans
+            ? [
+                {
+                  request: {
+                    query: pollQuery([
+                      { planId: plan.id, cutoff: -7500 },
+                      { planId: newPlan.id, cutoff: -7500 },
+                    ]).query,
+                    variables: (variables: Record<string, unknown>) =>
+                      variables.planId0 === plan.id &&
+                      variables.planId1 === newPlan.id,
+                  },
+                  result: {
+                    data: {
+                      planner: { __typename: "PlannerQuery", p0: [], p1: [] },
+                    },
+                  },
+                },
+              ]
+            : [pollingMock(newPlan.id)]),
+        ],
+      });
+      await user.click(
+        screen.getByRole("button", {
+          name: hasPlans ? "New plan" : "Create a plan",
+        }),
+      );
+      await user.type(
+        screen.getByRole("textbox", { name: "Name" }),
+        newPlan.name,
+      );
+      await user.click(screen.getByRole("button", { name: "Create plan" }));
+      if (refreshFails) {
+        expect(await screen.findByRole("alert")).toHaveTextContent(
+          "Your plan was created, but the planner could not refresh.",
+        );
+        await user.click(screen.getByRole("button", { name: "Refresh plans" }));
+      }
+      expect(
+        await screen.findByRole("button", { name: newPlan.name }),
+      ).toHaveAttribute("aria-pressed", "true");
+      expect(
+        screen.queryByRole("dialog", { name: "New plan" }),
+      ).not.toBeInTheDocument();
+      if (hasPlans)
+        expect(screen.getByRole("button", { name: plan.name })).toHaveAttribute(
+          "aria-pressed",
+          "true",
+        );
+      expect(
+        cache
+          .readQuery({ query: PlannerDocument })
+          ?.planner.plans.map((item) => item.id),
+      ).toEqual(hasPlans ? [plan.id, newPlan.id] : [newPlan.id]);
+      expect(createResult).toHaveBeenCalledOnce();
+    },
+  );
+
   it("should select the first remaining plan after deleting the only selected plan", async () => {
     const user = userEvent.setup();
     const nextPlan = { ...plan, id: "holiday-plan", name: "Thanksgiving" };
@@ -92,11 +297,14 @@ describe("planner management drawer", () => {
         },
       ],
     });
-    expect(screen.getByRole("button", { name: /Plans/ })).toHaveTextContent(
-      plan.name,
+    expect(screen.getByRole("button", { name: plan.name })).toHaveAttribute(
+      "aria-pressed",
+      "true",
     );
-    await user.click(screen.getByRole("button", { name: "Manage plans" }));
-    await user.click(screen.getByRole("button", { name: plan.name }));
+    await user.click(
+      screen.getByRole("button", { name: `Options for ${plan.name}` }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Plan settings" }));
     await user.click(screen.getByRole("button", { name: "Delete plan" }));
     await user.click(
       within(screen.getByRole("alertdialog")).getByRole("button", {
@@ -114,23 +322,26 @@ describe("planner management drawer", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
-    const picker = screen.getByRole("button", { name: /Plans/ });
-    expect(picker).toHaveTextContent(nextPlan.name);
-    expect(picker).not.toHaveTextContent(plan.name);
-    expect(picker).not.toHaveTextContent(lastPlan.name);
+    expect(screen.getByRole("button", { name: nextPlan.name })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(
+      screen.queryByRole("button", { name: plan.name }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: lastPlan.name })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
   });
 
   it("should open management in the shared drawer and close through history", async () => {
     const user = userEvent.setup();
     render(<Planner />, { cache: plannerCache(), mocks: [pollingMock()] });
-    await user.click(screen.getByRole("button", { name: "Manage plans" }));
-    const list = screen.getByRole("dialog", { name: "Manage plans" });
-    expect(list).toHaveClass("sm:max-w-lg");
-    expect(
-      within(list).getByRole("list", { name: "Plans to manage" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
-    await user.click(within(list).getByRole("button", { name: plan.name }));
+    await user.click(
+      screen.getByRole("button", { name: `Options for ${plan.name}` }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Plan settings" }));
     const drawer = screen.getByRole("dialog", { name: `Manage ${plan.name}` });
     expect(drawer).toHaveClass("sm:max-w-lg");
     expect(within(drawer).getByRole("textbox", { name: "Name" })).toHaveValue(
@@ -175,8 +386,10 @@ describe("planner management drawer", () => {
         },
       ],
     });
-    await user.click(screen.getByRole("button", { name: "Manage plans" }));
-    await user.click(screen.getByRole("button", { name: plan.name }));
+    await user.click(
+      screen.getByRole("button", { name: `Options for ${plan.name}` }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Plan settings" }));
     await user.click(screen.getByRole("button", { name: "Delete plan" }));
     await user.click(
       within(screen.getByRole("alertdialog")).getByRole("button", {
@@ -195,5 +408,8 @@ describe("planner management drawer", () => {
     expect(
       screen.queryByRole("button", { name: "Manage plans" }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Create a plan" }),
+    ).toBeInTheDocument();
   });
 });

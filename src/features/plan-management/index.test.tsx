@@ -20,11 +20,7 @@ import {
   type PlanManagementFragment,
   type RenameManagedPlanMutation,
 } from "./__generated__/management.generated";
-import {
-  PlanManagement,
-  PlanManagementButton,
-  PlanManagementList,
-} from "./index";
+import { PlanManagement, PlanManagementList } from "./index";
 
 const plan: PlanManagementFragment = {
   __typename: "Plan",
@@ -220,15 +216,6 @@ describe("plan management", () => {
     },
   );
 
-  it("should open management directly without a menu", async () => {
-    const user = userEvent.setup();
-    const onPress = vi.fn();
-    render(<PlanManagementButton plans={[plan]} onPress={onPress} />);
-    await user.click(screen.getByRole("button", { name: "Manage plans" }));
-    expect(onPress).toHaveBeenCalledOnce();
-    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
-  });
-
   it("should list all plans but prevent editing read-only plans", () => {
     const viewerPlan = {
       ...shared(AccessLevel.VIEW),
@@ -369,18 +356,6 @@ describe("plan management", () => {
     expect(screen.getByText("Choose a plan to edit")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: plan.name }));
     expect(onSelect).toHaveBeenCalledWith(plan.id);
-  });
-
-  it("should not offer management to a viewer", () => {
-    render(
-      <PlanManagementButton
-        plans={[shared(AccessLevel.VIEW)]}
-        onPress={vi.fn()}
-      />,
-    );
-    expect(
-      screen.queryByRole("button", { name: "Manage plans" }),
-    ).not.toBeInTheDocument();
   });
 
   it("should render the current name, color picker, and delete action", () => {

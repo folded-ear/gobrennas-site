@@ -14,12 +14,23 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 - A user can choose which of their accessible plans appear in the planner.
 - The planner displays items from all selected plans in one view.
-- When the user has access to only one plan, the planner does not show a plan
-  picker.
-- The picker lists the user's own plans apart from plans shared with them,
-  and shows each selected plan as its colored avatar.
+- Beneath the Planner title, a single-row plan bar shows named, colored plan
+  toggles, including when only one plan is accessible. A pronounced outline marks
+  selected plans without changing their width.
+- Plan names have a CSS-controlled maximum width; short names use only the space
+  they need. Long names use an
+  ellipsis; their full name stays available on hover and in accessible labels.
+- The bar separates Your plans from Shared with you. Shared plans show their
+  owner's avatar instead of printing their name, while retaining the owner's name
+  in accessible labels. Within each group, plans keep the API's
+  order; selecting a plan does not move its toggle.
+- Plans that do not fit appear under More plans, whose label reports how many
+  overflow plans are selected. Overflow uses the same toggles and grouping at
+  every screen size, rather than a separate mobile interface.
 - The selected plans are remembered per device, not per page visit. At least
   one plan is always selected; with nothing remembered, the first plan is.
+- The last selected plan's toggle is disabled, with a hint explaining that at
+  least one plan must stay selected. Its settings menu remains available.
 - A plan can be marked complete.
 - A plan item can be assigned to a user.
 - A plan item can be given a date.
@@ -30,11 +41,24 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Managing plans
 
-- Manage plans is shown only when at least one accessible plan can be changed.
-- Manage plans in the planner header opens a side drawer listing all accessible
-  plans, including when only one plan is accessible. Read-only plans cannot be
-  edited. Selecting an editable plan opens its settings; Back to all plans returns
-  to the list. Closing the drawer or using browser Back returns to the planner.
+- A Manage plans settings button beside New plan opens the all-plans drawer. It
+  stays outside overflow and is hidden when no accessible plan can be edited.
+- New plan stays outside overflow in the plan bar, becoming a labeled + button on
+  small screens. It asks for a nonblank name. Successful creation closes the form
+  and selects the empty plan alongside existing selections. Failed creation keeps
+  the name for another try. Color can be changed later in settings.
+- After creation, the planner refreshes its plan list before selecting the new
+  plan. If refreshing fails, the dialog explains that creation succeeded and
+  offers Refresh plans. Retrying refresh does not create another plan; the saved
+  name is no longer editable in this dialog.
+- With no accessible plans, the planner shows a welcome panel and a prominent
+  Create a plan button instead of an empty timeline. Users with only shared plans
+  see those plans normally and can still create their own.
+- Each editable plan has a separate options menu beside its toggle, including in
+  overflow. Plan settings opens its existing side drawer without changing selection.
+  Read-only plans have no settings menu. Back to all plans shows the accessible
+  plan list, with read-only plans disabled. Closing the drawer or using browser
+  Back returns to the planner.
 - The plan list and settings use a compact drawer on larger screens and fill
   the screen width on mobile.
 - Users with permission to change a plan edit its name and color together, using

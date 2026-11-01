@@ -5,7 +5,9 @@ import { useFragment } from "@apollo/client/react";
 import { PlanManagementFragmentDoc } from "./__generated__/management.generated";
 import { PlanSettingsForm } from "./settings-form";
 
-export { PlanManagementButton, PlanManagementList } from "./plan-list";
+export { CreatePlanDialog, PlannerWelcome } from "./create-plan";
+export { PlannerPlanBar } from "./plan-bar";
+export { PlanManagementList } from "./plan-list";
 
 export function PlanManagement({
   plan: reference,

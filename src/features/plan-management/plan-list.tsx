@@ -1,29 +1,9 @@
 import PlanAvatar from "@/components/plan-avatar";
 import { canChangePlan, orderPlans, type PlanAccess } from "@/lib/plans";
 import { Button } from "@heroui/react";
-import { ChevronRight, Settings } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 type ManagedPlan = PlanAccess & { id: string; name: string; color: string };
-
-export function PlanManagementButton({
-  plans,
-  onPress,
-}: {
-  plans: readonly ManagedPlan[];
-  onPress: () => void;
-}) {
-  if (!plans.some(canChangePlan)) return null;
-  return (
-    <Button
-      isIconOnly
-      variant="ghost"
-      aria-label="Manage plans"
-      onPress={onPress}
-    >
-      <Settings aria-hidden />
-    </Button>
-  );
-}
 
 export function PlanManagementList({
   plans,

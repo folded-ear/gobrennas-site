@@ -26,11 +26,12 @@ import {
 import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
 import { PlanSectionHeader } from "@/features/plan-item/section-header";
 import {
+  CreatePlanDialog,
   PlanManagement,
-  PlanManagementButton,
   PlanManagementList,
+  PlannerPlanBar,
+  PlannerWelcome,
 } from "@/features/plan-management";
-import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { buildPlanContext } from "@/features/plan-timeline/context";
 import {
@@ -41,12 +42,13 @@ import {
 } from "@/features/plan-timeline/model";
 import { sectionLabel } from "@/features/plan-timeline/section-label";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
+import { OtherUserAvatar } from "@/features/user-avatar";
 import { useHistoryState } from "@/hooks/use-history-state";
 import { displayName } from "@/lib/plan-item-name";
 import { canAdministerPlan, canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
-import { useSuspenseQuery } from "@apollo/client/react";
+import { useApolloClient, useSuspenseQuery } from "@apollo/client/react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -85,6 +87,7 @@ function isManaging(open: PlannerOpen | undefined): boolean {
 }
 
 export function Planner() {
+  const client = useApolloClient();
   const { data } = useSuspenseQuery(PlannerDocument);
   const open = useHistoryState<PlannerOpen>(OPEN_KEY);
   const router = useRouter();
@@ -106,6 +109,7 @@ export function Planner() {
       return next;
     });
   const [bucketAction, setBucketAction] = useState<BucketAction | null>(null);
+  const [creatingPlan, setCreatingPlan] = useState(false);
 
   const plans = data.planner.plans;
   const directory = useMemo(() => buildPlanDirectory(plans), [plans]);
@@ -200,6 +204,23 @@ export function Planner() {
 
   return (
     <PlanDirectoryProvider directory={directory}>
+      {creatingPlan ? (
+        <CreatePlanDialog
+          refreshPlans={async () => {
+            // A failed refresh belongs to the creation dialog, not the screen's
+            // suspense query and its error boundary.
+            await client.query({
+              query: PlannerDocument,
+              fetchPolicy: "network-only",
+            });
+          }}
+          onClose={() => setCreatingPlan(false)}
+          onCreated={(id) => {
+            setPlanIds([...planIds, id]);
+            setCreatingPlan(false);
+          }}
+        />
+      ) : null}
       {bucketAction ? (
         <BucketDialog
           action={bucketAction}
@@ -208,21 +229,20 @@ export function Planner() {
         />
       ) : null}
       <div className="flex h-[calc(100dvh-var(--section-nav-clearance))] flex-col overflow-hidden">
-        <SectionHeader title="Planner">
-          <div className="flex min-w-0 items-center gap-sm">
-            <PlanPicker
-              label="Plans"
-              plans={plans}
-              selectionMode="multiple"
-              selectedIds={planIds}
-              onChange={setPlanIds}
-            />
-            <PlanManagementButton
-              plans={plans}
-              onPress={() => open.push({ manage: true })}
-            />
-          </div>
-        </SectionHeader>
+        <SectionHeader title="Planner" />
+        <PlannerPlanBar
+          renderOwnerAvatar={(plan) => <OtherUserAvatar user={plan.ownedBy} />}
+          plans={plans}
+          selectedIds={planIds}
+          onChange={setPlanIds}
+          onManage={(id) => open.push({ plan: id })}
+          onCreate={() => setCreatingPlan(true)}
+          onManageAll={
+            plans.some(canChangePlan)
+              ? () => open.push({ manage: true })
+              : undefined
+          }
+        />
         <EditSurfaceProvider
           state={edit}
           order={editOrder}
@@ -337,7 +357,7 @@ export function Planner() {
               dnd={dnd}
             />
           ) : (
-            <p className="p-md">There are no plans to show.</p>
+            <PlannerWelcome onCreate={() => setCreatingPlan(true)} />
           )}
         </div>
       </div>
