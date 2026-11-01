@@ -12,6 +12,61 @@ fragment planManagement on Plan {
   }
 }
 
+fragment plannerPlanBar on Plan {
+  id
+  name
+  color
+  mine
+  ownedBy {
+    id
+    name
+  }
+  grants {
+    level
+    user {
+      id
+      me
+    }
+  }
+}
+
+# Read and update membership without refetching the planner after creation.
+query ManagedPlanMembership {
+  planner {
+    plans {
+      id
+    }
+  }
+}
+
+mutation CreateManagedPlan($name: String!) {
+  planner {
+    createPlan(name: $name) {
+      id
+      ...planManagement
+      ...plannerPlanBar
+      notes
+      ownedBy {
+        id
+        name
+        imageUrl
+        email
+      }
+      buckets {
+        id
+        name
+        date
+      }
+      children {
+        id
+      }
+      descendants {
+        id
+      }
+    }
+  }
+}
+
 mutation RenameManagedPlan($id: ID!, $name: String!) {
   planner {
     rename(id: $id, name: $name) {

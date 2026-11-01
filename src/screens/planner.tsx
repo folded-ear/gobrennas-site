@@ -26,11 +26,12 @@ import {
 import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
 import { PlanSectionHeader } from "@/features/plan-item/section-header";
 import {
+  CreatePlanDialog,
   PlanManagement,
-  PlanManagementButton,
   PlanManagementList,
+  PlannerPlanBar,
+  PlannerWelcome,
 } from "@/features/plan-management";
-import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { buildPlanContext } from "@/features/plan-timeline/context";
 import {
@@ -106,6 +107,7 @@ export function Planner() {
       return next;
     });
   const [bucketAction, setBucketAction] = useState<BucketAction | null>(null);
+  const [creatingPlan, setCreatingPlan] = useState(false);
 
   const plans = data.planner.plans;
   const directory = useMemo(() => buildPlanDirectory(plans), [plans]);
@@ -200,6 +202,15 @@ export function Planner() {
 
   return (
     <PlanDirectoryProvider directory={directory}>
+      {creatingPlan ? (
+        <CreatePlanDialog
+          onClose={() => setCreatingPlan(false)}
+          onCreated={(id) => {
+            setPlanIds([...planIds, id]);
+            setCreatingPlan(false);
+          }}
+        />
+      ) : null}
       {bucketAction ? (
         <BucketDialog
           action={bucketAction}
@@ -208,21 +219,14 @@ export function Planner() {
         />
       ) : null}
       <div className="flex h-[calc(100dvh-var(--section-nav-clearance))] flex-col overflow-hidden">
-        <SectionHeader title="Planner">
-          <div className="flex min-w-0 items-center gap-sm">
-            <PlanPicker
-              label="Plans"
-              plans={plans}
-              selectionMode="multiple"
-              selectedIds={planIds}
-              onChange={setPlanIds}
-            />
-            <PlanManagementButton
-              plans={plans}
-              onPress={() => open.push({ manage: true })}
-            />
-          </div>
-        </SectionHeader>
+        <SectionHeader title="Planner" />
+        <PlannerPlanBar
+          plans={plans}
+          selectedIds={planIds}
+          onChange={setPlanIds}
+          onManage={(id) => open.push({ plan: id })}
+          onCreate={() => setCreatingPlan(true)}
+        />
         <EditSurfaceProvider
           state={edit}
           order={editOrder}
@@ -337,7 +341,7 @@ export function Planner() {
               dnd={dnd}
             />
           ) : (
-            <p className="p-md">There are no plans to show.</p>
+            <PlannerWelcome onCreate={() => setCreatingPlan(true)} />
           )}
         </div>
       </div>
