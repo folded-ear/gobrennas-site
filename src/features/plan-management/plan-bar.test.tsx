@@ -81,6 +81,17 @@ function mount(plans = [shared, mine, second]) {
 afterEach(() => vi.restoreAllMocks());
 
 describe("PlannerPlanBar", () => {
+  it.each(["Thanksgiving", "Our Weekend at the Coast"])(
+    "should constrain %s with CSS while keeping its full name available",
+    (name) => {
+      mount([{ ...mine, name }]);
+      const toggle = screen.getByRole("button", { name });
+      const label = within(toggle).getByText(name);
+      expect(label).toHaveAttribute("title", name);
+      expect(label).toHaveClass("truncate", "min-w-[12ch]", "max-w-[16ch]");
+    },
+  );
+
   it("should show owned plans first, identify shared owners, and keep selection stable", async () => {
     const user = userEvent.setup();
     mount();

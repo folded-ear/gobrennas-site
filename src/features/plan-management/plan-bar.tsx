@@ -46,7 +46,12 @@ function PlanControl({
         <span aria-hidden>
           <PlanDot plan={plan} />
         </span>
-        <span className="max-w-40 truncate">{plan.name}</span>
+        <span
+          className="min-w-[12ch] max-w-[16ch] truncate text-left"
+          title={plan.name}
+        >
+          {plan.name}
+        </span>
         {ownerAvatar}
         <Check
           aria-hidden

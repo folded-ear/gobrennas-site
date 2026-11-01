@@ -16,6 +16,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - The planner displays items from all selected plans in one view.
 - Beneath the Planner title, a single-row plan bar shows named, colored plan
   toggles, including when only one plan is accessible. A check marks selected plans.
+- Plan names have a CSS-controlled minimum and maximum width. Long names use an
+  ellipsis; their full name stays available on hover and in accessible labels.
 - The bar separates Your plans from Shared with you. Shared plans show their
   owner's avatar instead of printing their name, while retaining the owner's name
   in accessible labels. Within each group, plans keep the API's
