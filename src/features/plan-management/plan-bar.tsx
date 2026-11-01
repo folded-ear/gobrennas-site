@@ -5,7 +5,7 @@ import { canChangePlan, orderPlans } from "@/lib/plans";
 import { useFragment } from "@apollo/client/react";
 import { Button, Dropdown, Label, Popover } from "@heroui/react";
 import { Check, Ellipsis, Plus } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   PlannerPlanBarFragmentDoc,
   type PlannerPlanBarFragment,
@@ -26,11 +26,13 @@ function PlanControl({
   selected,
   onToggle,
   onManage,
+  ownerAvatar,
 }: {
   plan: Plan;
   selected: boolean;
   onToggle: () => void;
   onManage: () => void;
+  ownerAvatar: ReactNode;
 }) {
   return (
     <div className="flex shrink-0 items-center rounded-lg border border-border">
@@ -44,7 +46,8 @@ function PlanControl({
         <span aria-hidden>
           <PlanDot plan={plan} />
         </span>
-        <span className="max-w-40 truncate">{planLabel(plan)}</span>
+        <span className="max-w-40 truncate">{plan.name}</span>
+        {ownerAvatar}
         <Check
           aria-hidden
           className={selected ? "size-4" : "invisible size-4"}
@@ -83,6 +86,7 @@ function PlanBarEntry({
   onManage,
   heading,
   reserveHeading,
+  renderOwnerAvatar,
 }: {
   plan: PlanReference;
   selected: boolean;
@@ -90,6 +94,7 @@ function PlanBarEntry({
   onManage: () => void;
   heading?: string;
   reserveHeading: boolean;
+  renderOwnerAvatar: (planId: string) => ReactNode;
 }) {
   const { data: plan, complete } = useFragment({
     fragment: PlannerPlanBarFragmentDoc,
@@ -108,6 +113,9 @@ function PlanBarEntry({
         selected={selected}
         onToggle={onToggle}
         onManage={onManage}
+        ownerAvatar={
+          !plan.mine && plan.ownedBy ? renderOwnerAvatar(plan.id) : null
+        }
       />
     </div>
   );
@@ -121,12 +129,14 @@ export function PlannerPlanBar({
   onChange,
   onManage,
   onCreate,
+  renderOwnerAvatar,
 }: {
   plans: readonly BarPlan[];
   selectedIds: readonly string[];
   onChange: (ids: string[]) => void;
   onManage: (id: string) => void;
   onCreate: () => void;
+  renderOwnerAvatar: (planId: string) => ReactNode;
 }) {
   const ordered = orderPlans(plans);
   const available = useRef<HTMLDivElement>(null);
@@ -178,6 +188,7 @@ export function PlannerPlanBar({
       plan={plan}
       selected={selectedIds.includes(plan.id)}
       reserveHeading={withHeading}
+      renderOwnerAvatar={renderOwnerAvatar}
       onToggle={() => toggle(plan.id)}
       onManage={() => {
         setOverflowOpen(false);

@@ -61,6 +61,7 @@ function Harness({
       onChange={setSelected}
       onManage={onManage}
       onCreate={onCreate}
+      renderOwnerAvatar={() => <span title="Brenna">B</span>}
     />
   );
 }
@@ -90,6 +91,11 @@ describe("PlannerPlanBar", () => {
     ]);
     expect(screen.getAllByText("Your plans")[0]).toBeVisible();
     expect(screen.getAllByText("Shared with you")[0]).toBeVisible();
+    const sharedToggle = screen.getByRole("button", {
+      name: "Family dinners · Brenna",
+    });
+    expect(within(sharedToggle).getByTitle("Brenna")).toBeVisible();
+    expect(sharedToggle).not.toHaveTextContent("Brenna");
     const first = screen.getByRole("button", { name: mine.name });
     await user.click(first);
     expect(first).toHaveAttribute("aria-pressed", "true");
@@ -157,6 +163,11 @@ describe("PlannerPlanBar", () => {
         screen.getByRole("button", { name: "More plans · 0 selected" }),
       );
       const overflow = screen.getByRole("dialog", { name: "More plans" });
+      const sharedToggle = within(overflow).getByRole("button", {
+        name: "Family dinners · Brenna",
+      });
+      expect(within(sharedToggle).getByTitle("Brenna")).toBeVisible();
+      expect(sharedToggle).not.toHaveTextContent("Brenna");
       expect(
         within(overflow).getByRole("region", { name: "Your plans" }),
       ).toBeVisible();

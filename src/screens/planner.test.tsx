@@ -75,6 +75,37 @@ function pollingMock(planId = plan.id) {
 }
 
 describe("planner management drawer", () => {
+  it("should identify a shared plan with its owner's avatar instead of printed name", () => {
+    const sharedPlan: Unmasked<PlannerQuery>["planner"]["plans"][number] = {
+      ...plan,
+      id: "family-plan",
+      name: "Family dinners",
+      mine: false,
+      ownedBy: {
+        __typename: "User",
+        id: "brenna",
+        name: "Brenna",
+        email: "brenna@example.com",
+        imageUrl: null,
+      },
+    };
+    render(<Planner />, {
+      cache: plannerCache([plan, sharedPlan]),
+      mocks: [pollingMock()],
+    });
+    const toggle = screen.getByRole("button", {
+      name: "Family dinners · Brenna",
+    });
+    expect(within(toggle).getByTitle("Brenna")).toHaveTextContent("B");
+    expect(toggle).toHaveTextContent("Family dinners");
+    expect(toggle).not.toHaveTextContent("Brenna");
+    expect(
+      within(screen.getByRole("button", { name: plan.name })).queryByTitle(
+        "Brenna",
+      ),
+    ).not.toBeInTheDocument();
+  });
+
   it.each([false, true])(
     "should create and select a plan while preserving existing selections (has plans: %s)",
     async (hasPlans) => {

@@ -42,6 +42,7 @@ import {
 } from "@/features/plan-timeline/model";
 import { sectionLabel } from "@/features/plan-timeline/section-label";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
+import { OtherUserAvatar } from "@/features/user-avatar";
 import { useHistoryState } from "@/hooks/use-history-state";
 import { displayName } from "@/lib/plan-item-name";
 import { canAdministerPlan, canChangePlan, orderPlans } from "@/lib/plans";
@@ -221,6 +222,11 @@ export function Planner() {
       <div className="flex h-[calc(100dvh-var(--section-nav-clearance))] flex-col overflow-hidden">
         <SectionHeader title="Planner" />
         <PlannerPlanBar
+          renderOwnerAvatar={(id) => (
+            <OtherUserAvatar
+              user={plans.find((plan) => plan.id === id)?.ownedBy ?? null}
+            />
+          )}
           plans={plans}
           selectedIds={planIds}
           onChange={setPlanIds}
