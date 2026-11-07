@@ -12,6 +12,7 @@ import type { MockLink } from "@apollo/client/testing";
 import { describe, expect, it, vi } from "vitest";
 import {
   PlanManagementFragmentDoc,
+  RenameManagedPlanDocument,
   RevokePlanGrantDocument,
   SetPlanGrantDocument,
   type PlanManagementFragment,
@@ -445,5 +446,40 @@ describe("plan sharing", () => {
     expect(
       within(sharing()).queryByRole("combobox", { name: "Add person" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("stays usable while the plan's details save", async () => {
+    const user = userEvent.setup();
+    const plan = myPlan();
+    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+      cache: seed(plan),
+      mocks: [
+        {
+          request: {
+            query: RenameManagedPlanDocument,
+            variables: { id: plan.id, name: "Family dinners" },
+          },
+          // Never answers, so the save stays under way.
+          delay: Infinity,
+          result: { data: null },
+        },
+      ],
+    });
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await user.clear(name);
+    await user.type(name, "Family dinners");
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(screen.getByRole("form", { name: "Plan details" })).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+
+    expect(
+      within(sharing()).getByRole("button", { name: `Remove ${BRENNA.name}` }),
+    ).toBeEnabled();
+    expect(levelOf(BRENNA.name)).toBeEnabled();
+    expect(
+      within(sharing()).getByRole("combobox", { name: "Add person" }),
+    ).toBeEnabled();
   });
 });

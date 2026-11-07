@@ -163,7 +163,7 @@ export function PlanSettingsForm({
       <PlanGrants
         plan={plan}
         canAdminister={canAdministerPlan(plan)}
-        isDisabled={pending || deleting}
+        isDisabled={deleting}
         onLeave={onDeleted}
       />
       <DeletePlanButton
