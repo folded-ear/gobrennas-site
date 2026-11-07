@@ -89,7 +89,7 @@ describe("plan management", () => {
     "should clear the saved status when the %s field changes",
     async (field) => {
       const user = userEvent.setup();
-      render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+      render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
         cache: seed(),
       });
 
@@ -122,7 +122,7 @@ describe("plan management", () => {
         setColor: { __typename: "Plan", id: plan.id, color: "#783232" },
       },
     };
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache,
       mocks: [
         {
@@ -179,7 +179,7 @@ describe("plan management", () => {
           setColor: { __typename: "Plan", id: plan.id, color: "#783232" },
         },
       };
-      render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+      render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
         cache,
         mocks:
           edited === "name"
@@ -277,7 +277,7 @@ describe("plan management", () => {
         query: ColorManagedPlanDocument,
         variables: { id: plan.id, color: "#783232" },
       };
-      render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+      render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
         cache,
         mocks: [
           {
@@ -359,7 +359,7 @@ describe("plan management", () => {
 
   it("should disable both fields and deletion while saving color", async () => {
     const user = userEvent.setup();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(),
       mocks: [
         {
@@ -389,7 +389,7 @@ describe("plan management", () => {
   });
 
   it("should render the current name, color picker, and delete action", () => {
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(),
     });
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
@@ -405,7 +405,7 @@ describe("plan management", () => {
 
   it("should allow change access to rename and recolor but not delete", () => {
     const value = shared(AccessLevel.CHANGE);
-    render(<PlanManagement plan={value} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={value} onLeave={vi.fn()} />, {
       cache: seed(value),
     });
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
@@ -421,7 +421,7 @@ describe("plan management", () => {
 
   it("should offer deletion to a shared administrator", () => {
     const value = shared(AccessLevel.ADMINISTER);
-    render(<PlanManagement plan={value} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={value} onLeave={vi.fn()} />, {
       cache: seed(value),
     });
     expect(
@@ -431,7 +431,7 @@ describe("plan management", () => {
 
   it("should reject a blank name and focus the field", async () => {
     const user = userEvent.setup();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(),
     });
     const name = screen.getByRole("textbox", { name: "Name" });
@@ -451,7 +451,7 @@ describe("plan management", () => {
         rename: { __typename: "Plan", id: plan.id, name: "Family dinners" },
       },
     };
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache,
       mocks: [
         {
@@ -494,7 +494,7 @@ describe("plan management", () => {
       query: RenameManagedPlanDocument,
       variables: { id: plan.id, name: "Family dinners" },
     };
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(),
       mocks: [
         { request, error: new Error("Offline") },
@@ -519,7 +519,7 @@ describe("plan management", () => {
 
   it("should disable management controls while saving the name", async () => {
     const user = userEvent.setup();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(),
       mocks: [
         {
@@ -547,14 +547,14 @@ describe("plan management", () => {
   it("should ask before deleting and leave the plan untouched on cancel", async () => {
     const user = userEvent.setup();
     const cache = seed();
-    const onDeleted = vi.fn();
-    render(<PlanManagement plan={plan} onDeleted={onDeleted} />, { cache });
+    const onLeave = vi.fn();
+    render(<PlanManagement plan={plan} onLeave={onLeave} />, { cache });
     await user.click(screen.getByRole("button", { name: "Delete plan" }));
     expect(screen.getByRole("alertdialog")).toHaveTextContent(
       "permanently deletes",
     );
     await user.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(onDeleted).not.toHaveBeenCalled();
+    expect(onLeave).not.toHaveBeenCalled();
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
@@ -567,7 +567,7 @@ describe("plan management", () => {
   it("should remove a deleted plan from cached lists without affecting other plans", async () => {
     const user = userEvent.setup();
     const cache = seed();
-    const onDeleted = vi.fn();
+    const onLeave = vi.fn();
     const query = gql`
       query ManagementPlans {
         planner {
@@ -626,7 +626,7 @@ describe("plan management", () => {
         deletePlan: { __typename: "Deletion", id: plan.id },
       },
     };
-    render(<PlanManagement plan={plan} onDeleted={onDeleted} />, {
+    render(<PlanManagement plan={plan} onLeave={onLeave} />, {
       cache,
       mocks: [
         {
@@ -644,7 +644,7 @@ describe("plan management", () => {
         name: "Delete plan",
       }),
     );
-    await waitFor(() => expect(onDeleted).toHaveBeenCalledOnce());
+    await waitFor(() => expect(onLeave).toHaveBeenCalledOnce());
     expect(cache.readQuery({ query })).toEqual({
       planner: {
         __typename: "PlannerQuery",
@@ -666,8 +666,8 @@ describe("plan management", () => {
   it("should keep the plan and confirmation available after deletion fails", async () => {
     const user = userEvent.setup();
     const cache = seed();
-    const onDeleted = vi.fn();
-    render(<PlanManagement plan={plan} onDeleted={onDeleted} />, {
+    const onLeave = vi.fn();
+    render(<PlanManagement plan={plan} onLeave={onLeave} />, {
       cache,
       mocks: [
         {
@@ -688,7 +688,7 @@ describe("plan management", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Plan could not be deleted",
     );
-    expect(onDeleted).not.toHaveBeenCalled();
+    expect(onLeave).not.toHaveBeenCalled();
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
@@ -708,7 +708,7 @@ describe("plan management", () => {
         setColor: { __typename: "Plan", id: plan.id, color: "#783232" },
       },
     };
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache,
       mocks: [
         {

@@ -190,7 +190,7 @@ async function chooseLevel(
 
 describe("plan sharing", () => {
   it("lists the owner, then each person with access and their level", () => {
-    render(<PlanManagement plan={myPlan()} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={myPlan()} onLeave={vi.fn()} />, {
       cache: seed(myPlan()),
     });
 
@@ -199,7 +199,7 @@ describe("plan sharing", () => {
   });
 
   it("says when the plan isn't shared with anyone", () => {
-    render(<PlanManagement plan={myPlan([])} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={myPlan([])} onLeave={vi.fn()} />, {
       cache: seed(myPlan([])),
     });
 
@@ -211,7 +211,7 @@ describe("plan sharing", () => {
   it("saves another person's new level without asking", async () => {
     const user = userEvent.setup();
     const plan = myPlan();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(plan),
       mocks: [
         setGrant(plan, BRENNA, AccessLevel.VIEW, [
@@ -229,7 +229,7 @@ describe("plan sharing", () => {
   it("keeps the saved level and says so when a level change fails", async () => {
     const user = userEvent.setup();
     const plan = myPlan();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(plan),
       mocks: [
         {
@@ -251,8 +251,8 @@ describe("plan sharing", () => {
   it("asks before changing my own level, and sends nothing on cancel", async () => {
     const user = userEvent.setup();
     const plan = brennasPlan(AccessLevel.ADMINISTER);
-    const onDeleted = vi.fn();
-    render(<PlanManagement plan={plan} onDeleted={onDeleted} />, {
+    const onLeave = vi.fn();
+    render(<PlanManagement plan={plan} onLeave={onLeave} />, {
       cache: seed(plan),
     });
 
@@ -264,15 +264,15 @@ describe("plan sharing", () => {
       expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument(),
     );
     expect(levelOf(BARNEY.name)).toHaveTextContent("Administer");
-    expect(onDeleted).not.toHaveBeenCalled();
+    expect(onLeave).not.toHaveBeenCalled();
   });
 
   it("returns to the plan list after I confirm my own new level", async () => {
     const user = userEvent.setup();
     const plan = brennasPlan(AccessLevel.ADMINISTER);
     const cache = seed(plan);
-    const onDeleted = vi.fn();
-    render(<PlanManagement plan={plan} onDeleted={onDeleted} />, {
+    const onLeave = vi.fn();
+    render(<PlanManagement plan={plan} onLeave={onLeave} />, {
       cache,
       mocks: [
         setGrant(plan, BARNEY, AccessLevel.CHANGE, [
@@ -288,7 +288,7 @@ describe("plan sharing", () => {
       within(dialog).getByRole("button", { name: "Change my access" }),
     );
 
-    await waitFor(() => expect(onDeleted).toHaveBeenCalled());
+    await waitFor(() => expect(onLeave).toHaveBeenCalled());
     expect(cache.identify(plan)).toBeDefined();
     expect(
       cache.readFragment({
@@ -302,7 +302,7 @@ describe("plan sharing", () => {
   it("asks before removing someone, then removes them", async () => {
     const user = userEvent.setup();
     const plan = myPlan();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(plan),
       mocks: [revokeGrant(plan, BRENNA, [])],
     });
@@ -327,7 +327,7 @@ describe("plan sharing", () => {
   it("keeps the confirmation open when removing someone fails", async () => {
     const user = userEvent.setup();
     const plan = myPlan();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(plan),
       mocks: [
         {
@@ -354,8 +354,8 @@ describe("plan sharing", () => {
     const user = userEvent.setup();
     const plan = brennasPlan(AccessLevel.ADMINISTER);
     const cache = seed(plan);
-    const onDeleted = vi.fn();
-    render(<PlanManagement plan={plan} onDeleted={onDeleted} />, {
+    const onLeave = vi.fn();
+    render(<PlanManagement plan={plan} onLeave={onLeave} />, {
       cache,
       mocks: [revokeGrant(plan, BARNEY, [grant(PAT, AccessLevel.VIEW)])],
     });
@@ -368,7 +368,7 @@ describe("plan sharing", () => {
     const dialog = await screen.findByRole("alertdialog");
     await user.click(within(dialog).getByRole("button", { name: "Remove" }));
 
-    await waitFor(() => expect(onDeleted).toHaveBeenCalled());
+    await waitFor(() => expect(onLeave).toHaveBeenCalled());
     expect(cache.extract()[cache.identify(plan)!]).toBeUndefined();
   });
 
@@ -376,7 +376,7 @@ describe("plan sharing", () => {
     const user = userEvent.setup();
     const plan = brennasPlan(AccessLevel.ADMINISTER);
     const CASEY = person("casey", "Casey Palmer");
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(plan),
       mocks: [searchFriends("Pa", [CASEY, PAT, BRENNA])],
     });
@@ -399,7 +399,7 @@ describe("plan sharing", () => {
   it("adds the chosen friend at Modify unless another level is chosen", async () => {
     const user = userEvent.setup();
     const plan = myPlan([]);
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(plan),
       mocks: [
         searchFriends("Pa", [PAT]),
@@ -433,7 +433,7 @@ describe("plan sharing", () => {
   it("forgets the chosen friend once their name is edited away", async () => {
     const user = userEvent.setup();
     const plan = myPlan([]);
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(plan),
       mocks: [searchFriends("Pa", [PAT])],
     });
@@ -452,7 +452,7 @@ describe("plan sharing", () => {
 
   it("shows sharing read-only to people who can modify but not administer", () => {
     const plan = brennasPlan(AccessLevel.CHANGE);
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(plan),
     });
 
@@ -471,7 +471,7 @@ describe("plan sharing", () => {
   it("stays usable while the plan's details save", async () => {
     const user = userEvent.setup();
     const plan = myPlan();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(plan),
       mocks: [
         {

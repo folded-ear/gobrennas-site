@@ -40,11 +40,12 @@ export type PlanDetailsValues = z.input<typeof planDetailsSchema>;
 
 export function PlanSettingsForm({
   plan,
-  onDeleted,
+  onLeave,
   onBack,
 }: {
   plan: PlanManagementFragment;
-  onDeleted: () => void;
+  /** Called once the viewer can no longer stay here: deleted, or left. */
+  onLeave: () => void;
   onBack?: () => void;
 }) {
   const [rename] = useMutation(RenameManagedPlanDocument);
@@ -164,14 +165,14 @@ export function PlanSettingsForm({
         plan={plan}
         canAdminister={canAdministerPlan(plan)}
         isDisabled={deleting}
-        onLeave={onDeleted}
+        onLeave={onLeave}
       />
       <DeletePlanButton
         plan={plan}
         isDisabled={pending}
         isOpen={deleting}
         onOpenChange={setDeleting}
-        onDeleted={onDeleted}
+        onDeleted={onLeave}
       />
     </div>
   );
