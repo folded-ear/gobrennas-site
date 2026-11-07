@@ -46,6 +46,7 @@ Delivery: Built
 - Each Library card has a button named for the active plan. It adds one batch
   directly to that plan without a dialog, one add at a time, with a
   toast confirming the destination on success, and a toast reporting failure.
+  Scaling remains available in recipe detail and the planner.
   Long plan names are truncated. When the active plan is view only, the button
   is disabled and explains "This plan is view only" on hover or focus.
 - The Library header's plan picker lists view-only plans, dimmed and marked

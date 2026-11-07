@@ -5,6 +5,7 @@ import {
   PlanOption,
   VIEW_ONLY_HINT,
 } from "@/components/plan-option";
+import { RecipeScale } from "@/components/recipe-scale";
 import { usePreference } from "@/hooks/use-preference";
 import { resolveSelection } from "@/lib/plan-selection";
 import { canChangePlan } from "@/lib/plans";
@@ -21,7 +22,7 @@ import {
 } from "@heroui/react";
 import clsx from "clsx";
 import { ChevronDown } from "lucide-react";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { SendToPlanFragmentDoc } from "./__generated__/sendToPlan.generated";
 import { useSendRecipeToPlan } from "./use-send-recipe-to-plan";
 
@@ -48,6 +49,7 @@ export function SendToPlan({
     from: "ROOT_QUERY",
   });
   const { send, sending } = useSendRecipeToPlan();
+  const [scale, setScale] = useState(1);
 
   if (!complete) return null;
 
@@ -64,8 +66,9 @@ export function SendToPlan({
       // HeroUI drops pointer events when aria-disabled; hover must reach the tooltip.
       className={clsx(viewOnly && "pointer-events-auto", className)}
       isPending={sending}
+      isDisabled={sending || rest.isDisabled}
       onPress={() => {
-        if (!viewOnly) void send(recipeId, plan);
+        if (!viewOnly) void send(recipeId, plan, choosable ? scale : 1);
       }}
     >
       {({ isPending }) => (
@@ -90,51 +93,54 @@ export function SendToPlan({
   if (!choosable) return hinted;
 
   return (
-    // HeroUI's ButtonGroup marks only direct children, and mine are wrapped.
-    <div
-      role="group"
-      aria-label="Send to a plan"
-      className={buttonGroupVariants({ orientation: "horizontal" }).base()}
-    >
-      {hinted}
-      <Dropdown>
-        <Button
-          isIconOnly
-          variant={rest.variant}
-          size={rest.size}
-          aria-label="Choose a plan"
-        >
-          <ChevronDown size={16} aria-hidden />
-        </Button>
-        <Dropdown.Popover>
-          <Dropdown.Menu>
-            {groupPlans(plans).map((group, i) => (
-              <Fragment key={group.title}>
-                {i > 0 ? <Separator /> : null}
-                <Dropdown.Section>
-                  <Header>{group.title}</Header>
-                  {group.plans.map((it) => (
-                    <Dropdown.Item
-                      key={it.id}
-                      id={it.id}
-                      textValue={it.name}
-                      aria-label={it.name}
-                      isDisabled={!canChangePlan(it)}
-                      onAction={() => {
-                        void send(recipeId, it);
-                      }}
-                    >
-                      {({ isDisabled }) => (
-                        <PlanOption plan={it} disabled={isDisabled} />
-                      )}
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Section>
-              </Fragment>
-            ))}
-          </Dropdown.Menu>
-        </Dropdown.Popover>
-      </Dropdown>
+    <div className="flex flex-wrap items-center gap-sm">
+      <RecipeScale value={scale} onChange={setScale} isDisabled={sending} />
+      {/* HeroUI's ButtonGroup marks only direct children, and mine are wrapped. */}
+      <div
+        role="group"
+        aria-label="Send to a plan"
+        className={buttonGroupVariants({ orientation: "horizontal" }).base()}
+      >
+        {hinted}
+        <Dropdown>
+          <Button
+            isIconOnly
+            variant={rest.variant}
+            size={rest.size}
+            aria-label="Choose a plan"
+          >
+            <ChevronDown size={16} aria-hidden />
+          </Button>
+          <Dropdown.Popover>
+            <Dropdown.Menu>
+              {groupPlans(plans).map((group, i) => (
+                <Fragment key={group.title}>
+                  {i > 0 ? <Separator /> : null}
+                  <Dropdown.Section>
+                    <Header>{group.title}</Header>
+                    {group.plans.map((it) => (
+                      <Dropdown.Item
+                        key={it.id}
+                        id={it.id}
+                        textValue={it.name}
+                        aria-label={it.name}
+                        isDisabled={!canChangePlan(it)}
+                        onAction={() => {
+                          void send(recipeId, it, scale);
+                        }}
+                      >
+                        {({ isDisabled }) => (
+                          <PlanOption plan={it} disabled={isDisabled} />
+                        )}
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Section>
+                </Fragment>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown.Popover>
+        </Dropdown>
+      </div>
     </div>
   );
 }

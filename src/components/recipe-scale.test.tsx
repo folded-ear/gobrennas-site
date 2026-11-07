@@ -20,6 +20,7 @@ describe("RecipeScale", () => {
   it("applies a preset immediately without an input or apply button", async () => {
     const onChange = vi.fn();
     render(<Chooser onChange={onChange} />);
+    expect(screen.getByText("scale")).toHaveClass("text-sm", "text-muted");
     expect(screen.getByRole("button", { name: "1×" })).toHaveAttribute(
       "aria-pressed",
       "true",

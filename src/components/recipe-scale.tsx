@@ -20,18 +20,21 @@ export function RecipeScale({
   isDisabled?: boolean;
 }) {
   return (
-    <ButtonGroup size="sm" aria-label="Recipe scale">
-      {PRESETS.map(([scale, label]) => (
-        <Button
-          key={scale}
-          variant={value === scale ? "primary" : "secondary"}
-          aria-pressed={value === scale}
-          isDisabled={isDisabled}
-          onPress={() => onChange(scale)}
-        >
-          {label}
-        </Button>
-      ))}
-    </ButtonGroup>
+    <div className="flex items-center gap-sm">
+      <span className="text-sm text-muted">scale</span>
+      <ButtonGroup size="sm" aria-label="Recipe scale">
+        {PRESETS.map(([scale, label]) => (
+          <Button
+            key={scale}
+            variant={value === scale ? "primary" : "secondary"}
+            aria-pressed={value === scale}
+            isDisabled={isDisabled}
+            onPress={() => onChange(scale)}
+          >
+            {label}
+          </Button>
+        ))}
+      </ButtonGroup>
+    </div>
   );
 }
