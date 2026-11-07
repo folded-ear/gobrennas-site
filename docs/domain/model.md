@@ -109,9 +109,9 @@ stateDiagram-v2
   DELETED --> [*]
 ```
 
-The plan owner may grant one access level to each other user. Recipe history
-records when a recipe was planned and finished, who owns that history entry,
-and its resulting status.
+The plan owner, or a plan administrator, may grant one access level to each
+other user. Recipe history records when a recipe was planned and finished, who
+owns that history entry, and its resulting status.
 
 ## Accounts and preferences
 
