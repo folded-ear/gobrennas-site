@@ -43,7 +43,6 @@ const SUGAR: PlanItemFragment = {
     units: { __typename: "UnitOfMeasure", id: "u3", name: "tsp" },
   },
   components: [],
-  children: [],
   bucket: null,
 };
 

@@ -345,7 +345,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 - An independently planned recipe offers the same batch chooser as Add to plan
   and Cook: ¼×, ½×, 1×, and 2×. Selecting a multiplier applies it immediately,
-  without a separate Apply action. In the item screen,
+  without a separate Apply action. Scaling requires a connection and waits for
+  the server response; it is not queued for offline saving. Finish saving other
+  plan edits before scaling. In the item screen,
   scaling is saved to this occurrence and affects shopping quantities. It scales
   current ingredient edits and linked preparation rather than rebuilding from the
   saved library recipe. Unknown quantities and directions are unchanged.

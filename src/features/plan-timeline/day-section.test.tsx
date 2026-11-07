@@ -63,7 +63,6 @@ function fragment({
     ingredient: null,
     quantity: null,
     components: [],
-    children: [],
     bucket: null,
   };
 }

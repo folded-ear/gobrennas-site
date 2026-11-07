@@ -1,8 +1,8 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { planItemParts, type IngredientParts } from "@/lib/ingredient-parts";
 import { displayName } from "@/lib/plan-item-name";
-import { scaledQuantities } from "@/lib/recipe-scaling";
 import type { CookPlanFragment } from "./__generated__/cookPlan.generated";
+import { scaledQuantities } from "./scaling";
 
 export type CookItem = Extract<
   CookPlanFragment["updatedSince"][number],

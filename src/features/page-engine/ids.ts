@@ -15,7 +15,6 @@ export const isDraftId = (id: string): boolean => id.startsWith(DRAFT_PREFIX);
 export function namedIds(change: Change): string[] {
   switch (change.kind) {
     case "status":
-    case "scaleRecipe":
     case "rename":
     case "assignBucket":
       return [change.id];
@@ -37,20 +36,6 @@ export function namedIds(change: Change): string[] {
 export function mapIds(change: Change, map: (id: string) => string): Change {
   const after = (id: string | null) => (id === null ? null : map(id));
   switch (change.kind) {
-    case "scaleRecipe":
-      return {
-        ...change,
-        id: map(change.id),
-        quantities: Object.fromEntries(
-          Object.entries(change.quantities).map(([id, quantity]) => [
-            map(id),
-            quantity,
-          ]),
-        ),
-        names: Object.fromEntries(
-          Object.entries(change.names).map(([id, name]) => [map(id), name]),
-        ),
-      };
     case "status":
     case "rename":
     case "assignBucket":

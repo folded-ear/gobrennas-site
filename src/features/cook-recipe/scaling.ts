@@ -1,4 +1,4 @@
-/** The cooking graph, independent of scheduling and of the UI that reads it. */
+/** The cooking graph used for temporary display scaling, not persisted changes. */
 export type ScalingItem = {
   id: string;
   status: string;
@@ -11,25 +11,6 @@ export type ScalingItem = {
     sectionOf?: { id: string } | null;
   } | null;
 };
-
-/** Replace only a leading quantity, leaving units, wording and punctuation intact. */
-const FRACTION = String.raw`(?:\d+\s*[/⁄]\s*\d+|[¼½¾⅐⅑⅒⅓⅔⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])`;
-const NUMBER = String.raw`(?:\d*\.\d+|\d+)(?:\s*(?:(?:and|&)\s*)?${FRACTION})?|${FRACTION}`;
-const WORD =
-  "(?:a half|one half|half|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)";
-// Text replacement only, not ingredient recognition or quantity arithmetic.
-// Keep the accepted leading forms aligned with the API's Number.g4 grammar.
-const LEADING_QUANTITY = new RegExp(
-  String.raw`^(\s*)-?(?:${NUMBER}|${WORD})(?:\s*(?:and|&)\s*(?:${NUMBER}|${WORD}))*(?=\s|$)`,
-  "iu",
-);
-
-export function scaledIngredientName(name: string, quantity: number): string {
-  return name.replace(
-    LEADING_QUANTITY,
-    (_, space: string) => `${space}${quantity}`,
-  );
-}
 
 /** Absolute quantities for a new batch size; each linked ingredient is visited once. */
 export function scaledQuantities(

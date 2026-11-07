@@ -118,7 +118,6 @@ const addedRecipe: GraphQLCodegenDataMasking.Unmasked<AddPlannerRecipeMutation> 
           __typename: "Recipe",
           id: "recipe-soup",
           name: "Soup",
-          sectionOf: null,
         },
         quantity: { __typename: "Quantity", quantity: 1, units: null },
         children: [{ __typename: "PlanItem", id: "101" }],

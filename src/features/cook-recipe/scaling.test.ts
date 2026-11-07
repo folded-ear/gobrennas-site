@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  scaledIngredientName,
-  scaledQuantities,
-  type ScalingItem,
-} from "./recipe-scaling";
+import { scaledQuantities, type ScalingItem } from "./scaling";
 
 function item(
   id: string,
@@ -70,17 +66,4 @@ describe("scaledQuantities", () => {
       scaledQuantities("chili", Number.MAX_VALUE, () => item("chili", 2)),
     ).toThrow();
   });
-});
-
-it.each([
-  "1/2 cups beans, rinsed",
-  "1 1/2 cups beans, rinsed",
-  "½ cups beans, rinsed",
-  "1½ cups beans, rinsed",
-  "one and half cups beans, rinsed",
-  "two cups beans, rinsed",
-  "1 and 1⁄2 cups beans, rinsed",
-  ".5 cups beans, rinsed",
-])("updates only the leading quantity in %s", (name) => {
-  expect(scaledIngredientName(name, 3)).toBe("3 cups beans, rinsed");
 });

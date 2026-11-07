@@ -20,7 +20,6 @@ export function planItemFragment(
     ingredient: null,
     quantity: null,
     components: [],
-    children: [],
     bucket: null,
   };
 }

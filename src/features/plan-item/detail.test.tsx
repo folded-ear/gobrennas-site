@@ -244,7 +244,6 @@ describe("PlanItemDetail", () => {
       ingredient: {
         __typename: "Recipe",
         id: "saved-pumpkin-pie",
-        sectionOf: null,
       },
     });
 

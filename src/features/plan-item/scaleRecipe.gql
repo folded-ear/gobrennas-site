@@ -1,0 +1,24 @@
+mutation ScaleRecipe($id: ID!, $scale: Float!) {
+  planner {
+    scaleRecipe(id: $id, scale: $scale) {
+      id
+      plan {
+        id
+        # Refresh scaled names and quantities, including linked preparation.
+        updatedSince(cutoff: 0) {
+          ... on PlanItem {
+            id
+            name
+            quantity {
+              quantity
+              units {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

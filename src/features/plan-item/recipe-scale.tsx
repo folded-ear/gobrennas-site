@@ -3,19 +3,19 @@
 import { RecipeScale } from "@/components/recipe-scale";
 import { usePageEngine } from "@/features/page-engine";
 import { useItemPlan } from "@/features/plan-directory";
-import { scaledIngredientName, scaledQuantities } from "@/lib/recipe-scaling";
-import { useApolloClient, useFragment } from "@apollo/client/react";
+import { useFragment, useMutation } from "@apollo/client/react";
 import { toast } from "@heroui/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PlanItemFragmentDoc } from "./__generated__/planItem.generated";
 import { ScaleAvailabilityFragmentDoc } from "./__generated__/scaleAvailability.generated";
-import { ScalingPlanDocument } from "./__generated__/scalingPlan.generated";
+import { ScaleRecipeDocument } from "./__generated__/scaleRecipe.generated";
 
 export function PlanRecipeScale({ itemId }: { itemId: string }) {
-  const client = useApolloClient();
+  const [mutate] = useMutation(ScaleRecipeDocument);
   const engine = usePageEngine();
   const plan = useItemPlan(itemId);
   const [loading, setLoading] = useState(false);
+  const pending = useRef(false);
   const { data: availability } = useFragment({
     fragment: ScaleAvailabilityFragmentDoc,
     from: { __typename: "PlanItem", id: itemId },
@@ -43,66 +43,32 @@ export function PlanRecipeScale({ itemId }: { itemId: string }) {
           loading || Boolean(availability.pendingStatus) || availability.inert
         }
         onChange={(next) => {
-          if (next === scale) return;
+          if (next === scale || pending.current) return;
+          pending.current = true;
           void (async () => {
             setLoading(true);
             try {
-              const read = (id: string) =>
-                client.cache.readFragment({
-                  fragment: PlanItemFragmentDoc,
-                  id: client.cache.identify({ __typename: "PlanItem", id }),
+              if (!Number.isFinite(next) || next <= 0)
+                throw new Error("Invalid recipe scale.");
+              // Do not race a queued ingredient edit with server-side scaling.
+              if (await engine.unsent()) {
+                toast.danger("Plan changes are still saving", {
+                  description:
+                    "Wait for them to finish, then scale the recipe.",
                 });
-              // Most items are already loaded. Linked completed preparation may not
-              // be, so load the full cooking graph only when it is needed.
-              try {
-                scaledQuantities(itemId, 1, (id) => {
-                  const item = read(id);
-                  if (!item) throw new Error("Missing preparation");
-                  return item;
-                });
-              } catch {
-                await client.query({
-                  query: ScalingPlanDocument,
-                  variables: { planId: plan.id },
-                  fetchPolicy: "network-only",
-                });
+                return;
               }
-              const current = read(itemId);
-              if (!current) throw new Error("Recipe unavailable");
-              const factor = next / (current.quantity?.quantity ?? 1);
-              const names: Record<string, string> = {};
-              const quantities = scaledQuantities(itemId, factor, (id) => {
-                const item = read(id);
-                if (!item)
-                  throw new Error("Recipe ingredients are not loaded.");
-                if (
-                  item.quantity &&
-                  item.ingredient?.__typename !== "Recipe" &&
-                  !item.name.startsWith("!")
-                )
-                  names[id] = scaledIngredientName(
-                    item.name,
-                    item.quantity.quantity * factor,
-                  );
-                return item;
+              const result = await mutate({
+                variables: { id: itemId, scale: next },
               });
-              quantities[itemId] = next;
-              engine.set([
-                {
-                  kind: "scaleRecipe",
-                  id: itemId,
-                  planId: plan.id,
-                  name: data.name,
-                  scale: next,
-                  quantities,
-                  names,
-                },
-              ]);
+              if (!result.data?.planner.scaleRecipe.id)
+                throw new Error("No plan item returned.");
             } catch {
               toast.danger("Couldn’t scale recipe", {
-                description: "Your plan is unchanged. Please try again.",
+                description: "Please try again.",
               });
             } finally {
+              pending.current = false;
               setLoading(false);
             }
           })();

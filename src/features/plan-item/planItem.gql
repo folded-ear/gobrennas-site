@@ -12,11 +12,6 @@ fragment planItem on PlanItem {
   preparation
   ingredient {
     id
-    ... on Recipe {
-      sectionOf {
-        id
-      }
-    }
   }
   quantity {
     quantity
@@ -26,9 +21,6 @@ fragment planItem on PlanItem {
     }
   }
   components {
-    id
-  }
-  children {
     id
   }
   bucket {
