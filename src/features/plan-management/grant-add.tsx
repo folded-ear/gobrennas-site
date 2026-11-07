@@ -45,7 +45,9 @@ export function GrantAdd({
     // Choosing a friend fills in their name; that needs no new search.
     skip: tooShort || query === chosen?.name,
   });
-  const results = (data ?? previousData)?.profile.searchFriends.edges ?? [];
+  // While a search loads, keep showing the last one's friends.
+  const shown = error ? undefined : (data ?? previousData);
+  const results = shown?.profile.searchFriends.edges ?? [];
   const friends = tooShort
     ? []
     : results
@@ -57,11 +59,11 @@ export function GrantAdd({
     ? "Type at least two letters of a name or email."
     : error
       ? "Couldn’t search friends. Try again."
-      : results.length > 0
-        ? "Everyone matching already has access."
-        : data
-          ? "No matching friends."
-          : "Searching…";
+      : !data
+        ? "Searching…"
+        : results.length > 0
+          ? "Everyone matching already has access."
+          : "No matching friends.";
 
   async function add() {
     if (!chosen || pending || isDisabled) return;

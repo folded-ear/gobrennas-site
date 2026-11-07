@@ -396,6 +396,59 @@ describe("plan sharing", () => {
     ]);
   });
 
+  it("says a search failed, rather than showing the last search's friends", async () => {
+    const user = userEvent.setup();
+    const plan = myPlan([]);
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
+      cache: seed(plan),
+      mocks: [
+        searchFriends("Pa", [PAT]),
+        {
+          ...searchFriends("Pat", []),
+          result: undefined,
+          error: new Error("Server unavailable"),
+        },
+      ],
+    });
+    const search = within(sharing()).getByRole("combobox", {
+      name: "Add person",
+    });
+
+    await user.type(search, "Pa");
+    await screen.findByRole("option", { name: /Pat/ });
+    await user.type(search, "t");
+
+    expect(
+      await screen.findByText("Couldn’t search friends. Try again."),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("option", { name: /Pat/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says it's searching, not who already has access, while a search loads", async () => {
+    const user = userEvent.setup();
+    const plan = myPlan();
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
+      cache: seed(plan),
+      mocks: [
+        searchFriends("Br", [BRENNA]),
+        { ...searchFriends("Bre", [BRENNA]), delay: 200 },
+      ],
+    });
+    const search = within(sharing()).getByRole("combobox", {
+      name: "Add person",
+    });
+
+    await user.type(search, "Br");
+    expect(
+      await screen.findByText("Everyone matching already has access."),
+    ).toBeVisible();
+    await user.type(search, "e");
+
+    expect(await screen.findByText("Searching…")).toBeVisible();
+  });
+
   it("adds the chosen friend at Modify unless another level is chosen", async () => {
     const user = userEvent.setup();
     const plan = myPlan([]);
