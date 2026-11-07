@@ -6,6 +6,7 @@ import { SectionHeader } from "@/components/section-header";
 import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { RecipeGrid } from "@/features/recipe-grid";
+import { canChangePlan } from "@/lib/plans";
 import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { RecipesDocument } from "@/screens/__generated__/recipes.generated";
 import { LibraryAddRecipe } from "@/screens/library-add-recipe";
@@ -20,6 +21,9 @@ export function Recipes() {
     plans,
     "single",
   );
+  const viewOnlyIds = plans
+    .filter((plan) => !canChangePlan(plan))
+    .map((plan) => plan.id);
   const [query, setQuery] = useState("");
   const [includeOthers, setIncludeOthers] = useState(false);
   const deferredQuery = useDeferredValue(query);
@@ -35,6 +39,7 @@ export function Recipes() {
             selectedIds={planIds}
             onChange={setPlanIds}
             hideSingleName
+            disabledIds={viewOnlyIds}
           />
           <LibraryAddRecipe />
         </div>

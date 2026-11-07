@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveSelection } from "./selection";
+import { resolveSelection } from "./plan-selection";
 
 const WEEKNIGHTS = { id: "1", mine: true };
 const NEIGHBOR = { id: "3", mine: false };

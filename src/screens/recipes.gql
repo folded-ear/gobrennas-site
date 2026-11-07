@@ -2,6 +2,14 @@ query Recipes {
   planner {
     plans {
       id
+      mine
+      grants {
+        level
+        user {
+          id
+          me
+        }
+      }
       ...planPickerPlan @unmask
     }
   }

@@ -1,3 +1,4 @@
+import { VIEW_ONLY_HINT } from "@/components/plan-option";
 import { render, screen, userEvent, within } from "@/test";
 import { describe, expect, it, vi } from "vitest";
 import { PlanPicker } from "./index";
@@ -194,5 +195,53 @@ describe("PlanPicker", () => {
     );
 
     expect(onChange).toHaveBeenLastCalledWith([FEAST_DAY.id]);
+  });
+
+  it("lists disabled plans without letting them be picked", async () => {
+    const onChange = vi.fn();
+    render(
+      <PlanPicker
+        label="Plans"
+        plans={PLANS}
+        selectionMode="single"
+        selectedIds={[WEEKNIGHTS.id]}
+        onChange={onChange}
+        disabledIds={[NEIGHBOR.id]}
+      />,
+    );
+
+    const listbox = await openPicker();
+
+    const neighbor = within(listbox).getByRole("option", {
+      name: NEIGHBOR.name,
+    });
+    expect(neighbor).toHaveAttribute("aria-disabled", "true");
+    expect(neighbor).toHaveAccessibleDescription(VIEW_ONLY_HINT);
+    expect(
+      within(listbox).getByRole("option", { name: FEAST_DAY.name }),
+    ).not.toHaveAttribute("aria-disabled");
+
+    await userEvent.click(neighbor);
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("lets every plan be picked unless told otherwise", async () => {
+    render(
+      <PlanPicker
+        label="Plans"
+        plans={PLANS}
+        selectionMode="single"
+        selectedIds={[WEEKNIGHTS.id]}
+        onChange={vi.fn()}
+      />,
+    );
+
+    const listbox = await openPicker();
+
+    for (const option of within(listbox).getAllByRole("option")) {
+      expect(option).not.toHaveAttribute("aria-disabled");
+      expect(option).not.toHaveAccessibleDescription(VIEW_ONLY_HINT);
+    }
   });
 });

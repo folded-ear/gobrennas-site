@@ -1,11 +1,11 @@
 import { PreferenceValueFragmentDoc } from "@/hooks/use-preference/__generated__/preferenceValue.generated";
 import { DoSetPreferenceDocument } from "@/hooks/use-set-preference/__generated__/doSetPreference.generated";
 import { InitializeDeviceKeyDocument } from "@/lib/apollo/__generated__/initializeDeviceKey.generated";
+import { PickablePlan, SelectionMode } from "@/lib/plan-selection";
 import { formatIdSet } from "@/lib/preferences";
 import { buildInMemoryCache, render, screen, userEvent, waitFor } from "@/test";
 import { MockLink } from "@apollo/client/testing";
 import { describe, expect, it, vi } from "vitest";
-import { PickablePlan, SelectionMode } from "./selection";
 import { usePlanSelection } from "./use-plan-selection";
 
 const DEVICE_KEY = "a-device-key";

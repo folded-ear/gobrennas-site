@@ -27,4 +27,5 @@ query getRecipeDetail($id: ID!) {
       ...recipeSections
     }
   }
+  ...sendToPlan
 }

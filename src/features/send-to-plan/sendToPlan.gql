@@ -1,8 +1,17 @@
 fragment sendToPlan on Query {
   planner {
-    plan(id: $activePlanId) {
+    plans {
       id
       name
+      color
+      mine
+      grants {
+        level
+        user {
+          id
+          me
+        }
+      }
     }
   }
 }

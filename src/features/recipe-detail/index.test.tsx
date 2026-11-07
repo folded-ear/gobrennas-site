@@ -12,7 +12,7 @@ import { Suspense } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GetRecipeDetailDocument } from "./__generated__/getRecipeDetail.generated";
 import { RecipeDetail } from "./index";
-import { recipe } from "./test/recipe";
+import { planner, recipe } from "./test/recipe";
 
 const replace = vi.fn();
 const back = vi.fn();
@@ -37,7 +37,10 @@ function show(
   const cache = buildInMemoryCache();
   cache.writeQuery({
     ...query,
-    data: { library: { __typename: "LibraryQuery", getRecipeById: value } },
+    data: {
+      library: { __typename: "LibraryQuery", getRecipeById: value },
+      planner,
+    },
   });
   return {
     cache,
@@ -101,6 +104,21 @@ describe("RecipeDetail", () => {
     expect(
       screen.queryByRole("button", { name: /send|cook/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("sends to the active plan, or to another chosen from its menu", () => {
+    show();
+
+    const actions = screen.getByRole("group", { name: "Recipe actions" });
+    expect(
+      within(actions).getByRole("button", { name: /dinner/i }),
+    ).toBeVisible();
+    expect(
+      within(actions).getByRole("button", { name: "Choose a plan" }),
+    ).toBeVisible();
+    expect(
+      within(actions).queryByRole("button", { name: /add to plan/i }),
+    ).toBeNull();
   });
 
   it("shows an incomplete recipe without edit or delete actions for another owner", () => {
@@ -235,6 +253,7 @@ describe("RecipeDetail", () => {
             __typename: "LibraryQuery",
             getRecipeById: { ...recipe, name: "Apple pie, revised" },
           },
+          planner,
         },
       }),
     );
