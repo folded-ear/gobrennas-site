@@ -7,6 +7,7 @@ import { DragSession } from "@/lib/dnd/drag-session";
 import { ItemRow } from "@/lib/dnd/item-row";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
+import type { ReactNode } from "react";
 import {
   PlanItemFragment,
   PlanItemFragmentDoc,
@@ -19,6 +20,7 @@ import { PlanItemTree } from "./tree";
 const DRAWER_DRAG_TYPE = "application/x.gobrennas.drawer-item";
 
 type PlanItemHeaderProps = {
+  scaling?: ReactNode;
   item: FragmentType<PlanItemFragment>;
   /** Where every item in the plan sits, for the walk down to this one. */
   context: PlanContext;
@@ -35,6 +37,7 @@ type PlanItemHeaderProps = {
  * before whatever sits below it.
  */
 export function PlanItemHeader({
+  scaling,
   item,
   context,
   hasDescendants,
@@ -63,6 +66,7 @@ export function PlanItemHeader({
         openActions={isRecipe ? <LibraryLink recipeId={ingredient.id} /> : null}
       />
       {data.notes ? <p className="text-sm text-muted">{data.notes}</p> : null}
+      {scaling}
       {hasDescendants ? (
         // Where the item's own context stops and its contents start.
         <hr className="border-separator" />

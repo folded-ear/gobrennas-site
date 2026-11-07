@@ -24,6 +24,14 @@ type Field = {
 /** I give one change's aliased field, suffixing its variables with i. */
 function fieldFor(change: SentChange, i: number): Field {
   switch (change.kind) {
+    case "scaleRecipe":
+      return {
+        root: "planner",
+        declarations: { [`id${i}`]: "ID!", [`scale${i}`]: "Float!" },
+        values: { [`id${i}`]: change.id, [`scale${i}`]: change.scale },
+        // Polling updates every affected ingredient together, after this overlay retires.
+        selection: `scaleRecipe(id: $id${i}, scale: $scale${i}) { id }`,
+      };
     case "status":
       return {
         root: "planner",

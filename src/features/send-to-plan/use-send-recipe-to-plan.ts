@@ -24,11 +24,15 @@ export function useSendRecipeToPlan() {
   const client = useApolloClient();
   const pending = useRef(false);
 
-  async function send(recipeId: string, plan: Destination) {
+  async function send(recipeId: string, plan: Destination, scale = 1) {
     if (pending.current) return;
     pending.current = true;
     try {
-      const result = await mutate({ variables: { recipeId, planId: plan.id } });
+      if (!Number.isFinite(scale) || scale <= 0)
+        throw new Error("Invalid recipe scale.");
+      const result = await mutate({
+        variables: { recipeId, planId: plan.id, scale },
+      });
       if (!result.data?.library.sendRecipeToPlan?.id)
         throw new Error("No plan item returned.");
       client.cache.batch({
@@ -39,10 +43,12 @@ export function useSendRecipeToPlan() {
         },
       });
       toast.success(`Added to ${plan.name}`);
+      return true;
     } catch {
       toast.danger("Couldn’t add recipe to plan", {
         description: "Please try again.",
       });
+      return false;
     } finally {
       pending.current = false;
     }

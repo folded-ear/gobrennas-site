@@ -58,6 +58,7 @@ export function seedItem(
     quantity:
       quantity === null ? null : { __typename: "Quantity", quantity, units },
     components: [],
+    children: [],
     bucket: null,
   };
   const ref = seedFragment(cache, PlanItemFragmentDoc, "planItem", data);

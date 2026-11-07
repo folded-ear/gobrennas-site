@@ -98,6 +98,7 @@ export function useAddItem(section: TimelineSection) {
   async function add(
     plan: AddPlan | undefined,
     row: IngredientDraft,
+    scaleOverride?: number,
   ): Promise<boolean> {
     if (
       busy.current ||
@@ -116,18 +117,24 @@ export function useAddItem(section: TimelineSection) {
         // Add can beat the editor's debounce after a quantity edit. Resolve
         // the current text before saving instead of silently using scale 1.
         const recognition =
-          row.recognition?.raw === row.raw
-            ? row.recognition
-            : await recognize(
-                row.raw,
-                row.raw.length,
-                new AbortController().signal,
-                {
-                  choice,
-                  suggest: false,
-                },
-              );
-        scale = recognizedParts(recognition).quantity?.quantity ?? 1;
+          scaleOverride !== undefined
+            ? undefined
+            : row.recognition?.raw === row.raw
+              ? row.recognition
+              : await recognize(
+                  row.raw,
+                  row.raw.length,
+                  new AbortController().signal,
+                  {
+                    choice,
+                    suggest: false,
+                  },
+                );
+        scale =
+          scaleOverride ??
+          (recognition
+            ? (recognizedParts(recognition).quantity?.quantity ?? 1)
+            : 1);
         if (!Number.isFinite(scale) || scale <= 0) {
           setError("Use a recipe quantity greater than zero.");
           return false;

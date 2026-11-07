@@ -6,9 +6,14 @@ import type { buildCookRecipe } from "./model";
 type Props = {
   recipe: NonNullable<ReturnType<typeof buildCookRecipe>>;
   planName: string;
+  displayScale?: number;
 };
 
-export function CookRecipeTitle({ recipe: { main }, planName }: Props) {
+export function CookRecipeTitle({
+  recipe: { main },
+  planName,
+  displayScale = 1,
+}: Props) {
   const source =
     main.item.ingredient?.__typename === "Recipe"
       ? main.item.ingredient
@@ -57,7 +62,7 @@ export function CookRecipeTitle({ recipe: { main }, planName }: Props) {
         <h1 className="break-words">{main.title}</h1>
         {source?.yield != null ? (
           <p className="text-sm text-muted">
-            {humanQuantity(source.yield * scale)} servings
+            {humanQuantity(source.yield * scale * displayScale)} servings
           </p>
         ) : null}
       </div>

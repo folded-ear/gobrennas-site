@@ -43,8 +43,8 @@ Delivery: Built
   Library.
 - Selecting recipe detail from the Library opens it over the Library. Direct
   detail and editor addresses use full-page fallbacks.
-- Each Library card has a button named for the active plan. It adds the recipe
-  to that plan the same way detail's send to plan does: one add at a time, a
+- Each Library card has a button named for the active plan. It adds one batch
+  directly to that plan without a dialog, one add at a time, with a
   toast confirming the destination on success, and a toast reporting failure.
   Long plan names are truncated. When the active plan is view only, the button
   is disabled and explains "This plan is view only" on hover or focus.

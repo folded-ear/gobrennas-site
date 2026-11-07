@@ -9,6 +9,8 @@ export type Insert = {
 
 /** What pending changes show over the cache's server data. */
 export type View = {
+  readonly quantity: ReadonlyMap<string, number>;
+  readonly scaledName: ReadonlyMap<string, string>;
   /** NEEDED or ACQUIRED statuses. */
   readonly status: ReadonlyMap<string, PlanItemStatus>;
   /** COMPLETED or DELETED statuses still in their undo window. */
@@ -27,6 +29,8 @@ export type View = {
 };
 
 export const EMPTY_VIEW: View = {
+  quantity: new Map(),
+  scaledName: new Map(),
   status: new Map(),
   pendingStatus: new Map(),
   removed: new Set(),
@@ -47,6 +51,8 @@ const REMOVALS: ReadonlySet<PlanItemStatus> = new Set([
 export function buildView(pending: readonly Pending[]): View {
   if (pending.length === 0) return EMPTY_VIEW;
   const status = new Map<string, PlanItemStatus>();
+  const quantity = new Map<string, number>();
+  const scaledName = new Map<string, string>();
   const pendingStatus = new Map<string, PlanItemStatus>();
   const removed = new Set<string>();
   const name = new Map<string, string>();
@@ -61,6 +67,12 @@ export function buildView(pending: readonly Pending[]): View {
   };
   for (const { change, phase } of pending) {
     switch (change.kind) {
+      case "scaleRecipe":
+        for (const [id, value] of Object.entries(change.quantities))
+          quantity.set(id, value);
+        for (const [id, value] of Object.entries(change.names))
+          scaledName.set(id, value);
+        break;
       case "status":
         if (phase === "held") pendingStatus.set(change.id, change.status);
         else if (REMOVALS.has(change.status)) removed.add(change.id);
@@ -68,6 +80,7 @@ export function buildView(pending: readonly Pending[]): View {
         break;
       case "rename":
         name.set(change.id, change.name);
+        scaledName.delete(change.id);
         break;
       case "assignBucket":
         bucket.set(change.id, change.bucketId);
@@ -93,6 +106,8 @@ export function buildView(pending: readonly Pending[]): View {
     }
   }
   return {
+    quantity,
+    scaledName,
     status,
     pendingStatus,
     removed,

@@ -20,6 +20,29 @@ const pending = (change: Change, phase: Phase = "ready"): Pending => ({
 });
 
 describe("buildView", () => {
+  it("keeps the latest absolute scaled quantities until polling covers the save", () => {
+    const change = {
+      kind: "scaleRecipe",
+      id: "pie",
+      planId: PLAN,
+      name: "Pie",
+      scale: 2,
+      quantities: { pie: 2, flour: 6 },
+      names: { flour: "6 cups flour" },
+    } as const;
+    const view = buildView([
+      pending(change, "answered"),
+      pending({
+        ...change,
+        scale: 3,
+        quantities: { pie: 3, flour: 9 },
+        names: { flour: "9 cups flour" },
+      }),
+    ]);
+    expect(view.quantity.get("flour")).toBe(9);
+    expect(view.scaledName.get("flour")).toBe("9 cups flour");
+    expect(view.name.has("flour")).toBe(false);
+  });
   it("shows a held removal as pending, and a released one as gone", () => {
     const view = buildView([
       pending(

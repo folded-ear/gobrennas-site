@@ -1,0 +1,13 @@
+# Includes preparation retained outside the active scheduling tree.
+query ScalingPlan($planId: ID!) {
+  planner {
+    plan(id: $planId) {
+      id
+      updatedSince(cutoff: 0) {
+        ... on PlanItem {
+          ...planItem
+        }
+      }
+    }
+  }
+}

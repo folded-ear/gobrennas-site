@@ -133,6 +133,19 @@ async function openPlanMenu() {
 }
 
 describe("SendToPlan", () => {
+  it("lets the user choose a scale before adding from a library card", async () => {
+    const user = userEvent.setup();
+    renderSendToPlan([
+      {
+        request: { ...request, variables: { ...request.variables, scale: 2 } },
+        result: sent,
+      },
+    ]);
+    await user.click(screen.getByRole("button", { name: /this week/i }));
+    await user.click(screen.getByRole("button", { name: "2×" }));
+    await user.click(screen.getByRole("button", { name: "Add to plan" }));
+    expect(await screen.findByText("Added to This Week")).toBeVisible();
+  });
   it("shows the active plan's name", () => {
     renderSendToPlan();
 
@@ -167,6 +180,7 @@ describe("SendToPlan", () => {
     expect(cache.extract()[sentItemKey]).toBeUndefined();
 
     await user.click(screen.getByRole("button", { name: /this week/i }));
+    await user.click(screen.getByRole("button", { name: "Add to plan" }));
 
     expect(await screen.findByText("Added to This Week")).toBeVisible();
     expect(cache.extract()[sentItemKey]).toBeDefined();
@@ -181,6 +195,7 @@ describe("SendToPlan", () => {
     });
 
     await user.click(screen.getByRole("button", { name: /this week/i }));
+    await user.click(screen.getByRole("button", { name: "Add to plan" }));
 
     expect(
       await screen.findByText("Couldn’t add recipe to plan"),
@@ -199,6 +214,7 @@ describe("SendToPlan", () => {
     });
 
     await user.click(screen.getByRole("button", { name: /this week/i }));
+    await user.click(screen.getByRole("button", { name: "Add to plan" }));
 
     expect(
       await screen.findByText("Couldn’t add recipe to plan"),
@@ -224,6 +240,7 @@ describe("SendToPlan", () => {
     });
 
     await user.click(screen.getByRole("button", { name: /this week/i }));
+    await user.click(screen.getByRole("button", { name: "Add to plan" }));
 
     expect(
       await screen.findByText("Couldn’t add recipe to plan"),

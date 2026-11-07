@@ -83,6 +83,7 @@ export type StoreOrderChange = {
 };
 
 export type Change =
+  | ScaleRecipeChange
   | StatusChange
   | RenameChange
   | CreateChange
@@ -92,12 +93,25 @@ export type Change =
 
 /** Every kind of change this build can make. */
 const CHANGE_KINDS: Readonly<Record<Change["kind"], true>> = {
+  scaleRecipe: true,
   status: true,
   rename: true,
   create: true,
   assignBucket: true,
   move: true,
   storeOrder: true,
+};
+
+/** Absolute target scale makes retrying a saved request safe. */
+export type ScaleRecipeChange = {
+  readonly kind: "scaleRecipe";
+  readonly id: string;
+  readonly planId: string;
+  readonly name: string;
+  readonly scale: number;
+  /** The current edited quantities, scaled for the immediate/offline view. */
+  readonly quantities: Readonly<Record<string, number>>;
+  readonly names: Readonly<Record<string, string>>;
 };
 
 /**

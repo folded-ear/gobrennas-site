@@ -59,6 +59,9 @@ fragment cookPlan on Plan {
         id
         name
         ... on Recipe {
+          sectionOf {
+            id
+          }
           directions
           externalUrl
           yield

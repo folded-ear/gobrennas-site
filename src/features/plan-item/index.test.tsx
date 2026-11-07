@@ -27,6 +27,7 @@ const PUMPKIN_PIE: PlanItemFragment = {
   ingredient: null,
   quantity: null,
   components: [],
+  children: [],
   bucket: null,
 };
 

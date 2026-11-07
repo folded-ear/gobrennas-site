@@ -1,5 +1,6 @@
 "use client";
 
+import { RecipeScale } from "@/components/recipe-scale";
 import { PlanPicker } from "@/features/plan-picker";
 import type { TimelineSection } from "@/features/plan-timeline/model";
 import { sectionLabel } from "@/features/plan-timeline/section-label";
@@ -10,6 +11,7 @@ import {
 } from "@/features/recipe-form/ingredient-draft";
 import { IngredientInput } from "@/features/recipe-form/ingredient-input";
 import type { RecognizeIngredient } from "@/features/recipe-form/ingredient-recognition";
+import { recognizedParts } from "@/features/recipe-form/ingredient-recognition";
 import { createRecognitionQueue } from "@/features/recipe-form/recognition-queue";
 import { useRecognizeIngredient } from "@/features/recipe-form/use-recognize-ingredient";
 import { Button, Dropdown, Label } from "@heroui/react";
@@ -99,6 +101,12 @@ export function PlanAddForm({
   );
   const plan = plans.find((it) => it.id === planId);
   const [row, setRow] = useState(newIngredientDraft);
+  const [scaleChoice, setScaleChoice] = useState<{
+    raw: string;
+    value: number;
+  } | null>(null);
+  const scaleOverride =
+    scaleChoice?.raw === row.raw ? scaleChoice.value : undefined;
   const [queue] = useState(createRecognitionQueue);
   const helpId = useId();
   const recognizeIngredient = useRecognizeIngredient();
@@ -121,7 +129,7 @@ export function PlanAddForm({
   }, []);
 
   async function submit() {
-    if (await save.add(plan, row)) onClose();
+    if (await save.add(plan, row, scaleOverride)) onClose();
   }
 
   return (
@@ -198,6 +206,18 @@ export function PlanAddForm({
             />
           </FocusScope>
         </div>
+        {row.choice?.food.kind === "Recipe" && !row.raw.startsWith("!") ? (
+          <RecipeScale
+            value={
+              scaleOverride ??
+              (row.recognition?.raw === row.raw
+                ? (recognizedParts(row.recognition).quantity?.quantity ?? 1)
+                : 1)
+            }
+            onChange={(value) => setScaleChoice({ raw: row.raw, value })}
+            isDisabled={save.pending}
+          />
+        ) : null}
         <span id={helpId} className="sr-only">
           Choose a suggestion or enter an item, then Add to save it.
         </span>

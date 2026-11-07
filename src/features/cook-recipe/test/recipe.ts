@@ -38,6 +38,7 @@ export const savedRecipe: Extract<
   { __typename: "Recipe" }
 > = {
   __typename: "Recipe",
+  sectionOf: null,
   id: "library-pie",
   name: "Apple pie",
   directions: "Bake the original pie.\n\nLet cool before slicing.",
@@ -47,7 +48,12 @@ export const savedRecipe: Extract<
   calories: 300,
   labels: ["Dessert"],
   photo: null,
-  sections: [{ __typename: "Section", id: "library-crust" }],
+  sections: [
+    {
+      __typename: "Section",
+      id: "library-crust",
+    },
+  ],
 };
 export const pie = item("pie", "Holiday apple pie", {
   parent: { __typename: "Plan", id: "7" },
@@ -71,6 +77,7 @@ export const crust = item("crust", "Crust for Friday", {
   ingredient: {
     ...savedRecipe,
     id: "library-crust",
+    sectionOf: { __typename: "Recipe", id: "library-pie" },
     name: "Crust",
     directions: "Chill the dough.",
     yield: null,

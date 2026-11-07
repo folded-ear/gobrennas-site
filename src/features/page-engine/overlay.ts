@@ -108,10 +108,17 @@ export function overlayPolicies(view: ReactiveVar<View>): TypePolicies {
         },
         name(existing, options) {
           const { v, id } = shown(options);
-          return v.name.get(id) ?? existing;
+          return v.scaledName.get(id) ?? v.name.get(id) ?? existing;
         },
         ingredient: parsed,
-        quantity: parsed,
+        quantity(existing, options) {
+          const { v, id } = shown(options);
+          if (v.name.has(id)) return null;
+          const quantity = v.quantity.get(id);
+          return quantity === undefined
+            ? existing
+            : { units: null, ...existing, __typename: "Quantity", quantity };
+        },
         preparation: parsed,
         bucket(existing, options) {
           const { v, id } = shown(options);

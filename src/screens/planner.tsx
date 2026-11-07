@@ -24,6 +24,7 @@ import {
   useEditState,
 } from "@/features/plan-edit";
 import { PlanItemDetail, PlanItemHeader } from "@/features/plan-item/detail";
+import { PlanRecipeScale } from "@/features/plan-item/recipe-scale";
 import { PlanSectionHeader } from "@/features/plan-item/section-header";
 import {
   CreatePlanDialog,
@@ -280,6 +281,7 @@ export function Planner() {
                 <h2>Manage plans</h2>
               ) : shown ? (
                 <PlanItemHeader
+                  scaling={<PlanRecipeScale itemId={shown.id} />}
                   item={shown}
                   context={context}
                   hasDescendants={descendants.length > 0}

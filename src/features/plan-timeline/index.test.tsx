@@ -49,6 +49,7 @@ function renderTimeline(ui: ReactElement) {
     ingredient: null,
     quantity: null,
     components: [],
+    children: [],
     bucket: null,
   });
   return render(ui, { cache });
@@ -156,6 +157,7 @@ function renderMovable(
       ingredient: null,
       quantity: null,
       components: [],
+      children: [],
       bucket: null,
     });
   }
@@ -200,6 +202,7 @@ function seedItems(
       ingredient: null,
       quantity: null,
       components: [],
+      children: [],
       bucket: null,
     });
   }
@@ -676,6 +679,7 @@ function renderApart(
       ingredient: null,
       quantity: null,
       components: [],
+      children: [],
       bucket: null,
     });
   }
