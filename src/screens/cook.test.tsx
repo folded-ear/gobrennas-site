@@ -62,15 +62,6 @@ async function show(
 }
 
 describe("Cook", () => {
-  it("scales only the cooking display, leaving cached plan quantities unchanged", async () => {
-    const cache = await show();
-    const before = cache.extract();
-    await userEvent.click(screen.getByRole("button", { name: "1×" }));
-    expect(screen.getByText("8 servings")).toBeVisible();
-    expect(screen.getByText("2")).toHaveClass("morsel-quantity");
-    expect(screen.getByText(/Display only/)).toBeVisible();
-    expect(cache.extract()).toEqual(before);
-  });
   it("shows the planned recipe with readable ingredients, directions, metadata and prep", async () => {
     await show();
     expect(
@@ -91,6 +82,9 @@ describe("Cook", () => {
     ).toBeVisible();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: "Recipe scale" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /edit|delete|add to plan/i }),
     ).not.toBeInTheDocument();

@@ -2,7 +2,6 @@ import { PlanItemStatus } from "@/__generated__/graphql";
 import { planItemParts, type IngredientParts } from "@/lib/ingredient-parts";
 import { displayName } from "@/lib/plan-item-name";
 import type { CookPlanFragment } from "./__generated__/cookPlan.generated";
-import { scaledQuantities } from "./scaling";
 
 export type CookItem = Extract<
   CookPlanFragment["updatedSince"][number],
@@ -106,29 +105,4 @@ export function buildCookRecipe(items: readonly CookItem[], itemId: string) {
     main: reader.content(root),
     sections: reader.sectionsFrom(reader.children(root), new Set([root.id])),
   };
-}
-
-/** A temporary copy only: never writes the plan or Apollo cache. */
-export function scaleCookItems(
-  items: readonly CookItem[],
-  itemId: string,
-  factor: number,
-): CookItem[] {
-  const byId = new Map(items.map((item) => [item.id, item]));
-  const quantities = scaledQuantities(itemId, factor, (id) => byId.get(id));
-  const root = byId.get(itemId);
-  if (root && root.aggregate === null && !root.quantity)
-    quantities[itemId] = factor;
-  return items.map((item) =>
-    quantities[item.id] === undefined
-      ? item
-      : {
-          ...item,
-          quantity: {
-            __typename: "Quantity",
-            units: item.quantity?.units ?? null,
-            quantity: quantities[item.id],
-          },
-        },
-  );
 }

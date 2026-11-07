@@ -9,7 +9,7 @@ const PRESETS = [
   [2, "2×"],
 ] as const;
 
-/** The same batch chooser for adding, editing a plan, and temporary cooking display. */
+/** The same batch chooser for adding recipes and editing a plan. */
 export function RecipeScale({
   value,
   onChange,

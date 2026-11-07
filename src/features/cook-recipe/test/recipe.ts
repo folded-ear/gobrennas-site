@@ -38,7 +38,6 @@ export const savedRecipe: Extract<
   { __typename: "Recipe" }
 > = {
   __typename: "Recipe",
-  sectionOf: null,
   id: "library-pie",
   name: "Apple pie",
   directions: "Bake the original pie.\n\nLet cool before slicing.",
@@ -77,7 +76,6 @@ export const crust = item("crust", "Crust for Friday", {
   ingredient: {
     ...savedRecipe,
     id: "library-crust",
-    sectionOf: { __typename: "Recipe", id: "library-pie" },
     name: "Crust",
     directions: "Chill the dough.",
     yield: null,

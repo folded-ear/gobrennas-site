@@ -6,18 +6,6 @@ import { ingredients, pie, ref } from "./test/recipe";
 import { CookRecipeTitle } from "./title";
 
 describe("CookRecipe", () => {
-  it("scales displayed servings for a linked subrecipe without using its reference quantity", () => {
-    const recipe = buildCookRecipe(
-      [{ ...pie, aggregate: ref("supper") }, ...ingredients],
-      "pie",
-    );
-    if (!recipe)
-      throw new Error("The fixture must contain the planned recipe.");
-    render(
-      <CookRecipeTitle recipe={recipe} planName="Dinner" displayScale={2} />,
-    );
-    expect(screen.getByText("16 servings")).toBeVisible();
-  });
   it("does not treat a subrecipe's ingredient quantity as a serving multiplier", () => {
     const recipe = buildCookRecipe(
       [{ ...pie, aggregate: ref("supper") }, ...ingredients],

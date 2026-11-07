@@ -184,8 +184,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - The planned name, quantities, preparations, and ingredient choices are shown.
   Unrecognized rows keep their wording; recognized rows use the same read-only
   quantity, unit, and ingredient treatment as library recipes. Cook offers no
-  ingredient editing. Its scaling control changes only the displayed recipe;
-  leaving Cook discards that scale without changing the plan or shopping list.
+  ingredient editing or scaling controls.
 - Ingredients come from the planned occurrence, including linked preparation
   moved elsewhere in the plan. A piece reachable both through the tree and a
   cooking link is shown once. Distinct planned copies of the same saved recipe
@@ -200,8 +199,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
   ingredients and directions begin near the top.
 - An independently planned recipe's yield reflects the scale used when it was
   saved on the plan. Cook starts with the existing planned quantities, never
-  applying that saved scale a second time. Temporary scaling is relative to
-  those quantities, and the serving count follows the temporary batch size.
+  applying that saved scale a second time.
 - The title, plan name, I cooked it, I prepped this, and Close remain above the
   scrolling content. Close returns to where Cook was opened. The view loads current plan
   data on entry; a missing or deleted occurrence offers a way back to the planner.
@@ -343,8 +341,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Editing items
 
-- An independently planned recipe offers the same batch chooser as Add to plan
-  and Cook: ¼×, ½×, 1×, and 2×. Selecting a multiplier applies it immediately,
+- An independently planned recipe offers the same batch chooser as Add to plan:
+  ¼×, ½×, 1×, and 2×. Selecting a multiplier applies it immediately,
   without a separate Apply action. Scaling requires a connection and waits for
   the server response; it is not queued for offline saving. Finish saving other
   plan edits before scaling. In the item screen,
