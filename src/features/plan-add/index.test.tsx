@@ -534,7 +534,7 @@ describe("planner Add", () => {
     },
   );
 
-  it("uses the shared chooser instead of a typed recipe quantity when explicitly applied", async () => {
+  it("uses the shared chooser instead of a typed recipe quantity when explicitly selected", async () => {
     const { user, requests } = setup();
     await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
     await user.type(editableMorsel("Item for Unplanned"), "1/2 So");

@@ -17,7 +17,7 @@ function Chooser({ onChange }: { onChange: (scale: number) => void }) {
 }
 
 describe("RecipeScale", () => {
-  it("offers the shared presets and applies a custom positive multiplier", async () => {
+  it("applies a preset immediately without an input or apply button", async () => {
     const onChange = vi.fn();
     render(<Chooser onChange={onChange} />);
     expect(screen.getByRole("button", { name: "1×" })).toHaveAttribute(
@@ -26,26 +26,25 @@ describe("RecipeScale", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: "½×" }));
     expect(onChange).toHaveBeenLastCalledWith(0.5);
-    const input = screen.getByRole("textbox", { name: "Custom multiplier" });
-    await userEvent.clear(input);
-    await userEvent.type(input, "1.75");
-    await userEvent.click(screen.getByRole("button", { name: "Apply scale" }));
-    expect(onChange).toHaveBeenLastCalledWith(1.75);
+    expect(screen.getByRole("button", { name: "½×" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Apply scale" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button").map((button) => button.textContent),
+    ).toEqual(["¼×", "½×", "1×", "2×"]);
   });
 
-  it.each(["0", "-2", "Infinity", "not a number"])(
-    "rejects %s without emitting a change",
-    async (value) => {
-      const onChange = vi.fn();
-      render(<Chooser onChange={onChange} />);
-      const input = screen.getByRole("textbox", { name: "Custom multiplier" });
-      await userEvent.clear(input);
-      await userEvent.type(input, value);
-      expect(screen.getByRole("alert")).toHaveTextContent("greater than zero");
-      expect(
-        screen.getByRole("button", { name: "Apply scale" }),
-      ).toBeDisabled();
-      expect(onChange).not.toHaveBeenCalled();
-    },
-  );
+  it("does not apply a scale when disabled", async () => {
+    const onChange = vi.fn();
+    render(<RecipeScale value={1} onChange={onChange} isDisabled />);
+    for (const button of screen.getAllByRole("button"))
+      expect(button).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "2×" }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });

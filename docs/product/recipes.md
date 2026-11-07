@@ -102,7 +102,10 @@ Delivery: Built
   shared ones; view-only plans are dimmed, marked "This plan is view only", and
   can't be chosen. Choosing a plan adds the recipe to it once, without changing
   the active plan. The menu stays available when the active plan is view only.
-- Adding uses the saved recipe quantities, prevents repeated clicks while
+- The shared batch chooser beside the detail's send button offers ¼×, ½×, 1×,
+  and 2×, starting at 1×. Selecting a multiplier applies the choice immediately;
+  sending still requires pressing the active plan or choosing a destination.
+- Adding scales the saved recipe quantities, prevents repeated clicks while
   pending, confirms the destination on success, and allows retry after
   failure.
 - The owner can open More recipe actions for Edit recipe and a separated Delete

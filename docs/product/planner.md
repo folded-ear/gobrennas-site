@@ -318,7 +318,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
   views available. A typed quantity scales the recipe (for example, `2 Chili` adds
   a double batch); no quantity means one batch. Saving waits for current recognition
   if the quantity was just edited. Recipe quantities must be greater than zero.
-  Choosing a recipe also offers the shared batch chooser; an explicitly applied
+  Choosing a recipe also offers the shared batch chooser; an explicitly selected
   choice takes precedence over the typed quantity. A section suggestion still
   saves a reference only.
 - Cancel discards the draft. A plain item appears in its section at once,
@@ -344,7 +344,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 ### Editing items
 
 - An independently planned recipe offers the same batch chooser as Add to plan
-  and Cook: ¼×, ½×, 1×, 2×, and a custom positive multiplier. In the item screen,
+  and Cook: ¼×, ½×, 1×, and 2×. Selecting a multiplier applies it immediately,
+  without a separate Apply action. In the item screen,
   scaling is saved to this occurrence and affects shopping quantities. It scales
   current ingredient edits and linked preparation rather than rebuilding from the
   saved library recipe. Unknown quantities and directions are unchanged.

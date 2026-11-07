@@ -89,9 +89,7 @@ describe("Cook", () => {
         screen.getByRole("region", { name: "Crust for Friday" }),
       ).getByText("Chill the dough."),
     ).toBeVisible();
-    expect(
-      screen.getByRole("textbox", { name: "Custom multiplier" }),
-    ).toBeVisible();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /edit|delete|add to plan/i }),
