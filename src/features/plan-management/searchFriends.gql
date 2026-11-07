@@ -1,0 +1,14 @@
+query SearchFriends($search: FriendSearch!) {
+  profile {
+    searchFriends(search: $search) {
+      edges {
+        node {
+          id
+          name
+          email
+          ...friendAvatar
+        }
+      }
+    }
+  }
+}

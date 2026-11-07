@@ -10,6 +10,27 @@ fragment planManagement on Plan {
       me
     }
   }
+  ...planGrants
+}
+
+fragment planGrants on Plan {
+  id
+  owner {
+    id
+    name
+    email
+    ...userAvatar
+  }
+  grants {
+    level
+    user {
+      id
+      me
+      name
+      email
+      ...userAvatar
+    }
+  }
 }
 
 fragment plannerPlanBar on Plan {
@@ -60,6 +81,22 @@ mutation DeleteManagedPlan($id: ID!) {
   planner {
     deletePlan(id: $id) {
       id
+    }
+  }
+}
+
+mutation SetPlanGrant($planId: ID!, $userId: ID!, $level: AccessLevel!) {
+  planner {
+    setGrant(planId: $planId, userId: $userId, accessLevel: $level) {
+      ...planGrants
+    }
+  }
+}
+
+mutation RevokePlanGrant($planId: ID!, $userId: ID!) {
+  planner {
+    revokeGrant(planId: $planId, userId: $userId) {
+      ...planGrants
     }
   }
 }

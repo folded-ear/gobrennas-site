@@ -20,6 +20,7 @@ export function PlanManagement({
 }) {
   const { data: plan, complete } = useFragment({
     fragment: PlanManagementFragmentDoc,
+    fragmentName: "planManagement",
     from: reference,
   });
   if (!complete || !canChangePlan(plan))

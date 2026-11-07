@@ -75,6 +75,13 @@ function thanksgiving(): Plan {
     mine: true,
     grants: [],
     ownedBy: null,
+    owner: {
+      __typename: "User",
+      id: "me",
+      name: "Barney Boisvert",
+      email: "barney@example.com",
+      imageUrl: null,
+    },
     notes: null,
     buckets: [
       { __typename: "PlanBucket", id: "b1", date: SEP_12, name: null },
@@ -102,6 +109,13 @@ function weeknights(): Plan {
     mine: true,
     grants: [],
     ownedBy: null,
+    owner: {
+      __typename: "User",
+      id: "me",
+      name: "Barney Boisvert",
+      email: "barney@example.com",
+      imageUrl: null,
+    },
     notes: null,
     buckets: [],
     children: [{ __typename: "PlanItem", id: "20" }],
@@ -710,6 +724,13 @@ function redundancyPlan(): Plan {
     mine: true,
     grants: [],
     ownedBy: null,
+    owner: {
+      __typename: "User",
+      id: "me",
+      name: "Barney Boisvert",
+      email: "barney@example.com",
+      imageUrl: null,
+    },
     notes: null,
     buckets: [
       { __typename: "PlanBucket", id: BUCKET_A, date: SEP_12, name: null },

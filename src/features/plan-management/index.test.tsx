@@ -9,6 +9,7 @@ import {
   within,
 } from "@/test";
 import { gql } from "@apollo/client";
+import type { Unmasked } from "@apollo/client/masking";
 import { describe, expect, it, vi } from "vitest";
 import {
   ColorManagedPlanDocument,
@@ -22,30 +23,50 @@ import {
 } from "./__generated__/management.generated";
 import { PlanManagement, PlanManagementList } from "./index";
 
-const plan: PlanManagementFragment = {
+type Plan = Unmasked<PlanManagementFragment>;
+
+const plan: Plan = {
   __typename: "Plan",
   id: "weeknight-plan",
   name: "Weeknight dinners",
   color: "#325578",
   mine: true,
+  owner: {
+    __typename: "User",
+    id: "me",
+    name: "Barney Boisvert",
+    email: "barney@example.com",
+    imageUrl: null,
+  },
   grants: [],
 };
 
 function seed(value = plan) {
   const cache = buildInMemoryCache();
-  cache.writeFragment({ fragment: PlanManagementFragmentDoc, data: value });
+  cache.writeFragment({
+    fragment: PlanManagementFragmentDoc,
+    fragmentName: "planManagement",
+    data: value,
+  });
   return cache;
 }
 
-function shared(level: AccessLevel): PlanManagementFragment {
+function shared(level: AccessLevel): Plan {
   return {
     ...plan,
     mine: false,
+    owner: {
+      __typename: "User",
+      id: "brenna",
+      name: "Brenna Switzer",
+      email: "brenna@example.com",
+      imageUrl: null,
+    },
     grants: [
       {
         __typename: "AccessControlEntry",
         level,
-        user: { __typename: "User", id: "me", me: true },
+        user: { ...plan.owner, me: true },
       },
     ],
   };
@@ -122,6 +143,7 @@ describe("plan management", () => {
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.color,
     ).toBe(plan.color);
@@ -134,6 +156,7 @@ describe("plan management", () => {
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.color,
     ).toBe("#783232");
@@ -191,6 +214,7 @@ describe("plan management", () => {
       act(() => {
         cache.writeFragment({
           fragment: PlanManagementFragmentDoc,
+          fragmentName: "planManagement",
           data: {
             ...plan,
             ...(edited === "name"
@@ -206,6 +230,7 @@ describe("plan management", () => {
       expect(
         cache.readFragment({
           fragment: PlanManagementFragmentDoc,
+          fragmentName: "planManagement",
           id: cache.identify(plan),
         }),
       ).toMatchObject(
@@ -283,6 +308,7 @@ describe("plan management", () => {
         expect(
           cache.readFragment({
             fragment: PlanManagementFragmentDoc,
+            fragmentName: "planManagement",
             id: cache.identify(plan),
           }),
         ).toMatchObject({ name: "Family dinners", color: plan.color });
@@ -290,6 +316,7 @@ describe("plan management", () => {
         act(() => {
           cache.writeFragment({
             fragment: PlanManagementFragmentDoc,
+            fragmentName: "planManagement",
             data: { ...plan, name: "Meals from another device" },
           });
         });
@@ -301,6 +328,7 @@ describe("plan management", () => {
       expect(
         cache.readFragment({
           fragment: PlanManagementFragmentDoc,
+          fragmentName: "planManagement",
           id: cache.identify(plan),
         }),
       ).toMatchObject({
@@ -311,6 +339,7 @@ describe("plan management", () => {
       act(() => {
         cache.writeFragment({
           fragment: PlanManagementFragmentDoc,
+          fragmentName: "planManagement",
           data: { ...plan, name: "Updated elsewhere", color: "#225522" },
         });
       });
@@ -321,6 +350,7 @@ describe("plan management", () => {
       expect(
         cache.readFragment({
           fragment: PlanManagementFragmentDoc,
+          fragmentName: "planManagement",
           id: cache.identify(plan),
         }),
       ).toMatchObject({ name: "Updated elsewhere", color: "#225522" });
@@ -443,6 +473,7 @@ describe("plan management", () => {
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.name,
     ).toBe("Family dinners");
@@ -527,6 +558,7 @@ describe("plan management", () => {
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.name,
     ).toBe(plan.name);
@@ -660,6 +692,7 @@ describe("plan management", () => {
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.name,
     ).toBe(plan.name);
@@ -693,6 +726,7 @@ describe("plan management", () => {
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.color,
     ).toBe("#783232");
