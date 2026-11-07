@@ -1,0 +1,5 @@
+fragment friendAvatar on Friend {
+  name
+  imageUrl
+  email
+}

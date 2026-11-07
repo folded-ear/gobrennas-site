@@ -37,7 +37,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - A user can split preparation out of a planned recipe and schedule that work
   on a different day. The ingredients needed for that preparation stay with
   the split-out work.
-- Plan access distinguishes Admin, Completer, Acquirer, and Viewer.
+- Plan access levels are View, Modify, and Administer.
 
 ### Managing plans
 
@@ -74,6 +74,25 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - Deleting a selected plan removes it from the planner. If no selected plans
   remain, the first remaining accessible plan is selected; with none, the planner
   shows its empty state.
+
+### Sharing a plan
+
+- Plan settings has a Sharing section listing the plan's owner, then everyone
+  the plan is shared with and their access level. With no one else, it says the
+  plan isn't shared with anyone yet.
+- Plan administrators manage sharing. Users who can modify a plan, but not
+  administer it, see the list read-only.
+- To share a plan, an administrator searches friends by name or email, chooses
+  one and an access level (Modify unless changed), and presses Add. Searching
+  starts at two characters and shows up to ten matches, leaving out the owner
+  and everyone who already has access; narrowing the search finds others.
+- Changing someone else's access level saves immediately. A failed change says
+  so and keeps their saved level.
+- Removing someone's access asks for confirmation first, because their item
+  assignments on the plan are cleared too.
+- An administrator who isn't the owner can change or remove their own access,
+  after confirmation. Either returns to the plan list; removing their own access
+  also removes the plan from their planner.
 
 ### The timeline
 
@@ -418,9 +437,6 @@ earlier day, and keep the pumpkin with that work.
   running? Today every dated item shows, however old.
 - What else happens when a plan is marked complete?
 - What can an assignee do that another plan member cannot?
-- Are Admin, Completer, Acquirer, and Viewer permissions that can be combined,
-  or mutually exclusive roles?
-- Can a plan have more than one Admin, or is Admin another name for its owner?
 
 ## Related documents
 

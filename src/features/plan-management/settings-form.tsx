@@ -1,7 +1,7 @@
 "use client";
 
 import { FormTextField } from "@/components/form-text-field";
-import { canChangePlan } from "@/lib/plans";
+import { canAdministerPlan, canChangePlan } from "@/lib/plans";
 import { useMutation } from "@apollo/client/react";
 import { Button, parseColor } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +16,7 @@ import {
 } from "./__generated__/management.generated";
 import { PlanColorField } from "./color-field";
 import { DeletePlanButton } from "./delete-plan-button";
+import { PlanGrants } from "./plan-grants";
 
 const planDetailsSchema = z.object({
   name: z.string().trim().min(1, "Enter a plan name."),
@@ -39,11 +40,12 @@ export type PlanDetailsValues = z.input<typeof planDetailsSchema>;
 
 export function PlanSettingsForm({
   plan,
-  onDeleted,
+  onLeave,
   onBack,
 }: {
   plan: PlanManagementFragment;
-  onDeleted: () => void;
+  /** Called once the viewer can no longer stay here: deleted, or left. */
+  onLeave: () => void;
   onBack?: () => void;
 }) {
   const [rename] = useMutation(RenameManagedPlanDocument);
@@ -159,12 +161,18 @@ export function PlanSettingsForm({
           {saved ? <p role="status">Changes saved.</p> : null}
         </div>
       </form>
+      <PlanGrants
+        plan={plan}
+        canAdminister={canAdministerPlan(plan)}
+        isDisabled={deleting}
+        onLeave={onLeave}
+      />
       <DeletePlanButton
         plan={plan}
         isDisabled={pending}
         isOpen={deleting}
         onOpenChange={setDeleting}
-        onDeleted={onDeleted}
+        onDeleted={onLeave}
       />
     </div>
   );

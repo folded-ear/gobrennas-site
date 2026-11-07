@@ -34,6 +34,13 @@ const plan: Unmasked<PlannerQuery>["planner"]["plans"][number] = {
   mine: true,
   grants: [],
   ownedBy: null,
+  owner: {
+    __typename: "User",
+    id: "me",
+    name: "Barney Boisvert",
+    email: "barney@example.com",
+    imageUrl: null,
+  },
   notes: null,
   buckets: [],
   children: [],
@@ -112,6 +119,13 @@ describe("planner management drawer", () => {
       name: "Family dinners",
       mine: false,
       ownedBy: {
+        __typename: "User",
+        id: "brenna",
+        name: "Brenna",
+        email: "brenna@example.com",
+        imageUrl: null,
+      },
+      owner: {
         __typename: "User",
         id: "brenna",
         name: "Brenna",

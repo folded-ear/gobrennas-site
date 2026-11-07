@@ -11,15 +11,16 @@ export { PlanManagementList } from "./plan-list";
 
 export function PlanManagement({
   plan: reference,
-  onDeleted,
+  onLeave,
   onBack,
 }: {
   plan: { __typename?: "Plan"; id: string };
-  onDeleted: () => void;
+  onLeave: () => void;
   onBack?: () => void;
 }) {
   const { data: plan, complete } = useFragment({
     fragment: PlanManagementFragmentDoc,
+    fragmentName: "planManagement",
     from: reference,
   });
   if (!complete || !canChangePlan(plan))
@@ -28,7 +29,7 @@ export function PlanManagement({
     <PlanSettingsForm
       key={plan.id}
       plan={plan}
-      onDeleted={onDeleted}
+      onLeave={onLeave}
       onBack={onBack}
     />
   );

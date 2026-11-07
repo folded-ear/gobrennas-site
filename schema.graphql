@@ -145,6 +145,23 @@ type FileInfo {
   url: String!
 }
 
+type Friend {
+  email: String!
+  id: ID!
+  imageUrl: String
+  name: String
+}
+
+type FriendConnection {
+  edges: [FriendConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type FriendConnectionEdge {
+  cursor: Cursor!
+  node: Friend!
+}
+
 type IngredientRef {
   ingredient: Ingredient
   preparation: String
@@ -632,6 +649,8 @@ type ProfileQuery {
   may be needed in the future.
   """
   scratchFile(contentType: String!, originalFilename: String): ScratchUpload!
+  "Search friends by name and/or email."
+  searchFriends(search: FriendSearch!): FriendConnection!
 }
 
 type Quantity {
@@ -1040,6 +1059,19 @@ scalar NonNegativeInt
 
 "An Int scalar that must be a positive value"
 scalar PositiveInt
+
+input FriendSearch {
+  "Cursor to find results after. Omit to retrieve the first page."
+  after: Cursor
+  "How many friends to return. If not specified, 10 will be returned."
+  first: NonNegativeInt! = 10
+  """
+
+  Whitespace-separated terms; every term must appear (case-insensitive)
+  in a friend's name or email. Empty matches all friends.
+  """
+  query: String! = ""
+}
 
 input IngredientInfo {
   calories: Int

@@ -9,6 +9,7 @@ import {
   within,
 } from "@/test";
 import { gql } from "@apollo/client";
+import type { Unmasked } from "@apollo/client/masking";
 import { describe, expect, it, vi } from "vitest";
 import {
   ColorManagedPlanDocument,
@@ -22,30 +23,50 @@ import {
 } from "./__generated__/management.generated";
 import { PlanManagement, PlanManagementList } from "./index";
 
-const plan: PlanManagementFragment = {
+type Plan = Unmasked<PlanManagementFragment>;
+
+const plan: Plan = {
   __typename: "Plan",
   id: "weeknight-plan",
   name: "Weeknight dinners",
   color: "#325578",
   mine: true,
+  owner: {
+    __typename: "User",
+    id: "me",
+    name: "Barney Boisvert",
+    email: "barney@example.com",
+    imageUrl: null,
+  },
   grants: [],
 };
 
 function seed(value = plan) {
   const cache = buildInMemoryCache();
-  cache.writeFragment({ fragment: PlanManagementFragmentDoc, data: value });
+  cache.writeFragment({
+    fragment: PlanManagementFragmentDoc,
+    fragmentName: "planManagement",
+    data: value,
+  });
   return cache;
 }
 
-function shared(level: AccessLevel): PlanManagementFragment {
+function shared(level: AccessLevel): Plan {
   return {
     ...plan,
     mine: false,
+    owner: {
+      __typename: "User",
+      id: "brenna",
+      name: "Brenna Switzer",
+      email: "brenna@example.com",
+      imageUrl: null,
+    },
     grants: [
       {
         __typename: "AccessControlEntry",
         level,
-        user: { __typename: "User", id: "me", me: true },
+        user: { ...plan.owner, me: true },
       },
     ],
   };
@@ -68,7 +89,7 @@ describe("plan management", () => {
     "should clear the saved status when the %s field changes",
     async (field) => {
       const user = userEvent.setup();
-      render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+      render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
         cache: seed(),
       });
 
@@ -101,7 +122,7 @@ describe("plan management", () => {
         setColor: { __typename: "Plan", id: plan.id, color: "#783232" },
       },
     };
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache,
       mocks: [
         {
@@ -122,6 +143,7 @@ describe("plan management", () => {
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.color,
     ).toBe(plan.color);
@@ -134,6 +156,7 @@ describe("plan management", () => {
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.color,
     ).toBe("#783232");
@@ -156,7 +179,7 @@ describe("plan management", () => {
           setColor: { __typename: "Plan", id: plan.id, color: "#783232" },
         },
       };
-      render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+      render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
         cache,
         mocks:
           edited === "name"
@@ -191,6 +214,7 @@ describe("plan management", () => {
       act(() => {
         cache.writeFragment({
           fragment: PlanManagementFragmentDoc,
+          fragmentName: "planManagement",
           data: {
             ...plan,
             ...(edited === "name"
@@ -206,6 +230,7 @@ describe("plan management", () => {
       expect(
         cache.readFragment({
           fragment: PlanManagementFragmentDoc,
+          fragmentName: "planManagement",
           id: cache.identify(plan),
         }),
       ).toMatchObject(
@@ -252,7 +277,7 @@ describe("plan management", () => {
         query: ColorManagedPlanDocument,
         variables: { id: plan.id, color: "#783232" },
       };
-      render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+      render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
         cache,
         mocks: [
           {
@@ -283,6 +308,7 @@ describe("plan management", () => {
         expect(
           cache.readFragment({
             fragment: PlanManagementFragmentDoc,
+            fragmentName: "planManagement",
             id: cache.identify(plan),
           }),
         ).toMatchObject({ name: "Family dinners", color: plan.color });
@@ -290,6 +316,7 @@ describe("plan management", () => {
         act(() => {
           cache.writeFragment({
             fragment: PlanManagementFragmentDoc,
+            fragmentName: "planManagement",
             data: { ...plan, name: "Meals from another device" },
           });
         });
@@ -301,6 +328,7 @@ describe("plan management", () => {
       expect(
         cache.readFragment({
           fragment: PlanManagementFragmentDoc,
+          fragmentName: "planManagement",
           id: cache.identify(plan),
         }),
       ).toMatchObject({
@@ -311,6 +339,7 @@ describe("plan management", () => {
       act(() => {
         cache.writeFragment({
           fragment: PlanManagementFragmentDoc,
+          fragmentName: "planManagement",
           data: { ...plan, name: "Updated elsewhere", color: "#225522" },
         });
       });
@@ -321,6 +350,7 @@ describe("plan management", () => {
       expect(
         cache.readFragment({
           fragment: PlanManagementFragmentDoc,
+          fragmentName: "planManagement",
           id: cache.identify(plan),
         }),
       ).toMatchObject({ name: "Updated elsewhere", color: "#225522" });
@@ -329,7 +359,7 @@ describe("plan management", () => {
 
   it("should disable both fields and deletion while saving color", async () => {
     const user = userEvent.setup();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(),
       mocks: [
         {
@@ -359,7 +389,7 @@ describe("plan management", () => {
   });
 
   it("should render the current name, color picker, and delete action", () => {
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(),
     });
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
@@ -375,7 +405,7 @@ describe("plan management", () => {
 
   it("should allow change access to rename and recolor but not delete", () => {
     const value = shared(AccessLevel.CHANGE);
-    render(<PlanManagement plan={value} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={value} onLeave={vi.fn()} />, {
       cache: seed(value),
     });
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
@@ -391,7 +421,7 @@ describe("plan management", () => {
 
   it("should offer deletion to a shared administrator", () => {
     const value = shared(AccessLevel.ADMINISTER);
-    render(<PlanManagement plan={value} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={value} onLeave={vi.fn()} />, {
       cache: seed(value),
     });
     expect(
@@ -401,7 +431,7 @@ describe("plan management", () => {
 
   it("should reject a blank name and focus the field", async () => {
     const user = userEvent.setup();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(),
     });
     const name = screen.getByRole("textbox", { name: "Name" });
@@ -421,7 +451,7 @@ describe("plan management", () => {
         rename: { __typename: "Plan", id: plan.id, name: "Family dinners" },
       },
     };
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache,
       mocks: [
         {
@@ -443,6 +473,7 @@ describe("plan management", () => {
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.name,
     ).toBe("Family dinners");
@@ -463,7 +494,7 @@ describe("plan management", () => {
       query: RenameManagedPlanDocument,
       variables: { id: plan.id, name: "Family dinners" },
     };
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(),
       mocks: [
         { request, error: new Error("Offline") },
@@ -488,7 +519,7 @@ describe("plan management", () => {
 
   it("should disable management controls while saving the name", async () => {
     const user = userEvent.setup();
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache: seed(),
       mocks: [
         {
@@ -516,17 +547,18 @@ describe("plan management", () => {
   it("should ask before deleting and leave the plan untouched on cancel", async () => {
     const user = userEvent.setup();
     const cache = seed();
-    const onDeleted = vi.fn();
-    render(<PlanManagement plan={plan} onDeleted={onDeleted} />, { cache });
+    const onLeave = vi.fn();
+    render(<PlanManagement plan={plan} onLeave={onLeave} />, { cache });
     await user.click(screen.getByRole("button", { name: "Delete plan" }));
     expect(screen.getByRole("alertdialog")).toHaveTextContent(
       "permanently deletes",
     );
     await user.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(onDeleted).not.toHaveBeenCalled();
+    expect(onLeave).not.toHaveBeenCalled();
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.name,
     ).toBe(plan.name);
@@ -535,7 +567,7 @@ describe("plan management", () => {
   it("should remove a deleted plan from cached lists without affecting other plans", async () => {
     const user = userEvent.setup();
     const cache = seed();
-    const onDeleted = vi.fn();
+    const onLeave = vi.fn();
     const query = gql`
       query ManagementPlans {
         planner {
@@ -594,7 +626,7 @@ describe("plan management", () => {
         deletePlan: { __typename: "Deletion", id: plan.id },
       },
     };
-    render(<PlanManagement plan={plan} onDeleted={onDeleted} />, {
+    render(<PlanManagement plan={plan} onLeave={onLeave} />, {
       cache,
       mocks: [
         {
@@ -612,7 +644,7 @@ describe("plan management", () => {
         name: "Delete plan",
       }),
     );
-    await waitFor(() => expect(onDeleted).toHaveBeenCalledOnce());
+    await waitFor(() => expect(onLeave).toHaveBeenCalledOnce());
     expect(cache.readQuery({ query })).toEqual({
       planner: {
         __typename: "PlannerQuery",
@@ -634,8 +666,8 @@ describe("plan management", () => {
   it("should keep the plan and confirmation available after deletion fails", async () => {
     const user = userEvent.setup();
     const cache = seed();
-    const onDeleted = vi.fn();
-    render(<PlanManagement plan={plan} onDeleted={onDeleted} />, {
+    const onLeave = vi.fn();
+    render(<PlanManagement plan={plan} onLeave={onLeave} />, {
       cache,
       mocks: [
         {
@@ -656,10 +688,11 @@ describe("plan management", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Plan could not be deleted",
     );
-    expect(onDeleted).not.toHaveBeenCalled();
+    expect(onLeave).not.toHaveBeenCalled();
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.name,
     ).toBe(plan.name);
@@ -675,7 +708,7 @@ describe("plan management", () => {
         setColor: { __typename: "Plan", id: plan.id, color: "#783232" },
       },
     };
-    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+    render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {
       cache,
       mocks: [
         {
@@ -693,6 +726,7 @@ describe("plan management", () => {
     expect(
       cache.readFragment({
         fragment: PlanManagementFragmentDoc,
+        fragmentName: "planManagement",
         id: cache.identify(plan),
       })?.color,
     ).toBe("#783232");

@@ -289,7 +289,7 @@ export function Planner() {
               <PlanManagement
                 plan={shownPlan}
                 onBack={() => open.replace({ manage: true })}
-                onDeleted={() => open.replace({ manage: true })}
+                onLeave={() => open.replace({ manage: true })}
               />
             ) : isManaging(shownOpen) ? (
               <PlanManagementList
