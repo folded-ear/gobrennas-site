@@ -1,8 +1,12 @@
 import { usePreference } from "@/hooks/use-preference";
 import { useSetPreference } from "@/hooks/use-set-preference";
+import {
+  PickablePlan,
+  resolveSelection,
+  SelectionMode,
+} from "@/lib/plan-selection";
 import { formatIdSet, parseIdSet } from "@/lib/preferences";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { PickablePlan, resolveSelection, SelectionMode } from "./selection";
 
 function parse(value: string | null | undefined, mode: SelectionMode) {
   if (mode === "multiple") return parseIdSet(value);

@@ -44,8 +44,12 @@ Delivery: Built
 - Selecting recipe detail from the Library opens it over the Library. Direct
   detail and editor addresses use full-page fallbacks.
 - Each Library card has a button named for the active plan. It adds the recipe
-  to that plan the same way detail's Add to plan does: one add at a time, a
+  to that plan the same way detail's send to plan does: one add at a time, a
   toast confirming the destination on success, and a toast reporting failure.
+  Long plan names are truncated. When the active plan is view only, the button
+  is disabled and explains "This plan is view only" on hover or focus.
+- The Library header's plan picker lists view-only plans, dimmed and marked
+  "This plan is view only", and doesn't let them be chosen.
 - Each Library card has a favorite toggle beside Edit. Its bookmark is filled
   when selected. Saving disables the toggle; a failed save keeps the previous
   state and reports an error so the person can try again.
@@ -88,15 +92,19 @@ Delivery: Built
   saved order, each with its own heading, ingredients, and directions.
 - Source URLs using HTTP or HTTPS open in a new tab. Other saved source text is
   displayed as text.
-- A sticky action bar keeps Add to plan and Close visible while reading, in both
-  the drawer and full-page view. On phones, actions sit below the recipe title.
+- A sticky action bar keeps send to plan and Close visible while reading, in
+  both the drawer and full-page view. On phones, actions sit below the recipe title.
   Closing the drawer returns to the previous view; closing the full page returns
   to the Library.
-- Add to plan opens a chooser containing owned plans and shared plans the viewer
-  can change. Plans load only when requested; loading failures can be retried and
-  an empty chooser explains that there are no editable plans. Adding uses the
-  saved recipe quantities, prevents repeated clicks while pending, confirms the
-  destination on success, and allows retry after failure.
+- Send to plan is a split button. Its main part is named for the active plan
+  and adds the recipe to it, like a Library card's button, including its
+  view-only behavior. Its menu, Choose a plan, lists owned plans apart from
+  shared ones; view-only plans are dimmed, marked "This plan is view only", and
+  can't be chosen. Choosing a plan adds the recipe to it once, without changing
+  the active plan. The menu stays available when the active plan is view only.
+- Adding uses the saved recipe quantities, prevents repeated clicks while
+  pending, confirms the destination on success, and allows retry after
+  failure.
 - The owner can open More recipe actions for Edit recipe and a separated Delete
   recipe action. Other people see neither action. Deletion uses the confirmation
   and recovery behavior below and returns to the Library on success.

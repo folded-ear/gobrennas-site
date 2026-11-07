@@ -2,8 +2,6 @@
 
 import { LibrarySearchScope } from "@/__generated__/graphql";
 import { RecipeCard } from "@/features/recipe-card";
-import { usePreference } from "@/hooks/use-preference";
-import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { useSuspenseQuery } from "@apollo/client/react";
 import { Spinner } from "@heroui/react";
 import { useMemo, useTransition } from "react";
@@ -16,9 +14,8 @@ interface RecipeGridProps {
 }
 
 export function RecipeGrid({ query, scope }: RecipeGridProps) {
-  const activePlanId = usePreference(PREF_ACTIVE_PLAN)!;
   const { data, error, fetchMore } = useSuspenseQuery(GetRecipeGridDocument, {
-    variables: { query, scope, activePlanId },
+    variables: { query, scope },
   });
   const [loading, doLoadMore] = useTransition();
 

@@ -42,10 +42,19 @@ function show(doneAt?: string, mocks: MockLink.MockedResponse[] = []) {
     {
       planner: {
         __typename: "PlannerQuery",
-        plan: { __typename: "Plan", id: "week", name: "Our Week" },
+        plans: [
+          {
+            __typename: "Plan",
+            id: "week",
+            name: "Our Week",
+            color: "#f5cd06",
+            mine: true,
+            grants: [],
+          },
+        ],
       },
     },
-    { id: "ROOT_QUERY", variables: { activePlanId: "week" } },
+    { id: "ROOT_QUERY" },
   );
   const recipe = seedFragment(cache, RecipeCardFragmentDoc, "recipeCard", {
     __typename: "Recipe",

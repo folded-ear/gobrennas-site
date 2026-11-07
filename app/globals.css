@@ -11,6 +11,8 @@
   --section-nav-clearance: calc(
     var(--section-nav-height) + env(safe-area-inset-bottom)
   );
+  /* Past this width, a send-to-plan button truncates its plan's name. */
+  --send-to-plan-name-width: 12ch;
 }
 
 @theme {

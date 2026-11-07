@@ -5,8 +5,6 @@ import { RecipeActionBar } from "@/components/recipe-action-bar";
 import { formatLastCooked } from "@/features/recipe-card/utils";
 import { SendToPlan } from "@/features/send-to-plan";
 import { OtherUserAvatar } from "@/features/user-avatar";
-import { usePreference } from "@/hooks/use-preference";
-import { PREF_ACTIVE_PLAN } from "@/lib/preferences";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Button, Card, Chip } from "@heroui/react";
@@ -24,7 +22,6 @@ type RecipeCardProps = {
 };
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
-  const activePlanId = usePreference(PREF_ACTIVE_PLAN)!;
   const router = useRouter();
   const { data, complete } = useFragment({
     fragment: RecipeCardFragmentDoc,
@@ -95,12 +92,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
               <RecipeViewIcon />
             </Button>
           </RecipeActionBar>
-          <SendToPlan
-            variant="tertiary"
-            size="sm"
-            recipeId={data.id}
-            activePlanId={activePlanId}
-          />
+          <SendToPlan variant="tertiary" size="sm" recipeId={data.id} />
         </Card.Footer>
       </div>
     </Card>

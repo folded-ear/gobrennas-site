@@ -3,7 +3,6 @@ query getRecipeGrid(
   $scope: LibrarySearchScope! = MINE
   $first: NonNegativeInt! = 12
   $after: Cursor = null
-  $activePlanId: ID!
 ) {
   library {
     recipes(first: $first, query: $query, scope: $scope, after: $after) {

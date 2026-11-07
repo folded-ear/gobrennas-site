@@ -1,7 +1,7 @@
 "use client";
 
-import { AddRecipeToPlan } from "@/features/add-recipe-to-plan";
 import { DeleteRecipeDialog } from "@/features/recipe-form/delete-recipe-button";
+import { SendToPlan } from "@/features/send-to-plan";
 import { Button, Dropdown, Label, Separator } from "@heroui/react";
 import { Copy, Ellipsis, Pencil, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -51,7 +51,7 @@ export function LibraryRecipeActions({
   const more = useRef<HTMLButtonElement>(null);
   return (
     <>
-      <AddRecipeToPlan recipeId={recipe.id} />
+      <SendToPlan recipeId={recipe.id} variant="primary" choosable />
       <Dropdown>
         <Button
           ref={more}

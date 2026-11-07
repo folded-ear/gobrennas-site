@@ -102,7 +102,7 @@ variables in, result out, matched against the operations the component
 fires:
 
 ```tsx
-render(<SendToPlan recipeId={recipeId} activePlanId={planId} />, {
+render(<SendToPlan recipeId={recipeId} />, {
   mocks: [
     {
       request: { query: DoSendToPlanDocument, variables: { recipeId, planId } },

@@ -41,6 +41,7 @@ function seededWithPlan() {
             mine: true,
             name: "Thanksgiving",
             color: "#F57F17",
+            grants: [],
           },
         ],
       },

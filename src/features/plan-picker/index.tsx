@@ -1,11 +1,13 @@
 "use client";
 
 import PlanAvatar from "@/components/plan-avatar";
+import { groupPlans, PlanGroup, PlanOption } from "@/components/plan-option";
+import { SelectionMode } from "@/lib/plan-selection";
 import { orderPlans } from "@/lib/plans";
-import { Header, Key, Label, ListBox, Select, Separator } from "@heroui/react";
+import { Header, Key, ListBox, Select, Separator } from "@heroui/react";
 import clsx from "clsx";
+import { Fragment } from "react";
 import { PlanPickerPlanFragment } from "./__generated__/planPickerPlan.generated";
-import { SelectionMode } from "./selection";
 
 type Plan = PlanPickerPlanFragment;
 
@@ -19,6 +21,8 @@ type PlanPickerProps = {
   hideSingleName?: boolean;
   /** A small, natural-width trigger with a dot for the selected plan. */
   compact?: boolean;
+  /** Plans I list but don't let be picked. */
+  disabledIds?: readonly string[];
 };
 
 type AvatarGroupProps = {
@@ -52,26 +56,28 @@ function AvatarGroup({ label, plans }: AvatarGroupProps) {
 }
 
 type PlanSectionProps = {
-  title: string;
-  plans: readonly Plan[];
+  group: PlanGroup<Plan>;
+  disabledIds: readonly string[];
 };
 
-function PlanSection({ title, plans }: PlanSectionProps) {
+function PlanSection({ group, disabledIds }: PlanSectionProps) {
   return (
     <ListBox.Section>
-      <Header>{title}</Header>
-      {plans.map((plan) => (
-        <ListBox.Item key={plan.id} id={plan.id} textValue={plan.name}>
-          {({ isSelected }) => (
-            <>
-              <PlanAvatar
-                plan={plan}
-                selected={isSelected}
-                size="sm"
-                aria-hidden
-              />
-              <Label>{plan.name}</Label>
-            </>
+      <Header>{group.title}</Header>
+      {group.plans.map((plan) => (
+        <ListBox.Item
+          key={plan.id}
+          id={plan.id}
+          textValue={plan.name}
+          aria-label={plan.name}
+          isDisabled={disabledIds.includes(plan.id)}
+        >
+          {({ isSelected, isDisabled }) => (
+            <PlanOption
+              plan={plan}
+              selected={isSelected}
+              disabled={isDisabled}
+            />
           )}
         </ListBox.Item>
       ))}
@@ -94,11 +100,10 @@ export function PlanPicker({
   compact = false,
   // if not specified, default to compact
   hideSingleName = compact,
+  disabledIds = [],
 }: PlanPickerProps) {
   if (plans.length < 2) return null;
 
-  const mine = plans.filter((it) => it.mine);
-  const shared = plans.filter((it) => !it.mine);
   const selected = orderPlans(plans).filter((it) =>
     selectedIds.includes(it.id),
   );
@@ -154,13 +159,12 @@ export function PlanPicker({
       </Select.Trigger>
       <Select.Popover>
         <ListBox selectionMode={selectionMode} disallowEmptySelection>
-          {mine.length > 0 ? (
-            <PlanSection title="My Plans" plans={mine} />
-          ) : null}
-          {mine.length > 0 && shared.length > 0 ? <Separator /> : null}
-          {shared.length > 0 ? (
-            <PlanSection title="Shared Plans" plans={shared} />
-          ) : null}
+          {groupPlans(plans).map((group, i) => (
+            <Fragment key={group.title}>
+              {i > 0 ? <Separator /> : null}
+              <PlanSection group={group} disabledIds={disabledIds} />
+            </Fragment>
+          ))}
         </ListBox>
       </Select.Popover>
     </Select>

@@ -20,7 +20,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { expect, it, vi } from "vitest";
 import { GetRecipeDetailDocument } from "./__generated__/getRecipeDetail.generated";
 import { RecipeDetail } from "./index";
-import { recipe } from "./test/recipe";
+import { planner, recipe } from "./test/recipe";
 
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -29,7 +29,6 @@ vi.mock("next/navigation", () => ({
 const variables = {
   query: "",
   scope: LibrarySearchScope.MINE,
-  activePlanId: "7",
 };
 const emptyGrid = {
   library: {
@@ -40,10 +39,7 @@ const emptyGrid = {
       pageInfo: { __typename: "PageInfo", hasNextPage: false, endCursor: null },
     },
   },
-  planner: {
-    __typename: "PlannerQuery",
-    plan: { __typename: "Plan", id: "7", name: "Dinner" },
-  },
+  planner,
 } satisfies Unmasked<GetRecipeGridQuery>;
 
 // Subscribe to the real grid query; rendering cards is irrelevant to cache broadcasts.
@@ -98,7 +94,10 @@ it("keeps deletion safe when the library refreshes before navigation finishes", 
   cache.writeQuery({
     query: GetRecipeDetailDocument,
     variables: { id: "pie" },
-    data: { library: { __typename: "LibraryQuery", getRecipeById: recipe } },
+    data: {
+      library: { __typename: "LibraryQuery", getRecipeById: recipe },
+      planner,
+    },
   });
   const { rerender } = render(<Page />, {
     cache,
