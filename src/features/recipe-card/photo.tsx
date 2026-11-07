@@ -9,6 +9,7 @@ import { useFragment, useMutation } from "@apollo/client/react";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
 import { CloudUpload } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   CardPhotoFragment,
@@ -79,14 +80,22 @@ export function CardPhoto({
 
   if (!complete) return null;
   const canUpload = data.mine && !data.photo;
+  // A quarter of each card, accounting for library padding and grid gaps.
+  const sizes =
+    "(min-width: 64rem) calc((100vw - 56px) / 12), (min-width: 48rem) calc((100vw - 40px) / 8), calc((100vw - 24px) / 4)";
   return (
     <>
-      {/* A quarter of each card, accounting for library padding and grid gaps. */}
-      {!canUpload && (
-        <RecipePhoto
-          recipe={data}
-          sizes="(min-width: 64rem) calc((100vw - 56px) / 12), (min-width: 48rem) calc((100vw - 40px) / 8), calc((100vw - 24px) / 4)"
-        />
+      {!canUpload && !data.photo && <RecipePhoto recipe={data} sizes={sizes} />}
+      {data.photo && (
+        // The title already links here for keyboard and screen reader users.
+        <Link
+          href={`/recipes/${data.id}`}
+          tabIndex={-1}
+          aria-hidden="true"
+          className="absolute inset-0"
+        >
+          <RecipePhoto recipe={data} sizes={sizes} />
+        </Link>
       )}
       {canUpload ? (
         <div

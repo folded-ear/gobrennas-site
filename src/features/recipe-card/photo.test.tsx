@@ -131,13 +131,16 @@ describe("library photo shortcut", () => {
         screen.queryByRole("button", { name: "Add photo: Lentil soup" }),
       ).not.toBeInTheDocument(),
     );
-    expect(screen.getByRole("img", { name: "Lentil soup" })).toHaveAttribute(
-      "src",
-      expect.stringContaining("soup.jpg"),
-    );
-    expect(screen.getByRole("img", { name: "Lentil soup" })).toHaveStyle({
-      objectPosition: "50% 50%",
+    const image = screen.getByRole("img", {
+      name: "Lentil soup",
+      hidden: true,
     });
+    expect(image).toHaveAttribute("src", expect.stringContaining("soup.jpg"));
+    expect(image).toHaveStyle({ objectPosition: "50% 50%" });
+    expect(screen.getByRole("link", { hidden: true })).toHaveAttribute(
+      "href",
+      "/recipes/soup",
+    );
     expect(
       cache.readFragment({
         id: "Ingredient:soup",
@@ -213,22 +216,34 @@ describe("library photo shortcut", () => {
     },
   );
 
-  it.each([
-    { mine: false, photo: null },
-    { mine: true, photo: PHOTO },
-  ])(
-    "keeps a recipe with mine=$mine and photo=$photo read-only",
-    ({ mine, photo }) => {
-      show({ mine, photo });
-      expect(
-        screen.getByRole("img", { name: "Lentil soup" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.queryByRole("button", { name: "Add photo: Lentil soup" }),
-      ).not.toBeInTheDocument();
+  it("shows another person's photoless recipe as an inert default image", async () => {
+    show({ mine: false, photo: null });
+    expect(screen.getByRole("img", { name: "Lentil soup" })).toBeVisible();
+    expect(
+      screen.queryByRole("link", { hidden: true }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Add photo: Lentil soup" }),
+    ).not.toBeInTheDocument();
+    await userEvent.tab();
+    expect(document.body).toHaveFocus();
+  });
+
+  it.each([true, false])(
+    "opens the recipe from an actual photo (mine=%s) without a tab stop or announcement",
+    async (mine) => {
+      show({ mine, photo: PHOTO });
+      expect(screen.getByRole("link", { hidden: true })).toHaveAttribute(
+        "href",
+        "/recipes/soup",
+      );
+      expect(screen.queryByRole("link")).not.toBeInTheDocument();
+      expect(screen.queryByRole("img")).not.toBeInTheDocument();
       expect(
         screen.queryByLabelText("Photo for Lentil soup"),
       ).not.toBeInTheDocument();
+      await userEvent.tab();
+      expect(document.body).toHaveFocus();
     },
   );
 
