@@ -437,9 +437,6 @@ earlier day, and keep the pumpkin with that work.
   running? Today every dated item shows, however old.
 - What else happens when a plan is marked complete?
 - What can an assignee do that another plan member cannot?
-- Are Admin, Completer, Acquirer, and Viewer permissions that can be combined,
-  or mutually exclusive roles?
-- Can a plan have more than one Admin, or is Admin another name for its owner?
 
 ## Related documents
 
