@@ -1,5 +1,6 @@
 import { AccessLevel } from "@/__generated__/graphql";
 import { FriendAvatar } from "@/features/friend-avatar";
+import { displayName } from "@/lib/people";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { Button, ComboBox, Input, Label, ListBox } from "@heroui/react";
 import { useDeferredValue, useState } from "react";
@@ -19,10 +20,6 @@ type Chosen = {
   id: string;
   name: string;
 };
-
-function displayName(friend: { name: string | null; email: string }) {
-  return friend.name ?? friend.email;
-}
 
 /** I share a plan with a friend, found by name or email. */
 export function GrantAdd({
@@ -99,6 +96,7 @@ export function GrantAdd({
         onInputChange={(value) => {
           setInput(value);
           setFailed(null);
+          if (chosen && value !== chosen.name) setChosen(null);
         }}
         onSelectionChange={(key) => {
           const friend = friends.find((it) => it.id === key);

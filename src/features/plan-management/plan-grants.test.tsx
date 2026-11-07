@@ -430,6 +430,26 @@ describe("plan sharing", () => {
     expect(add).toBeDisabled();
   });
 
+  it("forgets the chosen friend once their name is edited away", async () => {
+    const user = userEvent.setup();
+    const plan = myPlan([]);
+    render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {
+      cache: seed(plan),
+      mocks: [searchFriends("Pa", [PAT])],
+    });
+    const search = within(sharing()).getByRole("combobox", {
+      name: "Add person",
+    });
+    const add = within(sharing()).getByRole("button", { name: "Add" });
+
+    await user.type(search, "Pa");
+    await user.click(await screen.findByRole("option", { name: /Pat/ }));
+    expect(add).toBeEnabled();
+    await user.type(search, "{Backspace}");
+
+    expect(add).toBeDisabled();
+  });
+
   it("shows sharing read-only to people who can modify but not administer", () => {
     const plan = brennasPlan(AccessLevel.CHANGE);
     render(<PlanManagement plan={plan} onDeleted={vi.fn()} />, {

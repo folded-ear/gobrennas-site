@@ -1,3 +1,4 @@
+import { displayName } from "@/lib/people";
 import { Avatar, type AvatarRootProps } from "@heroui/react";
 import { getImageProps } from "next/image";
 import { useMemo } from "react";
@@ -19,7 +20,7 @@ export function PersonAvatar({
   imageUrl,
   size = "sm",
 }: PersonAvatarProps) {
-  const label = name ?? email;
+  const label = displayName({ name, email });
   const imgProps = useMemo(() => {
     if (!imageUrl || process.env.NEXT_PUBLIC_CACHE_USER_AVATARS !== "true") {
       return {

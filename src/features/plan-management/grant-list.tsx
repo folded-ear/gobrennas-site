@@ -1,6 +1,7 @@
 import { AccessLevel } from "@/__generated__/graphql";
 import { DeleteDialog } from "@/components/delete-dialog";
 import { UserAvatar } from "@/features/user-avatar";
+import { displayName } from "@/lib/people";
 import { accessLevelLabel } from "@/lib/plans";
 import { useMutation } from "@apollo/client/react";
 import { Button } from "@heroui/react";
@@ -15,10 +16,6 @@ import { LevelSelect } from "./level-select";
 
 type Person = PlanGrantsFragment["owner"];
 type Grant = PlanGrantsFragment["grants"][number];
-
-function displayName(person: { name: string | null; email: string }) {
-  return person.name ?? person.email;
-}
 
 function PersonRow({
   person,
@@ -86,7 +83,7 @@ function GrantRow({
   }
 
   function changeLevel(level: AccessLevel) {
-    if (level === grant.level || pendingLevel) return;
+    if (level === grant.level || pendingLevel !== null) return;
     setFailed(false);
     if (self) {
       setConfirmLevel(level);
