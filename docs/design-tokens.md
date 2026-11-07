@@ -147,3 +147,9 @@ light/dark with the switch at the top of the page.
 `--section-nav-clearance` adds the device's bottom safe-area inset. The private
 layout uses that clearance for padding; planner and cook screens subtract it
 from the viewport height so their scroll areas fit above navigation.
+
+## Send-to-plan name width
+
+`--send-to-plan-name-width` caps how much of the active plan's name a
+send-to-plan button shows before truncating it with an ellipsis. It's tuned
+by eye; the full name stays in the button's accessible name.
