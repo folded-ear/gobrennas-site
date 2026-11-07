@@ -1,8 +1,7 @@
+import { PersonAvatar } from "@/components/person-avatar";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Avatar, AvatarRootProps } from "@heroui/react";
-import { getImageProps } from "next/image";
-import { useMemo } from "react";
 import {
   UserAvatarFragment,
   UserAvatarFragmentDoc,
@@ -20,37 +19,14 @@ export function UserAvatar({ user, size = DEFAULT_SIZE }: UserAvatarProps) {
     fragment: UserAvatarFragmentDoc,
     from: user,
   });
-  const name = data.name ?? data.email ?? "";
-  const imgProps = useMemo(() => {
-    if (
-      !data.imageUrl ||
-      process.env.NEXT_PUBLIC_CACHE_USER_AVATARS !== "true"
-    ) {
-      return {
-        src: data.imageUrl ?? undefined,
-        alt: name,
-      };
-    }
-    const { props } = getImageProps({
-      src: data.imageUrl,
-      alt: name,
-      fill: true,
-      sizes: "48px",
-    });
-    return props;
-  }, [name, data.imageUrl]);
   if (!complete) return null;
   return (
-    <Avatar size={size} title={name}>
-      <Avatar.Image {...imgProps} />
-      <Avatar.Fallback>
-        {imgProps.alt
-          .split(/\s+/)
-          .filter((s) => s)
-          .map((s) => s.charAt(0))
-          .join("")}
-      </Avatar.Fallback>
-    </Avatar>
+    <PersonAvatar
+      name={data.name}
+      email={data.email}
+      imageUrl={data.imageUrl}
+      size={size}
+    />
   );
 }
 
