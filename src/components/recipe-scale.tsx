@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@heroui/react";
+import { Button, ButtonGroup } from "@heroui/react";
 
 const PRESETS = [
   [0.25, "¼×"],
@@ -20,15 +20,10 @@ export function RecipeScale({
   isDisabled?: boolean;
 }) {
   return (
-    <div
-      className="flex flex-wrap items-end gap-sm"
-      role="group"
-      aria-label="Recipe scale"
-    >
+    <ButtonGroup size="sm" aria-label="Recipe scale">
       {PRESETS.map(([scale, label]) => (
         <Button
           key={scale}
-          size="sm"
           variant={value === scale ? "primary" : "secondary"}
           aria-pressed={value === scale}
           isDisabled={isDisabled}
@@ -37,6 +32,6 @@ export function RecipeScale({
           {label}
         </Button>
       ))}
-    </div>
+    </ButtonGroup>
   );
 }
