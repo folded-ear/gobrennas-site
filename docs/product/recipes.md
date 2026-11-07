@@ -60,6 +60,10 @@ Delivery: Built
   focus. The saved photo replaces the placeholder without opening the editor.
   Progress appears in the placeholder; errors leave it available to try again.
   Existing photos and other people's recipes do not offer this shortcut.
+- A Library card's photo opens the recipe, like its title. The photo link is
+  pointer-only: it is not a tab stop and is hidden from screen readers, since
+  the title already links there. The default image shown for a recipe without
+  a photo does nothing when pressed.
 
 ### Reading a library recipe
 
