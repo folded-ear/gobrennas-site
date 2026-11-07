@@ -1,7 +1,7 @@
 "use client";
 
 import { FormTextField } from "@/components/form-text-field";
-import { canChangePlan } from "@/lib/plans";
+import { canAdministerPlan, canChangePlan } from "@/lib/plans";
 import { useMutation } from "@apollo/client/react";
 import { Button, parseColor } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +16,7 @@ import {
 } from "./__generated__/management.generated";
 import { PlanColorField } from "./color-field";
 import { DeletePlanButton } from "./delete-plan-button";
+import { PlanGrants } from "./plan-grants";
 
 const planDetailsSchema = z.object({
   name: z.string().trim().min(1, "Enter a plan name."),
@@ -159,6 +160,12 @@ export function PlanSettingsForm({
           {saved ? <p role="status">Changes saved.</p> : null}
         </div>
       </form>
+      <PlanGrants
+        plan={plan}
+        canAdminister={canAdministerPlan(plan)}
+        isDisabled={pending || deleting}
+        onLeave={onDeleted}
+      />
       <DeletePlanButton
         plan={plan}
         isDisabled={pending}

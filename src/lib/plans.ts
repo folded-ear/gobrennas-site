@@ -42,3 +42,18 @@ export function canAdministerPlan(plan: PlanAccess): boolean {
     )
   );
 }
+
+/** Access levels from least to most, with what the planner calls them. */
+export const ACCESS_LEVELS: readonly {
+  readonly level: AccessLevel;
+  readonly label: string;
+}[] = [
+  { level: AccessLevel.VIEW, label: "View" },
+  { level: AccessLevel.CHANGE, label: "Modify" },
+  { level: AccessLevel.ADMINISTER, label: "Administer" },
+];
+
+/** I name an access level the way the planner does. */
+export function accessLevelLabel(level: AccessLevel): string {
+  return ACCESS_LEVELS.find((it) => it.level === level)?.label ?? level;
+}

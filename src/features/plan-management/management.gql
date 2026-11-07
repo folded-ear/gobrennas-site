@@ -88,6 +88,7 @@ mutation DeleteManagedPlan($id: ID!) {
 mutation SetPlanGrant($planId: ID!, $userId: ID!, $level: AccessLevel!) {
   planner {
     setGrant(planId: $planId, userId: $userId, accessLevel: $level) {
+      id
       ...planGrants
     }
   }
@@ -96,6 +97,7 @@ mutation SetPlanGrant($planId: ID!, $userId: ID!, $level: AccessLevel!) {
 mutation RevokePlanGrant($planId: ID!, $userId: ID!) {
   planner {
     revokeGrant(planId: $planId, userId: $userId) {
+      id
       ...planGrants
     }
   }

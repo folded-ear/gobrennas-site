@@ -11,6 +11,8 @@ type DeleteDialogProps = {
   confirmLabel: string;
   /** Names the deletion under way for assistive technology. */
   pendingLabel: string;
+  /** What my confirming button says while the deletion is under way. */
+  pendingText?: string;
   failureTitle: string;
   failureDescription: string;
   isOpen: boolean;
@@ -28,6 +30,7 @@ export function DeleteDialog({
   children,
   confirmLabel,
   pendingLabel,
+  pendingText = "Deleting…",
   failureTitle,
   failureDescription,
   isOpen,
@@ -111,7 +114,7 @@ export function DeleteDialog({
                         color="current"
                         aria-label={pendingLabel}
                       />
-                      Deleting…
+                      {pendingText}
                     </>
                   ) : (
                     confirmLabel
