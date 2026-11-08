@@ -3,7 +3,6 @@
 import PlanAvatar from "@/components/plan-avatar";
 import { groupPlans, PlanGroup, PlanOption } from "@/components/plan-option";
 import { SelectionMode } from "@/lib/plan-selection";
-import { orderPlans } from "@/lib/plans";
 import { Button, Header, Key, ListBox, Select, Separator } from "@heroui/react";
 import { selectVariants } from "@heroui/styles";
 import clsx from "clsx";
@@ -164,6 +163,7 @@ function PlanToggle({
   const hintId = useId();
   return (
     <span
+      title={isOnlySelected ? LAST_PLAN_HINT : undefined}
       className={clsx(
         "pointer-events-auto inline-flex",
         fillSlot === undefined ? undefined : HIDDEN_BY_FILL_SLOT[fillSlot],
@@ -178,7 +178,9 @@ function PlanToggle({
         isIconOnly
         size="sm"
         variant="ghost"
-        className="rounded-full"
+        className={clsx("rounded-full", {
+          "disabled:opacity-100": isOnlySelected && !isDisabled,
+        })}
         aria-label={plan.name}
         aria-pressed={selected}
         aria-describedby={isOnlySelected ? hintId : undefined}
@@ -200,7 +202,6 @@ function MultiplePlanPicker({
   disabledIds,
 }: Required<Omit<PlanPickerProps, "selectionMode" | "compact">>) {
   const [recentIds, setRecentIds] = useState<readonly string[]>([]);
-  const [isOpen, setOpen] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
 
   const change = (ids: string[]) => {
@@ -221,7 +222,7 @@ function MultiplePlanPicker({
         : [...selectedIds, id],
     );
 
-  const sides = groupPlans(orderPlans(plans))
+  const sides = groupPlans(plans)
     .map((group) => ({
       title: group.title,
       ...layoutTriggerSide(group.plans, selectedIds, recentIds),
@@ -249,8 +250,6 @@ function MultiplePlanPicker({
         aria-label={label}
         selectionMode="multiple"
         value={[...selectedIds]}
-        isOpen={isOpen}
-        onOpenChange={setOpen}
         onChange={(value) => {
           const ids = selectionKeys(value);
           // A selection is never empty; the last plan can't be unpicked.

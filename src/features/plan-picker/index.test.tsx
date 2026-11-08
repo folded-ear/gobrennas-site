@@ -140,6 +140,7 @@ describe("PlanPicker", () => {
     const weeknights = screen.getByRole("button", { name: WEEKNIGHTS.name });
     expect(weeknights).toBeDisabled();
     expect(weeknights).toHaveAccessibleDescription(LAST_PLAN_HINT);
+    expect(screen.getByTitle(LAST_PLAN_HINT)).toContainElement(weeknights);
   });
 
   it("stacks selected plans past three", () => {
