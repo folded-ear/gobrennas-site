@@ -1,7 +1,8 @@
 import { VIEW_ONLY_HINT } from "@/components/plan-option";
 import { render, screen, userEvent, within } from "@/test";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { PlanPicker } from "./index";
+import { LAST_PLAN_HINT, PlanPicker } from "./index";
 
 const WEEKNIGHTS = {
   __typename: "Plan" as const,
@@ -25,10 +26,30 @@ const FEAST_DAY = {
   mine: true,
 };
 const PLANS = [WEEKNIGHTS, NEIGHBOR, FEAST_DAY];
+const MANY = [
+  WEEKNIGHTS,
+  FEAST_DAY,
+  { ...WEEKNIGHTS, id: "4", name: "Meal Prep", color: "#c2255c" },
+  { ...WEEKNIGHTS, id: "5", name: "Camping Trip", color: "#0b7285" },
+];
 
 async function openPicker() {
-  await userEvent.click(screen.getByRole("button", { name: /Plans/ }));
+  await userEvent.click(screen.getByRole("button", { name: /Plans$/ }));
   return screen.getByRole("listbox");
+}
+
+/** I hold a multiple selection of PLANS, as a screen would. */
+function StatefulPicker({ selectedIds }: { selectedIds: string[] }) {
+  const [ids, setIds] = useState(selectedIds);
+  return (
+    <PlanPicker
+      label="Plans"
+      plans={PLANS}
+      selectionMode="multiple"
+      selectedIds={ids}
+      onChange={setIds}
+    />
+  );
 }
 
 describe("PlanPicker", () => {
@@ -57,10 +78,13 @@ describe("PlanPicker", () => {
       />,
     );
 
-    const trigger = screen.getByRole("button", { name: /Plans/ });
-    expect(within(trigger).getByTitle(FEAST_DAY.name)).toBeVisible();
-    expect(within(trigger).getByTitle(NEIGHBOR.name)).toBeVisible();
-    expect(within(trigger).queryByTitle(WEEKNIGHTS.name)).toBeNull();
+    expect(
+      screen.getByRole("button", { name: FEAST_DAY.name, pressed: true }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: NEIGHBOR.name, pressed: true }),
+    ).toBeVisible();
+    expect(screen.queryByRole("button", { name: WEEKNIGHTS.name })).toBeNull();
   });
 
   it("keeps owned and shared plans apart on its trigger", () => {
@@ -74,18 +98,94 @@ describe("PlanPicker", () => {
       />,
     );
 
-    const trigger = screen.getByRole("button", { name: /Plans/ });
-    const [mine, shared] = within(trigger).getAllByRole("group");
+    const names = (group: string) =>
+      within(screen.getByRole("group", { name: group }))
+        .getAllByRole("button")
+        .map((it) => it.getAttribute("aria-label"));
+    expect(names("My Plans")).toEqual([WEEKNIGHTS.name, FEAST_DAY.name]);
+    expect(names("Shared Plans")).toEqual([NEIGHBOR.name]);
+  });
+
+  it("toggles a plan from its avatar, keeping it to select again", async () => {
+    render(<StatefulPicker selectedIds={[WEEKNIGHTS.id, FEAST_DAY.id]} />);
+
+    await userEvent.click(screen.getByRole("button", { name: FEAST_DAY.name }));
     expect(
-      within(mine)
-        .getAllByTitle(/./)
-        .map((it) => it.title),
-    ).toEqual([WEEKNIGHTS.name, FEAST_DAY.name]);
+      screen.getByRole("button", { name: FEAST_DAY.name, pressed: false }),
+    ).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: FEAST_DAY.name }));
     expect(
-      within(shared)
-        .getAllByTitle(/./)
-        .map((it) => it.title),
-    ).toEqual([NEIGHBOR.name]);
+      screen.getByRole("button", { name: FEAST_DAY.name, pressed: true }),
+    ).toBeVisible();
+  });
+
+  it("keeps a plan unselected from the list to select again", async () => {
+    render(<StatefulPicker selectedIds={[WEEKNIGHTS.id, FEAST_DAY.id]} />);
+
+    const listbox = await openPicker();
+    await userEvent.click(
+      within(listbox).getByRole("option", { name: FEAST_DAY.name }),
+    );
+    await userEvent.keyboard("{Escape}");
+
+    expect(
+      screen.getByRole("button", { name: FEAST_DAY.name, pressed: false }),
+    ).toBeVisible();
+  });
+
+  it("won't unselect the last selected plan from its avatar", () => {
+    render(<StatefulPicker selectedIds={[WEEKNIGHTS.id]} />);
+
+    const weeknights = screen.getByRole("button", { name: WEEKNIGHTS.name });
+    expect(weeknights).toBeDisabled();
+    expect(weeknights).toHaveAccessibleDescription(LAST_PLAN_HINT);
+  });
+
+  it("stacks selected plans past three", () => {
+    render(
+      <PlanPicker
+        label="Plans"
+        plans={MANY}
+        selectionMode="multiple"
+        selectedIds={MANY.map((it) => it.id)}
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("img", { name: MANY.map((it) => it.name).join(", ") }),
+    ).toBeVisible();
+    for (const plan of MANY)
+      expect(screen.queryByRole("button", { name: plan.name })).toBeNull();
+  });
+
+  it("toggles a plan from its avatar without opening the list", async () => {
+    render(<StatefulPicker selectedIds={[WEEKNIGHTS.id, FEAST_DAY.id]} />);
+
+    await userEvent.click(screen.getByRole("button", { name: FEAST_DAY.name }));
+
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("names the selected plan only while it's the only avatar", async () => {
+    render(<StatefulPicker selectedIds={[WEEKNIGHTS.id]} />);
+
+    // the box also holds a hidden native select listing every plan
+    const name = () =>
+      within(screen.getByRole("group", { name: "Plans" })).queryByText(
+        WEEKNIGHTS.name,
+        { ignore: "option" },
+      );
+    expect(name()).toBeVisible();
+
+    const listbox = await openPicker();
+    await userEvent.click(
+      within(listbox).getByRole("option", { name: FEAST_DAY.name }),
+    );
+    await userEvent.keyboard("{Escape}");
+
+    expect(name()).toBeNull();
   });
 
   it("offers owned and shared plans in separate groups", async () => {

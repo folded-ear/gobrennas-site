@@ -24,6 +24,7 @@ import {
 import { Planner } from "./planner";
 
 const back = vi.fn(() => window.history.back());
+const planBar = () => screen.getByRole("group", { name: "Planner plans" });
 vi.mock("next/navigation", () => ({ useRouter: () => ({ back }) }));
 
 const plan: Unmasked<PlannerQuery>["planner"]["plans"][number] = {
@@ -164,9 +165,9 @@ describe("planner management drawer", () => {
     expect(toggle).toHaveTextContent("Family dinners");
     expect(toggle).not.toHaveTextContent("Brenna");
     expect(
-      within(screen.getByRole("button", { name: plan.name })).queryByTitle(
-        "Brenna",
-      ),
+      within(
+        within(planBar()).getByRole("button", { name: plan.name }),
+      ).queryByTitle("Brenna"),
     ).not.toBeInTheDocument();
   });
 
@@ -305,17 +306,17 @@ describe("planner management drawer", () => {
           expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
         );
       }
+      const bar = await screen.findByRole("group", { name: "Planner plans" });
       expect(
-        await screen.findByRole("button", { name: newPlan.name }),
+        await within(bar).findByRole("button", { name: newPlan.name }),
       ).toHaveAttribute("aria-pressed", "true");
       expect(
         screen.queryByRole("dialog", { name: "New plan" }),
       ).not.toBeInTheDocument();
       if (hasPlans)
-        expect(screen.getByRole("button", { name: plan.name })).toHaveAttribute(
-          "aria-pressed",
-          "true",
-        );
+        expect(
+          within(bar).getByRole("button", { name: plan.name }),
+        ).toHaveAttribute("aria-pressed", "true");
       expect(
         cache
           .readQuery({ query: PlannerDocument })
@@ -350,10 +351,9 @@ describe("planner management drawer", () => {
         },
       ],
     });
-    expect(screen.getByRole("button", { name: plan.name })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    expect(
+      within(planBar()).getByRole("button", { name: plan.name }),
+    ).toHaveAttribute("aria-pressed", "true");
     await user.click(
       screen.getByRole("button", { name: `Options for ${plan.name}` }),
     );
@@ -375,17 +375,15 @@ describe("planner management drawer", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
-    expect(screen.getByRole("button", { name: nextPlan.name })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
     expect(
-      screen.queryByRole("button", { name: plan.name }),
+      within(planBar()).getByRole("button", { name: nextPlan.name }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      within(planBar()).queryByRole("button", { name: plan.name }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: lastPlan.name })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
+    expect(
+      within(planBar()).getByRole("button", { name: lastPlan.name }),
+    ).toHaveAttribute("aria-pressed", "false");
   });
 
   it("should open management in the shared drawer and close through history", async () => {
