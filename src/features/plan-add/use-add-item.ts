@@ -114,27 +114,22 @@ export function useAddItem(section: TimelineSection) {
       const choice = !row.raw.startsWith("!") ? row.choice : undefined;
       let scale = 1;
       if (choice?.food.kind === "Recipe") {
-        // Add can beat the editor's debounce after a quantity edit. Resolve
-        // the current text before saving instead of silently using scale 1.
-        const recognition =
-          scaleOverride !== undefined
-            ? undefined
-            : row.recognition?.raw === row.raw
-              ? row.recognition
-              : await recognize(
-                  row.raw,
-                  row.raw.length,
-                  new AbortController().signal,
-                  {
-                    choice,
-                    suggest: false,
-                  },
-                );
-        scale =
-          scaleOverride ??
-          (recognition
-            ? (recognizedParts(recognition).quantity?.quantity ?? 1)
-            : 1);
+        if (scaleOverride !== undefined) {
+          scale = scaleOverride;
+        } else {
+          // Add can beat the editor's debounce after a quantity edit.
+          // Only reuse recognition that matches the current text.
+          let recognition = row.recognition;
+          if (recognition?.raw !== row.raw) {
+            recognition = await recognize(
+              row.raw,
+              row.raw.length,
+              new AbortController().signal,
+              { choice, suggest: false },
+            );
+          }
+          scale = recognizedParts(recognition).quantity?.quantity ?? 1;
+        }
         if (!Number.isFinite(scale) || scale <= 0) {
           setError("Use a recipe quantity greater than zero.");
           return false;
