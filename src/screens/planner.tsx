@@ -313,6 +313,7 @@ export function Planner() {
             ) : isManaging(shownOpen) ? (
               <PlanManagementList
                 plans={plans}
+                selectedIds={planIds}
                 onSelect={(id) => open.replace({ plan: id })}
                 onCreate={() => setCreatingPlan(true)}
               />

@@ -250,6 +250,7 @@ describe("plan management", () => {
     render(
       <PlanManagementList
         plans={[plan, viewerPlan]}
+        selectedIds={[]}
         onSelect={vi.fn()}
         onCreate={vi.fn()}
       />,
@@ -269,6 +270,7 @@ describe("plan management", () => {
     render(
       <PlanManagementList
         plans={[sharedPlan, plan]}
+        selectedIds={[]}
         onSelect={vi.fn()}
         onCreate={vi.fn()}
       />,
@@ -285,10 +287,27 @@ describe("plan management", () => {
     expect(screen.getByRole("separator")).toBeInTheDocument();
   });
 
+  it("should fill the avatars of selected plans and ring the rest", () => {
+    const otherPlan = { ...plan, id: "other-plan", name: "Other meals" };
+    render(
+      <PlanManagementList
+        plans={[plan, otherPlan]}
+        selectedIds={[plan.id]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+      />,
+    );
+    const avatar = (name: string) =>
+      within(screen.getByRole("button", { name })).getByTitle(name);
+    expect(avatar(plan.name)).not.toHaveAttribute("data-unselected");
+    expect(avatar(otherPlan.name)).toHaveAttribute("data-unselected");
+  });
+
   it("should not separate plans that are all mine", () => {
     render(
       <PlanManagementList
         plans={[plan]}
+        selectedIds={[]}
         onSelect={vi.fn()}
         onCreate={vi.fn()}
       />,
@@ -427,6 +446,7 @@ describe("plan management", () => {
     render(
       <PlanManagementList
         plans={[plan]}
+        selectedIds={[]}
         onSelect={onSelect}
         onCreate={vi.fn()}
       />,
@@ -448,6 +468,7 @@ describe("plan management", () => {
       render(
         <PlanManagementList
           plans={plans}
+          selectedIds={[]}
           onSelect={onSelect}
           onCreate={onCreate}
         />,

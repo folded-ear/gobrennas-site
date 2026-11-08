@@ -59,8 +59,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
   overflow. Plan settings opens its existing side drawer without changing selection.
   Read-only plans have no settings menu. Back to all plans shows the accessible
   plan list, with read-only plans disabled. Like the plan picker, the list
-  separates My Plans from Shared Plans. Closing the drawer or using browser
-  Back returns to the planner.
+  separates My Plans from Shared Plans, and fills the avatars of selected plans
+  while ringing the rest; the list does not change selection. Closing the
+  drawer or using browser Back returns to the planner.
 - The plan list and settings use a compact drawer on larger screens and fill
   the screen width on mobile.
 - Users with permission to change a plan edit its name and color together, using

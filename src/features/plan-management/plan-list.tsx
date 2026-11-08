@@ -9,10 +9,15 @@ type ManagedPlan = PlanAccess & { id: string; name: string; color: string };
 
 type ManagedPlanGroupProps = {
   group: PlanGroup<ManagedPlan>;
+  selectedIds: readonly string[];
   onSelect: (id: string) => void;
 };
 
-function ManagedPlanGroup({ group, onSelect }: ManagedPlanGroupProps) {
+function ManagedPlanGroup({
+  group,
+  selectedIds,
+  onSelect,
+}: ManagedPlanGroupProps) {
   const headerId = useId();
   return (
     <>
@@ -27,7 +32,12 @@ function ManagedPlanGroup({ group, onSelect }: ManagedPlanGroupProps) {
               isDisabled={!canChangePlan(plan)}
               onPress={() => onSelect(plan.id)}
             >
-              <PlanAvatar plan={plan} size="sm" aria-hidden />
+              <PlanAvatar
+                plan={plan}
+                selected={selectedIds.includes(plan.id)}
+                size="sm"
+                aria-hidden
+              />
               <span className="min-w-0 flex-1 truncate text-left">
                 {plan.name}
               </span>
@@ -46,10 +56,12 @@ function ManagedPlanGroup({ group, onSelect }: ManagedPlanGroupProps) {
 
 export function PlanManagementList({
   plans,
+  selectedIds,
   onSelect,
   onCreate,
 }: {
   plans: readonly ManagedPlan[];
+  selectedIds: readonly string[];
   onSelect: (id: string) => void;
   onCreate: () => void;
 }) {
@@ -75,7 +87,11 @@ export function PlanManagementList({
           {groupPlans(plans).map((group, i) => (
             <Fragment key={group.title}>
               {i > 0 ? <Separator /> : null}
-              <ManagedPlanGroup group={group} onSelect={onSelect} />
+              <ManagedPlanGroup
+                group={group}
+                selectedIds={selectedIds}
+                onSelect={onSelect}
+              />
             </Fragment>
           ))}
         </div>
