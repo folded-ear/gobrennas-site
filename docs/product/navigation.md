@@ -24,10 +24,9 @@ away and lets focused content slide in without losing the user's place.
   is waiting. Updating sends any held changes, switches to the new version,
   and reloads. A taken offer shows a spinner, and if the page is still
   there six seconds later, or signing in fails, the page reloads.
-- The Library header has a picker for the one plan recipes are sent to. Shopping
-  has a picker for the plans it shows. Neither picker shows with only one plan.
-  The Planner instead has a visible plan bar with overflow and a New plan action;
-  see [Planner](planner.md).
+- The Library header has a picker for the one plan recipes are sent to. The
+  Planner and Shopping headers each have a picker for the plans they show. No
+  picker shows with only one plan.
 - A picker of several plans shows plan avatars in its field, in plan order,
   each toggling its plan: the selected plans, and recently toggled plans as
   rings. The latest plan toggled always shows. Short of four avatars, recently

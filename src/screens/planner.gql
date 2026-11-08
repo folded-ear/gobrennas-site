@@ -7,17 +7,12 @@ query Planner {
       mine
       ...planPickerPlan @unmask
       ...planManagement
-      ...plannerPlanBar
       grants {
         level
         user {
           id
           me
         }
-      }
-      ownedBy {
-        id
-        ...userAvatar
       }
       buckets {
         id

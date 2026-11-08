@@ -29,7 +29,6 @@ import {
   CreatePlanDialog,
   PlanManagement,
   PlanManagementList,
-  PlannerPlanBar,
   PlannerWelcome,
 } from "@/features/plan-management";
 import { PlanPicker } from "@/features/plan-picker";
@@ -43,7 +42,6 @@ import {
 } from "@/features/plan-timeline/model";
 import { sectionLabel } from "@/features/plan-timeline/section-label";
 import { TimelineSkeleton } from "@/features/plan-timeline/skeleton";
-import { OtherUserAvatar } from "@/features/user-avatar";
 import { useHistoryState } from "@/hooks/use-history-state";
 import { displayName } from "@/lib/plan-item-name";
 import { canAdministerPlan, canChangePlan, orderPlans } from "@/lib/plans";
@@ -245,7 +243,7 @@ export function Planner() {
             {plans.length ? (
               <Button
                 isIconOnly
-                variant="ghost"
+                variant="tertiary"
                 className="shrink-0"
                 aria-label="Manage plans"
                 onPress={() => open.push({ manage: true })}
@@ -255,13 +253,6 @@ export function Planner() {
             ) : null}
           </div>
         </SectionHeader>
-        <PlannerPlanBar
-          renderOwnerAvatar={(plan) => <OtherUserAvatar user={plan.ownedBy} />}
-          plans={plans}
-          selectedIds={planIds}
-          onChange={setPlanIds}
-          onManage={(id) => open.push({ plan: id })}
-        />
         <EditSurfaceProvider
           state={edit}
           order={editOrder}
