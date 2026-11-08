@@ -14,21 +14,28 @@ export function RecipeScale({
   value,
   onChange,
   isDisabled = false,
+  readOnlyCustomValue = false,
 }: {
   value: number;
   onChange: (value: number) => void;
   isDisabled?: boolean;
+  /** Saved non-preset scales are edited inline in the planner, not here. */
+  readOnlyCustomValue?: boolean;
 }) {
+  const isReadOnly =
+    readOnlyCustomValue && !PRESETS.some(([scale]) => scale === value);
   return (
     <div className="flex items-center gap-sm">
-      <span className="text-sm text-muted">scale</span>
+      <span className="text-sm text-muted">
+        {isReadOnly ? `${value} scale` : "scale"}
+      </span>
       <ButtonGroup size="sm" aria-label="Recipe scale">
         {PRESETS.map(([scale, label]) => (
           <Button
             key={scale}
             variant={value === scale ? "primary" : "secondary"}
             aria-pressed={value === scale}
-            isDisabled={isDisabled}
+            isDisabled={isDisabled || isReadOnly}
             onPress={() => onChange(scale)}
           >
             {label}

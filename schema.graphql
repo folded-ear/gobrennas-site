@@ -674,8 +674,6 @@ type Query {
 }
 
 type Recipe implements Ingredient & IngredientCollection & Node & Owned {
-  "The recipe owning this section, or null for a standalone recipe."
-  sectionOf: Recipe
   calories: Int
   directions: String
   externalUrl: String

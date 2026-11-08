@@ -48,4 +48,21 @@ describe("RecipeScale", () => {
     await userEvent.click(screen.getByRole("button", { name: "2×" }));
     expect(onChange).not.toHaveBeenCalled();
   });
+
+  it("shows a saved custom scale read-only with disabled presets", async () => {
+    const onChange = vi.fn();
+    render(<RecipeScale value={1.5} onChange={onChange} readOnlyCustomValue />);
+    expect(screen.getByText("1.5 scale")).toBeVisible();
+    for (const button of screen.getAllByRole("button"))
+      expect(button).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "2×" }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("still allows presets for a custom draft quantity", async () => {
+    const onChange = vi.fn();
+    render(<RecipeScale value={1.5} onChange={onChange} />);
+    await userEvent.click(screen.getByRole("button", { name: "2×" }));
+    expect(onChange).toHaveBeenCalledWith(2);
+  });
 });

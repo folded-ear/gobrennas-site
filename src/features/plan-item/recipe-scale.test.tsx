@@ -101,14 +101,19 @@ function show({
   error,
   delay = 0,
   seedBeans = true,
+  scale = 2,
 }: {
   changeable?: boolean;
   error?: Error;
   delay?: number;
   seedBeans?: boolean;
+  scale?: number;
 } = {}) {
   const cache = buildInMemoryCache();
-  seedFragment(cache, PlanItemFragmentDoc, "planItem", root);
+  seedFragment(cache, PlanItemFragmentDoc, "planItem", {
+    ...root,
+    quantity: { __typename: "Quantity", quantity: scale, units: null },
+  });
   if (seedBeans) seedFragment(cache, PlanItemFragmentDoc, "planItem", beans);
   const editable = { ...plan, changeable };
   const result = vi.fn(() => ({ data: saved }));
@@ -155,6 +160,15 @@ function show({
 }
 
 describe("PlanRecipeScale", () => {
+  it("shows a saved custom multiplier without allowing preset changes", async () => {
+    const { result } = show({ scale: 1.5 });
+    expect(screen.getByText("1.5 scale")).toBeVisible();
+    for (const label of ["¼×", "½×", "1×", "2×"])
+      expect(screen.getByRole("button", { name: label })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "2×" }));
+    expect(result).not.toHaveBeenCalled();
+  });
+
   it("waits for the server before updating the multiplier and shopping quantities", async () => {
     const { cache, result } = show({ delay: 50 });
     expect(screen.getByRole("button", { name: "2×" })).toHaveAttribute(

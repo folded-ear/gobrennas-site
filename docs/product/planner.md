@@ -349,6 +349,10 @@ The terms used here are defined in the [domain model](../domain/model.md).
   scaling is saved to this occurrence and affects shopping quantities. It scales
   current ingredient edits and linked preparation rather than rebuilding from the
   saved library recipe. Unknown quantities and directions are unchanged.
+- A saved multiplier outside the presets (for example, 1.5) is shown as read-only
+  text with the preset buttons disabled. Change that quantity through the
+  planner's inline item editor instead. The Add chooser remains available for
+  draft quantities, including non-preset quantities.
 - Owned sections scale with their recipe. Subrecipe reference quantities scale,
   but the ingredients inside those subrecipes keep their existing quantities,
   matching the behavior when adding a scaled recipe. Viewers cannot change a

@@ -39,6 +39,7 @@ export function PlanRecipeScale({ itemId }: { itemId: string }) {
     <div className="flex flex-col gap-xs">
       <RecipeScale
         value={scale}
+        readOnlyCustomValue
         isDisabled={
           loading || Boolean(availability.pendingStatus) || availability.inert
         }

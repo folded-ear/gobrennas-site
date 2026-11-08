@@ -47,12 +47,7 @@ export const savedRecipe: Extract<
   calories: 300,
   labels: ["Dessert"],
   photo: null,
-  sections: [
-    {
-      __typename: "Section",
-      id: "library-crust",
-    },
-  ],
+  sections: [{ __typename: "Section", id: "library-crust" }],
 };
 export const pie = item("pie", "Holiday apple pie", {
   parent: { __typename: "Plan", id: "7" },
