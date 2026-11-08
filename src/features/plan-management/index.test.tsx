@@ -248,12 +248,73 @@ describe("plan management", () => {
       name: "Shared meals",
     };
     render(
-      <PlanManagementList plans={[plan, viewerPlan]} onSelect={vi.fn()} />,
+      <PlanManagementList
+        plans={[plan, viewerPlan]}
+        selectedIds={[]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+      />,
     );
     expect(screen.getByRole("button", { name: plan.name })).toBeEnabled();
     expect(
       screen.getByRole("button", { name: "Shared meals Read only" }),
     ).toBeDisabled();
+  });
+
+  it("should separate my plans from shared plans", () => {
+    const sharedPlan = {
+      ...shared(AccessLevel.CHANGE),
+      id: "shared-plan",
+      name: "Shared meals",
+    };
+    render(
+      <PlanManagementList
+        plans={[sharedPlan, plan]}
+        selectedIds={[]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+      />,
+    );
+    const mine = screen.getByRole("list", { name: "My Plans" });
+    expect(within(mine).getByRole("button", { name: plan.name })).toBeVisible();
+    expect(
+      within(mine).queryByRole("button", { name: sharedPlan.name }),
+    ).toBeNull();
+    const others = screen.getByRole("list", { name: "Shared Plans" });
+    expect(
+      within(others).getByRole("button", { name: sharedPlan.name }),
+    ).toBeVisible();
+    expect(screen.getByRole("separator")).toBeInTheDocument();
+  });
+
+  it("should fill the avatars of selected plans and ring the rest", () => {
+    const otherPlan = { ...plan, id: "other-plan", name: "Other meals" };
+    render(
+      <PlanManagementList
+        plans={[plan, otherPlan]}
+        selectedIds={[plan.id]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+      />,
+    );
+    const avatar = (name: string) =>
+      within(screen.getByRole("button", { name })).getByTitle(name);
+    expect(avatar(plan.name)).not.toHaveAttribute("data-unselected");
+    expect(avatar(otherPlan.name)).toHaveAttribute("data-unselected");
+  });
+
+  it("should not separate plans that are all mine", () => {
+    render(
+      <PlanManagementList
+        plans={[plan]}
+        selectedIds={[]}
+        onSelect={vi.fn()}
+        onCreate={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("list", { name: "My Plans" })).toBeVisible();
+    expect(screen.queryByRole("list", { name: "Shared Plans" })).toBeNull();
+    expect(screen.queryByRole("separator")).toBeNull();
   });
 
   it.each([false, true])(
@@ -382,11 +443,42 @@ describe("plan management", () => {
   it("should offer a single plan even when the plan picker would be hidden", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
-    render(<PlanManagementList plans={[plan]} onSelect={onSelect} />);
+    render(
+      <PlanManagementList
+        plans={[plan]}
+        selectedIds={[]}
+        onSelect={onSelect}
+        onCreate={vi.fn()}
+      />,
+    );
     expect(screen.getByText("Choose a plan to edit")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: plan.name }));
     expect(onSelect).toHaveBeenCalledWith(plan.id);
   });
+
+  it.each([
+    { plans: [plan], prompt: "Choose a plan to edit" },
+    { plans: [], prompt: "There are no plans to manage." },
+  ])(
+    "should offer a new plan beside the prompt: $prompt",
+    async ({ plans, prompt }) => {
+      const user = userEvent.setup();
+      const onCreate = vi.fn();
+      const onSelect = vi.fn();
+      render(
+        <PlanManagementList
+          plans={plans}
+          selectedIds={[]}
+          onSelect={onSelect}
+          onCreate={onCreate}
+        />,
+      );
+      expect(screen.getByText(prompt)).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "New plan" }));
+      expect(onCreate).toHaveBeenCalledOnce();
+      expect(onSelect).not.toHaveBeenCalled();
+    },
+  );
 
   it("should render the current name, color picker, and delete action", () => {
     render(<PlanManagement plan={plan} onLeave={vi.fn()} />, {

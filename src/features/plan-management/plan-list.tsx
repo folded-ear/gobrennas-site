@@ -1,23 +1,29 @@
 import PlanAvatar from "@/components/plan-avatar";
-import { canChangePlan, orderPlans, type PlanAccess } from "@/lib/plans";
-import { Button } from "@heroui/react";
-import { ChevronRight } from "lucide-react";
+import { groupPlans, type PlanGroup } from "@/components/plan-option";
+import { canChangePlan, type PlanAccess } from "@/lib/plans";
+import { Button, Header, Separator } from "@heroui/react";
+import { ChevronRight, Plus } from "lucide-react";
+import { Fragment, useId } from "react";
 
 type ManagedPlan = PlanAccess & { id: string; name: string; color: string };
 
-export function PlanManagementList({
-  plans,
-  onSelect,
-}: {
-  plans: readonly ManagedPlan[];
+type ManagedPlanGroupProps = {
+  group: PlanGroup<ManagedPlan>;
+  selectedIds: readonly string[];
   onSelect: (id: string) => void;
-}) {
-  if (!plans.length) return <p>There are no plans to manage.</p>;
+};
+
+function ManagedPlanGroup({
+  group,
+  selectedIds,
+  onSelect,
+}: ManagedPlanGroupProps) {
+  const headerId = useId();
   return (
-    <div className="flex max-w-lg flex-col gap-sm py-md">
-      <p>Choose a plan to edit</p>
-      <ul aria-label="Plans to manage" className="flex flex-col gap-sm">
-        {orderPlans(plans).map((plan) => (
+    <>
+      <Header id={headerId}>{group.title}</Header>
+      <ul aria-labelledby={headerId} className="flex flex-col gap-sm">
+        {group.plans.map((plan) => (
           <li key={plan.id}>
             <Button
               fullWidth
@@ -26,7 +32,12 @@ export function PlanManagementList({
               isDisabled={!canChangePlan(plan)}
               onPress={() => onSelect(plan.id)}
             >
-              <PlanAvatar plan={plan} size="sm" aria-hidden />
+              <PlanAvatar
+                plan={plan}
+                selected={selectedIds.includes(plan.id)}
+                size="sm"
+                aria-hidden
+              />
               <span className="min-w-0 flex-1 truncate text-left">
                 {plan.name}
               </span>
@@ -39,6 +50,52 @@ export function PlanManagementList({
           </li>
         ))}
       </ul>
+    </>
+  );
+}
+
+export function PlanManagementList({
+  plans,
+  selectedIds,
+  onSelect,
+  onCreate,
+}: {
+  plans: readonly ManagedPlan[];
+  selectedIds: readonly string[];
+  onSelect: (id: string) => void;
+  onCreate: () => void;
+}) {
+  return (
+    <div className="flex max-w-lg flex-col gap-sm py-md">
+      <div className="flex items-center justify-between gap-sm">
+        <p>
+          {plans.length
+            ? "Choose a plan to edit"
+            : "There are no plans to manage."}
+        </p>
+        <Button variant="secondary" className="shrink-0" onPress={onCreate}>
+          <Plus aria-hidden />
+          New plan
+        </Button>
+      </div>
+      {plans.length ? (
+        <div
+          role="group"
+          aria-label="Plans to manage"
+          className="flex flex-col gap-sm"
+        >
+          {groupPlans(plans).map((group, i) => (
+            <Fragment key={group.title}>
+              {i > 0 ? <Separator /> : null}
+              <ManagedPlanGroup
+                group={group}
+                selectedIds={selectedIds}
+                onSelect={onSelect}
+              />
+            </Fragment>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

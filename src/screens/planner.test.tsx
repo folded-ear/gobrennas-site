@@ -33,7 +33,6 @@ const plan: Unmasked<PlannerQuery>["planner"]["plans"][number] = {
   color: "#325578",
   mine: true,
   grants: [],
-  ownedBy: null,
   owner: {
     __typename: "User",
     id: "me",
@@ -81,14 +80,32 @@ function pollingMock(planId = plan.id) {
   };
 }
 
+/** I open a plan's settings from the all-plans drawer. */
+async function openPlanSettings(
+  user: ReturnType<typeof userEvent.setup>,
+  name: string,
+) {
+  await user.click(screen.getByRole("button", { name: "Manage plans" }));
+  await user.click(
+    within(screen.getByRole("dialog", { name: "Manage plans" })).getByRole(
+      "button",
+      { name },
+    ),
+  );
+}
+
 describe("planner management drawer", () => {
-  it("should open the all-plans drawer from the settings button beside New plan", async () => {
+  it("should open the all-plans drawer from the settings button in the page header", async () => {
     const user = userEvent.setup();
     render(<Planner />, { cache: plannerCache(), mocks: [pollingMock()] });
-    await user.click(screen.getByRole("button", { name: "Manage plans" }));
+    await user.click(
+      within(screen.getByRole("banner")).getByRole("button", {
+        name: "Manage plans",
+      }),
+    );
     const drawer = screen.getByRole("dialog", { name: "Manage plans" });
     expect(
-      within(drawer).getByRole("list", { name: "Plans to manage" }),
+      within(drawer).getByRole("group", { name: "Plans to manage" }),
     ).toBeVisible();
     await user.click(within(drawer).getByRole("button", { name: plan.name }));
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
@@ -97,57 +114,35 @@ describe("planner management drawer", () => {
     expect(back).not.toHaveBeenCalled();
   });
 
-  it.each([false, true])(
-    "should hide all-plan settings when no plan is editable (read-only plan: %s)",
-    (hasReadOnlyPlan) => {
-      const readOnly = { ...plan, id: "shared-view-only", mine: false };
-      render(<Planner />, {
-        cache: plannerCache(hasReadOnlyPlan ? [readOnly] : []),
-        mocks: hasReadOnlyPlan ? [pollingMock(readOnly.id)] : [],
-      });
-      expect(
-        screen.queryByRole("button", { name: "Manage plans" }),
-      ).not.toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "New plan" })).toBeVisible();
-    },
-  );
-
-  it("should identify a shared plan with its owner's avatar instead of printed name", () => {
-    const sharedPlan: Unmasked<PlannerQuery>["planner"]["plans"][number] = {
-      ...plan,
-      id: "family-plan",
-      name: "Family dinners",
-      mine: false,
-      ownedBy: {
-        __typename: "User",
-        id: "brenna",
-        name: "Brenna",
-        email: "brenna@example.com",
-        imageUrl: null,
-      },
-      owner: {
-        __typename: "User",
-        id: "brenna",
-        name: "Brenna",
-        email: "brenna@example.com",
-        imageUrl: null,
-      },
-    };
+  it("should offer creation from the drawer when no plan is editable", async () => {
+    const user = userEvent.setup();
+    const readOnly = { ...plan, id: "shared-view-only", mine: false };
     render(<Planner />, {
-      cache: plannerCache([plan, sharedPlan]),
-      mocks: [pollingMock()],
+      cache: plannerCache([readOnly]),
+      mocks: [pollingMock(readOnly.id)],
     });
-    const toggle = screen.getByRole("button", {
-      name: "Family dinners · Brenna",
-    });
-    expect(within(toggle).getByTitle("Brenna")).toHaveTextContent("B");
-    expect(toggle).toHaveTextContent("Family dinners");
-    expect(toggle).not.toHaveTextContent("Brenna");
     expect(
-      within(screen.getByRole("button", { name: plan.name })).queryByTitle(
-        "Brenna",
-      ),
+      screen.queryByRole("button", { name: "New plan" }),
     ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Manage plans" }));
+    const drawer = screen.getByRole("dialog", { name: "Manage plans" });
+    expect(
+      within(drawer).getByRole("button", { name: `${plan.name} Read only` }),
+    ).toBeDisabled();
+    expect(
+      within(drawer).getByRole("button", { name: "New plan" }),
+    ).toBeEnabled();
+  });
+
+  it("should hide all-plan settings when there are no plans", () => {
+    render(<Planner />, { cache: plannerCache([]) });
+    expect(
+      screen.queryByRole("button", { name: "Manage plans" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "New plan" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Create a plan" })).toBeVisible();
   });
 
   it.each([
@@ -155,7 +150,7 @@ describe("planner management drawer", () => {
     { hasPlans: true, refreshFails: false },
     { hasPlans: true, refreshFails: true },
   ])(
-    "should create and select a plan while preserving selections (has plans: $hasPlans, retry refresh: $refreshFails)",
+    "should create and select a plan while preserving selections (from drawer: $hasPlans, retry refresh: $refreshFails)",
     async ({ hasPlans, refreshFails }) => {
       const user = userEvent.setup();
       const cache = plannerCache(hasPlans ? [plan] : []);
@@ -250,11 +245,16 @@ describe("planner management drawer", () => {
             : [pollingMock(newPlan.id)]),
         ],
       });
-      await user.click(
-        screen.getByRole("button", {
-          name: hasPlans ? "New plan" : "Create a plan",
-        }),
-      );
+      if (hasPlans) {
+        await user.click(screen.getByRole("button", { name: "Manage plans" }));
+        await user.click(
+          within(
+            screen.getByRole("dialog", { name: "Manage plans" }),
+          ).getByRole("button", { name: "New plan" }),
+        );
+      } else {
+        await user.click(screen.getByRole("button", { name: "Create a plan" }));
+      }
       await user.type(
         screen.getByRole("textbox", { name: "Name" }),
         newPlan.name,
@@ -266,17 +266,34 @@ describe("planner management drawer", () => {
         );
         await user.click(screen.getByRole("button", { name: "Refresh plans" }));
       }
-      expect(
-        await screen.findByRole("button", { name: newPlan.name }),
-      ).toHaveAttribute("aria-pressed", "true");
+      if (hasPlans) {
+        const settings = await screen.findByRole("dialog", {
+          name: `Manage ${newPlan.name}`,
+        });
+        expect(
+          within(settings).getByRole("textbox", { name: "Name" }),
+        ).toHaveValue(newPlan.name);
+        await user.click(
+          within(settings).getByRole("button", { name: /close/i }),
+        );
+        await waitFor(() =>
+          expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+        );
+      }
+      const manage = await screen.findByRole("button", {
+        name: "Manage plans",
+      });
       expect(
         screen.queryByRole("dialog", { name: "New plan" }),
       ).not.toBeInTheDocument();
-      if (hasPlans)
-        expect(screen.getByRole("button", { name: plan.name })).toHaveAttribute(
-          "aria-pressed",
-          "true",
-        );
+      await user.click(manage);
+      const managed = screen.getByRole("dialog", { name: "Manage plans" });
+      for (const selected of hasPlans ? [plan, newPlan] : [newPlan])
+        expect(
+          within(
+            within(managed).getByRole("button", { name: selected.name }),
+          ).getByTitle(selected.name),
+        ).not.toHaveAttribute("data-unselected");
       expect(
         cache
           .readQuery({ query: PlannerDocument })
@@ -311,14 +328,10 @@ describe("planner management drawer", () => {
         },
       ],
     });
-    expect(screen.getByRole("button", { name: plan.name })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    await user.click(
-      screen.getByRole("button", { name: `Options for ${plan.name}` }),
-    );
-    await user.click(screen.getByRole("menuitem", { name: "Plan settings" }));
+    expect(
+      screen.getByRole("button", { name: plan.name, pressed: true }),
+    ).toBeVisible();
+    await openPlanSettings(user, plan.name);
     await user.click(screen.getByRole("button", { name: "Delete plan" }));
     await user.click(
       within(screen.getByRole("alertdialog")).getByRole("button", {
@@ -336,26 +349,23 @@ describe("planner management drawer", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
-    expect(screen.getByRole("button", { name: nextPlan.name })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    await user.click(screen.getByRole("button", { name: "Plans" }));
+    const listbox = screen.getByRole("listbox");
     expect(
-      screen.queryByRole("button", { name: plan.name }),
+      within(listbox).getByRole("option", { name: nextPlan.name }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(
+      within(listbox).queryByRole("option", { name: plan.name }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: lastPlan.name })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
+    expect(
+      within(listbox).getByRole("option", { name: lastPlan.name }),
+    ).toHaveAttribute("aria-selected", "false");
   });
 
   it("should open management in the shared drawer and close through history", async () => {
     const user = userEvent.setup();
     render(<Planner />, { cache: plannerCache(), mocks: [pollingMock()] });
-    await user.click(
-      screen.getByRole("button", { name: `Options for ${plan.name}` }),
-    );
-    await user.click(screen.getByRole("menuitem", { name: "Plan settings" }));
+    await openPlanSettings(user, plan.name);
     const drawer = screen.getByRole("dialog", { name: `Manage ${plan.name}` });
     expect(drawer).toHaveClass("sm:max-w-lg");
     expect(within(drawer).getByRole("textbox", { name: "Name" })).toHaveValue(
@@ -400,10 +410,7 @@ describe("planner management drawer", () => {
         },
       ],
     });
-    await user.click(
-      screen.getByRole("button", { name: `Options for ${plan.name}` }),
-    );
-    await user.click(screen.getByRole("menuitem", { name: "Plan settings" }));
+    await openPlanSettings(user, plan.name);
     await user.click(screen.getByRole("button", { name: "Delete plan" }));
     await user.click(
       within(screen.getByRole("alertdialog")).getByRole("button", {

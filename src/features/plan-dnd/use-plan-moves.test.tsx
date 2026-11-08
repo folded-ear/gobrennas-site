@@ -74,7 +74,6 @@ function thanksgiving(): Plan {
     color: "#F57F17",
     mine: true,
     grants: [],
-    ownedBy: null,
     owner: {
       __typename: "User",
       id: "me",
@@ -108,7 +107,6 @@ function weeknights(): Plan {
     color: "#1E88E5",
     mine: true,
     grants: [],
-    ownedBy: null,
     owner: {
       __typename: "User",
       id: "me",
@@ -723,7 +721,6 @@ function redundancyPlan(): Plan {
     color: "#000000",
     mine: true,
     grants: [],
-    ownedBy: null,
     owner: {
       __typename: "User",
       id: "me",

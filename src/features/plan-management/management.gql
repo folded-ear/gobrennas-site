@@ -33,24 +33,6 @@ fragment planGrants on Plan {
   }
 }
 
-fragment plannerPlanBar on Plan {
-  id
-  name
-  color
-  mine
-  ownedBy {
-    id
-    name
-  }
-  grants {
-    level
-    user {
-      id
-      me
-    }
-  }
-}
-
 mutation CreateManagedPlan($name: String!) {
   planner {
     createPlan(name: $name) {
