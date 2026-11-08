@@ -21,7 +21,7 @@ type PlanPickerProps = {
   selectedIds: readonly string[];
   onChange: (ids: string[]) => void;
   hideSingleName?: boolean;
-  /** A small, natural-width trigger with a dot for the selected plan. */
+  /** Picking one plan, I'm a small, natural-width trigger. */
   compact?: boolean;
   /** Plans I list but don't let be picked. */
   disabledIds?: readonly string[];
@@ -29,7 +29,7 @@ type PlanPickerProps = {
 
 export const LAST_PLAN_HINT = "At least one plan must stay selected.";
 
-/** Hides a fill avatar on screens too narrow for the row it fills out. */
+/** I hide a fill avatar, by its slot, on screens too narrow for that row. */
 const HIDDEN_BY_FILL_SLOT: Readonly<Record<number, string>> = {
   3: "max-md:hidden",
   4: "max-lg:hidden",
@@ -123,11 +123,7 @@ function SinglePlanPicker({
         <Select.Value>
           {selected ? (
             <span className="flex min-w-0 items-center gap-xs">
-              <PlanAvatar
-                plan={selected}
-                size="sm"
-                aria-hidden={compact || undefined}
-              />
+              <PlanAvatar plan={selected} size="sm" aria-hidden />
               <span
                 className={clsx("truncate", {
                   hidden: hideSingleName,
@@ -336,9 +332,9 @@ function MultiplePlanPicker({
  * choice, so I render nothing.
  *
  * Picking one plan, my trigger shows the selected plan's avatar. Picking
- * several, each plan beside my trigger toggles from its own avatar: the
- * selected plans, and the plans toggled recently, unselected ones as rings.
- * Past three selected plans, the rest stack, opening my list.
+ * several, my field shows avatars that each toggle their plan: the selected
+ * plans, and recently toggled ones as rings. Past three, the other selected
+ * plans stack. Pressing anywhere else in my field opens my list.
  */
 export function PlanPicker({
   label,

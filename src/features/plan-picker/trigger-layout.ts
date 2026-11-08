@@ -1,29 +1,29 @@
-/** Past this many, the selected plans without their own avatar stack. */
+/** I'm how many other selected plans show side by side before they stack. */
 const MOST_SIDE_BY_SIDE = 3;
 
-/** Recently toggled plans fill out a row to this many avatars. */
+/** I'm how many avatars recently toggled plans fill a row out to. */
 const FILLED_ROW = 4;
 
-/** A plan with its own avatar on my trigger. */
+/** I'm a plan with its own avatar in a multiple-selection picker. */
 export type OwnAvatar<P> = {
   readonly plan: P;
   /**
-   * How many avatars show once I'm added to fill out the row; set only for
-   * an unselected plan shown because it was toggled recently.
+   * I'm how many avatars show once my plan is added to fill out the row; I'm
+   * set only for an unselected plan shown because it was toggled recently.
    */
   readonly fillSlot?: number;
 };
 
-/** What one side of a multiple-selection trigger shows. */
+/** I'm what one side of a multiple-selection picker shows. */
 export type TriggerSide<P> = {
-  /** Plans with their own avatar, in the order they show. */
+  /** I'm the plans with their own avatar, in the order they show. */
   readonly own: readonly OwnAvatar<P>[];
-  /** Selected plans overlapping in one stack after `own`; often empty. */
+  /** I'm the selected plans overlapping in one stack after `own`, if any. */
   readonly stacked: readonly P[];
 };
 
 /**
- * I lay out one side of a multiple-selection trigger from its plans in
+ * I lay out one side of a multiple-selection picker from its plans in
  * order, the selected plans, and the plans toggled most recently first.
  *
  * The latest plan toggled always has its own avatar. The other selected

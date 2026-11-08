@@ -67,7 +67,7 @@ describe("PlanPicker", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 
-  it("shows the selected plans' avatars on its trigger", () => {
+  it("shows the selected plans' avatars in its field", () => {
     render(
       <PlanPicker
         label="Plans"
@@ -87,7 +87,7 @@ describe("PlanPicker", () => {
     expect(screen.queryByRole("button", { name: WEEKNIGHTS.name })).toBeNull();
   });
 
-  it("keeps owned and shared plans apart on its trigger", () => {
+  it("keeps owned and shared plans apart in its field", () => {
     render(
       <PlanPicker
         label="Plans"
