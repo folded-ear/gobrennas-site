@@ -21,7 +21,8 @@
     "pretest:coverage": "pnpm run generate",
     "test:coverage": "vitest run --coverage",
     "pretsc": "pnpm run generate",
-    "tsc": "tsc --noEmit"
+    "tsc": "tsc --noEmit",
+    "tsc-prod-only": "tsc --noEmit --project tsconfig.prod-only.json"
   },
   "dependencies": {
     "@apollo/client": "~4.2.12",
