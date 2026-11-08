@@ -86,8 +86,8 @@ export function SectionShell({
             title
           )}
         </h3>
+        {action}
         <div className="ms-auto flex shrink-0 items-center gap-xs">
-          {action}
           {headerActions}
         </div>
       </div>
