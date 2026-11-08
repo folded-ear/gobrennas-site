@@ -47,13 +47,9 @@ const shared: PlannerPlanBarFragment = {
 function Harness({
   plans,
   onManage,
-  onCreate,
-  onManageAll,
 }: {
   plans: readonly PlannerPlanBarFragment[];
   onManage: (id: string) => void;
-  onCreate: () => void;
-  onManageAll?: () => void;
 }) {
   const [selected, setSelected] = useState([mine.id]);
   return (
@@ -62,8 +58,6 @@ function Harness({
       selectedIds={selected}
       onChange={setSelected}
       onManage={onManage}
-      onCreate={onCreate}
-      onManageAll={onManageAll}
       renderOwnerAvatar={(plan) => (
         <span title={plan.ownedBy?.name ?? undefined}>B</span>
       )}
@@ -71,40 +65,28 @@ function Harness({
   );
 }
 
-function mount(plans = [shared, mine, second], onManageAll?: () => void) {
+function mount(plans = [shared, mine, second]) {
   const cache = buildInMemoryCache();
   for (const plan of plans)
     cache.writeFragment({ fragment: PlannerPlanBarFragmentDoc, data: plan });
   const onManage = vi.fn();
-  const onCreate = vi.fn();
-  render(
-    <Harness
-      plans={plans}
-      onManage={onManage}
-      onCreate={onCreate}
-      onManageAll={onManageAll}
-    />,
-    {
-      cache,
-    },
-  );
-  return { onManage, onCreate };
+  render(<Harness plans={plans} onManage={onManage} />, {
+    cache,
+  });
+  return { onManage };
 }
 
 afterEach(() => vi.restoreAllMocks());
 
 describe("PlannerPlanBar", () => {
-  it("should offer all-plan settings beside creation without changing selection", async () => {
-    const user = userEvent.setup();
-    const onManageAll = vi.fn();
-    mount([mine], onManageAll);
-    await user.click(screen.getByRole("button", { name: "Manage plans" }));
-    expect(onManageAll).toHaveBeenCalledOnce();
-    expect(screen.getByRole("button", { name: "New plan" })).toBeVisible();
-    expect(screen.getByRole("button", { name: mine.name })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+  it("should offer neither all-plan settings nor creation", () => {
+    mount([mine]);
+    expect(
+      screen.queryByRole("button", { name: "Manage plans" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "New plan" }),
+    ).not.toBeInTheDocument();
   });
   it.each(["Trip", "Thanksgiving", "Our Weekend at the Coast"])(
     "should constrain %s with CSS while keeping its full name available",
@@ -174,13 +156,6 @@ describe("PlannerPlanBar", () => {
       "aria-pressed",
       "false",
     );
-  });
-
-  it("should offer creation even when there are no plans", async () => {
-    const user = userEvent.setup();
-    const { onCreate } = mount([]);
-    await user.click(screen.getByRole("button", { name: "New plan" }));
-    expect(onCreate).toHaveBeenCalledOnce();
   });
 
   it("should put remaining plans in grouped overflow and recalculate when space grows", async () => {

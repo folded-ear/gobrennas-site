@@ -32,6 +32,7 @@ import {
   PlannerPlanBar,
   PlannerWelcome,
 } from "@/features/plan-management";
+import { PlanPicker } from "@/features/plan-picker";
 import { usePlanSelection } from "@/features/plan-picker/use-plan-selection";
 import { buildPlanContext } from "@/features/plan-timeline/context";
 import {
@@ -49,6 +50,8 @@ import { canAdministerPlan, canChangePlan, orderPlans } from "@/lib/plans";
 import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useApolloClient, useSuspenseQuery } from "@apollo/client/react";
+import { Button } from "@heroui/react";
+import { Settings } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -218,6 +221,7 @@ export function Planner() {
           onCreated={(id) => {
             setPlanIds([...planIds, id]);
             setCreatingPlan(false);
+            if (isManaging(open.value)) open.replace({ plan: id });
           }}
         />
       ) : null}
@@ -229,19 +233,34 @@ export function Planner() {
         />
       ) : null}
       <div className="flex h-[calc(100dvh-var(--section-nav-clearance))] flex-col overflow-hidden">
-        <SectionHeader title="Planner" />
+        <SectionHeader title="Planner">
+          <div className="flex min-w-0 items-center gap-sm">
+            <PlanPicker
+              label="Plans"
+              plans={plans}
+              selectionMode="multiple"
+              selectedIds={planIds}
+              onChange={setPlanIds}
+            />
+            {plans.length ? (
+              <Button
+                isIconOnly
+                variant="ghost"
+                className="shrink-0"
+                aria-label="Manage plans"
+                onPress={() => open.push({ manage: true })}
+              >
+                <Settings aria-hidden />
+              </Button>
+            ) : null}
+          </div>
+        </SectionHeader>
         <PlannerPlanBar
           renderOwnerAvatar={(plan) => <OtherUserAvatar user={plan.ownedBy} />}
           plans={plans}
           selectedIds={planIds}
           onChange={setPlanIds}
           onManage={(id) => open.push({ plan: id })}
-          onCreate={() => setCreatingPlan(true)}
-          onManageAll={
-            plans.some(canChangePlan)
-              ? () => open.push({ manage: true })
-              : undefined
-          }
         />
         <EditSurfaceProvider
           state={edit}
@@ -295,6 +314,7 @@ export function Planner() {
               <PlanManagementList
                 plans={plans}
                 onSelect={(id) => open.replace({ plan: id })}
+                onCreate={() => setCreatingPlan(true)}
               />
             ) : shown || shownSection ? (
               <PlanItemDetail

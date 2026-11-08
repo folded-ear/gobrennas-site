@@ -41,12 +41,13 @@ The terms used here are defined in the [domain model](../domain/model.md).
 
 ### Managing plans
 
-- A Manage plans settings button beside New plan opens the all-plans drawer. It
-  stays outside overflow and is hidden when no accessible plan can be edited.
-- New plan stays outside overflow in the plan bar, becoming a labeled + button on
-  small screens. It asks for a nonblank name. Successful creation closes the form
-  and selects the empty plan alongside existing selections. Failed creation keeps
-  the name for another try. Color can be changed later in settings.
+- A Manage plans settings button in the Planner header, right of the plan
+  picker, opens the all-plans drawer. It is hidden when there are no accessible
+  plans.
+- New plan sits at the top of the all-plans drawer, beside its prompt. It asks
+  for a nonblank name. Successful creation closes the form, selects the empty
+  plan alongside existing selections, and shows the new plan's settings in the
+  drawer. Failed creation keeps the name for another try.
 - After creation, the planner refreshes its plan list before selecting the new
   plan. If refreshing fails, the dialog explains that creation succeeded and
   offers Refresh plans. Retrying refresh does not create another plan; the saved
@@ -57,7 +58,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - Each editable plan has a separate options menu beside its toggle, including in
   overflow. Plan settings opens its existing side drawer without changing selection.
   Read-only plans have no settings menu. Back to all plans shows the accessible
-  plan list, with read-only plans disabled. Closing the drawer or using browser
+  plan list, with read-only plans disabled. Like the plan picker, the list
+  separates My Plans from Shared Plans. Closing the drawer or using browser
   Back returns to the planner.
 - The plan list and settings use a compact drawer on larger screens and fill
   the screen width on mobile.
