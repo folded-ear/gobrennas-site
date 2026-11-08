@@ -198,8 +198,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   and labels are available under Recipe details, collapsed by default so the
   ingredients and directions begin near the top.
 - An independently planned recipe's yield reflects the scale used when it was
-  added to the plan; existing planned ingredient quantities are never scaled
-  again by the view.
+  saved on the plan. Cook starts with the existing planned quantities, never
+  applying that saved scale a second time.
 - The title, plan name, I cooked it, I prepped this, and Close remain above the
   scrolling content. Close returns to where Cook was opened. The view loads current plan
   data on entry; a missing or deleted occurrence offers a way back to the planner.
@@ -316,7 +316,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
   views available. A typed quantity scales the recipe (for example, `2 Chili` adds
   a double batch); no quantity means one batch. Saving waits for current recognition
   if the quantity was just edited. Recipe quantities must be greater than zero.
-  A section suggestion still saves a reference only.
+  Choosing a recipe also offers the shared batch chooser; an explicitly selected
+  choice takes precedence over the typed quantity. A section suggestion still
+  saves a reference only.
 - Cancel discards the draft. A plain item appears in its section at once,
   bucket included; see [Saving changes](#saving-changes). A failure while
   making a missing bucket or adding a recipe keeps the text.
@@ -338,6 +340,23 @@ The terms used here are defined in the [domain model](../domain/model.md).
   save preserves the entered name and date.
 
 ### Editing items
+
+- An independently planned recipe offers the same batch chooser as Add to plan:
+  ¼×, ½×, 1×, and 2×. Selecting a multiplier applies it immediately,
+  without a separate Apply action. Scaling requires a connection and waits for
+  the server response; it is not queued for offline saving. Finish saving other
+  plan edits before scaling. In the item screen,
+  scaling is saved to this occurrence and affects shopping quantities. It scales
+  current ingredient edits and linked preparation rather than rebuilding from the
+  saved library recipe. Unknown quantities and directions are unchanged.
+- A saved multiplier outside the presets (for example, 1.5) is shown as read-only
+  text with the preset buttons disabled. Change that quantity through the
+  planner's inline item editor instead. The Add chooser remains available for
+  draft quantities, including non-preset quantities.
+- Owned sections scale with their recipe. Subrecipe reference quantities scale,
+  but the ingredients inside those subrecipes keep their existing quantities,
+  matching the behavior when adding a scaled recipe. Viewers cannot change a
+  persisted scale.
 
 - Existing leaf rows inside an open item's detail use compact, inline Morsel while being edited.
   Quantity, unit, and ingredient highlights update after a brief pause. This

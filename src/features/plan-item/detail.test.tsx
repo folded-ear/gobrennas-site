@@ -241,7 +241,10 @@ describe("PlanItemDetail", () => {
     const cache = buildInMemoryCache();
     const pie = seedFragment(cache, PlanItemFragmentDoc, "planItem", {
       ...planItemFragment(PIE),
-      ingredient: { __typename: "Recipe", id: "saved-pumpkin-pie" },
+      ingredient: {
+        __typename: "Recipe",
+        id: "saved-pumpkin-pie",
+      },
     });
 
     render(<Detail item={pie} context={planContext()} descendants={[]} />, {

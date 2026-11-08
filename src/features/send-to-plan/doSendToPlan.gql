@@ -1,6 +1,6 @@
-mutation doSendToPlan($recipeId: ID!, $planId: ID!) {
+mutation doSendToPlan($recipeId: ID!, $planId: ID!, $scale: Float = 1) {
   library {
-    sendRecipeToPlan(id: $recipeId, planId: $planId) {
+    sendRecipeToPlan(id: $recipeId, planId: $planId, scale: $scale) {
       id
     }
   }

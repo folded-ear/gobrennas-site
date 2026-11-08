@@ -133,6 +133,55 @@ async function openPlanMenu() {
 }
 
 describe("SendToPlan", () => {
+  it("keeps detail scaling with the active plan and alternate destinations", async () => {
+    renderSendToPlan({
+      choosable: true,
+      mocks: [
+        {
+          request: {
+            ...sendTo(THIS_WEEK),
+            variables: { ...sendTo(THIS_WEEK).variables, scale: 0.5 },
+          },
+          result: sent,
+        },
+        {
+          request: {
+            ...sendTo(PARTY),
+            variables: { ...sendTo(PARTY).variables, scale: 0.5 },
+          },
+          result: sent,
+        },
+      ],
+    });
+    await userEvent.click(screen.getByRole("button", { name: "½×" }));
+    await userEvent.click(screen.getByRole("button", { name: "This Week" }));
+    expect(await screen.findByText("Added to This Week")).toBeVisible();
+    const menu = await openPlanMenu();
+    await userEvent.click(
+      within(menu).getByRole("menuitem", { name: "Block Party" }),
+    );
+    expect(await screen.findByText("Added to Block Party")).toBeVisible();
+  });
+  it("adds one batch directly from a library card without opening a dialog", async () => {
+    const user = userEvent.setup();
+    renderSendToPlan({
+      mocks: [
+        {
+          request: {
+            ...sendTo(THIS_WEEK),
+            variables: { ...sendTo(THIS_WEEK).variables, scale: 1 },
+          },
+          result: sent,
+        },
+      ],
+    });
+    await user.click(screen.getByRole("button", { name: /this week/i }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: "Recipe scale" }),
+    ).not.toBeInTheDocument();
+    expect(await screen.findByText("Added to This Week")).toBeVisible();
+  });
   it("shows the active plan's name", () => {
     renderSendToPlan();
 

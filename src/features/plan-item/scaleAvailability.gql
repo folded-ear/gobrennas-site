@@ -1,0 +1,5 @@
+fragment scaleAvailability on PlanItem {
+  id
+  pendingStatus @client
+  inert @client
+}

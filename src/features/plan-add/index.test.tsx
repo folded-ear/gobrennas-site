@@ -114,7 +114,11 @@ const addedRecipe: GraphQLCodegenDataMasking.Unmasked<AddPlannerRecipeMutation> 
         name: "Soup",
         aggregate: null,
         parent: { __typename: "Plan", id: THANKSGIVING },
-        ingredient: { __typename: "Recipe", id: "recipe-soup", name: "Soup" },
+        ingredient: {
+          __typename: "Recipe",
+          id: "recipe-soup",
+          name: "Soup",
+        },
         quantity: { __typename: "Quantity", quantity: 1, units: null },
         children: [{ __typename: "PlanItem", id: "101" }],
         components: [{ __typename: "PlanItem", id: "101" }],
@@ -528,6 +532,21 @@ describe("planner Add", () => {
       expect(saved?.query).toContain("scale: $scale");
     },
   );
+
+  it("uses the shared chooser instead of a typed recipe quantity when explicitly selected", async () => {
+    const { user, requests } = setup();
+    await user.click(screen.getByRole("button", { name: "Add to Unplanned" }));
+    await user.type(editableMorsel("Item for Unplanned"), "1/2 So");
+    await user.click((await screen.findAllByRole("option"))[1]);
+    await user.click(screen.getByRole("button", { name: "2×" }));
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("form")).not.toBeInTheDocument(),
+    );
+    expect(
+      requests.find((it) => it.name === "addPlannerRecipe")?.variables,
+    ).toMatchObject({ scale: 2 });
+  });
 
   it("recognizes the latest quantity when Add is pressed before the editor's debounce", async () => {
     const { user, requests } = setup();
