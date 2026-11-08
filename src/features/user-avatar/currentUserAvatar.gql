@@ -1,4 +1,4 @@
-fragment sectionNav on Query {
+fragment currentUserAvatar on Query {
   profile {
     me {
       id
