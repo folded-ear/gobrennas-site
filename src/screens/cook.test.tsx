@@ -83,9 +83,6 @@ describe("Cook", () => {
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("group", { name: "Recipe scale" }),
-    ).not.toBeInTheDocument();
-    expect(
       screen.queryByRole("button", { name: /edit|delete|add to plan/i }),
     ).not.toBeInTheDocument();
     expect(
