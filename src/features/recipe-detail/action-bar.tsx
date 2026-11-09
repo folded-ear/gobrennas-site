@@ -102,9 +102,11 @@ export function LibraryRecipeActions({
               id="share"
               textValue="Share recipe"
               onAction={() => {
-                more.current?.focus();
                 void shareRecipeOnDevice(recipe).then((shared) => {
-                  if (!shared) setShareOpen(true);
+                  if (shared) return;
+                  // The menu is gone, and with it the focus it would restore.
+                  more.current?.focus();
+                  setShareOpen(true);
                 });
               }}
             >
