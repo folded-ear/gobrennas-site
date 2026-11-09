@@ -1,6 +1,7 @@
 import { cloudRunProbesFilter } from "@/filters/cloud-run-probes";
 import { deviceKeyCookieFilter } from "@/filters/device-key-cookie";
 import { buildFilterChain } from "@/filters/filters";
+import { stripWwwFilter } from "@/filters/strip-www";
 
 /*
 To add additional middleware, define a Filter:
@@ -27,5 +28,6 @@ Then register the Filter in the chain below, at the position it should run.
  */
 export const proxy = buildFilterChain(
   cloudRunProbesFilter,
+  stripWwwFilter,
   deviceKeyCookieFilter,
 );

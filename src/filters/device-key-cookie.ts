@@ -1,22 +1,12 @@
 import { FilterChain } from "@/filters/filters";
+import { requestedHost } from "@/filters/requested-host";
 import { rand_chars } from "@/lib/entropy";
 import type { NextRequest } from "next/server";
 
 export const COOKIE_DEVICE_KEY = "FDEVICE";
 
-const HEADER_HOST = "host";
 /** How many of a hostname's trailing labels name the cookie's domain. */
 const DOMAIN_LABELS = 2;
-
-/**
- * I give the hostname the browser asked for, as the Host header names it.
- */
-function requestedHostname(request: NextRequest): string {
-  const host = request.headers.get(HEADER_HOST);
-  // nextUrl names the address the server is bound to, not the public host
-  const url = host === null ? null : URL.parse(`http://${host}`);
-  return url?.hostname ?? request.nextUrl.hostname;
-}
 
 export function deviceKeyCookieFilter(
   request: NextRequest,
@@ -41,8 +31,8 @@ export function deviceKeyCookieFilter(
   d.setFullYear(d.getFullYear() + 10);
   response.cookies.set(COOKIE_DEVICE_KEY, deviceKey, {
     expires: d,
-    domain: requestedHostname(request)
-      .split(".")
+    domain: requestedHost(request)
+      .hostname.split(".")
       .slice(-DOMAIN_LABELS)
       .join("."),
     path: "/",
