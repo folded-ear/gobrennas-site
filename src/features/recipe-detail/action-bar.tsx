@@ -14,27 +14,31 @@ export function RecipeActionBar({
 }: {
   title: ReactNode;
   children?: ReactNode;
-  onClose: () => void;
+  onClose?: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-sm border-b border-separator py-sm">
+    <header className="flex flex-wrap items-center justify-between gap-sm border-b border-separator py-sm">
       <div className="min-w-0 basis-full sm:basis-auto sm:flex-1">{title}</div>
-      <div
-        role="group"
-        aria-label="Recipe actions"
-        className="flex w-full items-center gap-sm sm:w-auto"
-      >
-        {children}
-        <Button
-          isIconOnly
-          variant="tertiary"
-          aria-label="Close recipe"
-          onPress={onClose}
-          className="ml-auto"
+      {children || onClose ? (
+        <div
+          role="group"
+          aria-label="Recipe actions"
+          className="flex w-full items-center gap-sm sm:w-auto"
         >
-          <X size={20} aria-hidden />
-        </Button>
-      </div>
+          {children}
+          {onClose ? (
+            <Button
+              isIconOnly
+              variant="tertiary"
+              aria-label="Close recipe"
+              onPress={onClose}
+              className="ml-auto"
+            >
+              <X size={20} aria-hidden />
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
     </header>
   );
 }

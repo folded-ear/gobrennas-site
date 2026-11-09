@@ -1,0 +1,19 @@
+fragment recipeReading on Recipe {
+  id
+  name
+  externalUrl
+  yield
+  totalTime
+  calories
+  labels
+  ownedBy {
+    id
+    ...userAvatar
+  }
+  photo {
+    url
+  }
+  ...recipePhoto
+  ...ingredientsAndDirections
+  ...recipeSections
+}

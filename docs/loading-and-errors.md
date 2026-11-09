@@ -109,6 +109,12 @@ rendering because the boundary has not mounted yet.
 6. **Authentication is not an error condition.** An expired or missing session
    is a routing outcome, not something for an error boundary to interpret.
 
+### Not found
+
+A URL that leads nowhere is a 404, not an error. `app/not-found.tsx` is the
+one not-found page for the whole site. A route that finds nothing to show
+calls `notFound()`.
+
 ### Known gaps
 
 These are recorded because the code does not match the rules above yet.

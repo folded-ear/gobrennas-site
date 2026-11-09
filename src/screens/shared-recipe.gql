@@ -1,0 +1,8 @@
+query SharedRecipe($id: ID!, $secret: String!) {
+  library {
+    getRecipeById(id: $id, secret: $secret) {
+      id
+      ...recipeReading
+    }
+  }
+}
