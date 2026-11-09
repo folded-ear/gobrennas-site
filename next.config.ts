@@ -58,8 +58,8 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
-        source: "/plan/:id",
-        destination: "/planner/:id",
+        source: "/plan/:pid/bucket/:bid",
+        destination: "/planner/cook/bucket/:pid/:bid",
         permanent: false,
       },
     ];
