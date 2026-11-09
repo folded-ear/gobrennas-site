@@ -5,6 +5,7 @@ import {
   bucketCookHref,
   parseBucketCookIds,
   photoJobOf,
+  shareRecipeHref,
 } from "./routes";
 
 describe("bucketCookHref", () => {
@@ -80,4 +81,18 @@ describe("adding a recipe from a photo", () => {
       expect(photoJobOf(value)).toBeUndefined();
     },
   );
+});
+
+describe("shareRecipeHref", () => {
+  it("lands on the shared recipe page", () => {
+    expect(
+      shareRecipeHref({ id: "87", slug: "apple-pie", secret: "0f1e2d" }),
+    ).toBe("/share/recipe/apple-pie/0f1e2d/87");
+  });
+
+  it("keeps each part within its own segment", () => {
+    expect(shareRecipeHref({ id: "8/7", slug: "pie?", secret: "a#b" })).toBe(
+      "/share/recipe/pie%3F/a%23b/8%2F7",
+    );
+  });
 });

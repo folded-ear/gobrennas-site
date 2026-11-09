@@ -3,9 +3,10 @@
 import { DeleteRecipeDialog } from "@/features/recipe-form/delete-recipe-button";
 import { SendToPlan } from "@/features/send-to-plan";
 import { Button, Dropdown, Label, Separator } from "@heroui/react";
-import { Copy, Ellipsis, Pencil, Trash2, X } from "lucide-react";
+import { Copy, Ellipsis, Pencil, Share2, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useRef, useState } from "react";
+import { ShareRecipeDialog, shareRecipeOnDevice } from "./share-recipe-dialog";
 
 export function RecipeActionBar({
   title,
@@ -47,11 +48,17 @@ export function LibraryRecipeActions({
   recipe,
   onDelete,
 }: {
-  recipe: { id: string; name: string; mine: boolean };
+  recipe: {
+    id: string;
+    name: string;
+    mine: boolean;
+    share: { id: string; slug: string; secret: string };
+  };
   onDelete: () => Promise<void>;
 }) {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const more = useRef<HTMLButtonElement>(null);
   return (
     <>
@@ -80,19 +87,34 @@ export function LibraryRecipeActions({
               <Label>{recipe.mine ? "Duplicate" : "Copy to my library"}</Label>
             </Dropdown.Item>
             {recipe.mine ? (
+              <Dropdown.Item
+                id="edit"
+                onAction={() =>
+                  router.push(`/recipes/${encodeURIComponent(recipe.id)}/edit`)
+                }
+                textValue="Edit recipe"
+              >
+                <Pencil size={16} aria-hidden />
+                <Label>Edit recipe</Label>
+              </Dropdown.Item>
+            ) : null}
+            <Dropdown.Item
+              id="share"
+              textValue="Share recipe"
+              onAction={() => {
+                void shareRecipeOnDevice(recipe).then((shared) => {
+                  if (shared) return;
+                  // The menu is gone, and with it the focus it would restore.
+                  more.current?.focus();
+                  setShareOpen(true);
+                });
+              }}
+            >
+              <Share2 size={16} aria-hidden />
+              <Label>Share recipe</Label>
+            </Dropdown.Item>
+            {recipe.mine ? (
               <>
-                <Dropdown.Item
-                  id="edit"
-                  onAction={() =>
-                    router.push(
-                      `/recipes/${encodeURIComponent(recipe.id)}/edit`,
-                    )
-                  }
-                  textValue="Edit recipe"
-                >
-                  <Pencil size={16} aria-hidden />
-                  <Label>Edit recipe</Label>
-                </Dropdown.Item>
                 <Separator />
                 <Dropdown.Item
                   id="delete"
@@ -111,6 +133,11 @@ export function LibraryRecipeActions({
           </Dropdown.Menu>
         </Dropdown.Popover>
       </Dropdown>
+      <ShareRecipeDialog
+        recipe={recipe}
+        isOpen={shareOpen}
+        onOpenChange={setShareOpen}
+      />
       {recipe.mine ? (
         <DeleteRecipeDialog
           name={recipe.name}

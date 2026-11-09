@@ -12,6 +12,12 @@ export const recipe: Unmasked<
   name: "Apple pie",
   mine: true,
   ownedBy: null,
+  share: {
+    __typename: "ShareInfo",
+    id: "pie",
+    slug: "apple-pie",
+    secret: "0f1e2d3c",
+  },
   photo: null,
   externalUrl: "https://example.test/pie",
   yield: 8,
