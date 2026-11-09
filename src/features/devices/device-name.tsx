@@ -85,10 +85,14 @@ export function DeviceName({ id, name }: DeviceNameProps) {
         <TextField
           aria-label="Device name"
           value={draft}
-          onChange={setDraft}
-          isDisabled={pending}
+          onChange={(text) => {
+            setDraft(text);
+            setFailed(false);
+          }}
+          // Disabling would drop focus, stranding it if the save fails.
+          isReadOnly={pending}
           onKeyDown={(event) => {
-            if (event.key === ESCAPE) stop();
+            if (event.key === ESCAPE && !pending) stop();
           }}
         >
           <Input className="px-sm py-xs" autoFocus />

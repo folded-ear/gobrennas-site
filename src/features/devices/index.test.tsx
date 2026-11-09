@@ -267,9 +267,9 @@ describe("DeviceTable", () => {
       expect(await screen.findByRole("alert")).toHaveTextContent(
         "Could not rename the device",
       );
-      expect(screen.getByRole("textbox", { name: "Device name" })).toHaveValue(
-        "Kitchen iPad Pro",
-      );
+      const field = screen.getByRole("textbox", { name: "Device name" });
+      expect(field).toHaveValue("Kitchen iPad Pro");
+      expect(field).toHaveFocus();
     });
   });
 });
