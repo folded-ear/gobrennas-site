@@ -24,6 +24,10 @@ has used.
   used, and stars the device in use. The day reads "Today" or "Yesterday";
   else as a weekday and date within about three months; else as a numeric
   date.
+- Each device's name can be renamed in place: Enter or Save keeps the new
+  name, and Escape or Cancel leaves it as it was. A blank name saves as
+  "Device" followed by the device's id. If the rename fails, the new name
+  stays in the field so it can be tried again.
 - Developers have a Dev Mode switch, set for each device separately. While
   it is on, the page shows when the running version was built and the sizes
   of the screen and viewport, and on large screens the device list shows
@@ -32,7 +36,7 @@ has used.
 ## Not included
 
 - Changing the user's name or avatar.
-- Renaming or removing devices.
+- Removing devices.
 
 ## Open questions
 

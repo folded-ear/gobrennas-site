@@ -5,10 +5,16 @@ import {
   render,
   screen,
   seedFragment,
+  userEvent,
   within,
 } from "@/test";
+import { MockLink } from "@apollo/client/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DeviceTableFragmentDoc } from "./__generated__/deviceTable.generated";
+import {
+  RenameDeviceDocument,
+  type RenameDeviceMutation,
+} from "./__generated__/renameDevice.generated";
 import { DeviceTable } from "./index";
 
 // a Sunday afternoon, local time
@@ -38,7 +44,26 @@ const LAPTOP = {
   lastEnsuredAt: at(2026, 9, 29, 9, 10),
 };
 
-function renderTable({ devMode = false } = {}) {
+function renamed(id: string, name: string): MockLink.MockedResponse {
+  const data: RenameDeviceMutation = {
+    profile: {
+      __typename: "ProfileMutation",
+      renameDevice: { __typename: "UserDevice", id, name },
+    },
+  };
+  return {
+    request: { query: RenameDeviceDocument, variables: { id, name } },
+    result: { data },
+  };
+}
+
+function renderTable({
+  devMode = false,
+  mocks = [],
+}: {
+  devMode?: boolean;
+  mocks?: ReadonlyArray<MockLink.MockedResponse>;
+} = {}) {
   const cache = buildInMemoryCache();
   const user = seedFragment(
     cache,
@@ -54,11 +79,14 @@ function renderTable({ devMode = false } = {}) {
       data: { __typename: "UserPreference", value: "true" },
     });
   }
-  render(<DeviceTable user={user} currentKey={PHONE.key} />, { cache });
+  render(<DeviceTable user={user} currentKey={PHONE.key} />, {
+    cache,
+    mocks,
+  });
 }
 
 function rowOf(name: string) {
-  const row = screen.getByRole("rowheader", { name }).closest("[role=row]");
+  const row = screen.getByText(name).closest("[role=row]");
   if (!(row instanceof HTMLElement)) throw new Error(`No row for ${name}`);
   return row;
 }
@@ -114,5 +142,134 @@ describe("DeviceTable", () => {
     renderTable();
 
     expect(screen.queryByText(KITCHEN.key)).toBeNull();
+  });
+
+  describe("renaming", () => {
+    it("offers to rename each device", () => {
+      renderTable();
+
+      expect(
+        within(rowOf("Old Laptop")).getByRole("button", {
+          name: "Rename Old Laptop",
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it("starts from the current name", async () => {
+      const user = userEvent.setup();
+      renderTable();
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Kitchen iPad" }),
+      );
+
+      const field = screen.getByRole("textbox", { name: "Device name" });
+      expect(field).toHaveValue("Kitchen iPad");
+      expect(field).toHaveFocus();
+    });
+
+    it("saves the trimmed name on Enter", async () => {
+      const user = userEvent.setup();
+      renderTable({ mocks: [renamed(KITCHEN.id, "Kitchen counter iPad")] });
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Kitchen iPad" }),
+      );
+      const field = screen.getByRole("textbox", { name: "Device name" });
+      await user.clear(field);
+      await user.type(field, "  Kitchen counter iPad  {Enter}");
+
+      const rename = await screen.findByRole("button", {
+        name: "Rename Kitchen counter iPad",
+      });
+      expect(screen.queryByRole("textbox")).toBeNull();
+      expect(rename).toHaveFocus();
+    });
+
+    it("saves a blank name as the device's id", async () => {
+      const user = userEvent.setup();
+      renderTable({ mocks: [renamed(LAPTOP.id, `Device ${LAPTOP.id}`)] });
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Old Laptop" }),
+      );
+      const field = screen.getByRole("textbox", { name: "Device name" });
+      await user.clear(field);
+      await user.type(field, "   ");
+      await user.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(
+        await screen.findByRole("button", {
+          name: `Rename Device ${LAPTOP.id}`,
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it("cancels on Escape, keeping the name", async () => {
+      const user = userEvent.setup();
+      renderTable();
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Kitchen iPad" }),
+      );
+      await user.type(
+        screen.getByRole("textbox", { name: "Device name" }),
+        " Pro{Escape}",
+      );
+
+      expect(screen.queryByRole("textbox")).toBeNull();
+      expect(
+        screen.getByRole("button", { name: "Rename Kitchen iPad" }),
+      ).toHaveFocus();
+    });
+
+    it("cancels with the Cancel button, keeping the name", async () => {
+      const user = userEvent.setup();
+      renderTable();
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Kitchen iPad" }),
+      );
+      await user.type(
+        screen.getByRole("textbox", { name: "Device name" }),
+        " Pro",
+      );
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+      expect(screen.queryByRole("textbox")).toBeNull();
+      expect(
+        screen.getByRole("button", { name: "Rename Kitchen iPad" }),
+      ).toHaveFocus();
+    });
+
+    it("keeps the draft after a failed rename", async () => {
+      const user = userEvent.setup();
+      renderTable({
+        mocks: [
+          {
+            request: {
+              query: RenameDeviceDocument,
+              variables: { id: KITCHEN.id, name: "Kitchen iPad Pro" },
+            },
+            error: new Error("Offline"),
+          },
+        ],
+      });
+
+      await user.click(
+        screen.getByRole("button", { name: "Rename Kitchen iPad" }),
+      );
+      await user.type(
+        screen.getByRole("textbox", { name: "Device name" }),
+        " Pro{Enter}",
+      );
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Could not rename the device",
+      );
+      expect(screen.getByRole("textbox", { name: "Device name" })).toHaveValue(
+        "Kitchen iPad Pro",
+      );
+    });
   });
 });

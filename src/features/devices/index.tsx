@@ -11,6 +11,7 @@ import {
   DeviceTableFragment,
   DeviceTableFragmentDoc,
 } from "./__generated__/deviceTable.generated";
+import { DeviceName } from "./device-name";
 
 type DeviceTableProps = {
   user: FragmentType<DeviceTableFragment>;
@@ -23,7 +24,8 @@ const KEY_ONLY_ON_LARGE_SCREENS = "hidden lg:table-cell";
 
 /**
  * I list a user's devices, in the order given, marking the one I'm shown
- * on. In dev mode, large screens also show each device's key.
+ * on, and let each be renamed. In dev mode, large screens also show each
+ * device's key.
  */
 export function DeviceTable({ user, currentKey }: DeviceTableProps) {
   const { data, complete } = useFragment({
@@ -64,7 +66,9 @@ export function DeviceTable({ user, currentKey }: DeviceTableProps) {
                     </span>
                   )}
                 </Table.Cell>
-                <Table.Cell>{device.name}</Table.Cell>
+                <Table.Cell>
+                  <DeviceName id={device.id} name={device.name} />
+                </Table.Cell>
                 <Table.Cell>
                   {mounted && formatRecentDay(device.lastEnsuredAt)}
                 </Table.Cell>
