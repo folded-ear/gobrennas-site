@@ -4,27 +4,13 @@ query getRecipeDetail($id: ID!) {
       id
       mine
       name
-      externalUrl
-      yield
-      totalTime
-      calories
-      labels
       sections {
         id
         sectionOf {
           id
         }
       }
-      ownedBy {
-        id
-        ...userAvatar
-      }
-      photo {
-        url
-      }
-      ...recipePhoto
-      ...ingredientsAndDirections
-      ...recipeSections
+      ...recipeReading
     }
   }
   ...sendToPlan
