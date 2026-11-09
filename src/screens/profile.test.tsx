@@ -6,7 +6,7 @@ import {
   ProfileDocument,
   type ProfileQuery,
 } from "./__generated__/profile.generated";
-import { Profile } from "./profile";
+import { Profile, ProfileLoading } from "./profile";
 
 vi.mock("next-client-cookies", () => ({
   useCookies: () => ({ get: () => undefined }),
@@ -65,5 +65,16 @@ describe("Profile", () => {
     });
 
     expect(screen.queryByRole("switch", { name: "Dev Mode" })).toBeNull();
+  });
+});
+
+describe("ProfileLoading", () => {
+  it("offers log out while the profile loads", () => {
+    render(<ProfileLoading />);
+
+    expect(
+      screen.getByRole("status", { name: "Loading profile" }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Log Out" })).toBeVisible();
   });
 });

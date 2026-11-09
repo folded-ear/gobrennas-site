@@ -100,8 +100,8 @@ export function formatGapLabel(days: number): string {
 
 /**
  * I name an instant's local day relative to `now`'s: "Today", "Yesterday",
- * or "Tomorrow"; else as a day separator shows it within a season of `now`;
- * else as a short numeric date.
+ * or "Tomorrow"; else by weekday and date, within a season of `now`; else
+ * as a short numeric date.
  */
 export function formatRecentDay(
   instant: string,

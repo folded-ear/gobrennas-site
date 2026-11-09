@@ -36,9 +36,7 @@ away and lets focused content slide in without losing the user's place.
   follow this separately. The plan's name shows only beside a lone avatar.
   Pressing anywhere in the field but a toggle opens the picker. Recent toggles
   are forgotten when the picker leaves the screen.
-- Logging out is on the Profile page. On a phone or tablet, so is
-  installing the app, which opens on Shopping, with shortcuts to Shop,
-  Plan, and Library.
+- Logging out and installing the app are on the [Profile](profile.md) page.
 
 ### Screens
 
@@ -70,4 +68,5 @@ away and lets focused content slide in without losing the user's place.
 ## Related documents
 
 - [Planner](planner.md)
+- [Profile](profile.md)
 - [Recipes](recipes.md)

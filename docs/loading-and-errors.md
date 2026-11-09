@@ -118,7 +118,8 @@ These are recorded because the code does not match the rules above yet.
   during server rendering. The client-only `UNAUTHORIZED` → login fallback
   cannot reliably turn a hard-load server error into navigation.
 - `src/components/error-fallback.tsx` displays raw exception text to the user.
-- Recipe creation and the single-recipe Cook route have loading boundaries.
+- Recipe creation, the single-recipe Cook route, and Profile have loading
+  boundaries.
   Most private routes still lack one, and no `error.tsx` or `global-error.tsx`
   boundary exists.
 - The recipe library has no in-screen boundary around `RecipeGrid`, and its
