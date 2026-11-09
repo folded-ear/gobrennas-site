@@ -4,6 +4,7 @@ import {
   diffDays,
   formatDayLabel,
   formatGapLabel,
+  formatRecentDay,
   localDate,
 } from "./dates";
 
@@ -90,5 +91,22 @@ describe("formatGapLabel", () => {
 
   it("switches to months rather than counting a winter break in days", () => {
     expect(formatGapLabel(97)).toBe("3 months");
+  });
+});
+
+describe("formatRecentDay", () => {
+  // a Sunday afternoon, local time
+  const now = new Date(2026, 10, 8, 15, 0);
+  const at = (...local: [number, number, number, number?, number?]) =>
+    new Date(...local).toISOString();
+
+  it.each([
+    ["earlier the same day", at(2026, 10, 8, 0, 5), "Today"],
+    ["late the day before", at(2026, 10, 7, 23, 30), "Yesterday"],
+    ["early the next day", at(2026, 10, 9, 0, 30), "Tomorrow"],
+    ["ten days ago", at(2026, 9, 29, 12), "Thu, Oct 29"],
+    ["ninety days ago", at(2026, 7, 10, 12), "8/10/2026"],
+  ])("names %s by the local day", (_, instant, label) => {
+    expect(formatRecentDay(instant, now)).toBe(label);
   });
 });

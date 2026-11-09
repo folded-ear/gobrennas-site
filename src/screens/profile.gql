@@ -1,0 +1,10 @@
+query Profile {
+  deviceKey @client
+  profile {
+    me {
+      id
+      roles
+      ...deviceTable
+    }
+  }
+}

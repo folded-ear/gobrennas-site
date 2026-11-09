@@ -1,4 +1,5 @@
 import { getUserProfile } from "@/data-rsc/get-user-profile";
+import { ROLE_DEVELOPER, ROLE_USER } from "@/lib/roles";
 import { cache } from "react";
 
 export const getRoles = cache(async () => {
@@ -7,11 +8,11 @@ export const getRoles = cache(async () => {
 });
 
 export const isAuthenticated = async () => {
-  return hasRole("USER");
+  return hasRole(ROLE_USER);
 };
 
 export const isDeveloper = async () => {
-  return hasRole("DEVELOPER");
+  return hasRole(ROLE_DEVELOPER);
 };
 
 export const hasRole = async (role: string) => {

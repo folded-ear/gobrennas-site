@@ -1,8 +1,8 @@
 "use client";
 
 import { usePageEngine, usePageStatus } from "@/features/page-engine";
+import { useMounted } from "@/hooks/use-mounted";
 import { Button } from "@heroui/react";
-import { useSyncExternalStore } from "react";
 import { installOffer } from "./install-offer";
 
 const COARSE_POINTER = "(pointer: coarse)";
@@ -14,15 +14,6 @@ const matches = (query: string) => window.matchMedia(query).matches;
 const isIos = () =>
   IOS_DEVICE.test(navigator.userAgent) ||
   (navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints > 1);
-
-const noSubscription = () => () => {};
-
-const useMounted = () =>
-  useSyncExternalStore(
-    noSubscription,
-    () => true,
-    () => false,
-  );
 
 /** I offer to install the app on touch devices that haven't yet. */
 export function InstallApp() {

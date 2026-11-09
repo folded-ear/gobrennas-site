@@ -24,6 +24,7 @@ import {
   ShieldQuestionMark,
   ShoppingCart,
   SquareArrowRightEnter,
+  Star,
   Trash,
 } from "lucide-react";
 import { JSX, RefAttributes } from "react";
@@ -54,6 +55,7 @@ export const AddIcon = createIcon(Plus);
 export const BuyingIcon = createIcon(ShoppingCart);
 export const CookIcon = createIcon(ChefHat);
 export const CookedItIcon = createIcon(ChefHat);
+export const CurrentDeviceIcon = createIcon(Star);
 export const DeleteIcon = createIcon(Trash);
 export const DragHandleIcon = createIcon(GripVertical);
 export const ExpandDownIcon = createIcon(ChevronDown);

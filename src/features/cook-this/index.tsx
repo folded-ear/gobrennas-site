@@ -1,10 +1,9 @@
 "use client";
 
+import { useMounted } from "@/hooks/use-mounted";
 import { useCookies } from "next-client-cookies";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef } from "react";
 import { bookmarkletUrl } from "./bookmarklet";
-
-const noSubscription = () => () => {};
 
 function apiProtocol(apiRoot?: string) {
   try {
@@ -17,11 +16,7 @@ function apiProtocol(apiRoot?: string) {
 
 export function CookThis({ apiRoot }: { apiRoot?: string }) {
   const cookies = useCookies();
-  const mounted = useSyncExternalStore(
-    noSubscription,
-    () => true,
-    () => false,
-  );
+  const mounted = useMounted();
   const token = mounted ? cookies.get("FTOKEN") : undefined;
   const protocol = apiProtocol(apiRoot);
   const needsToken = protocol === "http:";
