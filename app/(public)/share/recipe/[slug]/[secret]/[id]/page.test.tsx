@@ -38,12 +38,6 @@ beforeEach(() => {
   signedIn.mockResolvedValue(false);
 });
 
-function badSecret() {
-  recipeMetadata.mockRejectedValue(
-    new CombinedGraphQLErrors({ errors: [{ message: "Unauthorized" }] }),
-  );
-}
-
 describe("shared recipe page", () => {
   it("titles the page with the recipe's name", async () => {
     expect(await generateMetadata(props)).toEqual({
@@ -60,7 +54,9 @@ describe("shared recipe page", () => {
   });
 
   it("is not found when the API refuses the secret", async () => {
-    badSecret();
+    recipeMetadata.mockRejectedValue(
+      new CombinedGraphQLErrors({ errors: [{ message: "Unauthorized" }] }),
+    );
 
     await expect(SharedRecipePage(props)).rejects.toThrow("not found");
     await expect(generateMetadata(props)).rejects.toThrow("not found");

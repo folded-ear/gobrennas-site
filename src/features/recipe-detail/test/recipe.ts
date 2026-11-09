@@ -78,6 +78,19 @@ export const recipe: Unmasked<
   ],
 };
 
+/** The pie as someone other than its owner sees it. */
+export const borrowedRecipe: typeof recipe = {
+  ...recipe,
+  mine: false,
+  ownedBy: {
+    __typename: "User",
+    id: "brenna",
+    name: "Brenna Switzer",
+    email: "brenna@example.test",
+    imageUrl: null,
+  },
+};
+
 export const planner: Unmasked<SendToPlanFragment>["planner"] = {
   __typename: "PlannerQuery",
   plans: [

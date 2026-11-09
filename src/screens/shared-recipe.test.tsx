@@ -1,4 +1,4 @@
-import { recipe } from "@/features/recipe-detail/test/recipe";
+import { borrowedRecipe } from "@/features/recipe-detail/test/recipe";
 import { SharedRecipeDocument } from "@/screens/__generated__/shared-recipe.generated";
 import { act, render, screen } from "@/test";
 import { Suspense } from "react";
@@ -8,17 +8,7 @@ import { SharedRecipe } from "./shared-recipe";
 const ID = "631";
 const SECRET = "dde7cce2c7641a3b2b17506e377849550fa367c6";
 
-const sharedPie = {
-  ...recipe,
-  id: ID,
-  ownedBy: {
-    __typename: "User" as const,
-    id: "brenna",
-    name: "Brenna Switzer",
-    email: "brenna@example.test",
-    imageUrl: null,
-  },
-};
+const sharedPie = { ...borrowedRecipe, id: ID };
 
 describe("SharedRecipe", () => {
   it("shows the recipe the secret unlocks, with nothing to act on", async () => {

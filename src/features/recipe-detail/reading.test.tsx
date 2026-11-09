@@ -10,21 +10,9 @@ import { Button } from "@heroui/react";
 import { describe, expect, it, vi } from "vitest";
 import { RecipeReadingFragmentDoc } from "./__generated__/recipeReading.generated";
 import { RecipeReading } from "./reading";
-import { recipe } from "./test/recipe";
+import { borrowedRecipe, recipe } from "./test/recipe";
 
-const sharedPie = {
-  ...recipe,
-  mine: false,
-  ownedBy: {
-    __typename: "User" as const,
-    id: "brenna",
-    name: "Brenna Switzer",
-    email: "brenna@example.test",
-    imageUrl: null,
-  },
-};
-
-function seed(value = sharedPie) {
+function seed(value = borrowedRecipe) {
   const cache = buildInMemoryCache();
   const ref = seedFragment(
     cache,
