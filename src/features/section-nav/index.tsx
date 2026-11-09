@@ -1,11 +1,9 @@
 "use client";
 
-import { UserAvatarWithFallback } from "@/features/user-avatar";
-import { useFragment } from "@apollo/client/react";
+import { CurrentUserAvatar } from "@/features/user-avatar";
 import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SectionNavFragmentDoc } from "./__generated__/sectionNav.generated";
 import { SECTIONS } from "./sections";
 
 /**
@@ -14,11 +12,6 @@ import { SECTIONS } from "./sections";
  */
 export function SectionNav() {
   const pathname = usePathname() ?? "";
-  const { data, complete } = useFragment({
-    fragment: SectionNavFragmentDoc,
-    fragmentName: "sectionNav",
-    from: "ROOT_QUERY",
-  });
 
   return (
     <nav
@@ -41,12 +34,7 @@ export function SectionNav() {
                 )}
               >
                 <span aria-hidden className="flex h-7 items-center">
-                  {section.icon ?? (
-                    <UserAvatarWithFallback
-                      user={complete ? data.profile.me : null}
-                      size="sm"
-                    />
-                  )}
+                  {section.icon ?? <CurrentUserAvatar size="sm" />}
                 </span>
                 <span>{section.label}</span>
               </Link>

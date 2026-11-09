@@ -1,7 +1,10 @@
+"use client";
+
 import { PersonAvatar } from "@/components/person-avatar";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Avatar, AvatarRootProps } from "@heroui/react";
+import { CurrentUserAvatarFragmentDoc } from "./__generated__/currentUserAvatar.generated";
 import {
   UserAvatarFragment,
   UserAvatarFragmentDoc,
@@ -46,4 +49,23 @@ export function OtherUserAvatar({
   size = DEFAULT_SIZE,
 }: OptionalUserAvatarProps) {
   return user ? <UserAvatar user={user} size={size} /> : null;
+}
+
+type CurrentUserAvatarProps = Pick<UserAvatarProps, "size">;
+
+/** I show the signed-in user's avatar, or a blank one before they're known. */
+export function CurrentUserAvatar({
+  size = DEFAULT_SIZE,
+}: CurrentUserAvatarProps) {
+  const { data, complete } = useFragment({
+    fragment: CurrentUserAvatarFragmentDoc,
+    fragmentName: "currentUserAvatar",
+    from: "ROOT_QUERY",
+  });
+  return (
+    <UserAvatarWithFallback
+      user={complete ? data.profile.me : null}
+      size={size}
+    />
+  );
 }

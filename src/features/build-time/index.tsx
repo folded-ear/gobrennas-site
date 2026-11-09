@@ -1,13 +1,11 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useMounted } from "@/hooks/use-mounted";
 
 const FORMAT: Intl.DateTimeFormatOptions = {
   dateStyle: "medium",
   timeStyle: "short",
 };
-
-const noSubscription = () => () => {};
 
 /** I give when the running build was made, if its id says. */
 function builtAt(): Date | null {
@@ -22,11 +20,7 @@ function builtAt(): Date | null {
  * I show only once mounted in the browser.
  */
 export function BuildTime() {
-  const mounted = useSyncExternalStore(
-    noSubscription,
-    () => true,
-    () => false,
-  );
+  const mounted = useMounted();
   const built = builtAt();
   if (!mounted || built === null) return null;
   return (

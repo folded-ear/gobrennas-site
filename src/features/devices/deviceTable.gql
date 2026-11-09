@@ -1,0 +1,8 @@
+fragment deviceTable on User {
+  devices {
+    id
+    name
+    key
+    lastEnsuredAt
+  }
+}

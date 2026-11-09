@@ -14,6 +14,8 @@ const DAYS_PER_MONTH = 30.44;
 const DAYS_LABEL_LIMIT = 14;
 /** Past this many days, a count of weeks stops being easy to read. */
 const WEEKS_LABEL_LIMIT = 70;
+/** Within this many days, a day reads best by its weekday and date. */
+const RECENT_DAYS_LIMIT = 90;
 
 const YEAR_DIGITS = 4;
 const MONTH_DIGITS = 2;
@@ -27,6 +29,19 @@ const dayLabelFormat = new Intl.DateTimeFormat("en-US", {
   // there too or it reports the previous day west of Greenwich.
   timeZone: "UTC",
 });
+
+const numericDateFormat = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "numeric",
+  day: "numeric",
+  timeZone: "UTC",
+});
+
+const NEARBY_DAY_NAMES = new Map([
+  [0, "Today"],
+  [-1, "Yesterday"],
+  [1, "Tomorrow"],
+]);
 
 function pad(value: number, digits: number): string {
   return String(value).padStart(digits, "0");
@@ -81,4 +96,21 @@ export function formatGapLabel(days: number): string {
     return pluralize(Math.round(days / DAYS_PER_WEEK), "week");
   }
   return pluralize(Math.round(days / DAYS_PER_MONTH), "month");
+}
+
+/**
+ * I name an instant's local day relative to `now`'s: "Today", "Yesterday",
+ * or "Tomorrow"; else by weekday and date, within a season of `now`; else
+ * as a short numeric date.
+ */
+export function formatRecentDay(
+  instant: string,
+  now: Date = new Date(),
+): string {
+  const day = localDate(new Date(instant));
+  const daysAhead = diffDays(localDate(now), day);
+  const nearby = NEARBY_DAY_NAMES.get(daysAhead);
+  if (nearby !== undefined) return nearby;
+  if (Math.abs(daysAhead) < RECENT_DAYS_LIMIT) return formatDayLabel(day);
+  return numericDateFormat.format(toUtcMillis(day));
 }

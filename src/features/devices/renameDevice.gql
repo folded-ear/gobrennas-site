@@ -1,0 +1,8 @@
+mutation RenameDevice($id: ID!, $name: String!) {
+  profile {
+    renameDevice(id: $id, name: $name) {
+      id
+      name
+    }
+  }
+}

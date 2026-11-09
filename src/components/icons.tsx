@@ -2,6 +2,7 @@ import {
   BookOpen,
   BrushCleaning,
   Calendar,
+  Check,
   ChefHat,
   ChevronDown,
   ChevronUp,
@@ -24,7 +25,9 @@ import {
   ShieldQuestionMark,
   ShoppingCart,
   SquareArrowRightEnter,
+  Star,
   Trash,
+  X,
 } from "lucide-react";
 import { JSX, RefAttributes } from "react";
 
@@ -52,8 +55,10 @@ const createIcon = (Icon: LucideIcon, defaults?: Partial<LucideProps>) =>
 export const AcquiredIcon = createIcon(CircleCheckBig);
 export const AddIcon = createIcon(Plus);
 export const BuyingIcon = createIcon(ShoppingCart);
+export const CancelIcon = createIcon(X);
 export const CookIcon = createIcon(ChefHat);
 export const CookedItIcon = createIcon(ChefHat);
+export const CurrentDeviceIcon = createIcon(Star);
 export const DeleteIcon = createIcon(Trash);
 export const DragHandleIcon = createIcon(GripVertical);
 export const ExpandDownIcon = createIcon(ChevronDown);
@@ -68,8 +73,10 @@ export const PantryIcon = createIcon(ShelvingUnit);
 export const PhotosIcon = createIcon(Images);
 export const PlanScheduleIcon = createIcon(NotebookTabs);
 export const PlanCalendarIcon = createIcon(Calendar);
+export const RenameIcon = createIcon(Pencil);
 export const RecipeEditIcon = createIcon(Pencil);
 export const RecipeViewIcon = createIcon(EyeIcon);
+export const SaveIcon = createIcon(Check);
 export const SearchIcon = createIcon(Search);
 export const SendToPlanIcon = createIcon(SquareArrowRightEnter);
 export const SignedOutIcon = createIcon(ShieldQuestionMark);

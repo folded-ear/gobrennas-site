@@ -123,6 +123,7 @@ Start new documents from the [product](templates/product.md),
 
 - [Navigation](product/navigation.md)
 - [Planner](product/planner.md)
+- [Profile](product/profile.md)
 - [Recipes](product/recipes.md)
 - [Shopping](product/shopping.md)
 

@@ -1,4 +1,5 @@
 export const PREF_ACTIVE_PLAN = "activePlan";
+export const PREF_DEV_MODE = "devMode";
 export const PREF_PLANNER_PLANS = "plannerPlans";
 export const PREF_SHOPPING_PLANS = "activeShoppingPlans";
 
