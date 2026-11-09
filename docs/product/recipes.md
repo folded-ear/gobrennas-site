@@ -94,7 +94,7 @@ Delivery: Built
 - Source URLs using HTTP or HTTPS open in a new tab. Other saved source text is
   displayed as text.
 - A sticky action bar keeps send to plan and Close visible while reading, in
-  both the drawer and full-page view. On phones, actions sit below the recipe title.
+  both the drawer and full-page view. Recipe content doesn't show through it. On phones, actions sit below the recipe title.
   Closing the drawer returns to the previous view; closing the full page returns
   to the Library.
 - Send to plan is a split button. Its main part is named for the active plan
@@ -117,6 +117,22 @@ Delivery: Built
 - Opening a planned recipe in the planner remains focused on editing that
   occurrence. Its Cook view provides the readable recipe and cooking actions;
   see [Cooking](planner.md#cooking).
+
+### Shared recipes
+
+State: Agreed — [BFS-134](https://linear.app/go-brennas/issue/BFS-134/shared-recipes).
+
+Delivery: Built
+
+- A share link, `/share/recipe/:slug/:secret/:id`, shows the recipe to anyone
+  who has it, without signing in. The slug only labels the link.
+- The shared recipe reads like the full-page library recipe: title and owner
+  in a sticky bar, then information, photo, ingredients, directions, and
+  sections. It has no actions, no Close, and no section navigation.
+- A signed-in person who opens a share link goes to the recipe in their
+  Library instead.
+- A share link with a wrong secret, or for a recipe that no longer exists,
+  shows the site's not-found page.
 
 ### Copying a recipe
 
