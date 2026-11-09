@@ -94,7 +94,8 @@ Delivery: Built
 - Source URLs using HTTP or HTTPS open in a new tab. Other saved source text is
   displayed as text.
 - A sticky action bar keeps send to plan and Close visible while reading, in
-  both the drawer and full-page view. Recipe content doesn't show through it. On phones, actions sit below the recipe title.
+  both the drawer and full-page view. Recipe content doesn't show through it. On phones, actions sit below the recipe
+  title.
   Closing the drawer returns to the previous view; closing the full page returns
   to the Library.
 - Send to plan is a split button. Its main part is named for the active plan
@@ -112,8 +113,13 @@ Delivery: Built
 - The owner can open More recipe actions for Edit recipe and a separated Delete
   recipe action. Other people see neither action. Deletion uses the confirmation
   and recovery behavior below and returns to the Library on success.
-- Duplicate and Copy to my library open the copy workflow below. Share is
-  outside the manual recipe CRUD scope of [BFS-83](https://linear.app/go-brennas/issue/BFS-83).
+- Duplicate and Copy to my library open the copy workflow below.
+- Anyone viewing the recipe can choose Share recipe. It hands the recipe's
+  [share link](#shared-recipes) to the device's share sheet; dismissing the
+  sheet does nothing more. Without a share sheet, or if it fails, a dialog
+  shows the link, selected, with Close and Copy & Close. A toast confirms a
+  copy, which closes the dialog, or reports one that fails, which leaves it
+  open.
 - Opening a planned recipe in the planner remains focused on editing that
   occurrence. Its Cook view provides the readable recipe and cooking actions;
   see [Cooking](planner.md#cooking).
@@ -240,7 +246,8 @@ Delivery: Built
   are disabled while saving.
 - Added labels persist through recipe creation. Successful creation invalidates
   the cached label suggestions so subsequent editors can discover new labels.
-- Section label editing is out of scope for now ([BFS-80](https://linear.app/go-brennas/issue/BFS-80), canceled). Existing
+- Section label editing is out of scope for now ([BFS-80](https://linear.app/go-brennas/issue/BFS-80), canceled).
+  Existing
   section labels are preserved when editing and copying recipes. Library
   search/filter changes are separate work.
 
@@ -412,7 +419,8 @@ State: Agreed — frontend scope of [BFS-24](https://linear.app/go-brennas/issue
   canceled); ingredient rows can reference another recipe's section instead.
   Existing borrowed sections are preserved when editing and copying recipes.
   Backend suggestion exclusions and save-time self-reference checks remain
-  deferred to [BFS-97](https://linear.app/go-brennas/issue/BFS-97), alongside the update-ordering concern in [BFS-96](https://linear.app/go-brennas/issue/BFS-96).
+  deferred to [BFS-97](https://linear.app/go-brennas/issue/BFS-97), alongside the update-ordering concern
+  in [BFS-96](https://linear.app/go-brennas/issue/BFS-96).
 
 ### Saving
 

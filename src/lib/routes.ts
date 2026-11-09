@@ -82,3 +82,15 @@ export function photoJobParamOf(
 ) {
   return photoJobOf(searchParams[PHOTO_JOB_PARAM]);
 }
+
+const SHARE_RECIPE_PATH = "/share/recipe";
+
+/** I give the path anyone holding a recipe's share link reads it at. */
+export function shareRecipeHref(share: {
+  id: string;
+  slug: string;
+  secret: string;
+}) {
+  const segments = [share.slug, share.secret, share.id];
+  return [SHARE_RECIPE_PATH, ...segments.map(encodeURIComponent)].join("/");
+}

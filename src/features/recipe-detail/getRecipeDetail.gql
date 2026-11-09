@@ -4,6 +4,11 @@ query getRecipeDetail($id: ID!) {
       id
       mine
       name
+      share {
+        id
+        slug
+        secret
+      }
       sections {
         id
         sectionOf {
