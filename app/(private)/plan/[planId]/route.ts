@@ -1,6 +1,7 @@
 import { DoSetPreferenceDocument } from "@/hooks/use-set-preference/__generated__/doSetPreference.generated";
 import { getClient } from "@/lib/apollo-rsc";
 import { PREF_PLANNER_PLANS } from "@/lib/preferences";
+import { PLANNER_PATH } from "@/lib/routes";
 import { redirect, RedirectType } from "next/navigation";
 import type { NextRequest } from "next/server";
 
@@ -14,5 +15,5 @@ export async function GET(
     mutation: DoSetPreferenceDocument,
     variables: { name: PREF_PLANNER_PLANS, value: JSON.stringify([planId]) },
   });
-  redirect("/planner", RedirectType.replace);
+  redirect(PLANNER_PATH, RedirectType.replace);
 }
