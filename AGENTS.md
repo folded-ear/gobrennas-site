@@ -116,6 +116,7 @@ Always preserve these boundaries:
 - Never simplify away basic accessibility behavior (keyboard operation, accessible names/labels, focus behavior,
   error/status feedback).
 - Never force-push to any branch.
+- Never create a branch which tracks a remote branch with a different name.
 - Do not run `git push` without direct instruction.
 - Never log an environment-variable value, including in debug output, error messages, test fixtures, or generated
   documentation.
