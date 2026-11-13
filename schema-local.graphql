@@ -31,3 +31,17 @@ extend type PlanItem {
   "Whether an ancestor has a pending status, so nothing can be done to me."
   inert: Boolean!
 }
+
+"Where the device was, as last reported while shopping."
+type Position {
+  "When the device took me, in epoch millis (GeolocationPosition.timestamp)."
+  ts: Float!
+  latitude: Float!
+  longitude: Float!
+  "Accuracy of the position, in meters."
+  accuracy: Float!
+}
+
+extend type Query {
+  position: Position
+}

@@ -1,0 +1,8 @@
+query Position {
+  position @client {
+    ts
+    latitude
+    longitude
+    accuracy
+  }
+}
