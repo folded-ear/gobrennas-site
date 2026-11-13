@@ -44,6 +44,43 @@ describe("status mutation dates", () => {
   });
 });
 
+describe("status mutation coords", () => {
+  it("passes a stamped change's coords, and asks no coords of the rest", () => {
+    const coords = { latitude: 45.523, longitude: -122.676, accuracy: 35 };
+    const { mutation, variables } = changeMutation([
+      {
+        kind: "status",
+        id: "sugar",
+        name: "1 cup sugar",
+        planId: "7",
+        status: PlanItemStatus.ACQUIRED,
+        doneAt: "2026-11-12T17:30:00.000Z",
+        coords,
+      },
+      {
+        kind: "status",
+        id: "cream",
+        name: "Whipped cream",
+        planId: "7",
+        status: PlanItemStatus.ACQUIRED,
+      },
+    ]);
+    const query = print(mutation);
+
+    expect(query).toContain("$coords0: CoordinatesInput");
+    expect(query).toContain(
+      "s0: setStatus(id: $id0, status: $status0, doneAt: $doneAt0," +
+        " coords: $coords0)",
+    );
+    expect(query).not.toContain("$coords1");
+    expect(query).toContain(
+      "s1: setStatus(id: $id1, status: $status1, doneAt: $doneAt1)",
+    );
+    expect(variables).toMatchObject({ coords0: coords });
+    expect(variables).not.toHaveProperty("coords1");
+  });
+});
+
 describe("store moves", () => {
   const sugarAfterFlour = {
     kind: "storeOrder",

@@ -147,6 +147,23 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - A plan item's ancestry then ends with its plan, marked with the plan's
   dot. Ancestor items never carry a dot.
 
+### Location
+
+- While the browser would ask for the device's location, the list offers
+  to use it: "Automatically sort the list for the store you're at?",
+  with a button to use the location and one to dismiss the offer.
+- Dismissing the offer, turning down the browser's request, or the
+  browser's permission becoming denied is remembered for the device. The
+  offer then stays away for 90 days.
+- While the location may be used, the shopping list keeps track of where
+  the device is, checking at most every 15 seconds. Leaving the list
+  stops the checking, but what it last found is kept.
+- Marking a shopping item, or a plan item with an ingredient, acquired
+  from the shopping list records where and when it happened, if the
+  device's location is less than 10 minutes old. The time is when it was
+  marked, even when the change is sent later. Nothing else records a
+  location.
+
 ### Without a connection
 
 - Shopping is the one section that opens with no connection, once it has

@@ -4,6 +4,7 @@ import {
   formatIdSet,
   parseBoolean,
   parseIdSet,
+  parseLocalDate,
 } from "./preferences";
 
 describe("parseBoolean", () => {
@@ -94,5 +95,29 @@ describe("formatIdSet", () => {
   it("writes what parseIdSet reads back", () => {
     const ids = ["8777749727404", "8777749727405"];
     expect(parseIdSet(formatIdSet(ids))).toEqual(ids);
+  });
+});
+
+describe("parseLocalDate", () => {
+  it.each([
+    ["2026-11-12", "2026-11-12"],
+    [" 2026-11-12 ", "2026-11-12"],
+    ["2024-02-29", "2024-02-29"],
+  ])("reads %o as %o", (value, expected) => {
+    expect(parseLocalDate(value)).toBe(expected);
+  });
+
+  it.each([
+    [undefined],
+    [null],
+    [""],
+    ["banana"],
+    ["11/12/2026"],
+    ["2026-11-12T17:30:00Z"],
+    ["2026-13-01"],
+    ["2026-02-30"],
+    ["2025-02-29"],
+  ])("reads %o as no date", (value) => {
+    expect(parseLocalDate(value)).toBeNull();
   });
 });

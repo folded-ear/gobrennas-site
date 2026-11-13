@@ -31,15 +31,18 @@ function fieldFor(change: SentChange, i: number): Field {
           [`id${i}`]: "ID!",
           [`status${i}`]: "PlanItemStatus!",
           [`doneAt${i}`]: "DateTime",
+          ...(change.coords ? { [`coords${i}`]: "CoordinatesInput" } : {}),
         },
         values: {
           [`id${i}`]: change.id,
           [`status${i}`]: change.status,
           [`doneAt${i}`]: change.doneAt ?? null,
+          ...(change.coords ? { [`coords${i}`]: change.coords } : {}),
         },
         selection:
-          `setStatus(id: $id${i}, status: $status${i}, doneAt: $doneAt${i})` +
-          ` { ...setStatusResult }`,
+          `setStatus(id: $id${i}, status: $status${i}, doneAt: $doneAt${i}` +
+          (change.coords ? `, coords: $coords${i}` : "") +
+          `) { ...setStatusResult }`,
         fragment: SetStatusResultFragmentDoc,
       };
     case "rename":

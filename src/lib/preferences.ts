@@ -1,5 +1,8 @@
+import { isIsoDate } from "@/lib/dates";
+
 export const PREF_ACTIVE_PLAN = "activePlan";
 export const PREF_DEV_MODE = "devMode";
+export const PREF_GEOLOCATION_REFUSED_AT = "geolocationRefusedAt";
 export const PREF_PLANNER_PLANS = "plannerPlans";
 export const PREF_SHOPPING_PLANS = "activeShoppingPlans";
 
@@ -52,4 +55,15 @@ export function parseIdSet(value: string | null | undefined): string[] {
  */
 export function formatIdSet(ids: readonly string[]): string {
   return JSON.stringify(ids);
+}
+
+/**
+ * I read a LOCAL_DATE preference's string value as an ISO date
+ * (YYYY-MM-DD). Anything I can't make sense of is no date.
+ */
+export function parseLocalDate(
+  value: string | null | undefined,
+): string | null {
+  const date = value?.trim();
+  return date !== undefined && isIsoDate(date) ? date : null;
 }

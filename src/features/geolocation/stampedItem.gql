@@ -1,0 +1,6 @@
+fragment stampedItem on PlanItem {
+  id
+  ingredient {
+    id
+  }
+}
