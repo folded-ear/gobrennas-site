@@ -1,7 +1,11 @@
 "use client";
 
 import { SectionHeader } from "@/components/section-header";
-import { useWatchPlans } from "@/features/page-engine";
+import { GeolocationPrompt } from "@/features/geolocation/prompt";
+import { useGeolocationPermission } from "@/features/geolocation/use-geolocation-permission";
+import { usePositionStamper } from "@/features/geolocation/use-position-stamper";
+import { useWatchPosition } from "@/features/geolocation/use-watch-position";
+import { StamperProvider, useWatchPlans } from "@/features/page-engine";
 import {
   buildPlanDirectory,
   PlanDirectoryProvider,
@@ -20,7 +24,6 @@ import { useSuspenseQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 
 export function Shopping() {
-  // No boundary above: private routes lack loading.tsx (loading-and-errors.md).
   const { data } = useSuspenseQuery(ShoppingDocument);
 
   const plans = data.planner.plans;
@@ -52,6 +55,10 @@ export function Shopping() {
   const { list, sweep } = useShoppingList(shoppingPlans);
   const storeMoves = useStoreMoves(list);
 
+  const permission = useGeolocationPermission();
+  useWatchPosition(permission === "granted");
+  const stamper = usePositionStamper();
+
   const tree = useMemo(
     () =>
       buildPlanTree(shownPlans.flatMap((plan) => [plan, ...plan.descendants])),
@@ -59,27 +66,30 @@ export function Shopping() {
   );
 
   return (
-    <PlanDirectoryProvider directory={directory}>
-      <SectionHeader title="Shopping">
-        <div className="flex items-center gap-sm">
-          <SweepButton onSweep={sweep} />
-          <PlanPicker
-            label="Plans"
-            plans={plans}
-            selectionMode="multiple"
-            selectedIds={planIds}
-            onChange={setPlanIds}
+    <StamperProvider stamper={stamper}>
+      <PlanDirectoryProvider directory={directory}>
+        <SectionHeader title="Shopping">
+          <div className="flex items-center gap-sm">
+            <SweepButton onSweep={sweep} />
+            <PlanPicker
+              label="Plans"
+              plans={plans}
+              selectionMode="multiple"
+              selectedIds={planIds}
+              onChange={setPlanIds}
+            />
+          </div>
+        </SectionHeader>
+        <div className="p-md bg-surface">
+          <GeolocationPrompt permission={permission} />
+          <ShoppingRegions
+            list={list}
+            tree={tree}
+            onAcquiredToggle={sweep}
+            storeMoves={storeMoves}
           />
         </div>
-      </SectionHeader>
-      <div className="p-md bg-surface">
-        <ShoppingRegions
-          list={list}
-          tree={tree}
-          onAcquiredToggle={sweep}
-          storeMoves={storeMoves}
-        />
-      </div>
-    </PlanDirectoryProvider>
+      </PlanDirectoryProvider>
+    </StamperProvider>
   );
 }

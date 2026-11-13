@@ -24,19 +24,23 @@ export function GeolocationPrompt({ permission }: GeolocationPromptProps) {
   const refusedAt = parseLocalDate(usePreference(PREF_GEOLOCATION_REFUSED_AT));
   const [setRefusedAt] = useSetPreference(PREF_GEOLOCATION_REFUSED_AT);
   const [dismissed, setDismissed] = useState(false);
-  const refuse = useCallback(() => {
+  const recordRefusal = useCallback(
+    () => void setRefusedAt(localDate()),
+    [setRefusedAt],
+  );
+  const refuse = () => {
     setDismissed(true);
-    void setRefusedAt(localDate());
-  }, [setRefusedAt]);
+    recordRefusal();
+  };
 
   const previous = useRef(permission);
   useEffect(() => {
     const was = previous.current;
     previous.current = permission;
     if (permission === "denied" && was !== null && was !== "denied") {
-      refuse();
+      recordRefusal();
     }
-  }, [permission, refuse]);
+  }, [permission, recordRefusal]);
 
   const quiet =
     refusedAt !== null &&
@@ -54,7 +58,7 @@ export function GeolocationPrompt({ permission }: GeolocationPromptProps) {
     );
 
   return (
-    <Alert>
+    <Alert className="mb-md">
       <Alert.Indicator />
       <Alert.Content>
         <Alert.Title>
