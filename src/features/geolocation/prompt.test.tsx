@@ -47,16 +47,27 @@ function readRefusedAt(cache: Cache) {
   })?.value;
 }
 
-/** I answer the save of a refusal today. */
-function refusedToday(): MockLink.MockedResponse {
+/**
+ * I answer the save of a refusal today, as often as it's asked, counting
+ * each in saves.
+ */
+function refusedToday(saves: string[] = []): MockLink.MockedResponse {
   const value = localDate();
+  const expected = {
+    name: PREF_GEOLOCATION_REFUSED_AT,
+    value,
+    deviceKey: DEVICE_KEY,
+  };
   return {
+    maxUsageCount: Number.POSITIVE_INFINITY,
     request: {
       query: DoSetPreferenceDocument,
-      variables: {
-        name: PREF_GEOLOCATION_REFUSED_AT,
-        value,
-        deviceKey: DEVICE_KEY,
+      variables: (variables) => {
+        const matches = Object.entries(expected).every(
+          ([key, it]) => variables[key] === it,
+        );
+        if (matches) saves.push(value);
+        return matches;
       },
     },
     result: {
@@ -165,5 +176,36 @@ describe("GeolocationPrompt", () => {
     rerender(<GeolocationPrompt permission="denied" />);
 
     await waitFor(() => expect(readRefusedAt(cache)).toBe(localDate()));
+  });
+
+  it("saves one refusal when the browser both refuses and denies", async () => {
+    const geo = installFakeGeolocation();
+    const cache = cacheRefusedAt(null);
+    const saves: string[] = [];
+    const { rerender } = render(<GeolocationPrompt permission="prompt" />, {
+      cache,
+      mocks: [refusedToday(saves)],
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "Use location" }));
+    act(() => geo.refuse());
+    rerender(<GeolocationPrompt permission="denied" />);
+
+    await waitFor(() => expect(readRefusedAt(cache)).toBe(localDate()));
+    await act(async () => {});
+    expect(saves).toHaveLength(1);
+  });
+
+  it("doesn't save a refusal already saved today", async () => {
+    const saves: string[] = [];
+    const { rerender } = render(<GeolocationPrompt permission="granted" />, {
+      cache: cacheRefusedAt(localDate()),
+      mocks: [refusedToday(saves)],
+    });
+
+    rerender(<GeolocationPrompt permission="denied" />);
+
+    await act(async () => {});
+    expect(saves).toHaveLength(0);
   });
 });

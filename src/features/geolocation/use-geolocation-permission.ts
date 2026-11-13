@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
+import { useGrantedThisLoad } from "./granted-this-load";
 
 /**
  * I give the page's geolocation permission, following its changes. I give
- * null until it's known, and where the browser can't say.
+ * null until it's known, and where the browser can't say. One that would
+ * still ask, after the browser gave a position this page load, I give as
+ * granted.
  */
 export function useGeolocationPermission(): PermissionState | null {
+  const grantedThisLoad = useGrantedThisLoad();
   const [state, setState] = useState<PermissionState | null>(null);
   useEffect(() => {
     const { permissions } = navigator;
@@ -27,5 +31,5 @@ export function useGeolocationPermission(): PermissionState | null {
       status?.removeEventListener("change", follow);
     };
   }, []);
-  return state;
+  return state === "prompt" && grantedThisLoad ? "granted" : state;
 }

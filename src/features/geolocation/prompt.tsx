@@ -6,6 +6,7 @@ import { diffDays, localDate } from "@/lib/dates";
 import { parseLocalDate, PREF_GEOLOCATION_REFUSED_AT } from "@/lib/preferences";
 import { Alert, Button, CloseButton } from "@heroui/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { noteGranted } from "./granted-this-load";
 
 /** How long a refusal keeps me quiet. */
 export const REFUSAL_QUIET_DAYS = 90;
@@ -24,10 +25,14 @@ export function GeolocationPrompt({ permission }: GeolocationPromptProps) {
   const refusedAt = parseLocalDate(usePreference(PREF_GEOLOCATION_REFUSED_AT));
   const [setRefusedAt] = useSetPreference(PREF_GEOLOCATION_REFUSED_AT);
   const [dismissed, setDismissed] = useState(false);
-  const recordRefusal = useCallback(
-    () => void setRefusedAt(localDate()),
-    [setRefusedAt],
-  );
+  // What I last saved, as a save in flight isn't yet in refusedAt.
+  const saved = useRef<string | null>(null);
+  const recordRefusal = useCallback(() => {
+    const today = localDate();
+    if (refusedAt === today || saved.current === today) return;
+    saved.current = today;
+    void setRefusedAt(today);
+  }, [refusedAt, setRefusedAt]);
   const refuse = () => {
     setDismissed(true);
     recordRefusal();
@@ -49,8 +54,7 @@ export function GeolocationPrompt({ permission }: GeolocationPromptProps) {
 
   const ask = () =>
     navigator.geolocation.getCurrentPosition(
-      // A granted permission starts the watch; nothing to do here.
-      () => {},
+      noteGranted,
       (error) => {
         if (error.code === error.PERMISSION_DENIED) refuse();
       },

@@ -12,6 +12,8 @@ export type FakeGeolocation = {
   readonly watchOptions: () => PositionOptions | null;
   /** I report a position to the watch now running, taken at ts. */
   report(coords: Coords, ts: number): void;
+  /** I answer the pending one-off request with a position, taken at ts. */
+  allow(coords: Coords, ts: number): void;
   /** I answer the pending one-off request with a refusal. */
   refuse(): void;
 };
@@ -40,7 +42,10 @@ export function installFakeGeolocation(): FakeGeolocation {
     readonly onPosition: PositionCallback;
     readonly options: PositionOptions | undefined;
   } | null = null;
-  let request: PositionErrorCallback | null = null;
+  let request: {
+    readonly onPosition: PositionCallback;
+    readonly onError: PositionErrorCallback | null;
+  } | null = null;
   let lastId = 0;
   vi.stubGlobal("navigator", {
     ...navigator,
@@ -56,8 +61,11 @@ export function installFakeGeolocation(): FakeGeolocation {
       clearWatch(id: number) {
         if (watch?.id === id) watch = null;
       },
-      getCurrentPosition(_: PositionCallback, onError?: PositionErrorCallback) {
-        request = onError ?? null;
+      getCurrentPosition(
+        onPosition: PositionCallback,
+        onError?: PositionErrorCallback,
+      ) {
+        request = { onPosition, onError: onError ?? null };
       },
     },
   });
@@ -66,8 +74,12 @@ export function installFakeGeolocation(): FakeGeolocation {
     report(coords, ts) {
       watch?.onPosition(position(coords, ts));
     },
+    allow(coords, ts) {
+      request?.onPosition(position(coords, ts));
+      request = null;
+    },
     refuse() {
-      request?.({
+      request?.onError?.({
         code: PERMISSION_DENIED,
         message: "User denied Geolocation",
         PERMISSION_DENIED,
