@@ -19,7 +19,7 @@ import { installFakeGeolocation } from "./test/fake-geolocation";
 type Cache = ReturnType<typeof buildInMemoryCache>;
 
 const DEVICE_KEY = "a-device-key";
-const OFFER = "Automatically order your list for the store you’re at?";
+const OFFER = "Automatically sort the list for the store you’re at?";
 const THE_PREF = {
   __typename: "UserPreference" as const,
   name: PREF_GEOLOCATION_REFUSED_AT,

@@ -150,7 +150,7 @@ The terms used here are defined in the [domain model](../domain/model.md).
 ### Location
 
 - While the browser would ask for the device's location, the list offers
-  to use it: "Automatically order your list for the store you're at?",
+  to use it: "Automatically sort the list for the store you're at?",
   with a button to use the location and one to dismiss the offer.
 - Dismissing the offer, turning down the browser's request, or the
   browser's permission becoming denied is remembered for the device. The

@@ -66,7 +66,7 @@ export function GeolocationPrompt({ permission }: GeolocationPromptProps) {
       <Alert.Indicator />
       <Alert.Content>
         <Alert.Title>
-          Automatically order your list for the store you’re at?
+          Automatically sort the list for the store you’re at?
         </Alert.Title>
       </Alert.Content>
       <Button size="sm" variant="primary" onPress={ask}>

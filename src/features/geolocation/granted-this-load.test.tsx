@@ -5,7 +5,7 @@ import { installFakeGeolocation } from "./test/fake-geolocation";
 import { installFakePermission } from "./test/fake-permissions";
 import { useGeolocationPermission } from "./use-geolocation-permission";
 
-const OFFER = "Automatically order your list for the store you’re at?";
+const OFFER = "Automatically sort the list for the store you’re at?";
 const PRODUCE = { latitude: 45.5231, longitude: -122.6765, accuracy: 30 };
 
 function Shopping() {
