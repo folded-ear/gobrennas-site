@@ -20,17 +20,15 @@ Delivery: Built
 - Development installations label the bookmark DEV Cook This. With an HTTP
   API, installation is disabled until a sign-in token is available. Each use
   requests the importer with a fresh timestamp to avoid a cached script.
-- On a recipe website, the bookmark opens the existing import overlay. Its
-  automatic extraction, manual grabbing, photo selection, review, and import
-  behavior remain available.
-- Successful import links to the new client's recipe detail and editor.
-  A stale bookmark links back to this client's Profile for replacement.
+- On a recipe website, the bookmark opens the import overlay, which offers
+  automatic extraction, manual grabbing, photo selection, review, and import.
+- Successful import links to the new recipe's detail and editor. A stale
+  bookmark links to Profile, to be replaced.
 - The bookmark uses the installation's app and API addresses and the current
   sign-in credential when available. It is private to the account; signing in
-  and reinstalling replaces a stale credential. The existing importer runs in
-  the recipe website's page, where other scripts can read the embedded credential.
-  Website browser policies may
-  prevent the overlay from loading.
+  and reinstalling replaces a stale credential. The importer runs in the recipe
+  website's page, where other scripts can read the embedded credential. A
+  website's browser policies may prevent the overlay from loading.
 
 ### Library and detail
 
@@ -158,10 +156,9 @@ Delivery: Built
   copying does not redirect those references to the new sections.
 - Copying uses the saved library recipe, not a planned occurrence's quantities,
   notes, or ingredient edits.
-- Photo behavior stays as provided by the existing API: an unchanged photo is
-  copied with its original focal point, and an uploaded replacement is used
-  instead. Focal-point-only changes to the existing photo are not retained by
-  the copy operation. No API changes are part of this work.
+- An unchanged photo is copied with its original focus, and an uploaded
+  replacement is used instead. A change to only the photo's focus is not
+  copied.
 - Copying reuses the editor's validation, upload, pending, and failure behavior.
   A failed save preserves the draft and allows retry; repeated submissions while
   pending are blocked. A missing or unchanged returned recipe ID is a failure.
@@ -191,8 +188,8 @@ Delivery: Built
   minutes`. It may be zero; a blank value means it is unknown. Decimal values,
   seconds, duplicate units, unrecognized text, and clock notation such as
   `1:20` are not accepted.
-- Source URL is optional. Its surrounding whitespace is removed when saved,
-  but its format is not validated in this slice.
+- Source URL is optional. Its surrounding whitespace is removed when saved;
+  its format is not validated.
 - An invalid save explains every invalid field, does not create a recipe, and
   moves focus to the first invalid field in form order. After a save attempt,
   editing a field rechecks its error; the error clears when the value is valid.
@@ -231,9 +228,8 @@ Delivery: Built
 - For a new name, select the Create suggestion with the pointer or arrow keys and
   Enter. Typing alone does not add a label. Clear recipe labels removes all
   selected labels.
-- Label names are trimmed. Runs of `/` become a single `-`, matching the API's
-  existing `LabelService.ensureLabel` behavior; changing that rule requires a
-  separate API change. The Create suggestion previews the resulting name.
+- Label names are trimmed, and runs of `/` become a single `-`, as the API
+  does. The Create suggestion previews the resulting name.
 - Blank labels are ignored. Names are compared without regard to case after
   normalization, so the same label cannot be added twice. Selecting an existing
   label preserves its spelling.
@@ -246,26 +242,24 @@ Delivery: Built
   are disabled while saving.
 - Added labels persist through recipe creation. Successful creation invalidates
   the cached label suggestions so subsequent editors can discover new labels.
-- Section label editing is out of scope for now ([BFS-80](https://linear.app/go-brennas/issue/BFS-80), canceled).
-  Existing
-  section labels are preserved when editing and copying recipes. Library
-  search/filter changes are separate work.
+- Section labels can't be edited, but are kept when editing and copying
+  recipes.
 
 ### Photos in recipe creation
 
 - The Photo field sits below Title, above Labels and Ingredients in the left column.
   Choose photo opens a file picker; dropping a file selects it as well.
 - Selection first decodes and, if needed, resizes the image, then shows a local
-  preview and starts a direct browser upload through the existing scratch-upload
-  API. JPEG, PNG, WebP, GIF, and AVIF files
+  preview and starts a direct browser upload to scratch storage. JPEG, PNG,
+  WebP, GIF, and AVIF files
   are supported if the browser can decode them. Invalid or unreadable images
   produce a field error. Any failure during preparation preserves the current
   photo, upload, preview, and focus, without offering Retry for the rejected file.
   Saving pauses while a replacement is being prepared; after rejection, the
   previous photo’s save readiness is restored. A newer selection or Discard
   cancels pending preparation.
-- Images at least 1 MiB are resized in the browser toward a size below 1 MiB,
-  matching the legacy upload target. Resized images become JPEGs; transparency
+- Images at least 1 MiB are resized in the browser toward a size below 1 MiB.
+  Resized images become JPEGs; transparency
   is flattened onto white and animation is not preserved. Resizing attempts are
   bounded and report an error if the target cannot be reached.
 - Preparation shows a pending status; upload progress reflects bytes sent.
@@ -285,13 +279,13 @@ Delivery: Built
 - Saving includes the completed upload's scratch filename and focus. If recipe
   saving fails, the selected file and focus remain available, but uploading must
   be retried because the API may already have consumed the scratch file.
-- Canceling/unmounting aborts active work and releases local preview resources.
-  Discarding a selection does not request deletion of an already-uploaded scratch
-  object. Storage cleanup is outside this frontend change.
-- Editing uses the same photo controls with the saved photo as the starting point.
-  Focus changes alone do not upload a file. A replacement uses the scratch-upload
-  flow; Discard replacement restores the saved photo and focus. Removing the saved
-  photo remains deferred to [BFS-79](https://linear.app/go-brennas/issue/BFS-79).
+- Canceling aborts active work and releases local preview resources.
+  Discarding a selection does not delete an already-uploaded scratch file.
+- Editing uses the same photo controls with the saved photo as the starting
+  point. Focus changes alone do not upload a file. A replacement is uploaded
+  the same way; Discard replacement restores the saved photo and focus. A
+  saved photo can't be removed
+  ([BFS-79](https://linear.app/go-brennas/issue/BFS-79)).
 
 ### Importing from a photo
 
@@ -354,7 +348,7 @@ Delivery: Built
 
 - The owner can open Edit recipe from the detail view or use the library edit
   action. Direct edit links open the copy workflow for other users. The API
-  continues to enforce ownership on update.
+  enforces ownership on update.
 - Editing loads a complete fresh recipe and uses the same form as creation.
   Loading and load failures have dedicated feedback and retry. Background data
   changes do not replace the draft while the person is editing.
@@ -366,10 +360,9 @@ Delivery: Built
   the row releases those saved values and uses normal recognition behavior.
 - Owned sections retain their identity and are editable. Borrowed sections are
   shown as links, remain references on save, and may be removed from this recipe
-  without modifying their source. Duplicate occurrences of an owned section are
-  handled like the current client: edit its content only at the first occurrence.
-- Existing section labels are preserved without showing label-editing controls.
-  Section label editing is out of scope for now ([BFS-80](https://linear.app/go-brennas/issue/BFS-80), canceled).
+  without modifying their source. An owned section that appears more than once
+  is edited only at its first occurrence.
+- Section labels are kept, with no controls to edit them.
 - Changing one field preserves unrelated fields, including zero values, nullable
   fields, and stored cook-time precision. A section still used by an ordinary
   ingredient cannot be removed until that reference is removed; this avoids the
@@ -387,9 +380,9 @@ Delivery: Built
   shows an error in the dialog, and allows retry or cancellation.
 - Success returns to the Library and refreshes cached recipe, label, and plan
   data so the deleted recipe disappears without a hard reload.
-- Existing meal-plan entries remain. The API removes their recipe links and may
-  copy directions into empty notes. Photo cleanup and owned-section handling
-  use the existing API deletion behavior.
+- Planned items remain. The API removes their recipe links and may copy
+  directions into empty notes. What happens to the photo and owned sections
+  is up to the API.
 
 ### Owned sections
 
@@ -411,16 +404,15 @@ State: Agreed — frontend scope of [BFS-24](https://linear.app/go-brennas/issue
   Sections with content open “Remove this section?” with Cancel and Remove
   section actions. Cancel keeps the section intact. Removal changes only the
   draft and focuses Add section; saving applies the change.
-- New sections are saved as owned sections through the existing recipe creation
-  API. Their titles, directions, ingredient order, and recognized details are
-  preserved; blank ingredient rows are omitted. Client identity is independent
-  of server identity, including after earlier sections are removed.
-- Adding borrowed sections as structural sections is not planned ([BFS-81](https://linear.app/go-brennas/issue/BFS-81),
-  canceled); ingredient rows can reference another recipe's section instead.
-  Existing borrowed sections are preserved when editing and copying recipes.
-  Backend suggestion exclusions and save-time self-reference checks remain
-  deferred to [BFS-97](https://linear.app/go-brennas/issue/BFS-97), alongside the update-ordering concern
-  in [BFS-96](https://linear.app/go-brennas/issue/BFS-96).
+- New sections are saved as owned sections of the recipe. Their titles,
+  directions, ingredient order, and recognized details are kept; blank
+  ingredient rows are omitted.
+- Borrowed sections can't be added as structural sections; an ingredient row
+  can refer to another recipe's section instead. Borrowed sections already on
+  a recipe are kept when editing and copying it.
+- Suggestions don't exclude the recipe being edited or its owned sections,
+  and saving doesn't reject an ingredient referring to them
+  ([BFS-97](https://linear.app/go-brennas/issue/BFS-97)).
 
 ### Saving
 
@@ -429,8 +421,7 @@ State: Agreed — frontend scope of [BFS-24](https://linear.app/go-brennas/issue
 - A failed create or edit save leaves the editor open with the entered values,
   explains that the person can try again, and makes retry available.
 - Editing any field after a failed save clears the failure alert. A successful
-  create preserves the existing behavior: it opens the new recipe detail over
-  the Library.
+  create opens the new recipe detail over the Library.
 
 ### Edit editor
 

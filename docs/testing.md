@@ -24,9 +24,7 @@ Stack: Vitest + jsdom + Testing Library (`vitest.config.ts`, `src/test/setup.ts`
 
 ## Guidance for AI-authored tests
 
-Most of these tests will be written by an AI assistant. The failure modes
-worth guarding against are different from the ones a human writing their own
-tests runs into:
+Most tests here are written by an AI assistant, which fails in its own ways:
 
 - **No tautological tests.** Don't write the implementation, then write a
   test that asserts whatever that implementation happens to do — it'll pass
@@ -112,23 +110,18 @@ render(<SendToPlan recipeId={recipeId} />, {
 });
 ```
 
-We're not using msw (nothing needs network-level mocking yet — everything
-goes through Apollo) or codegen'd mock data (unnecessary indirection at
-this size). Revisit if either need becomes real.
+There is no msw, since everything goes through Apollo, and no generated mock
+data.
 
 ## File location and naming
 
 Co-located, matching the filename under test: `index.tsx` → `index.test.tsx`.
-This tightens the general "`*.test.tsx` anywhere" pattern into an actual
-convention.
 
 Test-only infrastructure that isn't itself a test module — helpers,
 harnesses, stubs — lives in a directory named exactly `test`: `src/test/`
 for what every feature shares, or a feature's own `test/` directory (e.g.
-`src/features/plan-dnd/test/keyboard-drag.ts`).
+`src/lib/dnd/test/keyboard-drag.ts`).
 
 ## Coverage threshold
 
-None enforced yet. `pnpm run test:coverage` stays a visibility tool —
-enforcing a number against a near-empty suite would be meaningless. Revisit
-once more features have real tests.
+None is enforced. `pnpm run test:coverage` is a visibility tool.

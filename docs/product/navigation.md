@@ -45,7 +45,7 @@ away and lets focused content slide in without losing the user's place.
   Library. Opening either address directly shows its full-page fallback instead.
 - Saving a new recipe replaces that focused screen with the new recipe detail.
   The completed editor is not left behind in history.
-- Proposed edit-screen behavior is in the Draft [Recipes](recipes.md) document.
+- The recipe editor's screen behavior is in [Recipes](recipes.md#edit-editor).
 - Add From Photo opens the Photos screen over the Library. Once a photo is
   picked, the create editor takes its place, so Back from the editor returns
   to the Library.

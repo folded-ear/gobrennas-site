@@ -121,6 +121,7 @@ Start new documents from the [product](templates/product.md),
 
 ### Product
 
+- [Ingredient recognition](product/ingredient-recognition.md)
 - [Navigation](product/navigation.md)
 - [Planner](product/planner.md)
 - [Profile](product/profile.md)
@@ -135,6 +136,7 @@ Start new documents from the [product](templates/product.md),
 
 - [Site architecture](architecture/overview.md)
 - [Technical stack](architecture/stack.md)
+- [How ingredient recognition works](architecture/ingredient-recognition.md)
 - [Testing conventions](testing.md)
 - [Loading and error conventions](loading-and-errors.md)
 - [Design tokens](design-tokens.md)

@@ -112,11 +112,9 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - Unplanned appears in a collapsible planner panel on the right on desktop,
   and at the bottom above navigation on mobile. Its tinted background and
   divider distinguish it from the calendar; both areas scroll independently.
-- The selected Unplanned tab shows its top-level item count even when collapsed.
-  A directional chevron collapses or expands the panel; selecting the tab also
-  expands it. Recipe rows, section actions, and drag-and-drop behavior are unchanged.
-- The panel starts expanded. Library browsing is a future source, not part of
-  this layout change.
+- The selected Unplanned tab shows its top-level item count even when
+  collapsed. A directional chevron collapses or expands the panel; selecting
+  the tab also expands it. The panel starts expanded.
 - The planner shows top-level items, items assigned to a bucket, and items
   that have children of their own. Anything else — a leaf nobody has
   bucketed — appears only in the item screen.
@@ -358,15 +356,16 @@ The terms used here are defined in the [domain model](../domain/model.md).
   matching the behavior when adding a scaled recipe. Viewers cannot change a
   persisted scale.
 
-- Existing leaf rows inside an open item's detail use compact, inline Morsel while being edited.
-  Quantity, unit, and ingredient highlights update after a brief pause. This
-  first version has no suggestions; saving still sends the entered text.
-  A leading `!` skips recognition. Recognition failures do not prevent saving.
-  Resting rows use the same highlights and show quantities as fractions (see
+- Existing leaf rows below the open item are edited with a compact, inline
+  Morsel, which [recognizes](ingredient-recognition.md) quantity, unit, and
+  ingredient after a brief pause, without suggestions. Saving sends the
+  entered text. A leading `!` skips recognition, and recognition failures
+  don't prevent saving.
+- Resting rows use the same highlights and show quantities as fractions (see
   [Text conventions](ingredient-recognition.md#text-conventions-and-saving)),
-  preserving the rest of the original wording and punctuation. Pending name and status changes keep their existing
-  visual feedback. Failed recognition leaves resting text readable without highlights.
-  Headings, new rows, and section screens keep their plain text fields.
+  keeping the rest of the original wording. Where recognition failed, the
+  text shows without highlights.
+- Headings, new rows, and section screens use plain text fields.
 - A user who can change a plan edits an item's name in place wherever it
   shows as text: below the open item or in a section screen, and the open
   item itself at the head of the item screen. Names on the timeline open

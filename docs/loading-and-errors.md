@@ -30,10 +30,9 @@ Related: [design tokens](design-tokens.md) for colors and spacing,
    move its data access below the route boundary so it does not gate the whole
    shell.
 3. **Add `<Suspense>` inside a screen when part of the screen should stay put.**
-   When the recipe library gets its loading treatment, its filter controls
-   should remain interactive while results load, so the boundary belongs around
-   the grid rather than the whole screen. This is in addition to `loading.tsx`,
-   not instead of it — see below.
+   The recipe library's filter should stay interactive while results load, so
+   its boundary belongs around the grid, not the whole screen. This is in
+   addition to `loading.tsx`, not instead of it — see below.
 4. **Pagination does not replace existing content with a Suspense fallback.**
    Keep the list visible and show progress beside it. If `useTransition` wraps
    asynchronous work, return or await the request so its pending flag spans the
@@ -41,9 +40,8 @@ Related: [design tokens](design-tokens.md) for colors and spacing,
 5. **Skeleton when the shape is known, spinner when it isn't.** A list or a
    detail screen has a predictable shape, so it gets a skeleton that matches it.
    A button mid-mutation or an indeterminate wait gets a spinner.
-6. **Keep a skeleton next to what it stands in for.** When
-   `RecipeCardSkeleton` is added, it belongs beside `RecipeCard` so the two
-   change together.
+6. **Keep a skeleton next to what it stands in for**, such as a
+   `RecipeCardSkeleton` beside `RecipeCard`, so the two change together.
 7. **Every `useSuspenseQuery` has a boundary above it, or a comment saying why
    not.** The absence of a boundary is a decision and should read like one.
 
@@ -105,7 +103,7 @@ rendering because the boundary has not mounted yet.
 4. **Errors bound to a place get an inline `Alert`.** Anything tied to a field,
    a form, or one region shows there, where the thing that failed is.
 5. **Never swallow a mutation error.** Every mutation handles failure
-   explicitly. Silence is the current behavior and it is a bug, not a pattern.
+   explicitly. A silent failure is a bug, not a pattern.
 6. **Authentication is not an error condition.** An expired or missing session
    is a routing outcome, not something for an error boundary to interpret.
 
@@ -124,17 +122,16 @@ These are recorded because the code does not match the rules above yet.
   during server rendering. The client-only `UNAUTHORIZED` → login fallback
   cannot reliably turn a hard-load server error into navigation.
 - `src/components/error-fallback.tsx` displays raw exception text to the user.
-- Recipe creation, the single-recipe Cook route, and Profile have loading
-  boundaries.
-  Most private routes still lack one, and no `error.tsx` or `global-error.tsx`
-  boundary exists.
-- The recipe library has no in-screen boundary around `RecipeGrid`, and its
-  loading skeletons have not been built yet.
+- Only recipe creation and editing, both Cook routes, and Profile have
+  loading boundaries. No `error.tsx` or `global-error.tsx` boundary exists.
+- The recipe library has no in-screen boundary around `RecipeGrid`, and no
+  loading skeletons.
 - `src/features/recipe-grid/` does not return the `fetchMore()` promise from its
   transition or handle a pagination failure, so its pending state may not span
   the request.
-- Empty states are ad hoc: `src/screens/planner.tsx` has an inline block and
-  `src/features/recipe-grid/index.tsx` ends a list with the string `"fin."`.
+- There is no shared empty-state component: the planner has its own
+  `PlannerWelcome`, and `src/features/recipe-grid/index.tsx` ends a list with
+  the string `"fin."`.
 
 ## Open questions
 

@@ -41,6 +41,9 @@ takes (`src/lib/recipe-draft-writes.ts`) to whatever a screen places above
 its fields, and the editor screens join the three
 (`src/screens/use-editor-photos.tsx`).
 
+Ingredient recognition has its own page:
+[How ingredient recognition works](ingredient-recognition.md).
+
 ## Navigation shell
 
 `app/(private)/layout.tsx` renders the page, the bottom section nav
@@ -134,16 +137,3 @@ The root `proxy.ts` builds a filter chain from the filters in `src/filters/`.
 A filter can inspect a request, stop processing, or modify the response. Add a
 new filter by implementing the `Filter` type and registering it in
 `buildFilterChain()`.
-
-## Migration from the legacy client
-
-`gobrennas-client` is the legacy Vite application being replaced by this site.
-Use it to understand behavior, edge cases, and interaction details. Do not copy
-its component tree, state shape, or file layout into the new application.
-
-| Legacy client | Current site |
-| --- | --- |
-| Vite SPA and react-router | Next.js App Router |
-| MUI and Emotion | HeroUI and Tailwind CSS |
-| Flux stores and immutable.js | Apollo Client cache and RSC data fetching |
-| `src/features/<PascalCase>/` | `src/features/<kebab-case>/` |

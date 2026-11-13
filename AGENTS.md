@@ -40,8 +40,7 @@
 - Read `schema.graphql` directly for API operations, arguments, return types, and field behavior. Do not create or rely
   on a handwritten API reference.
 - If porting behavior from the legacy `gobrennas-client` app, reproduce its behavior and interaction details, not its
-  component tree, state shape, or file layout. See the migration mapping in
-  `docs/architecture/overview.md#migration-from-the-legacy-client`.
+  component tree, state shape, or file layout.
 
 ### While making changes
 
@@ -145,7 +144,7 @@ If CI _never_ fails, development is wasting time by being too conservative.
 - `docs/README.md` — index of project documentation and how it relates to the code
 - `docs/product/` — user-visible behavior, organized by product area
 - `docs/domain/model.md` — domain concepts, relationships, and rules
-- `docs/architecture/` — current system, stack, and the legacy-client migration mapping
+- `docs/architecture/` — current system and stack
 - `docs/testing.md` — test conventions
 - `docs/design-tokens.md` — styling conventions
 - Migration work is tracked in Linear (Go Brennas workspace, team "Go Brennas")
