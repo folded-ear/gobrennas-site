@@ -17,12 +17,14 @@ import {
 import { createPageLocks } from "./locks";
 import { publishView } from "./overlay";
 import { createRunner, PageStatus, Runner, WorkerHost } from "./runner";
+import { stampChanges } from "./stamp";
 import type {
   AssignBucketChange,
   Change,
   CreateChange,
   MoveChange,
   RenameChange,
+  Stamper,
   StatusChange,
   StoreOrderChange,
 } from "./state";
@@ -92,6 +94,7 @@ export type PageEngineApi = {
 };
 
 const PageEngineContext = createContext<Runner | null>(null);
+const StamperContext = createContext<Stamper | null>(null);
 
 const MOVES: ReadonlySet<Change["kind"]> = new Set([
   "move",
@@ -170,11 +173,15 @@ export function PageEngine({
  */
 export function usePageEngine(): PageEngineApi {
   const runner = useContext(PageEngineContext);
+  const stamper = useContext(StamperContext);
   return useMemo(() => {
     const post: Runner["post"] = (event) => runner?.post(event);
+    const stamp = <C extends Change>(changes: readonly C[]) =>
+      stamper === null ? changes : stampChanges(changes, stamper, Date.now());
     return {
-      set: (changes) => post({ type: "changes", changes }),
-      hold: (change) => post({ type: "change", change, hold: true }),
+      set: (changes) => post({ type: "changes", changes: stamp(changes) }),
+      hold: (change) =>
+        post({ type: "change", change: stamp([change])[0], hold: true }),
       cancel: (id) => post({ type: "cancel", id }),
       flush: () => post({ type: "flush" }),
       rename: (change) => post({ type: "change", change }),
@@ -189,7 +196,16 @@ export function usePageEngine(): PageEngineApi {
       forgetDevice: () => runner?.forget() ?? Promise.resolve(),
       jobsChanged: () => post({ type: "jobsChanged" }),
     };
-  }, [runner]);
+  }, [runner, stamper]);
+}
+
+type StamperProviderProps = PropsWithChildren<{
+  readonly stamper: Stamper;
+}>;
+
+/** I stamp the status changes made under me, as my stamper says. */
+export function StamperProvider({ stamper, children }: StamperProviderProps) {
+  return <StamperContext value={stamper}>{children}</StamperContext>;
 }
 
 /** I keep the given plans current while the caller is mounted. */

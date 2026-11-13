@@ -1,4 +1,5 @@
 import type {
+  CoordinatesInput,
   PlanItemStatus,
   RecognitionChoice,
 } from "@/__generated__/graphql";
@@ -21,9 +22,20 @@ export type StatusChange = {
   readonly planId: string;
   readonly name: string;
   readonly status: PlanItemStatus;
-  /** Cooking time chosen by the user, preserved across delayed sends. */
+  /** When the user says it was done, preserved across delayed sends. */
   readonly doneAt?: string;
+  /** Where the user was when it was done. */
+  readonly coords?: CoordinatesInput;
 };
+
+/** What a stamper adds to a status change. */
+export type Stamp = Required<Pick<StatusChange, "doneAt" | "coords">>;
+
+/**
+ * I decide whether a status change, made at now (epoch millis), gets a
+ * stamp, and give it if so.
+ */
+export type Stamper = (change: StatusChange, now: number) => Stamp | null;
 
 /** One item's new name. */
 export type RenameChange = {

@@ -530,8 +530,6 @@ type PlannedRecipeHistory implements Node {
 }
 
 type PlannerMutation {
-  "Set an independently planned recipe's positive batch multiplier, preserving current ingredient edits and linked preparation. Subrecipe contents are not rescaled."
-  scaleRecipe(id: ID!, scale: Float!): PlanItem!
   "Assign a plan item to a bucket (in the same plan), or clear an item's bucket."
   assignBucket(bucketId: ID, id: ID!): PlanItem!
   "Create a new bucket w/in a plan, with an optional name and date."
@@ -594,6 +592,14 @@ type PlannerMutation {
   revokeGrant(planId: ID!, userId: ID!): Plan!
   """
 
+  Set an independently planned recipe's positive batch multiplier. Scales
+  its current quantities, including edited ingredients and linked preparation,
+  without rebuilding from the library. Subrecipe reference quantities scale,
+  but their contents do not. Repeating the same scale is a no-op.
+  """
+  scaleRecipe(id: ID!, scale: Float!): PlanItem!
+  """
+
   Assign a plan item to a user, or clear its explicit assignment so that
   it inherits from its parent. The user must have at least view access to the
   item's plan.
@@ -607,8 +613,11 @@ type PlannerMutation {
 
   Sets the status of the given item. This will always return the updated
   item, though it may immediately be moved to the trash (in the background).
+  When an item with an ingredient becomes ACQUIRED, and both doneAt and coords
+  are supplied, the acquisition is recorded. Within a single request, only the
+  first acquisition of a given ingredient is recorded.
   """
-  setStatus(doneAt: DateTime, id: ID!, status: PlanItemStatus!): PlanItem!
+  setStatus(coords: CoordinatesInput, doneAt: DateTime, id: ID!, status: PlanItemStatus!): PlanItem!
   "Update a bucket w/in a plan, by setting or clearing its name and date."
   updateBucket(bucketId: ID!, date: Date, name: String, planId: ID!): PlanBucket!
   updatePlanNotes(notes: String, planId: ID!): Plan!
@@ -708,6 +717,12 @@ type Recipe implements Ingredient & IngredientCollection & Node & Owned {
   sense). By default, only the five most recent records will be returned.
   """
   plannedHistory(last: NonNegativeInt = 5, status: PlanItemStatus): [PlannedRecipeHistory!]!
+  """
+
+  The recipe owning this section, or null for a standalone recipe. Also
+  available when a section is used as an ingredient in another recipe.
+  """
+  sectionOf: Recipe
   """
 
   Sections of the recipe, owned or by reference. Use `sectionOf` if you
@@ -977,6 +992,8 @@ enum DataType {
   INT
   "Arbitrary JSON-serialized data"
   JSON
+  "An ISO-8601 date, without time or zone (e.g., 2026-11-12)"
+  LOCAL_DATE
   "A JSON-serialized list of ID values"
   SET_OF_IDS
   STRING
@@ -1061,6 +1078,14 @@ scalar NonNegativeInt
 
 "An Int scalar that must be a positive value"
 scalar PositiveInt
+
+"A geographic position, as reported by a device."
+input CoordinatesInput {
+  "Accuracy of the position, in meters."
+  accuracy: Float!
+  latitude: Float!
+  longitude: Float!
+}
 
 input FriendSearch {
   "Cursor to find results after. Omit to retrieve the first page."
