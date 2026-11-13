@@ -60,6 +60,11 @@ function toIso(millis: number): string {
   return new Date(millis).toISOString().slice(0, ISO_DATE_LENGTH);
 }
 
+/** I tell whether a string is an ISO date naming a real day. */
+export function isIsoDate(value: string): boolean {
+  return ISO_DATE.test(value) && toIso(toUtcMillis(value)) === value;
+}
+
 /** I return the local calendar date, the only clock read in the feature. */
 export function localDate(now: Date = new Date()): string {
   const year = pad(now.getFullYear(), YEAR_DIGITS);
