@@ -40,6 +40,7 @@
   --color-status-completed-foreground: var(--status-completed-foreground);
   --color-status-deleted: var(--status-deleted);
   --color-status-deleted-foreground: var(--status-deleted-foreground);
+  --color-row-hover: var(--row-hover);
 
   --spacing-none: 0px;
   --spacing-xxs: 2px;
@@ -130,6 +131,8 @@
   --status-deleted: oklch(52% 0.2 27);
   --status-deleted-foreground: oklch(99.11% 0 0);
 
+  --row-hover: oklch(0.603 0.218 257.424 / 0.07);
+
   /* Border Radius */
   --radius: 0.5rem;
   --field-radius: 0.125rem;
@@ -184,6 +187,8 @@
   --status-completed-foreground: oklch(99.11% 0 0);
   --status-deleted: oklch(60% 0.2 27);
   --status-deleted-foreground: oklch(99.11% 0 0);
+
+  --row-hover: oklch(0.611 0.213 256.558 / 0.07);
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
