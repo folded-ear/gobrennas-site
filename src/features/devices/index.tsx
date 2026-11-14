@@ -39,7 +39,7 @@ export function DeviceTable({ user, currentKey }: DeviceTableProps) {
   return (
     <Table>
       <Table.ScrollContainer>
-        <Table.Content aria-label="Devices">
+        <Table.Content aria-label="Devices" keyboardNavigationBehavior={"tab"}>
           <Table.Header>
             <Table.Column>
               <span className="sr-only">{THIS_DEVICE}</span>
@@ -62,6 +62,7 @@ export function DeviceTable({ user, currentKey }: DeviceTableProps) {
                         size="small"
                         role="img"
                         aria-label={THIS_DEVICE}
+                        className="fill-accent"
                       />
                     </span>
                   )}
