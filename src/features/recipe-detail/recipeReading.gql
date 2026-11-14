@@ -16,4 +16,14 @@ fragment recipeReading on Recipe {
   ...recipePhoto
   ...ingredientsAndDirections
   ...recipeSections
+  subrecipes {
+    id
+    name
+    externalUrl
+    yield
+    totalTime
+    calories
+    labels
+    ...ingredientsAndDirections
+  }
 }

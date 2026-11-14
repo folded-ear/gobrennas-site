@@ -128,6 +128,7 @@ describe("RecipeDetail", () => {
       ingredients: [],
       directions: null,
       sections: [],
+      subrecipes: [],
       externalUrl: null,
       yield: null,
       totalTime: null,

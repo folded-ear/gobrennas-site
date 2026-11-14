@@ -2,6 +2,7 @@
 
 import { Screen } from "@/components/screen";
 import { IngredientsAndDirections } from "@/features/recipe-ingredients-and-directions";
+import { RecipeSection } from "@/features/recipe-ingredients-and-directions/content";
 import { RecipePhoto } from "@/features/recipe-photo";
 import { RecipeSections } from "@/features/recipe-sections";
 import { OtherUserAvatar } from "@/features/user-avatar";
@@ -68,6 +69,18 @@ export function RecipeReading({
         }
       />
       <RecipeSections recipe={data} />
+      {data.subrecipes.map((subrecipe) => (
+        <RecipeSection
+          key={subrecipe.id}
+          title={subrecipe.name}
+          defaultExpanded={false}
+        >
+          <div className="flex flex-col gap-lg">
+            <RecipeInformation {...subrecipe} />
+            <IngredientsAndDirections parent={subrecipe} headingLevel={3} />
+          </div>
+        </RecipeSection>
+      ))}
     </div>
   );
 

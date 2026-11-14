@@ -82,6 +82,28 @@ export const recipe: Unmasked<
       ingredients: [],
     },
   ],
+  subrecipes: [
+    {
+      __typename: "Recipe",
+      id: "caramel",
+      name: "Caramel sauce",
+      externalUrl: null,
+      yield: null,
+      totalTime: 25,
+      calories: null,
+      labels: null,
+      directions: "Cook the sugar to amber, then whisk in the cream.",
+      ingredients: [
+        {
+          __typename: "IngredientRef",
+          raw: "1 cup heavy cream",
+          quantity: null,
+          ingredient: null,
+          preparation: null,
+        },
+      ],
+    },
+  ],
 };
 
 /** The pie as someone other than its owner sees it. */

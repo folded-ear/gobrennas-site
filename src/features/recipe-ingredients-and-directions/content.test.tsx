@@ -1,6 +1,45 @@
-import { render, screen, within } from "@/test";
+import { render, screen, userEvent, within } from "@/test";
 import { describe, expect, it } from "vitest";
 import { RecipeContent, RecipeSection } from "./content";
+
+describe("RecipeSection", () => {
+  it("starts collapsed to its title, and expands from it", async () => {
+    render(
+      <RecipeSection title="Sauce" defaultExpanded={false}>
+        <p>Simmer gently.</p>
+      </RecipeSection>,
+    );
+    const section = screen.getByRole("region", { name: "Sauce" });
+    const heading = within(section).getByRole("heading", {
+      name: "Sauce",
+      level: 2,
+    });
+    const toggle = within(heading).getByRole("button", { name: "Sauce" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(within(section).getByText("Simmer gently.")).not.toBeVisible();
+
+    await userEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(within(section).getByText("Simmer gently.")).toBeVisible();
+  });
+
+  it("starts expanded by default, and collapses from its title", async () => {
+    render(
+      <RecipeSection title="Sauce">
+        <p>Simmer gently.</p>
+      </RecipeSection>,
+    );
+    const toggle = screen.getByRole("button", { name: "Sauce" });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("Simmer gently.")).toBeVisible();
+
+    await userEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText("Simmer gently.")).not.toBeVisible();
+  });
+});
 
 describe("RecipeContent", () => {
   it("renders plain content without a library recipe or plan", () => {
