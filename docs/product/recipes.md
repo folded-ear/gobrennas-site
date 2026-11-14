@@ -89,6 +89,13 @@ Delivery: Built
 - Directions preserve line and paragraph breaks. Missing ingredients or
   directions are identified explicitly. Owned and borrowed sections appear in
   saved order, each with its own heading, ingredients, and directions.
+- Recipes used as ingredients follow the sections, each once, with its own
+  heading, information, ingredients, and directions. Recipes and sections
+  nested within them appear the same way, in one flat list. The headings are
+  not links.
+- Each section's and nested recipe's heading toggles it between showing its
+  content and showing only its heading and the divider above. Sections start
+  expanded; nested recipes, including their sections, start collapsed.
 - Source URLs using HTTP or HTTPS open in a new tab. Other saved source text is
   displayed as text.
 - A sticky action bar keeps send to plan and Close visible while reading, in
@@ -131,8 +138,9 @@ Delivery: Built
 - A share link, `/share/recipe/:slug/:secret/:id`, shows the recipe to anyone
   who has it, without signing in. The slug only labels the link.
 - The shared recipe reads like the full-page library recipe: title and owner
-  in a sticky bar, then information, photo, ingredients, directions, and
-  sections. It has no actions, no Close, and no section navigation.
+  in a sticky bar, then information, photo, ingredients, directions,
+  sections, and recipes used as ingredients. It has no actions, no Close, and
+  no section navigation.
 - A signed-in person who opens a share link goes to the recipe in their
   Library instead.
 - A share link with a wrong secret, or for a recipe that no longer exists,

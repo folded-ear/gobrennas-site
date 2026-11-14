@@ -188,6 +188,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   cooking link is shown once. Distinct planned copies of the same saved recipe
   remain distinct. Deleted items are omitted; completed prep remains readable
   and is identified as already prepared.
+- Each section's heading toggles it between showing its content and showing
+  only its heading and the divider above. Every section starts expanded.
 - Plan-specific notes replace saved directions when present. Otherwise, the
   linked recipe supplies directions. An occurrence whose saved recipe was
   deleted remains readable from its planned items and notes.

@@ -43,6 +43,8 @@ describe("SharedRecipe", () => {
     ).toBeVisible();
     expect(screen.getByTitle("Brenna Switzer")).toBeVisible();
     expect(screen.getByText("apples")).toHaveClass("morsel-ingredient");
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button").map((button) => button.textContent),
+    ).toEqual(["Crust", "Whipped cream", "Caramel sauce"]);
   });
 });

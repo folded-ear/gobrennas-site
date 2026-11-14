@@ -43,9 +43,53 @@ describe("RecipeReading", () => {
         "Chill the dough.",
       ),
     ).toBeVisible();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button").map((button) => button.textContent),
+    ).toEqual(["Crust", "Whipped cream", "Caramel sauce"]);
     expect(
       screen.queryByRole("group", { name: "Recipe actions" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("starts with its sections expanded", () => {
+    const { cache, ref } = seed();
+
+    render(<RecipeReading recipe={ref} />, { cache });
+
+    for (const name of ["Crust", "Whipped cream"])
+      expect(screen.getByRole("button", { name })).toHaveAttribute(
+        "aria-expanded",
+        "true",
+      );
+  });
+
+  it("shows recipes used as ingredients after the sections, collapsed", async () => {
+    const { cache, ref } = seed();
+
+    render(<RecipeReading recipe={ref} />, { cache });
+
+    expect(
+      screen
+        .getAllByRole("heading", { level: 2 })
+        .map((heading) => heading.textContent)
+        .slice(-3),
+    ).toEqual(["Crust", "Whipped cream", "Caramel sauce"]);
+    const caramel = within(
+      screen.getByRole("region", { name: "Caramel sauce" }),
+    );
+    const toggle = caramel.getByRole("button", { name: "Caramel sauce" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(caramel.getByText("25 min")).not.toBeVisible();
+
+    await userEvent.click(toggle);
+
+    expect(caramel.getByText("25 min")).toBeVisible();
+    expect(caramel.getByText("1 cup heavy cream")).toBeVisible();
+    expect(
+      caramel.getByText("Cook the sugar to amber, then whisk in the cream."),
+    ).toBeVisible();
+    expect(
+      caramel.queryByRole("link", { name: "Caramel sauce" }),
     ).not.toBeInTheDocument();
   });
 

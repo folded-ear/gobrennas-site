@@ -1,5 +1,6 @@
 import { IngredientRefText } from "@/components/ingredient-ref-text";
 import type { IngredientParts } from "@/lib/ingredient-parts";
+import { Disclosure } from "@heroui/react";
 import { useId, type ReactNode } from "react";
 
 type ContentProps = {
@@ -84,27 +85,35 @@ export function Directions({
 export function RecipeSection({
   title,
   actions,
+  defaultExpanded = true,
   children,
 }: {
   title: string;
   /** Set at the far end of my heading's row. */
   actions?: ReactNode;
+  /** Whether my content starts open; my title toggles it either way. */
+  defaultExpanded?: boolean;
   children: ReactNode;
 }) {
   const id = useId();
   return (
     <section aria-labelledby={id} className="border-t border-separator pt-lg">
-      {actions ? (
-        <div className="mb-md flex flex-wrap items-center gap-sm">
-          <h2 id={id}>{title}</h2>
-          <div className="ms-auto flex items-center gap-sm">{actions}</div>
+      <Disclosure defaultExpanded={defaultExpanded}>
+        <div className="flex flex-wrap items-center gap-sm">
+          <Disclosure.Heading id={id} level={2}>
+            <Disclosure.Trigger className="flex items-center gap-sm text-left flex-row-reverse">
+              {title}
+              <Disclosure.Indicator />
+            </Disclosure.Trigger>
+          </Disclosure.Heading>
+          {actions ? (
+            <div className="ms-auto flex items-center gap-sm">{actions}</div>
+          ) : null}
         </div>
-      ) : (
-        <h2 id={id} className="mb-md">
-          {title}
-        </h2>
-      )}
-      {children}
+        <Disclosure.Content>
+          <div className="pt-md">{children}</div>
+        </Disclosure.Content>
+      </Disclosure>
     </section>
   );
 }
