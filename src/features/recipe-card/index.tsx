@@ -1,5 +1,6 @@
 "use client";
 
+import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
 import { RecipeEditIcon, RecipeViewIcon } from "@/components/icons";
 import { RecipeActionBar } from "@/components/recipe-action-bar";
 import { formatLastCooked } from "@/features/recipe-card/utils";
@@ -8,7 +9,6 @@ import { OtherUserAvatar } from "@/features/user-avatar";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Button, Card, Chip } from "@heroui/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   RecipeCardFragment,
@@ -45,12 +45,12 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
       <div className="flex-1 flex flex-col gap-sm p-sm">
         <Card.Header>
           <Card.Title>
-            <Link
+            <HoverPrefetchLink
               href={`/recipes/${data.id}`}
               className="font-semibold text-sm leading-snug hover:underline line-clamp-2 flex-1"
             >
               {data.name}
-            </Link>
+            </HoverPrefetchLink>
             <OtherUserAvatar user={data.ownedBy} />
           </Card.Title>
         </Card.Header>

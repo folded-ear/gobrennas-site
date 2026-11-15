@@ -1,5 +1,6 @@
 "use client";
 
+import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
 import { AddIcon, MenuOpenIcon } from "@/components/icons";
 import { ADD_RECIPE_PATH } from "@/lib/routes";
 import {
@@ -9,7 +10,6 @@ import {
   Dropdown,
   Label,
 } from "@heroui/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type AddRecipeButtonProps = {
@@ -29,13 +29,13 @@ export function AddRecipeButton({ onAddFromPhoto }: AddRecipeButtonProps) {
       aria-label="Add a recipe"
       className={buttonGroupVariants({ orientation: "horizontal" }).base()}
     >
-      <Link
+      <HoverPrefetchLink
         href={ADD_RECIPE_PATH}
         aria-label="Add Recipe"
         className={buttonVariants({ variant: "primary", isIconOnly: true })}
       >
         <AddIcon aria-hidden size="small" />
-      </Link>
+      </HoverPrefetchLink>
       <Dropdown>
         <Button
           isIconOnly

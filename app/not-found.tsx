@@ -1,7 +1,7 @@
 import { Container } from "@/components/container";
+import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
 import { buttonVariants } from "@heroui/react";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Page not found",
@@ -16,9 +16,9 @@ export default function NotFound() {
           This link doesn’t lead anywhere. It may be mistyped, or what it
           pointed to may be gone.
         </p>
-        <Link href="/" className={buttonVariants()}>
+        <HoverPrefetchLink href="/" className={buttonVariants()}>
           Go home
-        </Link>
+        </HoverPrefetchLink>
       </main>
     </Container>
   );

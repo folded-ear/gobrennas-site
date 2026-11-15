@@ -1,8 +1,8 @@
 "use client";
 
+import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
 import { CurrentUserAvatar } from "@/features/user-avatar";
 import clsx from "clsx";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SECTIONS } from "./sections";
 
@@ -23,7 +23,7 @@ export function SectionNav() {
           const isCurrent = section.matches(pathname);
           return (
             <li key={section.id}>
-              <Link
+              <HoverPrefetchLink
                 href={section.href}
                 aria-current={isCurrent ? "page" : undefined}
                 className={clsx(
@@ -37,7 +37,7 @@ export function SectionNav() {
                   {section.icon ?? <CurrentUserAvatar size="sm" />}
                 </span>
                 <span>{section.label}</span>
-              </Link>
+              </HoverPrefetchLink>
             </li>
           );
         })}
