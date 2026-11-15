@@ -40,7 +40,8 @@ export function BorrowedSection({ sectionId, recipeId }: BorrowedSectionProps) {
         <p className="font-medium">
           {cached.data.name}
           {owner ? (
-            <span className="ms-xs font-normal text-muted">
+            <span className="font-normal text-muted">
+              {" "}
               of {owner.id === recipeId ? "this recipe" : owner.name}
             </span>
           ) : null}

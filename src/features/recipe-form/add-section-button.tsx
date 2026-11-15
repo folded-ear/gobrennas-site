@@ -39,11 +39,11 @@ export function AddSectionButton({
   const group = useRef<HTMLDivElement>(null);
   const menuTrigger = useRef<HTMLButtonElement>(null);
   const [isBorrowing, setIsBorrowing] = useState(false);
-  const [hasBorrowed, setHasBorrowed] = useState(false);
+  const [hasOpenedPicker, setHasOpenedPicker] = useState(false);
   useEffect(() => {
     // The picker opened from a menu item that's gone, so it can't restore focus.
-    if (hasBorrowed && !isBorrowing) menuTrigger.current?.focus();
-  }, [hasBorrowed, isBorrowing]);
+    if (hasOpenedPicker && !isBorrowing) menuTrigger.current?.focus();
+  }, [hasOpenedPicker, isBorrowing]);
   return (
     <>
       <div
@@ -80,7 +80,7 @@ export function AddSectionButton({
                 if (key === BLANK) onAddBlank();
                 if (key !== LIBRARY) return;
                 setIsBorrowing(true);
-                setHasBorrowed(true);
+                setHasOpenedPicker(true);
               }}
             >
               <Dropdown.Item id={BLANK} textValue="New Blank Section">
@@ -154,7 +154,7 @@ function SectionPicker({
               id={section.id}
               textValue={`${section.name} (of ${section.sectionOf.name})`}
             >
-              {section.name}
+              {section.name}{" "}
               <span className="text-muted">(of {section.sectionOf.name})</span>
             </ListBox.Item>
           )}

@@ -115,7 +115,7 @@ describe("AddSectionButton", () => {
     ).toHaveFocus();
     expect(
       await screen.findByRole("option", { name: "Pie crust (of Apple pie)" }),
-    ).toBeVisible();
+    ).toHaveTextContent(/^Pie crust \(of Apple pie\)$/);
     expect(
       screen.getByRole("option", { name: "Vinaigrette (of Green salad)" }),
     ).toBeVisible();

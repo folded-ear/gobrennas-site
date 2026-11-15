@@ -25,9 +25,9 @@ export type SectionSearch = {
 };
 
 /**
- * I search my sections for `input` once typing pauses, starting with it as
- * given. I'm pending from the first keystroke my results don't reflect until
- * they do.
+ * I search the person's own sections for `input` once typing pauses,
+ * starting with it as given. I'm pending from the first keystroke my results
+ * don't reflect until they do.
  */
 export function useSectionSearch(input: string): SectionSearch {
   const [query, setQuery] = useState(input);

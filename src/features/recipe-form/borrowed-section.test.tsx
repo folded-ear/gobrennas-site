@@ -74,8 +74,9 @@ describe("BorrowedSection", () => {
 
     render(<BorrowedSection sectionId={VINAIGRETTE_ID} />, { cache });
 
-    expect(screen.getByText("Vinaigrette")).toBeVisible();
-    expect(screen.getByText("of Green salad")).toBeVisible();
+    expect(screen.getByText("Vinaigrette")).toHaveTextContent(
+      /^Vinaigrette of Green salad$/,
+    );
     expect(screen.getByText("olive oil")).toBeVisible();
     expect(screen.getByText("Whisk until emulsified.")).toBeVisible();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
