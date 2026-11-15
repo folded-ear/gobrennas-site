@@ -1,6 +1,6 @@
 import { ApolloCache } from "@apollo/client";
+import { CorePlanItemChildrenFragmentDoc } from "./__generated__/corePlanItemChildren.generated";
 import { PlanItemIngredientFragmentDoc } from "./__generated__/planItemIngredient.generated";
-import { CorePlanItemChildrenFragmentDoc } from "./__generated__/pollPlan.generated";
 
 const HISTORY_FIELDS = ["plannedHistory", "plannedCount"];
 

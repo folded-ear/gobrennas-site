@@ -12,10 +12,3 @@ fragment pollPlan on Plan {
     id
   }
 }
-
-fragment corePlanItemChildren on CorePlanItem {
-  id
-  children {
-    id
-  }
-}
