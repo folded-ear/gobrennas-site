@@ -1,0 +1,7 @@
+fragment planItemIngredient on PlanItem {
+  id
+  ingredient {
+    __typename
+    id
+  }
+}
