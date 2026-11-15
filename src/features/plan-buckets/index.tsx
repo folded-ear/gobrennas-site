@@ -2,13 +2,13 @@
 
 import { DeleteDialog } from "@/components/delete-dialog";
 import { FormTextField } from "@/components/form-text-field";
+import { ClearIcon, MoreIcon } from "@/components/icons";
 import { PlanPicker } from "@/features/plan-picker";
 import { canonBucketName } from "@/lib/buckets";
 import { canAdministerPlan } from "@/lib/plans";
 import { useMutation } from "@apollo/client/react";
 import { Button, Dropdown, Label, Modal } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ellipsis, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -48,7 +48,7 @@ export function BucketMenu({
         className="text-muted"
         aria-label={`Manage ${label}`}
       >
-        <Ellipsis aria-hidden />
+        <MoreIcon aria-hidden />
       </Button>
       <Dropdown.Popover>
         <Dropdown.Menu aria-label={`Manage ${label}`}>
@@ -285,7 +285,7 @@ export function BucketDialog({
                     form.setFocus("date");
                   }}
                 >
-                  <X size={16} aria-hidden />
+                  <ClearIcon aria-hidden />
                 </Button>
               </div>
               <div className="flex justify-end gap-sm">

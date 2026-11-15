@@ -22,18 +22,18 @@ These come from HeroUI v3's own token system (`@heroui/styles`); our
 `globals.css` overrides their values to match the brand, it doesn't invent new
 names except where noted.
 
-| Token | Utility classes | Use for |
-|---|---|---|
-| `background` | `bg-background` | Page background |
-| `foreground` | `text-foreground` | Default text color |
-| `surface`, `surface-secondary`, `surface-tertiary` | `bg-surface*` | Cards, accordions, disclosure panels — non-overlay content containers, in increasing contrast steps |
-| `overlay` | `bg-overlay` | Floating content: tooltips, popovers, modals, menus |
-| `accent` (aliased as `primary`) | `bg-accent` / `bg-primary` | The brand color — primary buttons, links, focus rings |
-| `default` (aliased as `secondary`) | `bg-default` / `bg-secondary` | Neutral secondary actions (secondary buttons, chips) |
-| `success` / `warning` / `danger` | `bg-success`, `bg-warning`, `bg-danger` | Semantic status: confirmations, cautions, errors/destructive actions |
-| `muted` | `text-muted` | De-emphasized text (helper text, captions) |
-| `border` / `separator` | `border-border`, `border-separator` | Component borders vs. layout dividers |
-| `field-*` | n/a — used internally by HeroUI form components | Input/field backgrounds, borders, placeholders |
+| Token                                              | Utility classes                                 | Use for                                                                                             |
+|----------------------------------------------------|-------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `background`                                       | `bg-background`                                 | Page background                                                                                     |
+| `foreground`                                       | `text-foreground`                               | Default text color                                                                                  |
+| `surface`, `surface-secondary`, `surface-tertiary` | `bg-surface*`                                   | Cards, accordions, disclosure panels — non-overlay content containers, in increasing contrast steps |
+| `overlay`                                          | `bg-overlay`                                    | Floating content: tooltips, popovers, modals, menus                                                 |
+| `accent` (aliased as `primary`)                    | `bg-accent` / `bg-primary`                      | The brand color — primary buttons, links, focus rings                                               |
+| `default` (aliased as `secondary`)                 | `bg-default` / `bg-secondary`                   | Neutral secondary actions (secondary buttons, chips)                                                |
+| `success` / `warning` / `danger`                   | `bg-success`, `bg-warning`, `bg-danger`         | Semantic status: confirmations, cautions, errors/destructive actions                                |
+| `muted`                                            | `text-muted`                                    | De-emphasized text (helper text, captions)                                                          |
+| `border` / `separator`                             | `border-border`, `border-separator`             | Component borders vs. layout dividers                                                               |
+| `field-*`                                          | n/a — used internally by HeroUI form components | Input/field backgrounds, borders, placeholders                                                      |
 
 Each color token also has a `-foreground` pair (e.g. `accent-foreground`) for
 text/icons placed on top of that color, and most have a `-hover` and `-soft`
@@ -79,8 +79,7 @@ they read as intent (`sm`/`md`/`lg`) rather than a magic number.
 
 Widths are the exception: `w-*`, `min-w-*`, and `max-w-*` with `xs` through
 `xl` (and `max-w-none`) keep Tailwind's container sizes, so `max-w-lg` is
-32rem, not 16px. Use `w-lg`-style spacing widths through arbitrary values
-(`w-(--spacing-lg)`) if you need them.
+32rem, not 16px. Use `w-lg`-style spacing widths through arbitrary values (`w-(--spacing-lg)`) if you need them.
 
 ## Typography
 
@@ -90,16 +89,16 @@ haven't overridden it — but headings get default styling in `@layer base` in
 `globals.css` so semantic HTML is distinguished from body copy without
 needing utility classes on every heading:
 
-| Tag | Size | Weight |
-|---|---|---|
-| `h1` | `text-3xl` | bold, tight tracking |
-| `h2` | `text-2xl` | semibold, tight tracking |
-| `h3` | `text-xl` | semibold |
-| `h4` | `text-lg` | semibold |
-| `h5` | `text-base` | semibold |
-| `h6` | `text-sm` | semibold, uppercase, wide tracking |
-| body / `p` | `text-base` | regular |
-| `small` | `text-sm`, muted color | regular |
+| Tag        | Size                   | Weight                             |
+|------------|------------------------|------------------------------------|
+| `h1`       | `text-3xl`             | bold, tight tracking               |
+| `h2`       | `text-2xl`             | semibold, tight tracking           |
+| `h3`       | `text-xl`              | semibold                           |
+| `h4`       | `text-lg`              | semibold                           |
+| `h5`       | `text-base`            | semibold                           |
+| `h6`       | `text-sm`              | semibold, uppercase, wide tracking |
+| body / `p` | `text-base`            | regular                            |
+| `small`    | `text-sm`, muted color | regular                            |
 
 Use the plain tag (`<h2>Section title</h2>`) rather than re-picking
 `text-*`/`font-*` classes per component. If a heading needs to look like a
@@ -115,6 +114,13 @@ ingredient names use black in light mode or white in dark mode with a subtle
 text shadow for emphasis. The `.morsel-quantity`, `.morsel-unit`, and
 `.morsel-ingredient` classes apply this treatment to ordinary text spans;
 Morsel's editable text uses the same variables in CSS Custom Highlights.
+
+## Icons
+
+Lucide is our icon set, which only `src/components/icons.tsx` may import from.
+Components always use semantic names from that file, not Lucide's names. Using
+the same Lucide icon with multiple semantic names is a code smell, and must be
+clearly justified with a comment on each name.
 
 ## Button-sized pieces
 

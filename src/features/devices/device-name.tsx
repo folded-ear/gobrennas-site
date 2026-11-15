@@ -1,6 +1,6 @@
 "use client";
 
-import { CancelIcon, RenameIcon, SaveIcon } from "@/components/icons";
+import { AcceptIcon, CancelIcon, EditIcon } from "@/components/icons";
 import { useMutation } from "@apollo/client/react";
 import { Button, Input, TextField } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
@@ -66,7 +66,7 @@ export function DeviceName({ id, name }: DeviceNameProps) {
           variant="ghost"
           onPress={() => setDraft(name)}
         >
-          <RenameIcon size="small" aria-hidden />
+          <EditIcon size="small" aria-hidden />
         </Button>
       </span>
     );
@@ -105,7 +105,7 @@ export function DeviceName({ id, name }: DeviceNameProps) {
           variant="ghost"
           isPending={pending}
         >
-          <SaveIcon size="small" aria-hidden />
+          <AcceptIcon size="small" aria-hidden />
         </Button>
         <Button
           aria-label="Cancel"

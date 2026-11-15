@@ -1,8 +1,13 @@
 "use client";
 
+import {
+  AddIcon,
+  DeleteIcon,
+  MoveDownIcon,
+  MoveUpIcon,
+} from "@/components/icons";
 import { focusAtEnd } from "@/features/morsel/editor-dom";
 import { Button } from "@heroui/react";
-import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
 import {
   useId,
   useLayoutEffect,
@@ -199,7 +204,7 @@ export function IngredientRows({
               type="button"
               variant="tertiary"
             >
-              <ArrowUp aria-hidden="true" size={16} />
+              <MoveUpIcon aria-hidden="true" />
             </Button>
             <Button
               aria-label={`Move ${labelPrefix.toLowerCase()} ${index + 1} down`}
@@ -214,7 +219,7 @@ export function IngredientRows({
               type="button"
               variant="tertiary"
             >
-              <ArrowDown aria-hidden="true" size={16} />
+              <MoveDownIcon aria-hidden="true" />
             </Button>
             <Button
               aria-label={`Remove ${labelPrefix.toLowerCase()} ${index + 1}`}
@@ -224,7 +229,7 @@ export function IngredientRows({
               type="button"
               variant="tertiary"
             >
-              <X aria-hidden="true" size={16} />
+              <DeleteIcon aria-hidden="true" />
             </Button>
             <Button
               aria-label={`Add ${labelPrefix.toLowerCase()} below ${index + 1}`}
@@ -234,7 +239,7 @@ export function IngredientRows({
               type="button"
               variant="tertiary"
             >
-              <Plus aria-hidden="true" size={16} />
+              <AddIcon aria-hidden="true" />
             </Button>
           </li>
         ))}

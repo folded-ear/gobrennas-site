@@ -1,11 +1,11 @@
 import { AccessLevel } from "@/__generated__/graphql";
 import { DeleteDialog } from "@/components/delete-dialog";
+import { DeleteIcon } from "@/components/icons";
 import { UserAvatar } from "@/features/user-avatar";
 import { displayName } from "@/lib/people";
 import { accessLevelLabel } from "@/lib/plans";
 import { useMutation } from "@apollo/client/react";
 import { Button } from "@heroui/react";
-import { X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import {
   RevokePlanGrantDocument,
@@ -140,7 +140,7 @@ function GrantRow({
           setRemoving(true);
         }}
       >
-        <X aria-hidden="true" />
+        <DeleteIcon aria-hidden="true" />
       </Button>
       <DeleteDialog
         heading="Change your access?"

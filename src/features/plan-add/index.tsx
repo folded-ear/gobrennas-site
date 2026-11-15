@@ -1,5 +1,6 @@
 "use client";
 
+import { AddIcon } from "@/components/icons";
 import { RecipeScale } from "@/components/recipe-scale";
 import { PlanPicker } from "@/features/plan-picker";
 import type { TimelineSection } from "@/features/plan-timeline/model";
@@ -15,7 +16,6 @@ import { recognizedParts } from "@/features/recipe-form/ingredient-recognition";
 import { createRecognitionQueue } from "@/features/recipe-form/recognition-queue";
 import { useRecognizeIngredient } from "@/features/recipe-form/use-recognize-ingredient";
 import { Button, Dropdown, Label } from "@heroui/react";
-import { Plus } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { FocusScope } from "react-aria";
 import {
@@ -48,7 +48,7 @@ export function PlanAdd({
         className="gap-xs px-sm text-muted"
         aria-label={`Add to ${label}`}
       >
-        <Plus aria-hidden /> Add
+        <AddIcon aria-hidden /> Add
       </Button>
       <Dropdown.Popover>
         <Dropdown.Menu aria-label={`Add to ${label}`}>
@@ -79,7 +79,7 @@ export function PlanAdd({
       aria-expanded={open}
       onPress={() => setOpen(true)}
     >
-      <Plus aria-hidden /> Add
+      <AddIcon aria-hidden /> Add
     </Button>
   );
 }

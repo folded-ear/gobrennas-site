@@ -1,5 +1,6 @@
 "use client";
 
+import { SettingsIcon } from "@/components/icons";
 import { Screen } from "@/components/screen";
 import { SectionHeader } from "@/components/section-header";
 import { useWatchPlans } from "@/features/page-engine";
@@ -50,7 +51,6 @@ import { PREF_PLANNER_PLANS } from "@/lib/preferences";
 import { PlannerDocument } from "@/screens/__generated__/planner.generated";
 import { useApolloClient, useSuspenseQuery } from "@apollo/client/react";
 import { Button } from "@heroui/react";
-import { Settings } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -249,7 +249,7 @@ export function Planner() {
                 aria-label="Manage plans"
                 onPress={() => open.push({ manage: true })}
               >
-                <Settings aria-hidden />
+                <SettingsIcon aria-hidden />
               </Button>
             ) : null}
           </div>

@@ -1,8 +1,8 @@
+import { AddIcon, NavForwardIcon } from "@/components/icons";
 import PlanAvatar from "@/components/plan-avatar";
 import { groupPlans, type PlanGroup } from "@/components/plan-option";
 import { canChangePlan, type PlanAccess } from "@/lib/plans";
 import { Button, Header, Separator } from "@heroui/react";
-import { ChevronRight, Plus } from "lucide-react";
 import { Fragment, useId } from "react";
 
 type ManagedPlan = PlanAccess & { id: string; name: string; color: string };
@@ -42,7 +42,7 @@ function ManagedPlanGroup({
                 {plan.name}
               </span>
               {canChangePlan(plan) ? (
-                <ChevronRight aria-hidden />
+                <NavForwardIcon aria-hidden />
               ) : (
                 <span>Read only</span>
               )}
@@ -74,7 +74,7 @@ export function PlanManagementList({
             : "There are no plans to manage."}
         </p>
         <Button variant="secondary" className="shrink-0" onPress={onCreate}>
-          <Plus aria-hidden />
+          <AddIcon aria-hidden />
           New plan
         </Button>
       </div>

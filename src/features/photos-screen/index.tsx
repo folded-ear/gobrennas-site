@@ -2,7 +2,7 @@
 
 import { TextractJobStatus } from "@/__generated__/graphql";
 import { DeletePhotoDialog } from "@/components/delete-photo-dialog";
-import { DeleteIcon } from "@/components/icons";
+import { CloseIcon, DeleteIcon } from "@/components/icons";
 import { PhotoChooser } from "@/components/photo-chooser";
 import { Screen } from "@/components/screen";
 import { usePageEngine, useWatchJobs } from "@/features/page-engine";
@@ -16,7 +16,6 @@ import { useUploadPhoto } from "@/lib/recipe-photo/use-upload-photo";
 import { FragmentType } from "@apollo/client";
 import { useFragment, useMutation, useQuery } from "@apollo/client/react";
 import { Alert, Button, Skeleton } from "@heroui/react";
-import { X } from "lucide-react";
 import Image from "next/image";
 import {
   type ReactNode,
@@ -253,7 +252,7 @@ function UploadTile({
               aria-label={`Dismiss ${name}`}
               onPress={onDismiss}
             >
-              <X aria-hidden="true" size={16} />
+              <CloseIcon aria-hidden="true" />
             </Button>
           </div>
         </>

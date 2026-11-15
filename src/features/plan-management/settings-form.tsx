@@ -1,11 +1,11 @@
 "use client";
 
 import { FormTextField } from "@/components/form-text-field";
+import { NavBackIcon } from "@/components/icons";
 import { canAdministerPlan, canChangePlan } from "@/lib/plans";
 import { useMutation } from "@apollo/client/react";
 import { Button, parseColor } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -74,7 +74,7 @@ export function PlanSettingsForm({
           isDisabled={pending || deleting}
           onPress={onBack}
         >
-          <ArrowLeft aria-hidden /> Back to all plans
+          <NavBackIcon aria-hidden /> Back to all plans
         </Button>
       ) : null}
       <form

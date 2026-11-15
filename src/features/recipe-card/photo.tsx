@@ -1,6 +1,7 @@
 "use client";
 
 import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
+import { CloudUploadIcon } from "@/components/icons";
 import { RecipePhoto } from "@/features/recipe-photo";
 import { preparePhoto } from "@/lib/recipe-photo/prepare-photo";
 import { PHOTO_ACCEPT, PhotoUploadError } from "@/lib/recipe-photo/types";
@@ -9,7 +10,6 @@ import { FragmentType } from "@apollo/client";
 import { useFragment, useMutation } from "@apollo/client/react";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
-import { CloudUpload } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   CardPhotoFragment,
@@ -135,12 +135,7 @@ export function CardPhoto({
                 {progress}
               </span>
             ) : (
-              <CloudUpload
-                size={50}
-                strokeWidth={2}
-                className="text-muted/40"
-                aria-hidden="true"
-              />
+              <CloudUploadIcon className="text-muted/40" aria-hidden="true" />
             )}
           </Button>
           <input

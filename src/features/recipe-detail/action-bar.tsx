@@ -1,9 +1,16 @@
 "use client";
 
+import {
+  CloseIcon,
+  CopyIcon,
+  DeleteIcon,
+  EditIcon,
+  MoreIcon,
+  ShareIcon,
+} from "@/components/icons";
 import { DeleteRecipeDialog } from "@/features/recipe-form/delete-recipe-button";
 import { SendToPlan } from "@/features/send-to-plan";
 import { Button, Dropdown, Label, Separator } from "@heroui/react";
-import { Copy, Ellipsis, Pencil, Share2, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useRef, useState } from "react";
 import { ShareRecipeDialog, shareRecipeOnDevice } from "./share-recipe-dialog";
@@ -35,7 +42,7 @@ export function RecipeActionBar({
               onPress={onClose}
               className="ml-auto"
             >
-              <X size={20} aria-hidden />
+              <CloseIcon aria-hidden />
             </Button>
           ) : null}
         </div>
@@ -70,7 +77,7 @@ export function LibraryRecipeActions({
           variant="secondary"
           aria-label="More recipe actions"
         >
-          <Ellipsis size={20} aria-hidden />
+          <MoreIcon aria-hidden />
         </Button>
         <Dropdown.Popover>
           <Dropdown.Menu aria-label="More recipe actions">
@@ -83,7 +90,7 @@ export function LibraryRecipeActions({
                 )
               }
             >
-              <Copy size={16} aria-hidden />
+              <CopyIcon size="small" aria-hidden />
               <Label>{recipe.mine ? "Duplicate" : "Copy to my library"}</Label>
             </Dropdown.Item>
             {recipe.mine ? (
@@ -94,7 +101,7 @@ export function LibraryRecipeActions({
                 }
                 textValue="Edit recipe"
               >
-                <Pencil size={16} aria-hidden />
+                <EditIcon size="small" aria-hidden />
                 <Label>Edit recipe</Label>
               </Dropdown.Item>
             ) : null}
@@ -110,7 +117,7 @@ export function LibraryRecipeActions({
                 });
               }}
             >
-              <Share2 size={16} aria-hidden />
+              <ShareIcon size="small" aria-hidden />
               <Label>Share recipe</Label>
             </Dropdown.Item>
             {recipe.mine ? (
@@ -125,7 +132,7 @@ export function LibraryRecipeActions({
                     setDeleteOpen(true);
                   }}
                 >
-                  <Trash2 size={16} aria-hidden />
+                  <DeleteIcon size="small" aria-hidden />
                   <Label>Delete recipe</Label>
                 </Dropdown.Item>
               </>

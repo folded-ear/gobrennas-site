@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { DarkModeIcon, LightModeIcon } from "@/components/icons";
 import { useTheme } from "next-themes";
 
 import { Button, ButtonGroup } from "@heroui/react";
@@ -18,10 +18,10 @@ export function ModeToggle() {
   return (
     <ButtonGroup variant="tertiary">
       <Button isIconOnly onPress={() => handleThemeChange("light")}>
-        <Sun />
+        <LightModeIcon />
       </Button>
       <Button isIconOnly onPress={() => handleThemeChange("dark")}>
-        <Moon />
+        <DarkModeIcon />
       </Button>
     </ButtonGroup>
   );
