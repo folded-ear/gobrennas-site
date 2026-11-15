@@ -51,12 +51,11 @@ function fetched(): MockLink.MockedResponse {
       query: GetBorrowedSectionDocument,
       variables: { id: VINAIGRETTE_ID },
     },
-    // The API answers with the section's backing recipe.
     result: {
       data: {
         library: {
           __typename: "LibraryQuery",
-          getRecipeById: { ...VINAIGRETTE, __typename: "Recipe" },
+          getSectionById: VINAIGRETTE,
         },
       },
     },

@@ -237,6 +237,12 @@ type LibraryQuery {
   recipe. Anonymous users must supply the recipe's secret.
   """
   getRecipeById(id: ID!, secret: String): Recipe!
+  """
+
+  Retrieve a single section by its ID. Any recipe can be retrieved as a
+  section. Requires authentication.
+  """
+  getSectionById(id: ID!): Section!
   "Search the recipe library."
   recipes(
     """

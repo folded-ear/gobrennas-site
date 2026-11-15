@@ -130,9 +130,8 @@ export const borrowedToppingMock: MockLink.MockedResponse = {
     data: {
       library: {
         __typename: "LibraryQuery",
-        // The API answers with the section's backing recipe.
-        getRecipeById: {
-          __typename: "Recipe",
+        getSectionById: {
+          __typename: "Section",
           id: "topping",
           name: "Borrowed topping",
           sectionOf: {

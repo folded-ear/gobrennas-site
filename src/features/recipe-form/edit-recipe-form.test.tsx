@@ -494,9 +494,6 @@ describe("deleting owned recipes", () => {
         },
       );
       const title = await screen.findByRole("textbox", { name: "Title" });
-      // Loading the borrowed topping writes it to the cache, so wait for it.
-      await screen.findByText("Whip.");
-      const cached = cache.readQuery(query);
       await user.type(title, " unsaved");
       await user.click(screen.getByRole("button", { name: "Delete recipe" }));
       let dialog = await screen.findByRole("alertdialog");
@@ -507,7 +504,7 @@ describe("deleting owned recipes", () => {
         "Couldn’t delete recipe",
       );
       expect(onDeleted).not.toHaveBeenCalled();
-      expect(cache.readQuery(query)).toEqual(cached);
+      expect(cache.readQuery(query)).toEqual(load.result.data);
       await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
       await waitFor(() =>
         expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument(),

@@ -1,6 +1,6 @@
 query getBorrowedSection($id: ID!) {
   library {
-    getRecipeById(id: $id) {
+    getSectionById(id: $id) {
       id
       ...borrowedSection
     }

@@ -183,10 +183,8 @@ describe("CreateRecipeForm", () => {
             data: {
               library: {
                 __typename: "LibraryQuery",
-                // The API answers with the section's backing recipe.
-                getRecipeById: {
+                getSectionById: {
                   ...vinaigrette,
-                  __typename: "Recipe",
                   directions: "Whisk until emulsified.",
                   ingredients: [],
                 },
