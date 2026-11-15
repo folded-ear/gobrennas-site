@@ -9,7 +9,7 @@ type ShoppingItem =
   ShoppingQuery["planner"]["plans"][number]["descendants"][number];
 
 // Nothing ties a query's spreads to a mutation's, so these fail tsc when
-// a query reads more of an item than a created or renamed one carries.
+// a query reads more of an item than planItemResult carries.
 describe("planItemResult", () => {
   it("carries everything the planner reads of an item", () => {
     expectTypeOf<PlanItemResultFragment>().toExtend<PlannerItem>();

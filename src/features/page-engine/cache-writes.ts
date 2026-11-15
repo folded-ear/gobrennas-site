@@ -38,7 +38,7 @@ export function writeDraft(cache: ApolloCache, change: CreateChange): void {
     fragment: PlanItemResultFragmentDoc,
     fragmentName: "planItemResult",
     id: cacheIdOf(cache, change.id),
-    // planItemResult spreads planItem masked, so its fields aren't typed.
+    // Like the queries, planItemResult masks planItem and planItemText: untyped.
     data: {
       __typename: "PlanItem",
       id: change.id,
@@ -64,7 +64,10 @@ export function evictDraft(cache: ApolloCache, id: string): void {
   cache.evict({ id: cacheIdOf(cache, id) });
 }
 
-/** I write a saved move: the parent's children, and the items' parents. */
+/**
+ * I write a saved move: the new parent's children, each item's parent, and
+ * each old parent's children, without the moved items.
+ */
 function writeMove(
   cache: ApolloCache,
   change: Extract<SentChange, MoveChange>,
