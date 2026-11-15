@@ -13,8 +13,8 @@ type HoverPrefetchLinkProps = Omit<
 };
 
 /**
- * I am a Link that prefetches only once hovered. I log my href when I mount,
- * each time I'm hovered, and when I first allow prefetching.
+ * I am a Link that prefetches only once hovered. I log my href when I mount or
+ * it changes, each time I'm hovered, and when I first allow prefetching.
  */
 export function HoverPrefetchLink({
   href,
