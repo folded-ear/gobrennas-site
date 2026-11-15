@@ -32,7 +32,8 @@ type ItemRowProps = PropsWithChildren<
 /**
  * I am one line: a handle on my left edge when my item can be moved, then
  * my content, with whatever drop zones I'm given laid over the top. With no
- * item, I leave a handle's room and take no drops.
+ * item, I leave a handle's room and take no drops. I tint while hovered, so
+ * my ends read as one line across a wide screen.
  */
 export function ItemRow(props: ItemRowProps) {
   const { canMove, dragged } = useDragSession();
@@ -42,7 +43,7 @@ export function ItemRow(props: ItemRowProps) {
   return (
     <div
       className={clsx(
-        "relative flex items-center gap-xxs",
+        "relative flex items-center gap-xxs hover:bg-row-hover rounded-md",
         item !== null && dragged?.id === item.itemId && "opacity-40",
         className,
       )}

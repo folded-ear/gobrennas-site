@@ -50,6 +50,12 @@ completed, bold red for deleted. A needed item's circle and an acquired
 item's check are drawn in their own status's color, and fill with the
 other's while hovered or focused.
 
+### Row hover
+
+`row-hover` is ours too: `bg-row-hover`. It's the faint blue that tints a
+plan or shopping item's row while a pointer is over it, so the row's two
+ends read as one line on a wide screen.
+
 ### `primary` / `secondary` aliases
 
 HeroUI doesn't have `primary`/`secondary` tokens — it uses `accent` for the
