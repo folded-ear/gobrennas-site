@@ -366,10 +366,11 @@ Delivery: Built
 - Untouched ingredient text retains its saved quantity, unit, food reference,
   and preparation, even if recognition runs when the row receives focus. Editing
   the row releases those saved values and uses normal recognition behavior.
-- Owned sections retain their identity and are editable. Borrowed sections are
-  shown as links, remain references on save, and may be removed from this recipe
-  without modifying their source. An owned section that appears more than once
-  is edited only at its first occurrence.
+- Owned sections retain their identity and are editable. Borrowed sections
+  are shown as described under [Borrowed sections](#borrowed-sections), remain
+  references on save, and may be removed from this recipe without modifying
+  their source. An owned section that appears more than once is edited only at
+  its first occurrence, and its other occurrences are shown as borrowed.
 - Section labels are kept, with no controls to edit them.
 - Changing one field preserves unrelated fields, including zero values, nullable
   fields, and stored cook-time precision. A section still used by an ordinary
@@ -397,7 +398,9 @@ Delivery: Built
 State: Agreed — frontend scope of [BFS-24](https://linear.app/go-brennas/issue/BFS-24).
 
 - Add section appends an expanded section below the main recipe fields and
-  focuses its title. A recipe may contain multiple owned sections.
+  focuses its title. Its menu offers New Blank Section, which does the same,
+  and Add From Library ([Borrowed sections](#borrowed-sections)). A recipe may
+  contain multiple owned sections.
 - Each section has a required title, optional directions, and the same ingredient
   editor as the recipe. Paste, recognition, suggestions, and row controls work
   within that section; all rows share the editor's recognition request limit.
@@ -415,12 +418,42 @@ State: Agreed — frontend scope of [BFS-24](https://linear.app/go-brennas/issue
 - New sections are saved as owned sections of the recipe. Their titles,
   directions, ingredient order, and recognized details are kept; blank
   ingredient rows are omitted.
-- Borrowed sections can't be added as structural sections; an ingredient row
-  can refer to another recipe's section instead. Borrowed sections already on
-  a recipe are kept when editing and copying it.
 - Suggestions don't exclude the recipe being edited or its owned sections,
   and saving doesn't reject an ingredient referring to them
   ([BFS-97](https://linear.app/go-brennas/issue/BFS-97)).
+
+### Borrowed sections
+
+State: Agreed — [BFS-139](https://linear.app/go-brennas/issue/BFS-139).
+
+Delivery: Built
+
+- A recipe can borrow a section another recipe owns. Add From Library, in the
+  Add section menu, opens a search of the person's own sections below the
+  button. Each result names the section and its recipe, as “Vinaigrette (of
+  Green salad)”. Recipes used whole, rather than one of their sections, are
+  not listed.
+- The search lists sections as soon as it opens, before anything is typed.
+  Typing searches again once it pauses. From the first keystroke until the
+  results reflect the typed text, the search says it is searching and keeps
+  the previous results in view.
+- Up to ten results are listed. When more match, the search says so and
+  suggests typing more; it doesn't page.
+- The search tells having no sections apart from having none that match. A
+  failed search says so and offers Retry.
+- Nothing is left out: sections already on the recipe, and the recipe's own
+  sections, can be borrowed.
+- Picking a result appends it as a section and closes the search. Escape
+  closes it without borrowing. Either way, focus returns to the Add section
+  menu button. Borrowing two sections takes two trips through the menu.
+- A borrowed section is shown in full and read-only: its name, the recipe it
+  is borrowed from (“of this recipe” when that is the recipe being edited),
+  its ingredients, and its directions. Its only control is Remove section.
+  Its content is loaded when it isn't already at hand, with loading and
+  retryable error feedback; a section that no longer exists says so.
+- Borrowed sections are saved as references to their source, and are kept
+  as references when editing and copying the recipe. An ingredient row can
+  also refer to another recipe's section.
 
 ### Saving
 

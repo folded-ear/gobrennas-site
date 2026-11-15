@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ingredientDraftSchema, newIngredientDraft } from "./ingredient-draft";
+import type { BorrowableSection } from "./use-section-search";
 
 export const sectionDraftSchema = z.object({
   clientId: z.string().min(1),
@@ -21,5 +22,17 @@ export function newSectionDraft(): SectionDraft {
     title: "",
     directions: "",
     ingredients: [newIngredientDraft()],
+  };
+}
+
+/** I return a draft that refers to `section`, keeping it owned elsewhere. */
+export function borrowedSectionDraft(section: BorrowableSection): SectionDraft {
+  return {
+    clientId: crypto.randomUUID(),
+    id: section.id,
+    referenceRecipeId: section.sectionOf.id,
+    title: section.name,
+    directions: "",
+    ingredients: [],
   };
 }

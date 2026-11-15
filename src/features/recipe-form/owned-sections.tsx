@@ -2,7 +2,6 @@
 
 import { FormTextField } from "@/components/form-text-field";
 import { AlertDialog, Button } from "@heroui/react";
-import { Plus } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   Controller,
@@ -10,12 +9,13 @@ import {
   type Control,
   type UseFormGetValues,
 } from "react-hook-form";
+import { AddSectionButton } from "./add-section-button";
 import { BorrowedSection } from "./borrowed-section";
 import type { RecognizeIngredient } from "./ingredient-recognition";
 import { IngredientRows } from "./ingredient-rows";
 import type { RecipeDraft } from "./recipe-draft";
 import type { RecognitionQueue } from "./recognition-queue";
-import { newSectionDraft } from "./section-draft";
+import { borrowedSectionDraft, newSectionDraft } from "./section-draft";
 
 export function OwnedSections({
   recipeId,
@@ -174,21 +174,20 @@ export function OwnedSections({
           </AlertDialog>
         </fieldset>
       ))}
-      <Button
+      <AddSectionButton
         ref={addButton}
-        className="self-start"
-        type="button"
-        variant="secondary"
         isDisabled={isDisabled}
-        onPress={() => {
+        onAddBlank={() => {
           append(newSectionDraft(), {
             focusName: `sections.${fields.length}.title`,
           });
           onEdit();
         }}
-      >
-        <Plus aria-hidden="true" size={16} /> Add section
-      </Button>
+        onBorrow={(section) => {
+          append(borrowedSectionDraft(section), { shouldFocus: false });
+          onEdit();
+        }}
+      />
     </div>
   );
 }

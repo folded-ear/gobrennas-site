@@ -4,15 +4,24 @@ import {
   type SectionInfo,
 } from "@/__generated__/graphql";
 import { editableMorsel } from "@/features/morsel/test/editing";
-import { buildInMemoryCache, render, screen, userEvent, waitFor } from "@/test";
+import {
+  buildInMemoryCache,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+  within,
+} from "@/test";
 import { MockLink } from "@apollo/client/testing";
 import { describe, expect, it, vi } from "vitest";
 import { CreateRecipeDocument } from "./__generated__/createRecipe.generated";
+import { GetBorrowedSectionDocument } from "./__generated__/getBorrowedSection.generated";
 import { RecipeLabelSuggestionsDocument } from "./__generated__/recipeLabelSuggestions.generated";
 import {
   RecognizeIngredientDocument,
   type RecognizeIngredientQuery,
 } from "./__generated__/recognizeIngredient.generated";
+import { SearchSectionsDocument } from "./__generated__/searchSections.generated";
 import { CreateRecipeForm } from "./create-recipe-form";
 
 const CREATED_RECIPE_ID = "recipe-cider-chicken";
@@ -122,6 +131,101 @@ describe("CreateRecipeForm", () => {
       screen.getByRole("textbox", { name: "Section 2 title" }),
       "Filling",
     );
+    await user.click(screen.getByRole("button", { name: "Save recipe" }));
+    await waitFor(() =>
+      expect(onCreated).toHaveBeenCalledWith(CREATED_RECIPE_ID),
+    );
+  });
+
+  it("borrows a section from the library, shows it read-only, and saves it by reference", async () => {
+    const user = userEvent.setup();
+    const onCreated = vi.fn();
+    const vinaigrette = {
+      __typename: "Section",
+      id: "section-vinaigrette",
+      name: "Vinaigrette",
+      sectionOf: {
+        __typename: "Recipe",
+        id: "recipe-green-salad",
+        name: "Green salad",
+      },
+    } as const;
+    render(<CreateRecipeForm onCreated={onCreated} onCancel={vi.fn()} />, {
+      mocks: [
+        {
+          request: { query: RecipeLabelSuggestionsDocument },
+          maxUsageCount: 2,
+          result: { data: { labels: { __typename: "LabelsQuery", all: [] } } },
+        },
+        {
+          request: { query: SearchSectionsDocument, variables: { query: "" } },
+          result: {
+            data: {
+              library: {
+                __typename: "LibraryQuery",
+                sections: {
+                  __typename: "SectionConnection",
+                  edges: [
+                    { __typename: "SectionConnectionEdge", node: vinaigrette },
+                  ],
+                  pageInfo: { __typename: "PageInfo", hasNextPage: false },
+                },
+              },
+            },
+          },
+        },
+        {
+          request: {
+            query: GetBorrowedSectionDocument,
+            variables: { id: vinaigrette.id },
+          },
+          result: {
+            data: {
+              node: {
+                ...vinaigrette,
+                directions: "Whisk until emulsified.",
+                ingredients: [],
+              },
+            },
+          },
+        },
+        successfulCreateMock({
+          name: "Salad night",
+          externalUrl: null,
+          yield: null,
+          totalTime: null,
+          calories: null,
+          directions: "",
+          sections: [{ id: vinaigrette.id }],
+        }),
+      ],
+    });
+    await user.type(
+      screen.getByRole("textbox", { name: "Title" }),
+      "Salad night",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "More ways to add a section" }),
+    );
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Add From Library" }),
+    );
+    await user.click(
+      await screen.findByRole("option", {
+        name: "Vinaigrette (of Green salad)",
+      }),
+    );
+
+    const section = screen.getByRole("group", { name: "Section 1" });
+    expect(
+      await within(section).findByText("Whisk until emulsified."),
+    ).toBeVisible();
+    expect(within(section).getByText("of Green salad")).toBeVisible();
+    expect(within(section).queryByRole("textbox")).not.toBeInTheDocument();
+    expect(
+      within(section).getByRole("button", { name: "Remove section 1" }),
+    ).toBeVisible();
+
     await user.click(screen.getByRole("button", { name: "Save recipe" }));
     await waitFor(() =>
       expect(onCreated).toHaveBeenCalledWith(CREATED_RECIPE_ID),
