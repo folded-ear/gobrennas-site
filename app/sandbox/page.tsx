@@ -1031,7 +1031,7 @@ export default function Sandbox() {
         </Demo>
       </Section>
 
-      {/* ── App components ── */}
+      {/* ── Star rating ── */}
       <Section title="Star rating">
         <Demo label="Unrated">
           <StarRatingDemo initial={null} />
