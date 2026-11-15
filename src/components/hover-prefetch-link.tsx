@@ -23,9 +23,7 @@ export function HoverPrefetchLink({
 }: HoverPrefetchLinkProps) {
   const [active, setActive] = useState(false);
 
-  useEffect(() => {
-    console.log(LOG_TAG, "mount", href);
-  }, [href]);
+  console.log(LOG_TAG, "render", href);
 
   return (
     <Link
