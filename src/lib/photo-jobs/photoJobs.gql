@@ -2,7 +2,6 @@ query photoJobs {
   textract {
     listJobs {
       id
-      # Outside photoJob, which is masked, so the job poll can read it.
       status
       ...photoJob
     }
