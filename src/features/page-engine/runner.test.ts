@@ -631,7 +631,7 @@ describe("the runner, watching photo jobs", () => {
   });
 
   const jobPolls = () =>
-    api.requests.filter((it) => it.operation === "pollJobs");
+    api.requests.filter((it) => it.operation === "photoJobs");
 
   const cachedJob = () =>
     cache.readFragment({

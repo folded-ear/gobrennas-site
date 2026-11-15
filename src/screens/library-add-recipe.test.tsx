@@ -1,6 +1,5 @@
 import { TextractJobStatus } from "@/__generated__/graphql";
-import { PollJobsDocument } from "@/features/page-engine/__generated__/pollJobs.generated";
-import { PhotoJobsDocument } from "@/features/photos-screen/__generated__/photoJobs.generated";
+import { PhotoJobsDocument } from "@/lib/photo-jobs/__generated__/photoJobs.generated";
 import { ADD_RECIPE_PATH, addRecipeFromPhotoHref } from "@/lib/routes";
 import { render, screen, userEvent, within } from "@/test";
 import type { MockLink } from "@apollo/client/testing";
@@ -46,7 +45,7 @@ const MOCKS: readonly MockLink.MockedResponse[] = [
     result: { data: JOB_LIST },
   },
   {
-    request: { query: PollJobsDocument },
+    request: { query: PhotoJobsDocument },
     maxUsageCount: Number.POSITIVE_INFINITY,
     result: { data: JOB_LIST },
   },

@@ -1,6 +1,6 @@
 import { TextractJobStatus } from "@/__generated__/graphql";
-import { PollJobsDocument } from "@/features/page-engine/__generated__/pollJobs.generated";
 import { DeletePhotoJobDocument } from "@/lib/photo-jobs/__generated__/deletePhotoJob.generated";
+import { PhotoJobsDocument } from "@/lib/photo-jobs/__generated__/photoJobs.generated";
 import type { RecipeDraftWrites } from "@/lib/recipe-draft-writes";
 import {
   buildInMemoryCache,
@@ -110,7 +110,7 @@ function renderView({
       mocks: [
         ...loads,
         {
-          request: { query: PollJobsDocument },
+          request: { query: PhotoJobsDocument },
           maxUsageCount: Number.POSITIVE_INFINITY,
           error: new Error("offline"),
         },

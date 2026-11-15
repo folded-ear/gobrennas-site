@@ -10,6 +10,7 @@ import {
   PhotoJobFragment,
   PhotoJobFragmentDoc,
 } from "@/lib/photo-jobs/__generated__/photoJob.generated";
+import { PhotoJobsDocument } from "@/lib/photo-jobs/__generated__/photoJobs.generated";
 import { PHOTO_UNREADABLE } from "@/lib/photo-jobs/messages";
 import { useReadPhotoAgain } from "@/lib/photo-jobs/use-photo-job-actions";
 import { useUploadPhoto } from "@/lib/recipe-photo/use-upload-photo";
@@ -25,7 +26,6 @@ import {
   useState,
 } from "react";
 import { CreatePhotoJobDocument } from "./__generated__/createPhotoJob.generated";
-import { PhotoJobsDocument } from "./__generated__/photoJobs.generated";
 import { jobToPick } from "./pick-for-user";
 import { type PhotoUpload, usePhotoUploads } from "./use-photo-uploads";
 

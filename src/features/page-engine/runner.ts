@@ -1,7 +1,7 @@
+import { PhotoJobsDocument } from "@/lib/photo-jobs/__generated__/photoJobs.generated";
 import { ShoppingDocument } from "@/screens/__generated__/shopping.generated";
 import { SHOPPING_PAGE_CACHE } from "@/worker/cache-names";
 import type { ApolloClient } from "@apollo/client";
-import { PollJobsDocument } from "./__generated__/pollJobs.generated";
 import {
   evictDraft,
   writeDraft,
@@ -254,7 +254,7 @@ export function createRunner({
         jobsRequest = controller;
         client
           .query({
-            query: PollJobsDocument,
+            query: PhotoJobsDocument,
             // The answer goes to the cache, where the jobs are read from.
             fetchPolicy: "network-only",
             context: { fetchOptions: { signal: controller.signal } },

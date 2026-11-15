@@ -150,7 +150,7 @@ export function fakeApi(cache: ApolloCache) {
           observer.complete();
           return;
         }
-        if (operation.operationName === "pollJobs") {
+        if (operation.operationName === "photoJobs") {
           observer.next({
             data: {
               textract: { __typename: "TextractQuery", listJobs: api.jobs },
