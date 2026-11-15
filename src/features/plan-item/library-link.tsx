@@ -1,6 +1,6 @@
+import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
 import { LibraryIcon } from "@/components/icons";
 import { buttonVariants } from "@heroui/react";
-import Link from "next/link";
 
 type LibraryLinkProps = {
   recipeId: string;
@@ -8,7 +8,7 @@ type LibraryLinkProps = {
 
 export function LibraryLink({ recipeId }: LibraryLinkProps) {
   return (
-    <Link
+    <HoverPrefetchLink
       href={`/recipes/${recipeId}`}
       className={buttonVariants({
         variant: "tertiary",
@@ -18,6 +18,6 @@ export function LibraryLink({ recipeId }: LibraryLinkProps) {
     >
       <LibraryIcon size="small" aria-hidden="true" />
       Open in Library
-    </Link>
+    </HoverPrefetchLink>
   );
 }

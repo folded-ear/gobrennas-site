@@ -1,5 +1,6 @@
 "use client";
 
+import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
 import { RecipePhoto } from "@/features/recipe-photo";
 import { preparePhoto } from "@/lib/recipe-photo/prepare-photo";
 import { PHOTO_ACCEPT, PhotoUploadError } from "@/lib/recipe-photo/types";
@@ -9,7 +10,6 @@ import { useFragment, useMutation } from "@apollo/client/react";
 import { Button } from "@heroui/react";
 import clsx from "clsx";
 import { CloudUpload } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   CardPhotoFragment,
@@ -88,14 +88,14 @@ export function CardPhoto({
       {!canUpload && !data.photo && <RecipePhoto recipe={data} sizes={sizes} />}
       {data.photo && (
         // The title already links here for keyboard and screen reader users.
-        <Link
+        <HoverPrefetchLink
           href={`/recipes/${data.id}`}
           tabIndex={-1}
           aria-hidden="true"
           className="absolute inset-0"
         >
           <RecipePhoto recipe={data} sizes={sizes} />
-        </Link>
+        </HoverPrefetchLink>
       )}
       {canUpload ? (
         <div
