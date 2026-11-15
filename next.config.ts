@@ -31,10 +31,20 @@ if (process.env.AWS_S3_BUCKET_NAME) {
 // tell it's from another build, and the profile page says when this one was.
 const buildId = String(Date.now());
 
+const dockerBuild = process.env.DOCKER_BUILD === "true";
+
 const nextConfig: NextConfig = {
   output: "standalone",
   env: { NEXT_PUBLIC_BUILD_ID: buildId },
   poweredByHeader: false,
+  experimental: {
+    // Docker builds start empty, so nothing would ever read this cache.
+    turbopackFileSystemCacheForBuild: !dockerBuild,
+  },
+  typescript: {
+    // PR CI type-checks; Docker builds skip it to save time.
+    ignoreBuildErrors: dockerBuild,
+  },
   images: {
     remotePatterns: remoteImagePatterns,
   },

@@ -12,7 +12,8 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV AWS_S3_BUCKET_NAME=foodinger
+ENV AWS_S3_BUCKET_NAME=foodinger \
+    DOCKER_BUILD=true
 RUN corepack enable pnpm && pnpm run build
 
 # Stage 3: Production server
