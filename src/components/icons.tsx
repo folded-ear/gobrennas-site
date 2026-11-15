@@ -64,6 +64,21 @@ const createIcon = (Icon: LucideIcon, defaults?: Partial<LucideProps>) =>
     );
   };
 
+import { createLucideIcon /* … */ } from "lucide-react";
+
+const Ladle = createLucideIcon("soup-glyph", [
+  [
+    "path",
+    {
+      d: `M7,12c0,0 1.2,-1 0,-3c0,0 -1.2,-1 0,-3 M10.7,12c0,0 1.2,-1 0,-3c0,0 -1.2,-1 0,-3 M15.4,16l-11.3,0a5.25,5 0 1,0 11.3,0l1.2,-11a2,2.4 0 0,1 4,1a2,2.4 0 1,0 -4,-1`,
+      strokeWidth: "2px",
+      strokeLinejoin: "round",
+      strokeLinecap: "round",
+      key: "glyph",
+    },
+  ],
+]);
+
 // Managed icons are ALWAYS named with an 'Icon' suffix, and this list is always
 // in lexicographical order.
 export const AcceptIcon = createIcon(Check);
@@ -76,10 +91,8 @@ export const ClearIcon = createIcon(X);
 // X, shared with CancelIcon and ClearIcon: the stock "back out" mark.
 export const CloseIcon = createIcon(X);
 export const CloudUploadIcon = createIcon(CloudUpload);
-// ChefHat, shared with CookedItIcon: both are about cooking a recipe.
 export const CookIcon = createIcon(ChefHat);
-// ChefHat, shared with CookIcon: both are about cooking a recipe.
-export const CookedItIcon = createIcon(ChefHat);
+export const CookedItIcon = createIcon(Ladle);
 export const CopyIcon = createIcon(Copy);
 export const CurrentDeviceIcon = createIcon(Star);
 export const DarkModeIcon = createIcon(Moon);
