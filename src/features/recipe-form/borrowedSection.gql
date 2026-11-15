@@ -1,17 +1,9 @@
-fragment borrowedSection on IngredientCollection {
+fragment borrowedSection on Section {
   id
   name
-  ... on Recipe {
-    sectionOf {
-      id
-      name
-    }
-  }
-  ... on Section {
-    sectionOf {
-      id
-      name
-    }
+  sectionOf {
+    id
+    name
   }
   ...ingredientsAndDirections
 }
