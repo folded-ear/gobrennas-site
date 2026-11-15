@@ -132,12 +132,12 @@ export function CookedItButton({
     <div className="inline-flex shrink-0">
       <Button
         aria-label={actionLabel(look.action, item.name)}
-        className="rounded-r-none bg-status-completed text-status-completed-foreground"
+        className="rounded-r-none border-r-0 border-status-completed text-status-completed"
         isDisabled={disabled}
         onPress={() => markCooked(new Date())}
-        variant="primary"
+        variant="outline"
       >
-        <CookedItIcon size="small" aria-hidden="true" />
+        <CookedItIcon aria-hidden="true" />
         {look.action}
       </Button>
       <Dropdown
@@ -156,12 +156,12 @@ export function CookedItButton({
       >
         <Button
           aria-label={actionLabel("Choose cooking date", item.name)}
-          className="rounded-l-none border-l border-status-completed-foreground/30 bg-status-completed text-status-completed-foreground"
+          className="rounded-l-none border-status-completed text-status-completed"
           isDisabled={disabled}
           isIconOnly
-          variant="primary"
+          variant="outline"
         >
-          <MenuOpenIcon size="small" aria-hidden="true" />
+          <MenuOpenIcon aria-hidden="true" />
         </Button>
         <Dropdown.Popover>
           <Dropdown.Menu aria-label="Cooking date">
