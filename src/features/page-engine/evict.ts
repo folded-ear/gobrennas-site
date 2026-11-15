@@ -1,6 +1,6 @@
 import { ApolloCache } from "@apollo/client";
-import { PlanItemChildrenFragmentDoc } from "./__generated__/planItemChildren.generated";
 import { PlanItemIngredientFragmentDoc } from "./__generated__/planItemIngredient.generated";
+import { CorePlanItemChildrenFragmentDoc } from "./__generated__/pollPlan.generated";
 
 const HISTORY_FIELDS = ["plannedHistory", "plannedCount"];
 
@@ -12,7 +12,7 @@ const HISTORY_FIELDS = ["plannedHistory", "plannedCount"];
 export function evictItem(cache: ApolloCache, id: string): void {
   const cacheId = cache.identify({ __typename: "PlanItem", id });
   const item = cache.readFragment({
-    fragment: PlanItemChildrenFragmentDoc,
+    fragment: CorePlanItemChildrenFragmentDoc,
     id: cacheId,
   });
   for (const child of item?.children ?? []) evictItem(cache, child.id);
