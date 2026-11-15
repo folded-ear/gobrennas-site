@@ -38,16 +38,15 @@ recipe form: the Photos screen (`src/features/photos-screen/`), which uploads
 photos and lists their jobs, and the photo view (`src/features/photo-view/`),
 which selects text on one job's photo. The form offers the writes its draft
 takes (`src/lib/recipe-draft-writes.ts`) to whatever a screen places above
-its fields, and the editor screens join the three
-(`src/screens/use-editor-photos.tsx`).
+its fields, and the editor screens join the three (`src/screens/use-editor-photos.tsx`).
 
 Ingredient recognition has its own page:
 [How ingredient recognition works](ingredient-recognition.md).
 
 ## Navigation shell
 
-`app/(private)/layout.tsx` renders the page, the bottom section nav
-(`src/features/section-nav/`, driven by its `SECTIONS` list), and an
+`app/(private)/layout.tsx` renders the page, the bottom section nav (`src/features/section-nav/`, driven by its
+`SECTIONS` list), and an
 `@screen` parallel-route slot.
 
 Content that slides in over a page renders in `Screen`
@@ -91,6 +90,8 @@ Apollo has two client environments:
 Both use the cache and link builders in `src/lib/apollo/`. Authentication is
 passed to the API with the `FTOKEN` cookie. More detail about query timing,
 fragment masking, and the device key is in the project [README](../../README.md#data-fetching).
+
+Never use the `node(ID!):Node` field on `Query`.
 
 ## The page engine and offline use
 

@@ -30,6 +30,8 @@ export type RecipeFormAdditions = {
 
 type RecipeFormProps = RecipeFormAdditions & {
   heading: string;
+  /** The saved recipe I edit, if any. */
+  recipeId?: string;
   initialDraft: RecipeDraft;
   onSubmit: (draft: RecipeDraft) => Promise<void>;
   onSaveCopy?: (draft: RecipeDraft) => Promise<void>;
@@ -44,6 +46,7 @@ type RecipeFormProps = RecipeFormAdditions & {
 
 export function RecipeForm({
   heading,
+  recipeId,
   initialDraft,
   onSubmit,
   onSaveCopy,
@@ -312,6 +315,7 @@ export function RecipeForm({
         </div>
 
         <OwnedSections
+          recipeId={recipeId}
           control={control}
           getValues={getValues}
           recognize={recognizeIngredient}

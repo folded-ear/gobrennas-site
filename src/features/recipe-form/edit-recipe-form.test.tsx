@@ -21,7 +21,12 @@ import { RecipeLabelSuggestionsDocument } from "./__generated__/recipeLabelSugge
 import { RecognizeIngredientDocument } from "./__generated__/recognizeIngredient.generated";
 import { UpdateRecipeDocument } from "./__generated__/updateRecipe.generated";
 import { EditRecipeForm } from "./edit-recipe-form";
-import { copiedInfo, storedInfo, storedRecipe } from "./test/edit-recipe";
+import {
+  borrowedToppingMock,
+  copiedInfo,
+  storedInfo,
+  storedRecipe,
+} from "./test/edit-recipe";
 
 const { replace, push } = vi.hoisted(() => ({
   replace: vi.fn(),
@@ -97,6 +102,7 @@ describe("editing owned recipes", () => {
         cache,
         mocks: [
           load,
+          borrowedToppingMock,
           labels,
           ...recognitionMocks,
           {
@@ -117,9 +123,11 @@ describe("editing owned recipes", () => {
     expect(
       screen.getByRole("textbox", { name: "Total cook time" }),
     ).toHaveValue("80");
-    expect(
-      screen.getByRole("link", { name: "Borrowed topping" }),
-    ).toHaveAttribute("href", "/recipes/other-recipe");
+    const topping = screen.getByRole("group", { name: "Section 2" });
+    expect(await within(topping).findByText("Whip.")).toBeVisible();
+    expect(within(topping).getByText("Borrowed topping")).toBeVisible();
+    expect(within(topping).getByText("of Pancakes")).toBeVisible();
+    expect(within(topping).queryByRole("link")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("textbox", { name: "Section 2 title" }),
     ).not.toBeInTheDocument();
@@ -163,6 +171,7 @@ describe("editing owned recipes", () => {
         cache,
         mocks: [
           load,
+          borrowedToppingMock,
           labels,
           ...recognitionMocks,
           { request, error: new Error("Offline") },
@@ -205,6 +214,7 @@ describe("editing owned recipes", () => {
         {
           mocks: [
             load,
+            borrowedToppingMock,
             labels,
             ...recognitionMocks,
             {
@@ -276,6 +286,7 @@ describe("editing owned recipes", () => {
     render(<RecipeEdit id="pie" />, {
       mocks: [
         load,
+        borrowedToppingMock,
         labels,
         ...recognitionMocks,
         {
@@ -310,6 +321,7 @@ describe("editing owned recipes", () => {
         mocks: [
           { request: query, error: new Error("Offline") },
           load,
+          borrowedToppingMock,
           labels,
           ...recognitionMocks,
         ],
@@ -412,6 +424,7 @@ describe("deleting owned recipes", () => {
         {
           mocks: [
             load,
+            borrowedToppingMock,
             labels,
             ...recognitionMocks,
             { request: deletionRequest, result: deleted },
@@ -472,6 +485,7 @@ describe("deleting owned recipes", () => {
           cache,
           mocks: [
             load,
+            borrowedToppingMock,
             labels,
             ...recognitionMocks,
             failed,
@@ -543,6 +557,7 @@ describe("deleting owned recipes", () => {
         cache,
         mocks: [
           load,
+          borrowedToppingMock,
           labels,
           ...recognitionMocks,
           { request: deletionRequest, result: deleted, delay: 250 },
@@ -624,6 +639,7 @@ describe("copying recipes", () => {
       render(<RecipeEdit id="pie" copy={copy} />, {
         cache,
         mocks: [
+          borrowedToppingMock,
           {
             ...load,
             result: {
@@ -664,9 +680,9 @@ describe("copying recipes", () => {
       expect(
         screen.getByRole("img", { name: "Selected recipe photo" }),
       ).toHaveAttribute("src", storedRecipe.photo!.url);
-      expect(
-        screen.getByRole("link", { name: "Borrowed topping" }),
-      ).toHaveAttribute("href", "/recipes/other-recipe");
+      const topping = screen.getByRole("group", { name: "Section 2" });
+      expect(await within(topping).findByText("Whip.")).toBeVisible();
+      expect(within(topping).getByText("of Pancakes")).toBeVisible();
       if (copy || !mine) {
         expect(
           screen.getByRole("heading", { name: "Copy Recipe" }),
@@ -732,6 +748,7 @@ describe("copying recipes", () => {
         cache,
         mocks: [
           load,
+          borrowedToppingMock,
           labels,
           ...recognitionMocks,
           failure === "network"
@@ -760,7 +777,7 @@ describe("copying recipes", () => {
 
   it("validates a copy and cancels back to the source without saving", async () => {
     render(<RecipeEdit id="pie" copy />, {
-      mocks: [load, labels, ...recognitionMocks],
+      mocks: [load, borrowedToppingMock, labels, ...recognitionMocks],
     });
     await screen.findByRole("textbox", { name: "Title" });
     await userEvent.clear(

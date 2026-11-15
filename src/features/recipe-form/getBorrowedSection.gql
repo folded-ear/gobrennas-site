@@ -1,0 +1,8 @@
+query getBorrowedSection($id: ID!) {
+  library {
+    getSectionById(id: $id) {
+      id
+      ...borrowedSection
+    }
+  }
+}

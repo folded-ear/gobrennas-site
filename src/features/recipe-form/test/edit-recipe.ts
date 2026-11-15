@@ -1,4 +1,6 @@
 import type { IngredientInfo } from "@/__generated__/graphql";
+import type { MockLink } from "@apollo/client/testing";
+import { GetBorrowedSectionDocument } from "../__generated__/getBorrowedSection.generated";
 import type { EditableRecipe } from "../edit-recipe-draft";
 
 export const storedRecipe: EditableRecipe = {
@@ -119,4 +121,28 @@ export const storedInfo: IngredientInfo = {
 export const copiedInfo: IngredientInfo = {
   ...storedInfo,
   sections: [{ ...storedInfo.sections![0], id: null }, { id: "topping" }],
+};
+
+/** The borrowed topping, as fetched to show it in the editor. */
+export const borrowedToppingMock: MockLink.MockedResponse = {
+  request: { query: GetBorrowedSectionDocument, variables: { id: "topping" } },
+  result: {
+    data: {
+      library: {
+        __typename: "LibraryQuery",
+        getSectionById: {
+          __typename: "Section",
+          id: "topping",
+          name: "Borrowed topping",
+          sectionOf: {
+            __typename: "Recipe",
+            id: "other-recipe",
+            name: "Pancakes",
+          },
+          directions: "Whip.",
+          ingredients: [],
+        },
+      },
+    },
+  },
 };

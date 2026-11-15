@@ -1,7 +1,7 @@
 import { RecognizedRangeType } from "@/__generated__/graphql";
 import { describe, expect, it } from "vitest";
 import { newRecipeDraft, toIngredientInfo } from "./recipe-draft";
-import { newSectionDraft } from "./section-draft";
+import { borrowedSectionDraft, newSectionDraft } from "./section-draft";
 
 describe("owned section drafts", () => {
   it("keeps new client identities separate from saved ids and serializes section content in order", () => {
@@ -70,5 +70,33 @@ describe("owned section drafts", () => {
         sections: [section],
       }),
     ).toThrow("A section title is required.");
+  });
+});
+
+describe("borrowed section drafts", () => {
+  it("refers to the borrowed section and its recipe, and serializes only its id", () => {
+    const vinaigrette = {
+      id: "section-vinaigrette",
+      name: "Vinaigrette",
+      sectionOf: { id: "recipe-green-salad", name: "Green salad" },
+    };
+
+    const section = borrowedSectionDraft(vinaigrette);
+
+    expect(section).toMatchObject({
+      id: "section-vinaigrette",
+      referenceRecipeId: "recipe-green-salad",
+      title: "Vinaigrette",
+    });
+    expect(section.clientId).not.toBe(
+      borrowedSectionDraft(vinaigrette).clientId,
+    );
+    expect(
+      toIngredientInfo({
+        ...newRecipeDraft(),
+        title: "Salad",
+        sections: [section],
+      }).sections,
+    ).toEqual([{ id: "section-vinaigrette" }]);
   });
 });
