@@ -35,6 +35,7 @@ export function EditRecipeForm({
   ...additions
 }: Props) {
   // Fetch a complete fresh snapshot, independent of the partial detail/card cache.
+  // No known reason for no-cache over network-only, which would cache it too.
   const query = useQuery(GetRecipeForEditDocument, {
     variables: { id },
     fetchPolicy: "no-cache",
@@ -137,6 +138,7 @@ function LoadedRecipeEditor({
   return (
     <RecipeForm
       heading={copy ? "Copy Recipe" : "Edit Recipe"}
+      recipeId={copy ? undefined : recipe.id}
       saveLabel={copy ? "Save copy" : "Save recipe"}
       initialDraft={snapshot.draft}
       existingPhoto={snapshot.recipe.photo ?? undefined}

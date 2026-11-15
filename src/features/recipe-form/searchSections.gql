@@ -1,0 +1,19 @@
+query searchSections($query: String!) {
+  library {
+    sections(search: { query: $query, scope: MINE }) {
+      edges {
+        node {
+          id
+          name
+          sectionOf {
+            id
+            name
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+      }
+    }
+  }
+}

@@ -29,7 +29,11 @@ import {
   toIngredientInfo,
   type RecipeDraft,
 } from "./recipe-draft";
-import { storedInfo, storedRecipe } from "./test/edit-recipe";
+import {
+  borrowedToppingMock,
+  storedInfo,
+  storedRecipe,
+} from "./test/edit-recipe";
 
 function recognized(raw: string, cursor = raw.length): IngredientRecognition {
   return {
@@ -145,6 +149,7 @@ describe("ingredient recognition input", () => {
         onCancel={vi.fn()}
         recognizeIngredient={recognize}
       />,
+      { mocks: [borrowedToppingMock] },
     );
     await tick(0);
     expect(
@@ -181,6 +186,7 @@ describe("ingredient recognition input", () => {
           onCancel={vi.fn()}
           recognizeIngredient={recognizeFlour}
         />,
+        { mocks: [borrowedToppingMock] },
       );
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       await tick(0);

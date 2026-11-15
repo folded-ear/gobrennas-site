@@ -1,0 +1,8 @@
+query getBorrowedSection($id: ID!) {
+  node(id: $id) {
+    id
+    ... on Section {
+      ...borrowedSection
+    }
+  }
+}

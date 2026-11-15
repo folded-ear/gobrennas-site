@@ -1,0 +1,9 @@
+fragment borrowedSection on Section {
+  id
+  name
+  sectionOf {
+    id
+    name
+  }
+  ...ingredientsAndDirections
+}

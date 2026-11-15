@@ -3,7 +3,6 @@
 import { FormTextField } from "@/components/form-text-field";
 import { AlertDialog, Button } from "@heroui/react";
 import { Plus } from "lucide-react";
-import Link from "next/link";
 import { useRef, useState } from "react";
 import {
   Controller,
@@ -11,6 +10,7 @@ import {
   type Control,
   type UseFormGetValues,
 } from "react-hook-form";
+import { BorrowedSection } from "./borrowed-section";
 import type { RecognizeIngredient } from "./ingredient-recognition";
 import { IngredientRows } from "./ingredient-rows";
 import type { RecipeDraft } from "./recipe-draft";
@@ -18,6 +18,7 @@ import type { RecognitionQueue } from "./recognition-queue";
 import { newSectionDraft } from "./section-draft";
 
 export function OwnedSections({
+  recipeId,
   control,
   getValues,
   recognize,
@@ -25,6 +26,8 @@ export function OwnedSections({
   isDisabled,
   onEdit,
 }: {
+  /** The recipe being edited, if any. */
+  recipeId?: string;
   control: Control<RecipeDraft>;
   getValues: UseFormGetValues<RecipeDraft>;
   recognize: RecognizeIngredient;
@@ -55,16 +58,8 @@ export function OwnedSections({
           className="flex min-w-0 flex-col gap-md rounded-lg border border-border p-md"
         >
           <legend className="px-xs font-medium">Section {index + 1}</legend>
-          {section.referenceRecipeId ? (
-            <p className="text-sm">
-              <Link
-                className="text-accent underline"
-                href={`/recipes/${encodeURIComponent(section.referenceRecipeId)}`}
-              >
-                {section.title}
-              </Link>{" "}
-              — linked section
-            </p>
+          {section.referenceRecipeId && section.id ? (
+            <BorrowedSection sectionId={section.id} recipeId={recipeId} />
           ) : (
             <>
               <FormTextField
