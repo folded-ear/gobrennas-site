@@ -450,7 +450,7 @@ Delivery: Built
   is borrowed from (“of this recipe” when that is the recipe being edited),
   its ingredients, and its directions. Its only control is Remove section.
   Its content is loaded when it isn't already at hand, with loading and
-  retryable error feedback; a section that no longer exists says so.
+  retryable error feedback.
 - Borrowed sections are saved as references to their source, and are kept
   as references when editing and copying the recipe. An ingredient row can
   also refer to another recipe's section.

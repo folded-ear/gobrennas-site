@@ -181,10 +181,15 @@ describe("CreateRecipeForm", () => {
           },
           result: {
             data: {
-              node: {
-                ...vinaigrette,
-                directions: "Whisk until emulsified.",
-                ingredients: [],
+              library: {
+                __typename: "LibraryQuery",
+                // The API answers with the section's backing recipe.
+                getRecipeById: {
+                  ...vinaigrette,
+                  __typename: "Recipe",
+                  directions: "Whisk until emulsified.",
+                  ingredients: [],
+                },
               },
             },
           },

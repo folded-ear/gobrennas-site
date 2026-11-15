@@ -128,17 +128,21 @@ export const borrowedToppingMock: MockLink.MockedResponse = {
   request: { query: GetBorrowedSectionDocument, variables: { id: "topping" } },
   result: {
     data: {
-      node: {
-        __typename: "Section",
-        id: "topping",
-        name: "Borrowed topping",
-        sectionOf: {
+      library: {
+        __typename: "LibraryQuery",
+        // The API answers with the section's backing recipe.
+        getRecipeById: {
           __typename: "Recipe",
-          id: "other-recipe",
-          name: "Pancakes",
+          id: "topping",
+          name: "Borrowed topping",
+          sectionOf: {
+            __typename: "Recipe",
+            id: "other-recipe",
+            name: "Pancakes",
+          },
+          directions: "Whip.",
+          ingredients: [],
         },
-        directions: "Whip.",
-        ingredients: [],
       },
     },
   },

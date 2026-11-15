@@ -76,13 +76,6 @@ export function BorrowedSection({ sectionId, recipeId }: BorrowedSectionProps) {
       </div>
     );
   }
-  if (fetched.data && !fetched.loading) {
-    return (
-      <p role="status" className="text-sm text-muted">
-        This section is no longer available.
-      </p>
-    );
-  }
   return (
     <p role="status" className="flex items-center gap-sm text-sm text-muted">
       <Spinner aria-hidden="true" size="sm" />

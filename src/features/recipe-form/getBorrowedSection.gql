@@ -1,7 +1,7 @@
 query getBorrowedSection($id: ID!) {
-  node(id: $id) {
-    id
-    ... on Section {
+  library {
+    getRecipeById(id: $id) {
+      id
       ...borrowedSection
     }
   }

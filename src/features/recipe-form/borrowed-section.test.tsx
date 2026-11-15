@@ -51,7 +51,15 @@ function fetched(): MockLink.MockedResponse {
       query: GetBorrowedSectionDocument,
       variables: { id: VINAIGRETTE_ID },
     },
-    result: { data: { node: VINAIGRETTE } },
+    // The API answers with the section's backing recipe.
+    result: {
+      data: {
+        library: {
+          __typename: "LibraryQuery",
+          getRecipeById: { ...VINAIGRETTE, __typename: "Recipe" },
+        },
+      },
+    },
   };
 }
 
@@ -138,16 +146,6 @@ describe("BorrowedSection", () => {
     await user.click(screen.getByRole("button", { name: "Retry" }));
 
     expect(await screen.findByText("olive oil")).toBeVisible();
-  });
-
-  it("says so when the section no longer exists", async () => {
-    render(<BorrowedSection sectionId={VINAIGRETTE_ID} />, {
-      mocks: [{ ...fetched(), result: { data: { node: null } } }],
-    });
-
-    expect(
-      await screen.findByText("This section is no longer available."),
-    ).toBeVisible();
   });
 
   it("names this recipe when it owns the section", () => {
