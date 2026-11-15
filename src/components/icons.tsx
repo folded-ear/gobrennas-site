@@ -81,6 +81,7 @@ export const CookIcon = createIcon(ChefHat);
 // ChefHat, shared with CookIcon: both are about cooking a recipe.
 export const CookedItIcon = createIcon(ChefHat);
 export const CopyIcon = createIcon(Copy);
+// Star, shared with RatingIcon: a star marks what stands out.
 export const CurrentDeviceIcon = createIcon(Star);
 export const DarkModeIcon = createIcon(Moon);
 export const DeleteIcon = createIcon(Trash);
@@ -106,6 +107,8 @@ export const OfflineIcon = createIcon(CloudOff);
 export const PantryIcon = createIcon(ShelvingUnit);
 export const PhotosIcon = createIcon(Images);
 export const PlannerIcon = createIcon(Calendar);
+// Star, shared with CurrentDeviceIcon: a star marks what stands out.
+export const RatingIcon = createIcon(Star);
 export const RotateLeftIcon = createIcon(RotateCcw);
 export const RotateRightIcon = createIcon(RotateCw);
 export const SendToPlanIcon = createIcon(SquareArrowRightEnter);

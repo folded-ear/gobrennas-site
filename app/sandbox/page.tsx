@@ -1,6 +1,7 @@
 "use client";
 
 import { ModeToggle } from "@/components/mode-toggle";
+import { StarRating } from "@/components/star-rating";
 import {
   Accordion,
   Alert,
@@ -95,6 +96,11 @@ function Demo({
       <div className="flex flex-wrap items-center gap-2">{children}</div>
     </div>
   );
+}
+
+function StarRatingDemo({ initial }: { initial: number | null }) {
+  const [rating, setRating] = React.useState(initial);
+  return <StarRating aria-label="Rating" value={rating} onChange={setRating} />;
 }
 
 function Swatch({ name, className }: { name: string; className: string }) {
@@ -1022,6 +1028,22 @@ export default function Sandbox() {
               </ColorSlider>
             </ColorPicker.Popover>
           </ColorPicker>
+        </Demo>
+      </Section>
+
+      {/* ── App components ── */}
+      <Section title="Star rating">
+        <Demo label="Unrated">
+          <StarRatingDemo initial={null} />
+        </Demo>
+        <Demo label="Rated">
+          <StarRatingDemo initial={4} />
+        </Demo>
+        <Demo label="Read-only">
+          <StarRating aria-label="Rating" value={3} isReadOnly />
+        </Demo>
+        <Demo label="Disabled">
+          <StarRating aria-label="Rating" value={2} isDisabled />
         </Demo>
       </Section>
     </div>
