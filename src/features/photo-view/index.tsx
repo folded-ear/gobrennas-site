@@ -2,6 +2,7 @@
 
 import { TextractJobStatus } from "@/__generated__/graphql";
 import { DeletePhotoDialog } from "@/components/delete-photo-dialog";
+import { CloseIcon, RotateLeftIcon, RotateRightIcon } from "@/components/icons";
 import { useWatchJobs } from "@/features/page-engine";
 import {
   noAllCaps,
@@ -21,7 +22,6 @@ import {
   TextArea,
   TextField,
 } from "@heroui/react";
-import { RotateCcw, RotateCw, X } from "lucide-react";
 import Image from "next/image";
 import {
   type CSSProperties,
@@ -118,7 +118,7 @@ export function PhotoView({
           aria-label="Close photo"
           onPress={onClose}
         >
-          <X aria-hidden="true" size={16} />
+          <CloseIcon aria-hidden="true" />
         </Button>
       </div>
       {job === undefined ? (
@@ -277,7 +277,7 @@ function Lines({
             aria-label="Rotate left"
             onPress={() => rotate(-1)}
           >
-            <RotateCcw aria-hidden="true" size={16} />
+            <RotateLeftIcon aria-hidden="true" />
           </Button>
           <Button
             isIconOnly
@@ -286,7 +286,7 @@ function Lines({
             aria-label="Rotate right"
             onPress={() => rotate(1)}
           >
-            <RotateCw aria-hidden="true" size={16} />
+            <RotateRightIcon aria-hidden="true" />
           </Button>
         </div>
         <div

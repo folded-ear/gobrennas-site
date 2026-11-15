@@ -1,8 +1,4 @@
-import {
-  LibraryIcon,
-  PlanCalendarIcon,
-  ShoppingCartIcon,
-} from "@/components/icons";
+import { LibraryIcon, PlannerIcon, ShoppingCartIcon } from "@/components/icons";
 import { ReactNode } from "react";
 
 /** One of the app's top-level sections, as the section nav offers it. */
@@ -33,7 +29,7 @@ export const SECTIONS: readonly Section[] = [
     id: "planner",
     label: "Planner",
     href: "/planner",
-    icon: <PlanCalendarIcon />,
+    icon: <PlannerIcon />,
     matches: under("/planner", "/plan"),
   },
   {

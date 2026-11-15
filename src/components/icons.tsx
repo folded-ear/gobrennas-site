@@ -1,4 +1,9 @@
 import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  Bookmark,
   BookOpen,
   BrushCleaning,
   Calendar,
@@ -9,6 +14,9 @@ import {
   Circle,
   CircleCheckBig,
   CloudOff,
+  CloudUpload,
+  Copy,
+  Ellipsis,
   EyeIcon,
   GripVertical,
   Images,
@@ -16,16 +24,20 @@ import {
   LucideIcon,
   LucideProps,
   MapPinOff,
-  NotebookTabs,
+  Moon,
   PackagePlus,
   Pencil,
   Plus,
-  Search,
+  RotateCcw,
+  RotateCw,
+  Settings,
+  Share2,
   ShelvingUnit,
   ShieldQuestionMark,
   ShoppingCart,
   SquareArrowRightEnter,
   Star,
+  Sun,
   Trash,
   X,
 } from "lucide-react";
@@ -52,34 +64,48 @@ const createIcon = (Icon: LucideIcon, defaults?: Partial<LucideProps>) =>
     );
   };
 
+// Managed icons are ALWAYS named with an 'Icon' suffix, and this list is always
+// in lexicographical order.
+export const AcceptIcon = createIcon(Check);
 export const AcquiredIcon = createIcon(CircleCheckBig);
 export const AddIcon = createIcon(Plus);
-export const BuyingIcon = createIcon(ShoppingCart);
 export const CancelIcon = createIcon(X);
+export const ClearIcon = createIcon(X);
+export const CloseIcon = createIcon(X);
+export const CloudUploadIcon = createIcon(CloudUpload);
 export const CookIcon = createIcon(ChefHat);
 export const CookedItIcon = createIcon(ChefHat);
+export const CopyIcon = createIcon(Copy);
 export const CurrentDeviceIcon = createIcon(Star);
+export const DarkModeIcon = createIcon(Moon);
 export const DeleteIcon = createIcon(Trash);
 export const DragHandleIcon = createIcon(GripVertical);
+export const EditIcon = createIcon(Pencil);
 export const ExpandDownIcon = createIcon(ChevronDown);
 export const ExpandUpIcon = createIcon(ChevronUp);
+export const FavoriteIcon = createIcon(Bookmark);
 export const LibraryIcon = createIcon(BookOpen);
+export const LightModeIcon = createIcon(Sun);
 export const LogoutIcon = createIcon(LogOut);
-export const NoStoreOrderIcon = createIcon(MapPinOff);
 export const MenuOpenIcon = createIcon(ChevronDown);
+export const MoreIcon = createIcon(Ellipsis);
+export const MoveDownIcon = createIcon(ArrowDown);
+export const MoveUpIcon = createIcon(ArrowUp);
+export const NavBackIcon = createIcon(ArrowLeft);
+export const NavForwardIcon = createIcon(ArrowRight);
 export const NeededIcon = createIcon(Circle);
+export const NoStoreOrderIcon = createIcon(MapPinOff);
 export const OfflineIcon = createIcon(CloudOff);
 export const PantryIcon = createIcon(ShelvingUnit);
 export const PhotosIcon = createIcon(Images);
-export const PlanScheduleIcon = createIcon(NotebookTabs);
-export const PlanCalendarIcon = createIcon(Calendar);
-export const RenameIcon = createIcon(Pencil);
-export const RecipeEditIcon = createIcon(Pencil);
-export const RecipeViewIcon = createIcon(EyeIcon);
-export const SaveIcon = createIcon(Check);
-export const SearchIcon = createIcon(Search);
+export const PlannerIcon = createIcon(Calendar);
+export const RotateLeftIcon = createIcon(RotateCcw);
+export const RotateRightIcon = createIcon(RotateCw);
 export const SendToPlanIcon = createIcon(SquareArrowRightEnter);
+export const SettingsIcon = createIcon(Settings);
+export const ShareIcon = createIcon(Share2);
+export const ShoppingCartIcon = createIcon(ShoppingCart);
 export const SignedOutIcon = createIcon(ShieldQuestionMark);
 export const SweepIcon = createIcon(BrushCleaning);
 export const UpdateIcon = createIcon(PackagePlus);
-export const ShoppingCartIcon = createIcon(ShoppingCart);
+export const ViewIcon = createIcon(EyeIcon);

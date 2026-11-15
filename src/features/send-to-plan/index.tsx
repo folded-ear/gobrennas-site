@@ -1,5 +1,5 @@
 import { ControlTooltip } from "@/components/control-tooltip";
-import { SendToPlanIcon } from "@/components/icons";
+import { MenuOpenIcon, SendToPlanIcon } from "@/components/icons";
 import {
   groupPlans,
   PlanOption,
@@ -21,7 +21,6 @@ import {
   Spinner,
 } from "@heroui/react";
 import clsx from "clsx";
-import { ChevronDown } from "lucide-react";
 import { Fragment, useState } from "react";
 import { SendToPlanFragmentDoc } from "./__generated__/sendToPlan.generated";
 import { useSendRecipeToPlan } from "./use-send-recipe-to-plan";
@@ -109,7 +108,7 @@ export function SendToPlan({
             size={rest.size}
             aria-label="Choose a plan"
           >
-            <ChevronDown size={16} aria-hidden />
+            <MenuOpenIcon aria-hidden />
           </Button>
           <Dropdown.Popover>
             <Dropdown.Menu>

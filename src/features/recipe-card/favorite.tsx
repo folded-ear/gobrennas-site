@@ -1,5 +1,6 @@
 "use client";
 
+import { FavoriteIcon } from "@/components/icons";
 import { FragmentType } from "@apollo/client";
 import {
   useApolloClient,
@@ -7,7 +8,6 @@ import {
   useMutation,
 } from "@apollo/client/react";
 import { Button, toast } from "@heroui/react";
-import { Bookmark } from "lucide-react";
 import { useRef } from "react";
 import {
   CardFavoriteFragment,
@@ -73,7 +73,7 @@ export function CardFavorite({
         void toggle();
       }}
     >
-      <Bookmark
+      <FavoriteIcon
         aria-hidden="true"
         className={data.favorite ? "fill-current" : undefined}
       />

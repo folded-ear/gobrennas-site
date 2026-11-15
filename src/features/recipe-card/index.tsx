@@ -1,7 +1,7 @@
 "use client";
 
 import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
-import { RecipeEditIcon, RecipeViewIcon } from "@/components/icons";
+import { EditIcon, ViewIcon } from "@/components/icons";
 import { RecipeActionBar } from "@/components/recipe-action-bar";
 import { formatLastCooked } from "@/features/recipe-card/utils";
 import { SendToPlan } from "@/features/send-to-plan";
@@ -80,7 +80,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
               aria-label={`Edit recipe: ${data.name}`}
               onClick={() => router.push(`/recipes/${data.id}/edit`)}
             >
-              <RecipeEditIcon />
+              <EditIcon />
             </Button>
             <Button
               isIconOnly
@@ -89,7 +89,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
               aria-label={`View recipe: ${data.name}`}
               onClick={() => router.push(`/recipes/${data.id}`)}
             >
-              <RecipeViewIcon />
+              <ViewIcon />
             </Button>
           </RecipeActionBar>
           <SendToPlan variant="tertiary" size="sm" recipeId={data.id} />
