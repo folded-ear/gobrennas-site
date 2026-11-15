@@ -69,11 +69,16 @@ const createIcon = (Icon: LucideIcon, defaults?: Partial<LucideProps>) =>
 export const AcceptIcon = createIcon(Check);
 export const AcquiredIcon = createIcon(CircleCheckBig);
 export const AddIcon = createIcon(Plus);
+// X, shared with ClearIcon and CloseIcon: the stock "back out" mark.
 export const CancelIcon = createIcon(X);
+// X, shared with CancelIcon and CloseIcon: the stock "back out" mark.
 export const ClearIcon = createIcon(X);
+// X, shared with CancelIcon and ClearIcon: the stock "back out" mark.
 export const CloseIcon = createIcon(X);
 export const CloudUploadIcon = createIcon(CloudUpload);
+// ChefHat, shared with CookedItIcon: both are about cooking a recipe.
 export const CookIcon = createIcon(ChefHat);
+// ChefHat, shared with CookIcon: both are about cooking a recipe.
 export const CookedItIcon = createIcon(ChefHat);
 export const CopyIcon = createIcon(Copy);
 export const CurrentDeviceIcon = createIcon(Star);
@@ -81,12 +86,14 @@ export const DarkModeIcon = createIcon(Moon);
 export const DeleteIcon = createIcon(Trash);
 export const DragHandleIcon = createIcon(GripVertical);
 export const EditIcon = createIcon(Pencil);
+// ChevronDown, shared with MenuOpenIcon: both are disclosure toggles.
 export const ExpandDownIcon = createIcon(ChevronDown);
 export const ExpandUpIcon = createIcon(ChevronUp);
 export const FavoriteIcon = createIcon(Bookmark);
 export const LibraryIcon = createIcon(BookOpen);
 export const LightModeIcon = createIcon(Sun);
 export const LogoutIcon = createIcon(LogOut);
+// ChevronDown, shared with ExpandDownIcon: both are disclosure toggles.
 export const MenuOpenIcon = createIcon(ChevronDown);
 export const MoreIcon = createIcon(Ellipsis);
 export const MoveDownIcon = createIcon(ArrowDown);
