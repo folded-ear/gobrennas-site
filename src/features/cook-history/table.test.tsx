@@ -115,6 +115,40 @@ describe("CookHistoryTable", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("keeps the cooks listed and says so when loading more fails", async () => {
+    const cooks = Array.from({ length: 12 }, (_, i) =>
+      cook(
+        `87777497334${String(i).padStart(2, "0")}`,
+        BARNEY,
+        at(2026, 8, 30 - i, 12, 0),
+      ),
+    );
+    await show([
+      historyListed(HISTORY_PAGE_SIZE, cooks),
+      {
+        ...historyListed(2 * HISTORY_PAGE_SIZE, cooks),
+        result: undefined,
+        error: new Error("Connection failed"),
+      },
+      historyListed(2 * HISTORY_PAGE_SIZE, cooks),
+    ]);
+    await cookRows();
+
+    await userEvent.click(screen.getByRole("button", { name: "Load more" }));
+
+    expect(await screen.findByText("Couldn’t load more cooks")).toBeVisible();
+    expect(screen.getAllByRole("rowheader")).toHaveLength(HISTORY_PAGE_SIZE);
+
+    await userEvent.click(screen.getByRole("button", { name: "Load more" }));
+
+    await waitFor(() =>
+      expect(screen.getAllByRole("rowheader")).toHaveLength(cooks.length),
+    );
+    expect(
+      screen.queryByText("Couldn’t load more cooks"),
+    ).not.toBeInTheDocument();
+  });
+
   it("offers no more when every cook is listed", async () => {
     await show([historyListed(HISTORY_PAGE_SIZE, [MINE, THEIRS])]);
 

@@ -6,6 +6,7 @@ import {
   seedFragment,
   userEvent,
 } from "@/test";
+import type { MockLink } from "@apollo/client/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CookHistorySummaryFragmentDoc } from "./__generated__/cookHistorySummary.generated";
 import { CookHistory } from "./index";
@@ -26,7 +27,12 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-function show(cookCount: number) {
+function show(
+  cookCount: number,
+  mocks: readonly MockLink.MockedResponse[] = [
+    historyListed(HISTORY_PAGE_SIZE, [LAST]),
+  ],
+) {
   const cache = buildInMemoryCache();
   const recipe = seedFragment(
     cache,
@@ -48,10 +54,7 @@ function show(cookCount: number) {
             ],
     },
   );
-  render(<CookHistory recipe={recipe} />, {
-    cache,
-    mocks: [historyListed(HISTORY_PAGE_SIZE, [LAST])],
-  });
+  render(<CookHistory recipe={recipe} />, { cache, mocks });
 }
 
 /** I open the summary, awaiting the cooks' first load, which suspends. */
@@ -93,5 +96,30 @@ describe("CookHistory", () => {
     await userEvent.click(summary());
 
     expect(screen.getByRole("grid", { name: "Cook history" })).toBeVisible();
+  });
+
+  it("says so when the cooks can't be loaded, and loads them on retry", async () => {
+    show(74, [
+      {
+        ...historyListed(HISTORY_PAGE_SIZE, [LAST]),
+        result: undefined,
+        error: new Error("Connection failed"),
+      },
+      historyListed(HISTORY_PAGE_SIZE, [LAST]),
+    ]);
+
+    await open();
+
+    expect(
+      await screen.findByText("Couldn’t load the cook history"),
+    ).toBeVisible();
+
+    await act(() =>
+      userEvent.click(screen.getByRole("button", { name: "Retry" })),
+    );
+
+    expect(
+      await screen.findByRole("grid", { name: "Cook history" }),
+    ).toBeVisible();
   });
 });

@@ -6,7 +6,7 @@ import { UserAvatar } from "@/features/user-avatar";
 import { formatRecentDay } from "@/lib/dates";
 import type { FragmentType } from "@apollo/client";
 import { useFragment, useSuspenseQuery } from "@apollo/client/react";
-import { Button, Skeleton, Spinner, Table } from "@heroui/react";
+import { Alert, Button, Skeleton, Spinner, Table } from "@heroui/react";
 import { useState, useTransition } from "react";
 import {
   type CookHistoryRecordFragment,
@@ -23,58 +23,87 @@ const SKELETON_ROWS = 3;
 
 type CookHistoryTableProps = {
   recipeId: string;
+  /** Which try at loading the cooks this is; each new one asks afresh. */
+  attempt?: number;
 };
 
 /** I list a recipe's most recent cooks, offering to list more. */
-export function CookHistoryTable({ recipeId }: CookHistoryTableProps) {
-  const [last, setLast] = useState(HISTORY_PAGE_SIZE);
+export function CookHistoryTable({
+  recipeId,
+  attempt = 0,
+}: CookHistoryTableProps) {
   const [isLoadingMore, startLoadingMore] = useTransition();
-  const { data } = useSuspenseQuery(GetCookHistoryDocument, {
-    variables: { id: recipeId, last },
+  const [loadMoreFailed, setLoadMoreFailed] = useState(false);
+  const { data, fetchMore } = useSuspenseQuery(GetCookHistoryDocument, {
+    variables: { id: recipeId, last: HISTORY_PAGE_SIZE },
+    queryKey: [attempt],
   });
   const viewerId = data.profile.me.id;
   const { recordCount, plannedHistory } = data.library.getRecipeById;
+
+  function loadMore() {
+    setLoadMoreFailed(false);
+    startLoadingMore(async () => {
+      try {
+        const { error } = await fetchMore({
+          variables: { last: plannedHistory.length + HISTORY_PAGE_SIZE },
+          updateQuery: (_, { fetchMoreResult }) => fetchMoreResult,
+          // So a failure comes back here, rather than failing the table.
+          errorPolicy: "all",
+        });
+        if (error) setLoadMoreFailed(true);
+      } catch {
+        setLoadMoreFailed(true);
+      }
+    });
+  }
+
   return (
-    <div className="flex flex-col items-start gap-sm">
-      <Table>
-        <Table.ScrollContainer>
-          <Table.Content
-            aria-label={TABLE_LABEL}
-            keyboardNavigationBehavior="tab"
-          >
-            <Table.Header>
-              <Table.Column isRowHeader>Whom/When</Table.Column>
-              <Table.Column>Rating</Table.Column>
-              <Table.Column>Notes</Table.Column>
-            </Table.Header>
-            <Table.Body>
-              {plannedHistory.map((record) => (
-                <CookHistoryRow
-                  key={record.id}
-                  record={record}
-                  recipeId={recipeId}
-                  viewerId={viewerId}
-                />
-              ))}
-            </Table.Body>
-          </Table.Content>
-        </Table.ScrollContainer>
-      </Table>
+    <Table>
+      <Table.ScrollContainer>
+        <Table.Content
+          aria-label={TABLE_LABEL}
+          keyboardNavigationBehavior="tab"
+        >
+          <Table.Header>
+            <Table.Column isRowHeader>Whom/When</Table.Column>
+            <Table.Column>Rating</Table.Column>
+            <Table.Column>Notes</Table.Column>
+          </Table.Header>
+          <Table.Body>
+            {plannedHistory.map((record) => (
+              <CookHistoryRow
+                key={record.id}
+                record={record}
+                recipeId={recipeId}
+                viewerId={viewerId}
+              />
+            ))}
+          </Table.Body>
+        </Table.Content>
+      </Table.ScrollContainer>
       {plannedHistory.length < recordCount ? (
-        <div className="flex items-center gap-sm">
-          <Button
-            variant="tertiary"
-            isDisabled={isLoadingMore}
-            onPress={() =>
-              startLoadingMore(() => setLast((n) => n + HISTORY_PAGE_SIZE))
-            }
-          >
-            Load more
-          </Button>
-          {isLoadingMore ? <Spinner size="sm" /> : null}
-        </div>
+        <Table.Footer className="flex flex-col items-start gap-sm">
+          {loadMoreFailed ? (
+            <Alert status="danger" role="alert">
+              <Alert.Content>
+                <Alert.Title>Couldn’t load more cooks</Alert.Title>
+              </Alert.Content>
+            </Alert>
+          ) : null}
+          <div className="flex items-center gap-sm">
+            <Button
+              variant="tertiary"
+              isDisabled={isLoadingMore}
+              onPress={loadMore}
+            >
+              Load more
+            </Button>
+            {isLoadingMore ? <Spinner size="sm" /> : null}
+          </div>
+        </Table.Footer>
       ) : null}
-    </div>
+    </Table>
   );
 }
 
