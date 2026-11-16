@@ -215,7 +215,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   previous six days, labeled with weekday, month, and day (for example,
   Mon, Oct 5). Choosing a date records when the recipe was actually cooked,
   with the same return and undo behavior. The chosen date is kept even when
-  saving is delayed or the device is offline.
+  saving is delayed or the device is offline. The cook appears in the
+  recipe's [cook history](recipes.md#cook-history).
 
 #### Cooking a bucket
 
