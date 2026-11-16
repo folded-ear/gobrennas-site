@@ -21,7 +21,7 @@ has used.
 - The page offers Cook This, a bookmark that imports the recipe being viewed
   online into the Library. The bookmark is connected to the user's account.
 - The page lists the user's devices by name, each with the day it was last
-  used, and stars the device in use. The day reads "Today" or "Yesterday";
+  used, and stars the device in use. The day reads "today" or "yesterday";
   else as a weekday and date within about three months; else as a numeric
   date.
 - Each device's name can be renamed in place: Enter or Save keeps the new

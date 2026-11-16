@@ -112,8 +112,8 @@ describe("DeviceTable", () => {
   it("gives the day each device was last used", () => {
     renderTable();
 
-    expect(rowOf("Barney’s Phone")).toHaveTextContent("Today");
-    expect(rowOf("Kitchen iPad")).toHaveTextContent("Yesterday");
+    expect(rowOf("Barney’s Phone")).toHaveTextContent("today");
+    expect(rowOf("Kitchen iPad")).toHaveTextContent("yesterday");
     expect(rowOf("Old Laptop")).toHaveTextContent("Thu, Oct 29");
   });
 

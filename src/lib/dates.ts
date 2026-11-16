@@ -38,9 +38,9 @@ const numericDateFormat = new Intl.DateTimeFormat("en-US", {
 });
 
 const NEARBY_DAY_NAMES = new Map([
-  [0, "Today"],
-  [-1, "Yesterday"],
-  [1, "Tomorrow"],
+  [0, "today"],
+  [-1, "yesterday"],
+  [1, "tomorrow"],
 ]);
 
 function pad(value: number, digits: number): string {
@@ -104,8 +104,8 @@ export function formatGapLabel(days: number): string {
 }
 
 /**
- * I name an instant's local day relative to `now`'s: "Today", "Yesterday",
- * or "Tomorrow"; else by weekday and date, within a season of `now`; else
+ * I name an instant's local day relative to `now`'s: "today", "yesterday",
+ * or "tomorrow"; else by weekday and date, within a season of `now`; else
  * as a short numeric date.
  */
 export function formatRecentDay(

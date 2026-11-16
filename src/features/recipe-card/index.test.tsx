@@ -10,7 +10,7 @@ import {
   userEvent,
 } from "@/test";
 import type { MockLink } from "@apollo/client/testing";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RecipeCardFragmentDoc } from "./__generated__/recipeCard.generated";
 import { RecipeCard } from "./index";
 
@@ -82,6 +82,35 @@ describe("recipe card cooking history", () => {
     show(new Date().toISOString());
     expect(screen.getByText("Last cooked today")).toBeVisible();
     expect(screen.queryByText("Never cooked")).not.toBeInTheDocument();
+  });
+
+  describe("names the day it was last cooked by the calendar", () => {
+    // a Sunday afternoon, local time
+    const now = new Date(2026, 10, 8, 15, 0);
+    const at = (...local: [number, number, number, number, number]) =>
+      new Date(...local).toISOString();
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(now);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it.each([
+      ["earlier the same day", at(2026, 10, 8, 0, 5), "Last cooked today"],
+      [
+        "late the night before",
+        at(2026, 10, 7, 23, 30),
+        "Last cooked yesterday",
+      ],
+      ["ten days ago", at(2026, 9, 29, 12, 0), "Last cooked Thu, Oct 29"],
+    ])("%s", (_, doneAt, label) => {
+      show(doneAt);
+      expect(screen.getByText(label)).toBeVisible();
+    });
   });
 
   it.each([false, true])(

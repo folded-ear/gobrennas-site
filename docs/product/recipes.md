@@ -52,8 +52,10 @@ Delivery: Built
 - Each Library card has a favorite toggle beside Edit. Its bookmark is filled
   when selected. Saving disables the toggle; a failed save keeps the previous
   state and reports an error so the person can try again.
-- Library cards show the most recent recorded cooking date, or “Never cooked”
-  when there is no completed cooking history.
+- Library cards show the most recent recorded cooking day, or “Never cooked”
+  when there is no completed cooking history. The day reads “today” or
+  “yesterday”; else as a weekday and date within about three months; else as
+  a numeric date.
 - Library card Edit and View buttons include the recipe title in their
   accessible names. The end of the recipe list, including an empty search,
   displays “fin.” intentionally.

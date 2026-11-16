@@ -3,9 +3,9 @@
 import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
 import { EditIcon, ViewIcon } from "@/components/icons";
 import { RecipeActionBar } from "@/components/recipe-action-bar";
-import { formatLastCooked } from "@/features/recipe-card/utils";
 import { SendToPlan } from "@/features/send-to-plan";
 import { OtherUserAvatar } from "@/features/user-avatar";
+import { formatRecentDay } from "@/lib/dates";
 import { FragmentType } from "@apollo/client";
 import { useFragment } from "@apollo/client/react";
 import { Button, Card, Chip } from "@heroui/react";
@@ -32,9 +32,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
   if (!complete) return null;
 
   const lastCook = data.plannedHistory?.[0] ?? null;
-  const lastCooked = lastCook?.doneAt
-    ? formatLastCooked(lastCook.doneAt)
-    : null;
+  const lastCooked = lastCook?.doneAt ? formatRecentDay(lastCook.doneAt) : null;
   const rating = lastCook?.ratingInt ?? 0;
 
   return (
