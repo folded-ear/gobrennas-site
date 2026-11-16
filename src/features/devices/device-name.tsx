@@ -1,6 +1,6 @@
 "use client";
 
-import { AcceptIcon, CancelIcon, EditIcon } from "@/components/icons";
+import { EditIcon } from "@/components/icons";
 import { useMutation } from "@apollo/client/react";
 import { Button, Input, TextField } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
@@ -81,48 +81,39 @@ export function DeviceName({ id, name }: DeviceNameProps) {
         if (!pending) void save(draft);
       }}
     >
-      <div className="flex items-center gap-xs">
-        <TextField
-          aria-label="Device name"
-          value={draft}
-          onChange={(text) => {
-            setDraft(text);
-            setFailed(false);
-          }}
-          // Disabling would drop focus, stranding it if the save fails.
-          isReadOnly={pending}
-          onKeyDown={(event) => {
-            if (event.key === ESCAPE && !pending) stop();
-          }}
-        >
-          <Input className="px-sm py-xs" autoFocus />
-        </TextField>
-        <Button
-          type="submit"
-          aria-label="Save"
-          isIconOnly
-          size="sm"
-          variant="ghost"
-          isPending={pending}
-        >
-          <AcceptIcon size="small" aria-hidden />
-        </Button>
-        <Button
-          aria-label="Cancel"
-          isIconOnly
-          size="sm"
-          variant="ghost"
-          isDisabled={pending}
-          onPress={stop}
-        >
-          <CancelIcon size="small" aria-hidden />
-        </Button>
-      </div>
+      <TextField
+        aria-label="Device name"
+        value={draft}
+        onChange={(text) => {
+          setDraft(text);
+          setFailed(false);
+        }}
+        // Disabling would drop focus, stranding it if the save fails.
+        isReadOnly={pending}
+        onKeyDown={(event) => {
+          if (event.key === ESCAPE && !pending) stop();
+        }}
+      >
+        <Input className="px-sm py-xs" autoFocus />
+      </TextField>
       {failed ? (
         <p role="alert" className="text-sm text-danger">
           Could not rename the device. Try again.
         </p>
       ) : null}
+      <div className="flex gap-xs">
+        <Button type="submit" size="sm" isPending={pending}>
+          Save
+        </Button>
+        <Button
+          size="sm"
+          variant="tertiary"
+          isDisabled={pending}
+          onPress={stop}
+        >
+          Cancel
+        </Button>
+      </div>
     </form>
   );
 }

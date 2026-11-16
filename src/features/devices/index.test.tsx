@@ -168,6 +168,24 @@ describe("DeviceTable", () => {
       expect(field).toHaveFocus();
     });
 
+    it("offers Save and Cancel by name, below the field", async () => {
+      const user = userEvent.setup();
+      renderTable();
+      await user.click(
+        screen.getByRole("button", { name: "Rename Kitchen iPad" }),
+      );
+
+      const field = screen.getByRole("textbox", { name: "Device name" });
+      for (const name of ["Save", "Cancel"]) {
+        const button = screen.getByRole("button", { name });
+        expect(button).toHaveTextContent(name);
+        expect(
+          field.compareDocumentPosition(button) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+      }
+    });
+
     it("saves the trimmed name on Enter", async () => {
       const user = userEvent.setup();
       renderTable({ mocks: [renamed(KITCHEN.id, "Kitchen counter iPad")] });
