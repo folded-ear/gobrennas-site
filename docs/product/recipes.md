@@ -77,7 +77,7 @@ State: Agreed — library recipe view scope.
 Delivery: Built
 
 - Library recipe detail is for reading, adding to a plan, editing, and deleting
-  the saved recipe. Scaling and cooking belong to planned recipes.
+  the saved recipe, and for reviewing its [cook history](#cook-history). Scaling and cooking belong to planned recipes.
 - Recipe information appears in a compact strip above the content. Unknown
   information is omitted; zero time and calories remain visible.
 - Ingredients and directions sit side by side on wider screens and stack on
@@ -147,6 +147,9 @@ Delivery: Built
   newest first. Each shows who, whether it was cooked or deleted, and the
   day, then its rating and notes. Load more lists ten more while there are
   more. Closing and opening it again keeps what is listed.
+- If the records can't be loaded, the summary says so and offers Retry. If
+  loading more fails, the records already listed stay, and it says so; Load
+  more tries again.
 - A person can change the rating and notes of their own records only. Other
   people's show read-only; an unrated one shows no stars.
 - A rating is one to five stars. It can be changed but not cleared. A failed

@@ -43,10 +43,10 @@ export function CookNotes({ record, recipeId, editable }: CookNotesProps) {
   if (!complete) return null;
   const { id, notes } = data;
 
-  async function commit(notes: string) {
+  async function commit(text: string) {
     setFailed(false);
     try {
-      const result = await save({ variables: { recipeId, id, notes } });
+      const result = await save({ variables: { recipeId, id, notes: text } });
       if (!result.data?.library.history?.setNotes)
         throw new Error("No saved notes returned.");
       setDraft(null);
