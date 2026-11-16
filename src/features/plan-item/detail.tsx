@@ -1,3 +1,4 @@
+import { Markdown } from "@/components/markdown";
 import { useItemPlanLookup } from "@/features/plan-directory";
 import { PlanDnd } from "@/features/plan-dnd";
 import { buildEntries, DraftRow, useEditDrafts } from "@/features/plan-edit";
@@ -65,7 +66,7 @@ export function PlanItemHeader({
         onRemoved={onRemoved}
         openActions={isRecipe ? <LibraryLink recipeId={ingredient.id} /> : null}
       />
-      {data.notes ? <p className="text-sm text-muted">{data.notes}</p> : null}
+      <Markdown text={data.notes} />
       {scaling}
       {hasDescendants ? (
         // Where the item's own context stops and its contents start.

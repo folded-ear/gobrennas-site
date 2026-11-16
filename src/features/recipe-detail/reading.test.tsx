@@ -35,9 +35,8 @@ describe("RecipeReading", () => {
     expect(screen.getByTitle("Brenna Switzer")).toBeVisible();
     expect(screen.getByText("8 servings")).toBeVisible();
     expect(screen.getByText("apples")).toHaveClass("morsel-ingredient");
-    expect(screen.getByText(/Bake until golden/).textContent).toBe(
-      recipe.directions,
-    );
+    expect(screen.getByText("Bake until golden.")).toBeVisible();
+    expect(screen.getByText("Let cool before slicing.")).toBeVisible();
     expect(
       within(screen.getByRole("region", { name: "Crust" })).getByText(
         "Chill the dough.",

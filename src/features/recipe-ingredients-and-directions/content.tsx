@@ -1,4 +1,5 @@
 import { IngredientRefText } from "@/components/ingredient-ref-text";
+import { Markdown } from "@/components/markdown";
 import type { IngredientParts } from "@/lib/ingredient-parts";
 import { Disclosure } from "@heroui/react";
 import { useId, type ReactNode } from "react";
@@ -72,9 +73,7 @@ export function Directions({
         Directions
       </Heading>
       {text?.trim() ? (
-        <div className="whitespace-pre-wrap break-words leading-normal">
-          {text}
-        </div>
+        <Markdown text={text} className="break-words" />
       ) : (
         <p className="text-muted">No directions provided.</p>
       )}

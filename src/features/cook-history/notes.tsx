@@ -1,6 +1,7 @@
 "use client";
 
 import { EditIcon } from "@/components/icons";
+import { Markdown } from "@/components/markdown";
 import type { FragmentType } from "@apollo/client";
 import { useFragment, useMutation } from "@apollo/client/react";
 import { Button, TextArea, TextField } from "@heroui/react";
@@ -94,7 +95,7 @@ export function CookNotes({ record, recipeId, editable }: CookNotesProps) {
 
   return (
     <div className="flex items-start gap-xs">
-      {notes ? <p className="whitespace-pre-wrap">{notes}</p> : null}
+      <Markdown text={notes} className="prose-sm" />
       {editable ? (
         <Button
           ref={editRef}

@@ -14,7 +14,7 @@ import { CookNotes } from "./notes";
 import { LENTIL_SOUP, notesSaved } from "./test/history";
 
 const COOK = "8777749733301";
-const NOTES = "Doubled the cumin.\nNeeded more lemon.";
+const NOTES = "Doubled the cumin.\n\nNeeded more lemon.";
 
 function show(
   notes: string | null,
@@ -33,15 +33,16 @@ function show(
   );
 }
 
-/** I find the notes with their line breaks intact. */
-const asWritten = () => screen.getByText(NOTES, { normalizer: (text) => text });
+/** I find the shown notes' paragraphs. */
+const paragraphs = () =>
+  screen.getAllByRole("paragraph").map((p) => p.textContent);
 const edit = () => screen.getByRole("button", { name: "Edit notes" });
 const editor = () => screen.getByRole("textbox", { name: "Notes" });
 
 describe("CookNotes", () => {
-  it("shows the notes as written, line breaks and all", () => {
+  it("shows the notes as markdown, a paragraph per blank line", () => {
     show(NOTES, false);
-    expect(asWritten()).toBeVisible();
+    expect(paragraphs()).toEqual(["Doubled the cumin.", "Needed more lemon."]);
   });
 
   it("offers no editing of someone else's notes", () => {
@@ -74,7 +75,7 @@ describe("CookNotes", () => {
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    expect(asWritten()).toBeVisible();
+    expect(paragraphs()).toEqual(["Doubled the cumin.", "Needed more lemon."]);
     expect(edit()).toHaveFocus();
   });
 

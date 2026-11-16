@@ -70,9 +70,8 @@ describe("RecipeContent", () => {
         .getAllByRole("listitem")
         .map((item) => item.textContent),
     ).toEqual(["2 cups tomatoes, chopped", "salt to taste"]);
-    expect(within(section).getByText(/Simmer gently/).textContent).toBe(
-      "Simmer gently.\n\nTaste and season.",
-    );
+    expect(within(section).getByText("Simmer gently.")).toBeVisible();
+    expect(within(section).getByText("Taste and season.")).toBeVisible();
   });
 
   it("explains missing ingredients and directions", () => {
