@@ -33,7 +33,6 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
 
   const lastCook = data.plannedHistory?.[0] ?? null;
   const lastCooked = lastCook?.doneAt ? formatRecentDay(lastCook.doneAt) : null;
-  const rating = lastCook?.ratingInt ?? 0;
 
   return (
     <Card className="flex flex-row overflow-hidden min-w-24 rounded-sm">

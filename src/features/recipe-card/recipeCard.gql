@@ -10,6 +10,5 @@ fragment recipeCard on Recipe {
   ...cardPhoto
   plannedHistory(last: 1, status: COMPLETED) {
     doneAt
-    ratingInt
   }
 }

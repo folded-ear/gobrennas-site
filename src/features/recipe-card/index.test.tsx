@@ -66,7 +66,7 @@ function show(doneAt?: string, mocks: MockLink.MockedResponse[] = []) {
     labels: [],
     ownedBy: null,
     plannedHistory: doneAt
-      ? [{ __typename: "PlannedRecipeHistory", doneAt, ratingInt: null }]
+      ? [{ __typename: "PlannedRecipeHistory", doneAt }]
       : [],
   });
   render(<RecipeCard recipe={recipe} />, { cache, mocks });
