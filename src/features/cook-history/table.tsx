@@ -7,7 +7,7 @@ import { formatRecentDay } from "@/lib/dates";
 import type { FragmentType } from "@apollo/client";
 import { useFragment, useSuspenseQuery } from "@apollo/client/react";
 import { Alert, Button, Skeleton, Spinner, Table } from "@heroui/react";
-import { useState, useTransition } from "react";
+import { startTransition, useActionState } from "react";
 import {
   type CookHistoryRecordFragment,
   CookHistoryRecordFragmentDoc,
@@ -32,8 +32,6 @@ export function CookHistoryTable({
   recipeId,
   attempt = 0,
 }: CookHistoryTableProps) {
-  const [isLoadingMore, startLoadingMore] = useTransition();
-  const [loadMoreFailed, setLoadMoreFailed] = useState(false);
   const { data, fetchMore } = useSuspenseQuery(GetCookHistoryDocument, {
     variables: { id: recipeId, last: HISTORY_PAGE_SIZE },
     queryKey: [attempt],
@@ -41,22 +39,19 @@ export function CookHistoryTable({
   const viewerId = data.profile.me.id;
   const { recordCount, plannedHistory } = data.library.getRecipeById;
 
-  function loadMore() {
-    setLoadMoreFailed(false);
-    startLoadingMore(async () => {
-      try {
-        const { error } = await fetchMore({
-          variables: { last: plannedHistory.length + HISTORY_PAGE_SIZE },
-          updateQuery: (_, { fetchMoreResult }) => fetchMoreResult,
-          // So a failure comes back here, rather than failing the table.
-          errorPolicy: "all",
-        });
-        if (error) setLoadMoreFailed(true);
-      } catch {
-        setLoadMoreFailed(true);
-      }
-    });
-  }
+  const [loadMoreFailed, loadMore, isLoadingMore] = useActionState(async () => {
+    try {
+      const { error } = await fetchMore({
+        variables: { last: plannedHistory.length + HISTORY_PAGE_SIZE },
+        updateQuery: (_, { fetchMoreResult }) => fetchMoreResult,
+        // So a failure comes back here, rather than failing the table.
+        errorPolicy: "all",
+      });
+      return Boolean(error);
+    } catch {
+      return true;
+    }
+  }, false);
 
   return (
     <Table>
@@ -84,7 +79,7 @@ export function CookHistoryTable({
       </Table.ScrollContainer>
       {plannedHistory.length < recordCount ? (
         <Table.Footer className="flex flex-col items-start gap-sm">
-          {loadMoreFailed ? (
+          {loadMoreFailed && !isLoadingMore ? (
             <Alert status="danger" role="alert">
               <Alert.Content>
                 <Alert.Title>Couldn’t load more cooks</Alert.Title>
@@ -95,7 +90,7 @@ export function CookHistoryTable({
             <Button
               variant="tertiary"
               isDisabled={isLoadingMore}
-              onPress={loadMore}
+              onPress={() => startTransition(loadMore)}
             >
               Load more
             </Button>
