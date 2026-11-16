@@ -1,5 +1,6 @@
 "use client";
 
+import { CookHistory } from "@/features/cook-history";
 import { useDeleteRecipe } from "@/features/recipe-form/use-delete-recipe";
 import { skipToken, useSuspenseQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
@@ -75,6 +76,8 @@ function LoadedRecipeDetail({
         <LibraryRecipeActions recipe={recipe} onDelete={deleteFromDetail} />
       }
       onClose={() => (inScreen ? router.back() : router.replace("/recipes"))}
-    />
+    >
+      <CookHistory recipe={recipe} />
+    </RecipeReading>
   );
 }

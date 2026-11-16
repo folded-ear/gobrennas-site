@@ -20,6 +20,8 @@ type RecipeReadingProps = {
   recipe: FragmentType<RecipeReadingFragment>;
   /** Set in my action bar, before Close. */
   actions?: ReactNode;
+  /** Set after the recipe and everything in it. */
+  children?: ReactNode;
   onClose?: () => void;
   inScreen?: boolean;
 };
@@ -28,6 +30,7 @@ type RecipeReadingProps = {
 export function RecipeReading({
   recipe,
   actions,
+  children,
   onClose,
   inScreen = false,
 }: RecipeReadingProps) {
@@ -81,6 +84,7 @@ export function RecipeReading({
           </div>
         </RecipeSection>
       ))}
+      {children}
     </div>
   );
 
