@@ -136,7 +136,12 @@ function CookHistoryRow({ record, recipeId, viewerId }: CookHistoryRowProps) {
               className="text-status-completed"
             />
           ) : (
-            <DeleteIcon size="small" role="img" aria-label="Deleted" />
+            <DeleteIcon
+              size="small"
+              role="img"
+              aria-label="Deleted"
+              className="text-accent-soft"
+            />
           )}
         </span>
       </Table.Cell>
