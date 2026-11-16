@@ -1,7 +1,7 @@
 import { buildInMemoryCache } from "@/lib/apollo/build-in-memory-cache";
 import { gql } from "@apollo/client";
 import { beforeEach, describe, expect, it } from "vitest";
-import { evictItem } from "./evict";
+import { evictItem, evictRecipeHistory } from "./evict";
 
 type Cache = ReturnType<typeof buildInMemoryCache>;
 
@@ -215,5 +215,15 @@ describe("evictItem", () => {
 
     expect(itemExists(DESSERT_ITEM)).toBe(false);
     expect(itemExists(TIRAMISU_ITEM)).toBe(false);
+  });
+});
+
+describe("evictRecipeHistory", () => {
+  it("evicts one recipe's history, and no other's", () => {
+    evictRecipeHistory(cache, CAESAR.id);
+
+    expect(historyOf(CAESAR)).toBeNull();
+    expect(nameOf(CAESAR)).toBe("Caesar salad");
+    expect(historyOf(LASAGNA)).not.toBeNull();
   });
 });

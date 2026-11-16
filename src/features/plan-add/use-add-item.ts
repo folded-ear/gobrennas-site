@@ -1,4 +1,5 @@
 import { usePageEngine } from "@/features/page-engine";
+import { evictRecipeHistory } from "@/features/page-engine/evict";
 import { newDraftId } from "@/features/page-engine/ids";
 import { insertCreated } from "@/features/page-engine/insert";
 import { DoCreateBucketDocument } from "@/features/plan-dnd/__generated__/doCreateBucket.generated";
@@ -48,9 +49,7 @@ export function useAddItem(section: TimelineSection) {
           planId: plan.id,
           descendantIds: item.descendants.map((child) => child.id),
         });
-        const recipe = cache.identify({ __typename: "Recipe", id: recipeId });
-        for (const fieldName of ["plannedCount", "plannedHistory"])
-          cache.evict({ id: recipe, fieldName });
+        evictRecipeHistory(cache, recipeId);
       },
     });
     return result.data?.library.sendRecipeToPlan.id;

@@ -16,17 +16,22 @@ export function evictItem(cache: ApolloCache, id: string): void {
     id: cacheId,
   });
   for (const child of item?.children ?? []) evictItem(cache, child.id);
-  evictRecipeHistory(cache, cacheId);
+  evictItemRecipeHistory(cache, cacheId);
   cache.evict({ id: cacheId });
 }
 
-function evictRecipeHistory(cache: ApolloCache, itemCacheId?: string) {
+function evictItemRecipeHistory(cache: ApolloCache, itemCacheId?: string) {
   const ingredient = cache.readFragment({
     fragment: PlanItemIngredientFragmentDoc,
     id: itemCacheId,
   })?.ingredient;
   if (ingredient?.__typename !== "Recipe") return;
-  const recipeCacheId = cache.identify(ingredient);
+  evictRecipeHistory(cache, ingredient.id);
+}
+
+/** I evict a recipe's cached history. */
+export function evictRecipeHistory(cache: ApolloCache, recipeId: string): void {
+  const recipeCacheId = cache.identify({ __typename: "Recipe", id: recipeId });
   for (const fieldName of HISTORY_FIELDS)
     cache.evict({ id: recipeCacheId, fieldName });
 }
