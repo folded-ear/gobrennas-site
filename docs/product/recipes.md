@@ -88,7 +88,7 @@ Delivery: Built
   Quantities show as fractions (see
   [Text conventions](ingredient-recognition.md#text-conventions-and-saving)).
   Unrecognized rows retain their original wording. No recognition requests are needed to read the recipe.
-- Directions preserve line and paragraph breaks. Missing ingredients or
+- Directions are [formatted text](#formatted-text). Missing ingredients or
   directions are identified explicitly. Owned and borrowed sections appear in
   saved order, each with its own heading, ingredients, and directions.
 - Recipes used as ingredients follow the sections, each once, with its own
@@ -131,6 +131,24 @@ Delivery: Built
   occurrence. Its Cook view provides the readable recipe and cooking actions;
   see [Cooking](planner.md#cooking).
 
+### Formatted text
+
+Directions and notes, wherever they show, are formatted as Markdown
+(CommonMark). Editors show the text as typed and say nothing about
+formatting.
+
+- A blank line separates paragraphs. A single line break within a paragraph
+  reads as a space; a line ending in two spaces or `\` keeps its break.
+- Headings, emphasis, lists, block quotes, links, and fenced code blocks
+  format as written. Every fenced code block, `diff` included, shows its
+  lines preformatted, with no highlighting.
+- A top-level numbered list labels each item "Step 1", "Step 2", and so on,
+  counting from Step 1 whatever number the list starts at. A numbered list
+  nested in a step keeps ordinary numbers.
+- Strikethrough, tables, task lists, and bare web addresses are not
+  formatted; `~` always shows as typed.
+- HTML in the text shows as typed and is never interpreted.
+
 ### Cook history
 
 State: Agreed — [BFS-52](https://linear.app/go-brennas/issue/BFS-52).
@@ -154,8 +172,8 @@ Delivery: Built
   people's show read-only; an unrated one shows no stars.
 - A rating is one to five stars. It can be changed but not cleared. A failed
   save keeps the previous rating and says so.
-- Edit notes opens the notes with Save and Cancel. Notes are plain text and
-  keep their line breaks. A failed save keeps the draft open, says so, and
+- Notes are [formatted text](#formatted-text). Edit notes opens them with
+  Save and Cancel. A failed save keeps the draft open, says so, and
   allows retry; Cancel drops the draft. Either way, focus returns to Edit
   notes.
 - When a planned recipe is marked cooked or deleted, by this person or by

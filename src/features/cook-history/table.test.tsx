@@ -137,6 +137,7 @@ describe("CookHistoryTable", () => {
     await userEvent.click(screen.getByRole("button", { name: "Load more" }));
 
     expect(await screen.findByText("Couldn’t load more cooks")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Load more" })).toBeEnabled();
     expect(screen.getAllByRole("rowheader")).toHaveLength(HISTORY_PAGE_SIZE);
 
     await userEvent.click(screen.getByRole("button", { name: "Load more" }));

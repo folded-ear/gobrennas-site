@@ -72,9 +72,8 @@ describe("Cook", () => {
     expect(screen.getByText("4")).toHaveClass("morsel-quantity");
     expect(screen.getByText("apples")).toHaveClass("morsel-ingredient");
     expect(screen.getByText("a pinch of mystery spice")).toBeVisible();
-    expect(screen.getByText(/Bake the original pie/).textContent).toBe(
-      "Bake the original pie.\n\nLet cool before slicing.",
-    );
+    expect(screen.getByText("Bake the original pie.")).toBeVisible();
+    expect(screen.getByText("Let cool before slicing.")).toBeVisible();
     expect(
       within(
         screen.getByRole("region", { name: "Crust for Friday" }),

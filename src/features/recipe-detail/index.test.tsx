@@ -68,9 +68,8 @@ describe("RecipeDetail", () => {
     expect(
       screen.getAllByRole("listitem").map((item) => item.textContent),
     ).toContain("½ cup sugar, divided");
-    expect(screen.getByText(/Bake until golden/).textContent).toBe(
-      recipe.directions,
-    );
+    expect(screen.getByText("Bake until golden.")).toBeVisible();
+    expect(screen.getByText("Let cool before slicing.")).toBeVisible();
     expect(
       within(screen.getByRole("region", { name: "Crust" })).getByText(
         "Chill the dough.",
