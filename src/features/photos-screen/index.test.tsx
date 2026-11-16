@@ -1,6 +1,6 @@
 import { TextractJobStatus } from "@/__generated__/graphql";
-import { PollJobsDocument } from "@/features/page-engine/__generated__/pollJobs.generated";
 import { DeletePhotoJobDocument } from "@/lib/photo-jobs/__generated__/deletePhotoJob.generated";
+import { PhotoJobsDocument } from "@/lib/photo-jobs/__generated__/photoJobs.generated";
 import { RetryPhotoJobDocument } from "@/lib/photo-jobs/__generated__/retryPhotoJob.generated";
 import { RecipePhotoUploadDocument } from "@/lib/recipe-photo/__generated__/recipePhotoUpload.generated";
 import { stubPhotoBrowser } from "@/lib/recipe-photo/test/browser";
@@ -17,7 +17,6 @@ import {
 import type { MockLink } from "@apollo/client/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreatePhotoJobDocument } from "./__generated__/createPhotoJob.generated";
-import { PhotoJobsDocument } from "./__generated__/photoJobs.generated";
 import { PhotosScreen } from "./index";
 import { jobList, photoJob, type ListedPhotoJob } from "./test/jobs";
 
@@ -35,11 +34,6 @@ const RISOTTO = photoJob("8777749749832", "risotto.jpg", ERROR, {
 
 const photoFile = (name: string) =>
   new File(["a page of a cookbook"], name, { type: "image/jpeg" });
-
-const listed = (jobs: readonly ListedPhotoJob[]): MockLink.MockedResponse => ({
-  request: { query: PhotoJobsDocument },
-  result: { data: jobList(jobs) },
-});
 
 /** The scratch upload a chosen photo asks for. */
 const scratch = (name: string): MockLink.MockedResponse => ({
@@ -91,28 +85,31 @@ afterEach(() => {
 function renderPhotos({
   jobs = [] as readonly ListedPhotoJob[],
   mocks = [] as readonly MockLink.MockedResponse[],
-  /** How the job list answers, when not simply with the jobs. */
-  listing = [listed(jobs)] as readonly MockLink.MockedResponse[],
-  /** Whether the engine's own polls fail, as with the server down. */
-  pollsFail = false,
+  /** Whether the server starts out down, failing every job list. */
+  offline = false,
   picksForUser = false,
 } = {}) {
   const cache = buildInMemoryCache();
   const onPick = vi.fn<(jobId: string) => void>();
-  /** The jobs the server has, which the engine's own polls answer with. */
   let onServer = jobs;
+  let isOffline = offline;
+  // photoJobs takes no variables, so these matchers gate on the server's state.
+  const whileOffline = () => isOffline;
+  const whileOnline = () => !isOffline;
   const view = render(
     <PhotosScreen isOpen picksForUser={picksForUser} onPick={onPick} />,
     {
       cache,
       mocks: [
-        ...listing,
         {
-          request: { query: PollJobsDocument },
+          request: { query: PhotoJobsDocument, variables: whileOffline },
           maxUsageCount: Number.POSITIVE_INFINITY,
-          ...(pollsFail
-            ? { error: new Error("offline") }
-            : { result: () => ({ data: jobList(onServer) }) }),
+          error: new Error("offline"),
+        },
+        {
+          request: { query: PhotoJobsDocument, variables: whileOnline },
+          maxUsageCount: Number.POSITIVE_INFINITY,
+          result: () => ({ data: jobList(onServer) }),
         },
         ...mocks,
       ],
@@ -123,7 +120,11 @@ function renderPhotos({
     onServer = next;
     cache.writeQuery({ query: PhotoJobsDocument, data: jobList(next) });
   };
-  return { onPick, poll, ...view };
+  /** I bring the server back up. */
+  const goOnline = () => {
+    isOffline = false;
+  };
+  return { onPick, poll, goOnline, ...view };
 }
 
 const tileOf = (name: string) =>
@@ -177,17 +178,12 @@ describe("PhotosScreen", () => {
   });
 
   it("offers another try when the photos can't be loaded", async () => {
-    renderPhotos({
-      pollsFail: true,
-      listing: [
-        { request: { query: PhotoJobsDocument }, error: new Error("offline") },
-        listed([RAVIOLI]),
-      ],
-    });
+    const { goOnline } = renderPhotos({ jobs: [RAVIOLI], offline: true });
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Couldn’t load photos",
     );
+    goOnline();
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     expect(await tileOf("ravioli.jpg")).toBeVisible();

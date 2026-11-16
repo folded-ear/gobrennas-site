@@ -106,6 +106,36 @@ describe("RecipeDetail", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("summarizes the recipe's cooks after the recipe itself", () => {
+    show({
+      ...recipe,
+      cookCount: 2,
+      lastCook: [
+        {
+          __typename: "PlannedRecipeHistory",
+          id: "pie-cooked",
+          doneAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    const summary = screen.getByRole("button", {
+      name: "Last cooked today, and once before",
+    });
+    expect(summary).toBeVisible();
+    expect(
+      screen.getByText(/Bake until golden/).compareDocumentPosition(summary) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("shows no cook history for a recipe never cooked", () => {
+    show();
+    expect(
+      screen.queryByRole("button", { name: /cooked/i }),
+    ).not.toBeInTheDocument();
+  });
+
   it("sends to the active plan, or to another chosen from its menu", () => {
     show();
 

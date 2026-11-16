@@ -1,4 +1,3 @@
-# The same recipe-add action as the library, with its complete tree for the open planner.
 mutation addPlannerRecipe($recipeId: ID!, $planId: ID!, $scale: Float!) {
   library {
     sendRecipeToPlan(id: $recipeId, planId: $planId, scale: $scale) {

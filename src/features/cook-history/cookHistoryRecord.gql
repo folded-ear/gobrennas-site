@@ -1,0 +1,11 @@
+fragment cookHistoryRecord on PlannedRecipeHistory {
+  id
+  status
+  doneAt
+  owner {
+    id
+    ...userAvatar
+  }
+  ...cookRating
+  ...cookNotes
+}

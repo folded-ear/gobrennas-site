@@ -111,7 +111,8 @@ stateDiagram-v2
 
 The plan owner, or a plan administrator, may grant one access level to each
 other user. Recipe history records when a recipe was planned and finished, who
-owns that history entry, and its resulting status.
+owns that history entry, and its resulting status. Its owner may rate it and add
+notes.
 
 ## Accounts and preferences
 

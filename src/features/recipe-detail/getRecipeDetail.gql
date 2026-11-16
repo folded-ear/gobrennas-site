@@ -16,6 +16,7 @@ query getRecipeDetail($id: ID!) {
         }
       }
       ...recipeReading
+      ...cookHistorySummary
     }
   }
   ...sendToPlan

@@ -18,9 +18,9 @@ Stack: Vitest + jsdom + Testing Library (`vitest.config.ts`, `src/test/setup.ts`
   fix that first.
 - **Pure functions and hooks get plain tests, no Testing Library.** Not
   everything in a feature directory is a component (e.g.
-  `recipe-card/utils.ts`) — a plain `it`/`expect` against the exported
+  `cook-recipe/buckets.ts`) — a plain `it`/`expect` against the exported
   function is enough. No `render`, no cache, no mocks. Same co-location
-  rule applies: `utils.ts` → `utils.test.ts`.
+  rule applies: `buckets.ts` → `buckets.test.ts`.
 
 ## Guidance for AI-authored tests
 

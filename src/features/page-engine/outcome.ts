@@ -1,10 +1,10 @@
 import { TextractJobStatus } from "@/__generated__/graphql";
+import type { PhotoJobsQuery } from "@/lib/photo-jobs/__generated__/photoJobs.generated";
 import {
   CombinedGraphQLErrors,
   CombinedProtocolErrors,
   ServerError,
 } from "@apollo/client";
-import type { PollJobsQuery } from "./__generated__/pollJobs.generated";
 import { CHANGE_ROOTS } from "./roots";
 import type { JobsOutcome, PollOutcome, SendOutcome } from "./state";
 
@@ -98,7 +98,7 @@ export function jobsOutcome(answer: Answer): JobsOutcome {
   }
   const jobs =
     "data" in answer
-      ? (answer.data as PollJobsQuery | undefined)?.textract.listJobs
+      ? (answer.data as PhotoJobsQuery | undefined)?.textract.listJobs
       : undefined;
   if (jobs === undefined) return { kind: "failed" };
   return {

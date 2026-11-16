@@ -112,8 +112,8 @@ describe("DeviceTable", () => {
   it("gives the day each device was last used", () => {
     renderTable();
 
-    expect(rowOf("Barney’s Phone")).toHaveTextContent("Today");
-    expect(rowOf("Kitchen iPad")).toHaveTextContent("Yesterday");
+    expect(rowOf("Barney’s Phone")).toHaveTextContent("today");
+    expect(rowOf("Kitchen iPad")).toHaveTextContent("yesterday");
     expect(rowOf("Old Laptop")).toHaveTextContent("Thu, Oct 29");
   });
 
@@ -166,6 +166,24 @@ describe("DeviceTable", () => {
       const field = screen.getByRole("textbox", { name: "Device name" });
       expect(field).toHaveValue("Kitchen iPad");
       expect(field).toHaveFocus();
+    });
+
+    it("offers Save and Cancel by name, below the field", async () => {
+      const user = userEvent.setup();
+      renderTable();
+      await user.click(
+        screen.getByRole("button", { name: "Rename Kitchen iPad" }),
+      );
+
+      const field = screen.getByRole("textbox", { name: "Device name" });
+      for (const name of ["Save", "Cancel"]) {
+        const button = screen.getByRole("button", { name });
+        expect(button).toHaveTextContent(name);
+        expect(
+          field.compareDocumentPosition(button) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+      }
     });
 
     it("saves the trimmed name on Enter", async () => {

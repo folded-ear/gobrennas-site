@@ -52,8 +52,10 @@ Delivery: Built
 - Each Library card has a favorite toggle beside Edit. Its bookmark is filled
   when selected. Saving disables the toggle; a failed save keeps the previous
   state and reports an error so the person can try again.
-- Library cards show the most recent recorded cooking date, or “Never cooked”
-  when there is no completed cooking history.
+- Library cards show the most recent recorded cooking day, or “Never cooked”
+  when there is no completed cooking history. The day reads “today” or
+  “yesterday”; else as a weekday and date within about three months; else as
+  a numeric date.
 - Library card Edit and View buttons include the recipe title in their
   accessible names. The end of the recipe list, including an empty search,
   displays “fin.” intentionally.
@@ -75,7 +77,7 @@ State: Agreed — library recipe view scope.
 Delivery: Built
 
 - Library recipe detail is for reading, adding to a plan, editing, and deleting
-  the saved recipe. Scaling and cooking belong to planned recipes.
+  the saved recipe, and for reviewing its [cook history](#cook-history). Scaling and cooking belong to planned recipes.
 - Recipe information appears in a compact strip above the content. Unknown
   information is omitted; zero time and calories remain visible.
 - Ingredients and directions sit side by side on wider screens and stack on
@@ -128,6 +130,38 @@ Delivery: Built
 - Opening a planned recipe in the planner remains focused on editing that
   occurrence. Its Cook view provides the readable recipe and cooking actions;
   see [Cooking](planner.md#cooking).
+
+### Cook history
+
+State: Agreed — [BFS-52](https://linear.app/go-brennas/issue/BFS-52).
+
+Delivery: Built
+
+- A library recipe that has been cooked shows a closed summary at the bottom
+  of its detail, after everything in the recipe. It counts completed cooks
+  only: “Cooked once yesterday”, “Last cooked yesterday, and once before”,
+  or “Last cooked Sat, Nov 14, and 73 times before”. The day reads as on
+  Library cards. A recipe never cooked shows nothing, even if it was planned
+  and deleted.
+- Opening the summary lists the ten most recent records, cooked or deleted,
+  newest first. Each shows who, whether it was cooked or deleted, and the
+  day, then its rating and notes. Load more lists ten more while there are
+  more. Closing and opening it again keeps what is listed.
+- If the records can't be loaded, the summary says so and offers Retry. If
+  loading more fails, the records already listed stay, and it says so; Load
+  more tries again.
+- A person can change the rating and notes of their own records only. Other
+  people's show read-only; an unrated one shows no stars.
+- A rating is one to five stars. It can be changed but not cleared. A failed
+  save keeps the previous rating and says so.
+- Edit notes opens the notes with Save and Cancel. Notes are plain text and
+  keep their line breaks. A failed save keeps the draft open, says so, and
+  allows retry; Cancel drops the draft. Either way, focus returns to Edit
+  notes.
+- When a planned recipe is marked cooked or deleted, by this person or by
+  someone sharing the plan, its cook history and Library card are refreshed
+  the next time they are shown.
+- Shared recipe pages show no cook history.
 
 ### Shared recipes
 

@@ -1,0 +1,10 @@
+mutation setCookRating($recipeId: ID!, $id: ID!, $rating: PositiveInt!) {
+  library {
+    history(recipeId: $recipeId) {
+      setRating(id: $id, ratingInt: $rating) {
+        id
+        ratingInt
+      }
+    }
+  }
+}

@@ -1,4 +1,3 @@
-# What each aliased assignBucket in a change send selects.
 fragment assignBucketResult on PlanItem {
   id
   bucket {

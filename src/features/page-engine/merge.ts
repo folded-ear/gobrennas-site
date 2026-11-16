@@ -1,12 +1,12 @@
 import { PlanItemStatus } from "@/__generated__/graphql";
 import { ApolloCache, Reference } from "@apollo/client";
 import { PlanItemFragment } from "../plan-item/__generated__/planItem.generated";
+import { CorePlanItemChildrenFragmentDoc } from "./__generated__/corePlanItemChildren.generated";
 import {
   PlanItemResultFragment,
   PlanItemResultFragmentDoc,
 } from "./__generated__/planItemResult.generated";
 import {
-  CorePlanItemChildrenFragmentDoc,
   PollPlanFragment,
   PollPlanFragmentDoc,
 } from "./__generated__/pollPlan.generated";

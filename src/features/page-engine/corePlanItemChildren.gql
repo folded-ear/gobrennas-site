@@ -1,0 +1,6 @@
+fragment corePlanItemChildren on CorePlanItem {
+  id
+  children {
+    id
+  }
+}

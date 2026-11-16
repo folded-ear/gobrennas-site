@@ -101,9 +101,9 @@ describe("formatRecentDay", () => {
     new Date(...local).toISOString();
 
   it.each([
-    ["earlier the same day", at(2026, 10, 8, 0, 5), "Today"],
-    ["late the day before", at(2026, 10, 7, 23, 30), "Yesterday"],
-    ["early the next day", at(2026, 10, 9, 0, 30), "Tomorrow"],
+    ["earlier the same day", at(2026, 10, 8, 0, 5), "today"],
+    ["late the day before", at(2026, 10, 7, 23, 30), "yesterday"],
+    ["early the next day", at(2026, 10, 9, 0, 30), "tomorrow"],
     ["ten days ago", at(2026, 9, 29, 12), "Thu, Oct 29"],
     ["ninety days ago", at(2026, 7, 10, 12), "8/10/2026"],
   ])("names %s by the local day", (_, instant, label) => {

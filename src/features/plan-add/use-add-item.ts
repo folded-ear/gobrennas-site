@@ -1,4 +1,5 @@
 import { usePageEngine } from "@/features/page-engine";
+import { evictRecipeHistory } from "@/features/page-engine/evict";
 import { newDraftId } from "@/features/page-engine/ids";
 import { insertCreated } from "@/features/page-engine/insert";
 import { DoCreateBucketDocument } from "@/features/plan-dnd/__generated__/doCreateBucket.generated";
@@ -17,7 +18,7 @@ import {
 } from "./destination";
 
 /**
- * I add an item to a section. A plain item is created through the sync
+ * I add an item to a section. A plain item is created through the page
  * engine, so it shows at once, bucket and all; a recipe is added directly,
  * and its bucket assigned through the engine.
  */
@@ -48,9 +49,7 @@ export function useAddItem(section: TimelineSection) {
           planId: plan.id,
           descendantIds: item.descendants.map((child) => child.id),
         });
-        const recipe = cache.identify({ __typename: "Recipe", id: recipeId });
-        for (const fieldName of ["plannedCount", "plannedHistory"])
-          cache.evict({ id: recipe, fieldName });
+        evictRecipeHistory(cache, recipeId);
       },
     });
     return result.data?.library.sendRecipeToPlan.id;

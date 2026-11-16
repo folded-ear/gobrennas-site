@@ -11,6 +11,8 @@ export const recipe: Unmasked<
   id: "pie",
   name: "Apple pie",
   mine: true,
+  cookCount: 0,
+  lastCook: [],
   ownedBy: null,
   share: {
     __typename: "ShareInfo",

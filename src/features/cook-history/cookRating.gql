@@ -1,0 +1,4 @@
+fragment cookRating on PlannedRecipeHistory {
+  id
+  ratingInt
+}
