@@ -1,0 +1,4 @@
+fragment cookNotes on PlannedRecipeHistory {
+  id
+  notes
+}

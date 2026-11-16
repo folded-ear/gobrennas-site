@@ -1,0 +1,10 @@
+mutation setCookNotes($recipeId: ID!, $id: ID!, $notes: String!) {
+  library {
+    history(recipeId: $recipeId) {
+      setNotes(id: $id, notes: $notes) {
+        id
+        notes
+      }
+    }
+  }
+}

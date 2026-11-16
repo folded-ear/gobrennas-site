@@ -1,0 +1,8 @@
+fragment cookHistorySummary on Recipe {
+  id
+  cookCount: plannedCount(status: COMPLETED)
+  lastCook: plannedHistory(last: 1, status: COMPLETED) {
+    id
+    doneAt
+  }
+}

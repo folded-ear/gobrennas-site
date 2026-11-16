@@ -1,0 +1,17 @@
+query getCookHistory($id: ID!, $last: NonNegativeInt!) {
+  profile {
+    me {
+      id
+    }
+  }
+  library {
+    getRecipeById(id: $id) {
+      id
+      recordCount: plannedCount
+      plannedHistory(last: $last) {
+        id
+        ...cookHistoryRecord
+      }
+    }
+  }
+}
