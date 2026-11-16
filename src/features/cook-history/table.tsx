@@ -43,7 +43,7 @@ export function CookHistoryTable({ recipeId }: CookHistoryTableProps) {
             keyboardNavigationBehavior="tab"
           >
             <Table.Header>
-              <Table.Column isRowHeader>Cooked</Table.Column>
+              <Table.Column isRowHeader>Whom/When</Table.Column>
               <Table.Column>Rating</Table.Column>
               <Table.Column>Notes</Table.Column>
             </Table.Header>
@@ -96,14 +96,19 @@ function CookHistoryRow({ record, recipeId, viewerId }: CookHistoryRowProps) {
   return (
     <Table.Row id={data.id}>
       <Table.Cell>
-        <span className="flex items-center gap-xs">
+        <span className="flex items-center gap-sm">
           <UserAvatar user={data.owner} size="sm" />
+          {formatRecentDay(data.doneAt)}
           {cooked ? (
-            <CookedItIcon size="small" role="img" aria-label="Cooked" />
+            <CookedItIcon
+              size="small"
+              role="img"
+              aria-label="Cooked"
+              className="text-status-completed"
+            />
           ) : (
             <DeleteIcon size="small" role="img" aria-label="Deleted" />
           )}
-          {formatRecentDay(data.doneAt)}
         </span>
       </Table.Cell>
       <Table.Cell>

@@ -94,7 +94,7 @@ export const CloudUploadIcon = createIcon(CloudUpload);
 export const CookIcon = createIcon(ChefHat);
 export const CookedItIcon = createIcon(Ladle);
 export const CopyIcon = createIcon(Copy);
-// Star, shared with RatingIcon: a star marks what stands out.
+// Star, shared with RatingIcon, indicating the active device
 export const CurrentDeviceIcon = createIcon(Star);
 export const DarkModeIcon = createIcon(Moon);
 export const DeleteIcon = createIcon(Trash);
@@ -120,7 +120,7 @@ export const OfflineIcon = createIcon(CloudOff);
 export const PantryIcon = createIcon(ShelvingUnit);
 export const PhotosIcon = createIcon(Images);
 export const PlannerIcon = createIcon(Calendar);
-// Star, shared with CurrentDeviceIcon: a star marks what stands out.
+// Star, shared with CurrentDeviceIcon, for rating 1-5 on whatever
 export const RatingIcon = createIcon(Star);
 export const RotateLeftIcon = createIcon(RotateCcw);
 export const RotateRightIcon = createIcon(RotateCw);
