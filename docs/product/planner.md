@@ -145,7 +145,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - The item screen opens with the walk from the plan's root down to the item,
   naming every step along the way.
 - The walk, the item's notes, and the rule beneath them stay in view; only
-  what sits below the item scrolls, right to the screen's edges.
+  what sits below the item scrolls, right to the screen's edges. The notes
+  are [formatted text](recipes.md#formatted-text).
 - When the user can reach more than one plan, the open item carries its
   plan's dot. The steps above it share its plan, so carry none.
 - A step says which day it falls on wherever that differs from the step
@@ -191,7 +192,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
 - Each section's heading toggles it between showing its content and showing
   only its heading and the divider above. Every section starts expanded.
 - Plan-specific notes replace saved directions when present. Otherwise, the
-  linked recipe supplies directions. An occurrence whose saved recipe was
+  linked recipe supplies directions. Either is
+  [formatted text](recipes.md#formatted-text). An occurrence whose saved recipe was
   deleted remains readable from its planned items and notes.
 - Cook keeps a small photo thumbnail and serving count beside the title. The
   thumbnail opens a larger photo without leaving Cook. Time, source, calories,

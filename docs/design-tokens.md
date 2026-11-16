@@ -115,6 +115,24 @@ text shadow for emphasis. The `.morsel-quantity`, `.morsel-unit`, and
 `.morsel-ingredient` classes apply this treatment to ordinary text spans;
 Morsel's editable text uses the same variables in CSS Custom Highlights.
 
+### Formatted text
+
+[`Markdown`](../src/components/markdown.tsx) styles its output with the
+typography plugin's `prose` class, at `prose`'s own size: `prose` is 1rem,
+`prose-sm` 0.875rem, whatever the surrounding text size. Pass `prose-sm`
+where the surrounding text is `text-sm`.
+
+Two utilities in `globals.css` go with it. Both are `@utility` blocks, since
+`prose`'s rules sit in the utilities layer and would beat
+`@layer components`.
+
+- `prose-tokens` maps the `--tw-prose-*` colors onto our tokens. Text takes
+  the surrounding color (`currentColor`); links are `accent`, list markers
+  `muted`, rules `separator`, and code blocks `surface-secondary`. The tokens
+  switch with the theme, so there is no `prose-invert`.
+- `markdown-steps` labels each item of a top-level ordered list "Step N", in
+  the `h6` style colored `accent`.
+
 ## Icons
 
 Lucide is our icon set, which only `src/components/icons.tsx` may import from.

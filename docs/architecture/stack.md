@@ -13,6 +13,7 @@ source of truth for exact versions.
 | UI components | HeroUI | `package.json` |
 | Forms and validation | React Hook Form with Zod via `@hookform/resolvers` | `docs/forms-and-validation.md` |
 | Styling | Tailwind CSS with Tailwind Variants | `app/globals.css` |
+| Formatted text | `react-markdown`, styled by `@tailwindcss/typography` | `src/components/markdown.tsx`, `app/globals.css` |
 | Theme | CSS variables using OKLCh colors; light and dark modes through `next-themes` | `app/globals.css`, `src/providers/theme-provider.tsx` |
 | Icons | Lucide | `package.json` |
 | Drag and drop | React Aria | `src/lib/dnd/`, `src/features/plan-dnd/` |
