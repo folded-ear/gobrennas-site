@@ -193,8 +193,8 @@ The terms used here are defined in the [domain model](../domain/model.md).
   only its heading and the divider above. Every section starts expanded.
 - Plan-specific notes replace saved directions when present. Otherwise, the
   linked recipe supplies directions. Either is
-  [formatted text](recipes.md#formatted-text). An occurrence whose saved recipe was
-  deleted remains readable from its planned items and notes.
+  [formatted text](recipes.md#formatted-text). An occurrence whose saved
+  recipe was deleted remains readable from its planned items and notes.
 - Cook keeps a small photo thumbnail and serving count beside the title. The
   thumbnail opens a larger photo without leaving Cook. Time, source, calories,
   and labels are available under Recipe details, collapsed by default so the

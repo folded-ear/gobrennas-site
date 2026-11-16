@@ -131,7 +131,7 @@ Two utilities in `globals.css` go with it. Both are `@utility` blocks, since
   `muted`, rules `separator`, and code blocks `surface-secondary`. The tokens
   switch with the theme, so there is no `prose-invert`.
 - `markdown-steps` labels each item of a top-level ordered list "Step N", in
-  the `h6` style colored `accent`.
+  small, uppercase, widely tracked `accent` text.
 
 ## Icons
 
