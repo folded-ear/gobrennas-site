@@ -18,7 +18,7 @@ import {
 } from "./destination";
 
 /**
- * I add an item to a section. A plain item is created through the sync
+ * I add an item to a section. A plain item is created through the page
  * engine, so it shows at once, bucket and all; a recipe is added directly,
  * and its bucket assigned through the engine.
  */

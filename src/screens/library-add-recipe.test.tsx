@@ -44,11 +44,6 @@ const MOCKS: readonly MockLink.MockedResponse[] = [
     maxUsageCount: Number.POSITIVE_INFINITY,
     result: { data: JOB_LIST },
   },
-  {
-    request: { query: PhotoJobsDocument },
-    maxUsageCount: Number.POSITIVE_INFINITY,
-    result: { data: JOB_LIST },
-  },
 ];
 
 beforeEach(() => {

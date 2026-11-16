@@ -49,11 +49,6 @@ const MOCKS: readonly MockLink.MockedResponse[] = [
     result: { data: JOB_LIST },
   },
   {
-    request: { query: PhotoJobsDocument },
-    maxUsageCount: Number.POSITIVE_INFINITY,
-    result: { data: JOB_LIST },
-  },
-  {
     request: { query: PhotoJobLinesDocument, variables: { id: JOB_ID } },
     maxUsageCount: Number.POSITIVE_INFINITY,
     result: {
