@@ -342,6 +342,6 @@
     content: "Step " counter(step);
     display: block;
     color: var(--accent);
-    @apply text-sm font-semibold tracking-wide uppercase;
+    @apply text-sm tracking-wide uppercase;
   }
 }

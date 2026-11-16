@@ -73,7 +73,7 @@ export function Directions({
         Directions
       </Heading>
       {text?.trim() ? (
-        <Markdown text={text} className="break-words" />
+        <Markdown text={text} />
       ) : (
         <p className="text-muted">No directions provided.</p>
       )}
